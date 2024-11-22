@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complexity Results</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Complexity Results</h1>
+
+    {% for file in complexities %}
+        <h2>Filename: {{ file.filename }}</h2>
+        <!-- MPC and CBO values -->
+        <h3>Overall Metrics</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>CBO</th>
+                    <th>MPC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ file.cbo }}</td>
+                    <td>{{ file.mpc }}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Line Number</th>
+                    <th>Line</th>
+                    <th>Size</th>
+                     <th>Tokens</th>
+                    <th>Control Structure Complexity</th>
+                    <th>Nesting Weight</th>
+                    <th>Inheritance Weight</th>
+                    <th>Compound Condition Weight</th>
+                    <th>Try-Catch Weight</th>
+                    <th>Thread Weight</th>
+                    <th>Total Complexity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in file.complexity_data %}
+                    <tr>
+                        <td>{{ line.0 }}</td>
+                        <td>{{ line.1 }}</td>
+                        <td>{{ line.2 }}</td>
+                        <td>{{ line.3 }}</td>
+                        <td>{{ line.4 }}</td>
+                        <td>{{ line.5 }}</td>
+                        <td>{{ line.6 }}</td>
+                        <td>{{ line.7 }}</td>
+                        <td>{{ line.8 }}</td>
+                        <td>{{ line.9 }}</td>
+                    <td>{{ line.10 }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+    {% endfor %}
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Complexity</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Code Complexity Table</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Line Number</th>
+                <th>Line Content</th>
+                <th>Size</th>
+                <th>Tokens</th>
+                <th>Control Structure Complexity</th>
+                <th>Nesting Level</th>
+                <th>Inheritance Level</th>
+                <th>Compound Condition Weight</th>
+                <th>Try-Catch</th>
+                <th>Thread</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in complexities %}
+            <tr>
+                <td>{{ line.line_number }}</td>
+                <td>{{ line.line_content }}</td>
+                <td>{{ line.size }}</td>
+                <td>{{ line.tokens }}</td>
+                <td>{{ line.control_structure_complexity }}</td>
+                <td>{{ line.nesting_level }}</td>
+                <td>{{ line.inheritance_level }}</td>
+                <td>{{ line.compound_condition_weight }}</td>
+                <td>{{ line.try_catch_weight }}</td>
+            <td>{{ line.thread_weight }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Total CBO: {{ cbo }} </h2>
+
+ <a href="{% url 'calculate_complexity_line_by_line' %}">Calculate Again</a>
+</body>
+</html>

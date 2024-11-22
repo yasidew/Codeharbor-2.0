@@ -1,0 +1,94 @@
+{#<!DOCTYPE html>#}
+{#<html>#}
+{#<head>#}
+{#    <title>Analysis Results</title>#}
+{#</head>#}
+{#<body>#}
+{#    <h2>Analysis Results</h2>#}
+{##}
+{#    <h3>Correlation Results</h3>#}
+{#    <p>Pearson Correlation (WCC vs Complexity): {{ pearson_corr }}</p>#}
+{#    <p>Spearman Correlation (WCC vs Complexity): {{ spearman_corr }}</p>#}
+{##}
+{#    <h3>Threshold Values</h3>#}
+{#    <p>Low Complexity Threshold: {{ threshold_low }}</p>#}
+{#    <p>Medium Complexity Threshold: {{ threshold_medium }}</p>#}
+{##}
+{#    <h3>Correlation Heatmap</h3>#}
+{#    <img src="{{ heatmap_path }}" alt="Correlation Heatmap">#}
+{##}
+{#    <h3>Scatter Plot</h3>#}
+{#    <img src="{{ scatter_plot_path }}" alt="Scatter Plot">#}
+{##}
+{#    <h3>Linear Regression Summary</h3>#}
+{#    <pre>{{ regression_summary }}</pre>#}
+{#</body>#}
+{#</html>#}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correlation Analysis Results</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        img {
+            width: 50%;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Correlation Analysis Results</h1>
+
+    <h2>Pearson and Spearman Correlation Results</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Metric</th>
+                <th>Pearson Correlation</th>
+                <th>Pearson p-value</th>
+                <th>Spearman Correlation</th>
+                <th>Spearman p-value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for metric, pearson in pearson_results.items %}
+            <tr>
+                <td>{{ metric }}</td>
+                <td>{{ pearson.correlation }}</td>
+                <td>{{ pearson.p_value }}</td>
+                <td>{{ spearman_results[metric].correlation }}</td>
+                <td>{{ spearman_results[metric].p_value }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Correlation Matrix Heatmap</h2>
+    <img src="{{ heatmap_path }}" alt="Correlation Heatmap">
+
+    <h2>Scatter Plots for WCC vs Metrics</h2>
+    {% for metric, plot_path in scatter_plots.items %}
+        <h3>WCC vs {{ metric }}</h3>
+        <img src="{{ plot_path }}" alt="Scatter Plot for {{ metric }}">
+    {% endfor %}
+
+    <br>
+    <a href="{% url 'calculate_complexity' %}">Go back to upload another CSV file</a>
+</body>
+</html>

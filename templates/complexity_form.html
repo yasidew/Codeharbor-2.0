@@ -1,0 +1,35 @@
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
+{#    <title>Code Complexity Calculator</title>#}
+{#</head>#}
+{#<body>#}
+{#    <h1>Calculate Code Complexity</h1>#}
+{#    <form method="POST" action="">#}
+{#        {% csrf_token %}#}
+{#        <label for="code">Paste Your Code Here:</label><br>#}
+{#        <textarea name="code" id="code" rows="15" cols="80"></textarea><br><br>#}
+{#        <button type="submit">Calculate Complexity</button>#}
+{#    </form>#}
+{#</body>#}
+{#</html>#}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Complexity Calculator</title>
+</head>
+<body>
+    <h1>Calculate Code Complexity</h1>
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="files">Upload Your Java Files:</label><br>
+        <input type="file" name="files" id="files" accept=".java" multiple><br><br>
+        <button type="submit">Calculate Complexity</button>
+    </form>
+</body>
+</html>
