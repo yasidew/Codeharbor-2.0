@@ -22,4 +22,8 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
     path('calculate-complexity-excel/', views.calculate_complexity, name='calculate_complexity-excel'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+path('python_code_analysis/', views.python_code_analysis, name='python_code_analysis'),
+
+path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
+
 urlpatterns = format_suffix_patterns(urlpatterns)

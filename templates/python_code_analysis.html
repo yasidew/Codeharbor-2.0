@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code Analysis</title>
+</head>
+<body>
+<h1>Python Code Analysis</h1>
+<form method="POST" action="">
+    {% csrf_token %}
+    <label for="code">Paste Your Python Code Here:</label><br>
+    <textarea name="code" id="code" rows="15" cols="80" placeholder="Paste Python code here"></textarea><br><br>
+    <button type="submit">Analyze Code</button>
+</form>
+
+{% if recommendations %}
+    <h2>Analysis Recommendations</h2>
+    <ul>
+        {% for recommendation in recommendations %}
+            <li>{{ recommendation }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+</body>
+</html>

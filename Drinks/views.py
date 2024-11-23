@@ -8,7 +8,11 @@ from django.http import JsonResponse, HttpResponse
 from matplotlib import pyplot as plt
 from scipy.stats import pearsonr, spearmanr
 import seaborn as sns
+
+import analysis
 from Drinks.models import Drink
+from analysis.code_analyzer import CodeAnalyzer
+from analysis.java_code_analyser import JavaCodeAnalyzer
 from .serializers import DrinkSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -20,6 +24,42 @@ from .complexity_calculator_csharp import calculate_code_complexity_line_by_line
 from django.shortcuts import render
 from prettytable import PrettyTable
 import statsmodels.api as sm
+
+@api_view(['GET', 'POST'])
+def python_code_analysis(request):
+    if request.method == 'POST':
+        try:
+            code = request.POST.get('code', '')
+            if not code:
+                return JsonResponse({'error': 'No code provided'}, status=400)
+
+            analyser = CodeAnalyzer(code)
+            recommendations = analyser.generate_recommendations()
+            return JsonResponse({'recommendations': recommendations})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return render(request, 'python_code_analysis.html')
+
+
+
+@api_view(['GET', 'POST'])
+def java_code_analysis(request):
+    if request.method == 'POST':
+        try:
+            code = request.POST.get('code', '')
+            if not code:
+                return JsonResponse({'error': 'No code provided'}, status=400)
+
+            analyser = JavaCodeAnalyzer(code)
+            recommendations = analyser.generate_recommendations()
+            return JsonResponse({'recommendations': recommendations})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return render(request, 'java_code_analysis.html')
 
 @api_view(['GET', 'POST'])
 def drink_list(request, format=None):
