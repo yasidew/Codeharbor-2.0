@@ -722,10 +722,8 @@ def calculate_code_complexity_multiple_files(file_contents):
 
         # Extract class references and message passing for MPC and CBO
         class_references = extract_class_references(content)
-        print("Class References: " , class_references)
         message_passing = extract_message_passing(content)
-        method_complexities = calculate_code_complexity_by_method(content)
-        print("Method complex",method_complexities)
+        # print("Method complex",method_complexities)
 
 
         # Calculate MPC and CBO for this file
@@ -734,6 +732,8 @@ def calculate_code_complexity_multiple_files(file_contents):
 
         # Prepare line_complexities for recommendation engine
         line_complexities = []
+
+        method_inheritance = {}
 
         for line_number, line in enumerate(lines, start=1):
             # Calculate size (token count)
@@ -774,6 +774,7 @@ def calculate_code_complexity_multiple_files(file_contents):
             # current_inheritance = calculate_inheritance_level(line, current_inheritance)
             # Calculate inheritance level (using tracked inheritance from other files)
             current_inheritance = calculate_inheritance_level2(class_name)
+            method_inheritance[class_name] = current_inheritance
 
             # Calculate weights due to compound conditions
             compound_condition_weight = calculate_compound_condition_weight(line)
@@ -818,6 +819,7 @@ def calculate_code_complexity_multiple_files(file_contents):
                 thread_weight,
                 total_complexity,
             ])
+        method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name)
         # Get AI recommendations for each line in the file
         recommendations = ai_recommend_refactoring(line_complexities)
 
@@ -853,93 +855,8 @@ method_pattern = re.compile(
 # Keywords to ignore to prevent detecting control structures as methods
 control_keywords = {'if', 'for', 'while', 'switch', 'catch'}
 
-"""
-# Main function to calculate complexity for each method
-def calculate_code_complexity_by_method(code):
-    lines = code.splitlines()
-    current_nesting = 0
-    control_structure_stack = []
-    current_inheritance = 0
-    in_control_structure = False
-    method_complexities = []
-    current_method = None
-    method_complexity = {
-        'size': 0,
-        'control_structure_complexity': 0,
-        'nesting_level': 0,
-        'inheritance_level': 0,
-        'compound_condition_weight': 0,
-        'try_catch_weight': 0,
-        'thread_weight': 0,
-        'total_complexity': 0
-    }
-
-    for i, line in enumerate(lines, start=1):
-        # Remove unnecessary symbols and keywords
-        processed_line = re.sub(r'\b(public|private|protected|static|else|return|try)\b', '', line)
-        processed_line = processed_line.strip()
-
-        # Detect method start using refined pattern
-        method_match = method_pattern.match(line)
-        if method_match and not any(keyword in line for keyword in control_keywords):
-            # Save the previous method's complexity if we were in a method
-            if current_method:
-                print(f"Detected method end: {current_method} with complexity: {method_complexity}")
-                method_complexities.append({**method_complexity, 'method_name': current_method})
-
-            # Initialize tracking for the new method
-            current_method = method_match.group(0).strip()  # Capture method signature
-            print(f"Detected method start: {current_method}")
-            method_complexity = {k: 0 for k in method_complexity}  # Reset for new method
-            continue  # Skip further complexity calculations for the declaration line
-
-        # Accumulate complexity metrics for the current method
-        if current_method:
-            size, tokens = calculate_size(processed_line)
-            print(f"Size: {size}")
-            print(f"Tokens: {tokens}")
-            method_complexity['size'] += size
-            method_complexity['control_structure_complexity'] += calculate_control_structure_complexity(line)
-            current_nesting, in_control_structure, control_structure_stack, wn = calculate_nesting_level(
-                line, current_nesting, in_control_structure, control_structure_stack
-            )
-            method_complexity['nesting_level'] += wn
-            print(f"WN: {line}")
-            method_complexity['inheritance_level'] += calculate_inheritance_level(line, current_inheritance)
-            print(f"exity: {calculate_inheritance_level(line, current_inheritance)}")
-            method_complexity['compound_condition_weight'] += calculate_compound_condition_weight(line)
-            method_complexity['try_catch_weight'] += calculate_try_catch_weight(line, current_nesting)
-            method_complexity['thread_weight'] += calculate_thread_weight(line)
-            # method_complexity['total_complexity'] = sum(method_complexity.values())
-
-            # Calculate total complexity with weighted metrics
-            method_complexity['total_complexity'] = (
-                    method_complexity['size']  +
-                    method_complexity['control_structure_complexity'] +
-                    method_complexity['nesting_level'] +
-                    method_complexity['inheritance_level']  +
-                    method_complexity['compound_condition_weight']  +
-                    method_complexity['try_catch_weight']  +
-                    method_complexity['thread_weight']
-            )
-
-            # Detect method end by closing brace at correct nesting level
-            if '}' in line and current_nesting == 0:
-                print(f"Detected method end: {current_method} with complexity: {method_complexity}")
-                method_complexities.append({**method_complexity, 'method_name': current_method})
-                current_method = None
-
-    # Append the last method if not already saved
-    if current_method:
-        print(f"Final detected method end: {current_method} with complexity: {method_complexity}")
-        method_complexities.append({**method_complexity, 'method_name': current_method})
-
-    print("Method Complexities:", method_complexities)
-    return method_complexities
-"""
-
 # Function to calculate complexity for each method in a file
-def calculate_code_complexity_by_method(content):
+def calculate_code_complexity_by_method(content, method_inheritance, class_name):
     methods = {}
     method_name = None
     method_lines = []
@@ -951,7 +868,7 @@ def calculate_code_complexity_by_method(content):
         if match:
             # If we're already in a method, calculate its complexity
             if method_name:
-                methods[method_name] = calculate_complexity_for_method(method_lines)
+                methods[method_name] = calculate_complexity_for_method(method_lines,method_inheritance, class_name)
             # Start a new method
             method_name = match.group(1)
             method_lines = [line]
@@ -961,20 +878,20 @@ def calculate_code_complexity_by_method(content):
 
     # Final method complexity calculation
     if method_name:
-        methods[method_name] = calculate_complexity_for_method(method_lines)
+        methods[method_name] = calculate_complexity_for_method(method_lines,method_inheritance, class_name)
 
     return methods
 
 # Helper function to calculate complexity for a method based on lines of code
-def calculate_complexity_for_method(lines):
+def calculate_complexity_for_method(lines,method_inheritance, class_name):
     size = 0
     control_structure_complexity = 0
     nesting_level = 0
-    inheritance_level = 0
     compound_condition_weight = 0
     try_catch_weight = 0
     thread_weight = 0
-    current_inheritance = 0
+    current_inheritance_sum = 0
+    current_class = class_name
 
     current_nesting = 0
     control_structure_stack = []
@@ -983,7 +900,15 @@ def calculate_complexity_for_method(lines):
     for line in lines:
         # Calculate size (token count) for this line
         line_size, tokens = calculate_size(line)
+
+        if line_size == 0:
+            continue  # Skip this line if size is 0
+
+        total_inheritance = method_inheritance[current_class]
+
         size += line_size
+
+        current_inheritance_sum += total_inheritance
 
         # Calculate control structure complexity
         control_structure_complexity += calculate_control_structure_complexity(line)
@@ -993,8 +918,6 @@ def calculate_complexity_for_method(lines):
             line, current_nesting, False, control_structure_stack
         )
         nesting_level += wn
-
-        inheritance_level += calculate_inheritance_level(line, current_inheritance)
 
         # Compound condition weight
         compound_condition_weight += calculate_compound_condition_weight(line)
@@ -1007,15 +930,16 @@ def calculate_complexity_for_method(lines):
 
     # Sum up the complexity metrics for this method
     total_complexity = (
-        size + control_structure_complexity + nesting_level + inheritance_level +
+        size + control_structure_complexity + nesting_level + current_inheritance_sum +
         compound_condition_weight + try_catch_weight + thread_weight
     )
 
+    print("current_inheritance_sum",current_inheritance_sum)
     return {
         "size": size,
         "control_structure_complexity": control_structure_complexity,
         "nesting_level": nesting_level,
-        "inheritance_level": inheritance_level,
+        "inheritance_level": current_inheritance_sum,
         "compound_condition_weight": compound_condition_weight,
         "try_catch_weight": try_catch_weight,
         "thread_weight": thread_weight,
