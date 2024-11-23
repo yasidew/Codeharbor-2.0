@@ -20,6 +20,9 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
          name='calculate_complexity_line_by_line_csharp'),
 
     path('calculate-complexity-excel/', views.calculate_complexity, name='calculate_complexity-excel'),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns = format_suffix_patterns(urlpatterns)
