@@ -474,10 +474,10 @@ class CodeAnalyzer:
                     # print(f"Potential unvalidated redirect detected at line {node.lineno}")
 
 # Example usage
-if __name__ == '__main__':
-    with open('path_to_your_file.py', 'r') as file:
-        code = file.read()  # Read the Python code to be analyzed
-
-    analyzer = CodeAnalyzer(code)
-    analyzer.run_pylint()  # Run Pylint for general coding standards
-    analyzer.custom_rules_check()  # Run custom rules check (e.g., function length)
+# if __name__ == '__main__':
+#     with open('path_to_your_file.py', 'r') as file:
+#         code = file.read()  # Read the Python code to be analyzed
+#
+#     analyzer = CodeAnalyzer(code)
+#     analyzer.run_pylint()  # Run Pylint for general coding standards
+#     analyzer.custom_rules_check()  # Run custom rules check (e.g., function length)
