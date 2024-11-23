@@ -42,6 +42,16 @@ class JavaCodeAnalyzer:
         self._check_insecure_file_handling(tree)
         self._check_session_security(tree)
         self._check_unvalidated_redirects(tree)
+        self._check_package_naming_convention(self.code.splitlines())
+        self._check_class_naming_convention(tree)
+        self._check_method_naming_convention(tree)
+        self._check_thread_safety_violations(tree)
+        self._check_inefficient_loops(tree)
+        self._check_potential_null_pointers(tree)
+        self._check_resource_leaks(tree)
+        self._check_empty_catch_blocks(tree)
+
+
 
     def _check_method_length(self, tree):
         # Check if any method in the code has more than 10 lines
@@ -406,6 +416,92 @@ class JavaCodeAnalyzer:
                             "message": f"Unvalidated redirect detected at line {node.position.line}: {arg.value}",
                             "line": node.position.line,
                         })
+
+
+    def _check_package_naming_convention(self, lines):
+        # Check for package naming conventions
+        for line in lines:
+            if line.strip().startswith("package"):
+                package_name = line.split("package")[1].strip("; ").strip()
+                if not re.match(r"^[a-z]+(\.[a-z][a-z0-9]*)*$", package_name):
+                    self.recommendations.append({
+                        "rule": "Package Naming Convention",
+                        "message": f"Package name '{package_name}' does not follow naming conventions.",
+                        "line": lines.index(line) + 1,
+                    })
+
+    def _check_class_naming_convention(self, tree):
+        # Check if class names follow PascalCase
+        for path, node in tree.filter(javalang.tree.ClassDeclaration):
+            if not re.match(r"^[A-Z][a-zA-Z0-9]*$", node.name):
+                self.recommendations.append({
+                    "rule": "Class Naming Convention",
+                    "message": f"Class name '{node.name}' does not follow PascalCase naming conventions.",
+                    "line": node.position.line,
+                })
+
+    def _check_method_naming_convention(self, tree):
+        # Check if method names follow camelCase
+        for path, node in tree.filter(javalang.tree.MethodDeclaration):
+            if not re.match(r"^[a-z][a-zA-Z0-9]*$", node.name):
+                self.recommendations.append({
+                    "rule": "Method Naming Convention",
+                    "message": f"Method name '{node.name}' does not follow camelCase naming conventions.",
+                    "line": node.position.line,
+                })
+
+    def _check_thread_safety_violations(self, tree):
+        # Check for thread-safety issues (e.g., unsynchronized shared variables)
+        for path, node in tree.filter(javalang.tree.FieldDeclaration):
+            if 'static' in node.modifiers and 'volatile' not in node.modifiers:
+                self.recommendations.append({
+                    "rule": "Thread Safety Violation",
+                    "message": f"Static field {node.declarators[0].name} may not be thread-safe. Consider using 'volatile' or synchronization.",
+                    "line": node.position.line,
+                })
+
+    def _check_inefficient_loops(self, tree):
+        # Check for nested loops causing performance bottlenecks
+        for path, node in tree.filter(javalang.tree.ForStatement):
+            if any(isinstance(child, javalang.tree.ForStatement) for child in node.body):
+                self.recommendations.append({
+                    "rule": "Inefficient Loops",
+                    "message": f"Nested loop detected at line {node.position.line}. Consider optimizing.",
+                    "line": node.position.line,
+                })
+
+    def _check_potential_null_pointers(self, tree):
+        # Check for potential null pointer exceptions
+        for path, node in tree.filter(javalang.tree.MethodInvocation):
+            if isinstance(node.qualifier, javalang.tree.MemberReference) and not node.qualifier.position:
+                self.recommendations.append({
+                    "rule": "Potential NullPointerException",
+                    "message": f"Possible null dereference for {node.qualifier.member} at line {node.position.line}. Ensure proper null checks.",
+                    "line": node.position.line,
+                })
+
+    def _check_resource_leaks(self, tree):
+        # Check for unclosed resources like files, sockets, etc.
+        for path, node in tree.filter(javalang.tree.MethodInvocation):
+            if node.member in {"open", "getConnection"}:
+                if not any("close" in arg.member for arg in node.arguments if isinstance(arg, javalang.tree.MethodInvocation)):
+                    self.recommendations.append({
+                        "rule": "Resource Leak",
+                        "message": f"Resource opened using {node.member} at line {node.position.line} is not properly closed.",
+                        "line": node.position.line,
+                    })
+
+    def _check_empty_catch_blocks(self, tree):
+        # Check for empty catch blocks
+        for path, node in tree.filter(javalang.tree.TryStatement):
+            for catch_clause in node.catches:
+                if not catch_clause.block or len(catch_clause.block) == 0:
+                    self.recommendations.append({
+                        "rule": "Empty Catch Block",
+                        "message": f"Empty catch block detected at line {catch_clause.block.position.line}. Handle exceptions properly.",
+                        "line": catch_clause.block.position.line,
+                    })
+
 
 
 

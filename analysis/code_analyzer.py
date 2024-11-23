@@ -7,6 +7,7 @@ import re
 
 class CodeAnalyzer:
     def __init__(self, code):
+        self.defined_variables = [] # List to store defined variables
         self.code = code  # Code to be analyzed
         self.recommendations =[]  # List to store recommendations
 
@@ -16,6 +17,7 @@ class CodeAnalyzer:
             tree = ast.parse(self.code)
         except SyntaxError as e:
             return [f"Syntax Error: {e}"]
+
 
 
         # Run pylint and custom rules check
@@ -64,6 +66,14 @@ class CodeAnalyzer:
         self._check_insecure_file_handling(tree)
         self._check_session_security(tree)
         self._check_unvalidated_redirects(tree)
+        self._check_package_naming_convention(self.code.splitlines())
+        self._check_class_naming_convention(tree)
+        self._check_method_naming_convention(tree)
+        self._check_thread_safety_violations(tree)
+        self._check_inefficient_loops(tree)
+        self._check_potential_null_pointers(tree)
+        self._check_resource_leaks(tree)
+        self._check_empty_catch_blocks(tree)
 
 
 
@@ -472,6 +482,110 @@ class CodeAnalyzer:
                         "line": node.lineno,
                     })
                     # print(f"Potential unvalidated redirect detected at line {node.lineno}")
+
+    def _check_package_naming_convention(self, code_lines):
+        # Check for package naming convention (lower-case)
+        package_pattern = re.compile(r"package\s+([\w\.]+);")
+        for i, line in enumerate(code_lines):
+            match = package_pattern.match(line.strip())
+            if match:
+                package_name = match.group(1)
+                if not package_name.islower():
+                    self.recommendations.append({
+                        "rule": "Package Naming Convention",
+                        "message": f"Package name '{package_name}' at line {i+1} does not follow lower-case naming convention.",
+                        "line": i + 1,
+                    })
+
+    def _check_class_naming_convention(self, tree):
+        # Check for class naming convention (CamelCase)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                if not re.match(r"^[A-Z][a-zA-Z0-9]*$", node.name):
+                    self.recommendations.append({
+                        "rule": "Class Naming Convention",
+                        "message": f"Class name '{node.name}' at line {node.lineno} does not follow CamelCase convention.",
+                        "line": node.lineno,
+                    })
+
+    def _check_method_naming_convention(self, tree):
+        # Check for method naming convention (camelCase)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                if not re.match(r"^[a-z][a-zA-Z0-9]*$", node.name):
+                    self.recommendations.append({
+                        "rule": "Method Naming Convention",
+                        "message": f"Method name '{node.name}' at line {node.lineno} does not follow camelCase convention.",
+                        "line": node.lineno,
+                    })
+
+    def _check_thread_safety_violations(self, tree):
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute) and "lock" not in [n.id for n in ast.walk(node)]:
+                if isinstance(node.ctx, ast.Store) and isinstance(node.value, ast.Name):
+                    self.recommendations.append({
+                        "rule": "Thread Safety Violations",
+                        "message": f"Possible unsynchronized access to shared resource '{node.attr}' at line {node.lineno}. Consider using locks or synchronization.",
+                        "line": node.lineno,
+                    })
+
+    def _check_inefficient_loops(self, tree):
+        def is_nested_loop(node):
+            if isinstance(node, ast.For) or isinstance(node, ast.While):
+                for child in ast.iter_child_nodes(node):
+                    if isinstance(child, (ast.For, ast.While)):
+                        return True
+            return False
+
+        for node in ast.walk(tree):
+            if is_nested_loop(node):
+                self.recommendations.append({
+                    "rule": "Inefficient Loops",
+                    "message": f"Nested loop detected at line {node.lineno}. Consider optimizing the loop structure.",
+                    "line": node.lineno,
+                })
+
+    def _check_potential_null_pointers(self, tree):
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute):
+                if isinstance(node.value, ast.Name):
+                    if node.value.id not in self.defined_variables:
+                        self.recommendations.append({
+                            "rule": "Potential NullPointerExceptions",
+                            "message": f"Variable '{node.value.id}' at line {node.lineno} might be null or undefined. Add proper null checks.",
+                            "line": node.lineno,
+                        })
+
+    def _check_resource_leaks(self, tree):
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                if any(res in ast.dump(node.func) for res in ["open", "socket", "connect", "accept", "bind"]):
+                    is_closed = any(
+                        isinstance(child, ast.Call) and "close" in ast.dump(child.func)
+                        for child in ast.iter_child_nodes(node)
+                    )
+                    if not is_closed:
+                        self.recommendations.append({
+                            "rule": "Resource Leaks",
+                            "message": f"Resource opened at line {node.lineno} is not properly closed. Ensure to close resources like files or sockets.",
+                            "line": node.lineno,
+                        })
+
+
+    def _check_empty_catch_blocks(self, tree):
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Try):
+                for handler in node.handlers:
+                    if not handler.body:
+                        self.recommendations.append({
+                            "rule": "Empty Catch Blocks",
+                            "message": f"Empty catch block at line {handler.lineno}. Avoid silently swallowing exceptions.",
+                            "line": handler.lineno,
+                        })
+
+
+
+
 
 # Example usage
 # if __name__ == '__main__':
