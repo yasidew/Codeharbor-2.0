@@ -2,26 +2,23 @@ import json
 import os
 
 import pandas as pd
-from django.conf import settings
-from django.core.serializers import serialize
-from django.http import JsonResponse, HttpResponse
-from matplotlib import pyplot as plt
-from scipy.stats import pearsonr, spearmanr
 import seaborn as sns
+from django.conf import settings
+from django.http import HttpResponse
+from django.shortcuts import render
+from matplotlib import pyplot as plt
+from prettytable import PrettyTable
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from scipy.stats import pearsonr, spearmanr
 from sklearn.cluster import KMeans
 
 from Drinks.models import Drink
-from .serializers import DrinkSerializer
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from .complexity_calculator import calculate_code_complexity_multiple_files, ai_recommend_refactoring, \
-    calculate_code_complexity_by_method
 from .complexity_calculator import calculate_code_complexity_line_by_line
-from .complexity_calculator_csharp import calculate_code_complexity_line_by_line_csharp
-from django.shortcuts import render
-from prettytable import PrettyTable
-import statsmodels.api as sm
+from .complexity_calculator import calculate_code_complexity_multiple_files
+from .serializers import DrinkSerializer
+
 
 @api_view(['GET', 'POST'])
 def drink_list(request, format=None):
@@ -35,7 +32,8 @@ def drink_list(request, format=None):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-@api_view(['GET', 'PUT' ,'DELETE'])
+
+@api_view(['GET', 'PUT', 'DELETE'])
 def drink_detail(request, id, format=None):
     Drink.objects.get(pk=id)
 
@@ -58,17 +56,6 @@ def drink_detail(request, id, format=None):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# @api_view(['POST', 'GET'])
-# def calculate_complexity_line_by_line(request):
-#     if request.method == 'POST':
-#         code = request.data.get('code')
-#         if not code:
-#             return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
-#
-#         complexity = calculate_code_complexity_line_by_line(code)
-#         return Response(complexity, status=status.HTTP_200_OK)
-
-
 @api_view(['GET', 'POST'])
 def calculate_complexity_line_by_line(request):
     if request.method == 'POST':
@@ -77,15 +64,16 @@ def calculate_complexity_line_by_line(request):
             return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Call your function to calculate complexity
-        result= calculate_code_complexity_line_by_line(code)
+        result = calculate_code_complexity_line_by_line(code)
         complexity = result['line_complexities']
         cbo = result['cbo']
 
         # Render the result in the template
-        return render(request, 'complexityA_table.html', {'complexities': complexity, 'cbo':cbo})
+        return render(request, 'complexityA_table.html', {'complexities': complexity, 'cbo': cbo})
 
     # If GET request, just show the form
     return render(request, 'complexityA_form.html')
+
 
 def get_thresholds():
     thresholds_file = os.path.join(settings.BASE_DIR, 'media', 'threshold.json')
@@ -97,7 +85,7 @@ def get_thresholds():
     return {'threshold_low': 10, 'threshold_medium': 20}
 
 
-@api_view(['GET','POST'])
+@api_view(['GET', 'POST'])
 def calculate_complexity_multiple_java_files(request):
     if request.method == 'POST':
         # Expecting multiple Java files in the request
@@ -144,13 +132,14 @@ def calculate_complexity_multiple_java_files(request):
             print("method_complexities", method_complexities)
             recommendations = file_data['recommendation']
             pie_chart_path = file_data['pie_chart_path']
+            total_wcc = file_data['total_wcc']
 
             for line_data in complexity_data:
                 results_table.add_row([filename] + line_data)  # Now line_data has 9 values
 
             # Categorize each method based on total complexity
             categorized_methods = []
-            for method_name,method_data in method_complexities.items():
+            for method_name, method_data in method_complexities.items():
                 if isinstance(method_data, dict):
                     total_complexity = method_data.get('total_complexity', 0)
 
@@ -173,7 +162,6 @@ def calculate_complexity_multiple_java_files(request):
                 else:
                     print(f"Unexpected format in method_data: {method_data}")
 
-
             complexities.append({
                 'filename': filename,
                 'complexity_data': complexity_data,
@@ -181,7 +169,8 @@ def calculate_complexity_multiple_java_files(request):
                 'mpc': mpc,
                 'method_complexities': categorized_methods,
                 'recommendations': recommendations,
-                'pie_chart_path': pie_chart_path
+                'pie_chart_path': pie_chart_path,
+                'total_wcc': total_wcc
             })
 
         # Log the result table for debugging or reference
@@ -211,6 +200,7 @@ def calculate_complexity_line_by_line_csharp(request):
 
     # If GET request, just show the form
     return render(request, 'complexityB_form.html')
+
 
 @api_view(['GET', 'POST'])
 def calculate_complexity_multiple_csharp_files(request):
@@ -262,7 +252,6 @@ def calculate_complexity_multiple_csharp_files(request):
                         line_data.get('inheritance_level', 0), line_data.get('compound_condition_weight', 0),
                         line_data.get('try_catch_weight', 0), line_data.get('thread_weight', 0), total_complexity
                     ])
-
 
             complexities.append({
                 'filename': filename,

@@ -40,7 +40,7 @@ def calculate_size(line):
 
     # Remove annotations like @Override
     line = re.sub(r'@\w+', '', line)
-        # Exclude access modifiers and function parameters
+    # Exclude access modifiers and function parameters
     line = re.sub(r'\b(public|private|protected|default|static|else)\b', '', line)  # Ignore access modifiers
     line = re.sub(r'\(\s*\w+\s*\w*\s*\)', '()', line)  # Ignore function parameters
 
@@ -68,7 +68,7 @@ def calculate_size(line):
     tokens = re.findall(token_pattern, line, re.VERBOSE)
 
     return len(tokens), tokens
-    
+
 
 """
 def calculate_size(line):
@@ -133,6 +133,7 @@ def calculate_control_structure_complexity(line):
     wc += len(re.findall(r'\bfor\b|\bwhile\b|\bdo\b', line)) * 2  # Iterative
     wc += len(re.findall(r'\bcase\b', line))  # Switch case
     return wc
+
 
 """
 def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
@@ -212,6 +213,7 @@ def calculate_nesting_level(line, current_nesting, in_control_structure, control
 
     return current_nesting, in_control_structure, control_structure_stack, wn
 
+
 # Function to calculate inheritance level for a single line (Wi)
 def calculate_inheritance_level(line, current_inheritance):
     # Check if the line defines a class extending another class
@@ -223,6 +225,7 @@ def calculate_inheritance_level(line, current_inheritance):
         current_inheritance = 1  # or keep it unchanged if you want to count only extending classes
 
     return current_inheritance
+
 
 # Function to calculate weight due to compound conditional statements
 def calculate_compound_condition_weight(line):
@@ -279,6 +282,7 @@ def calculate_try_catch_weight(line, current_nesting_level):
 
     return weight
 
+
 # Function to calculate weight due to thread operations
 def calculate_thread_weight(line):
     weight = 0
@@ -292,6 +296,7 @@ def calculate_thread_weight(line):
         weight += 3  # Weight of 3 for synchronized blocks/methods
 
     return weight
+
 
 # Set up logging
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -406,22 +411,24 @@ def calculate_cbo(class_references):
     cbo_results = {}
 
     # Create a set to track all class references globally
-    #all_references = set()
+    # all_references = set()
 
     # Loop through each class's references and count them
     for class_name, references in class_references.items():
         logging.debug(f"Calculating CBO for class {class_name} with references: {references}")
         # Count unique references to other classes
-        #unique_references = references - {class_name}  # Exclude self-references
+        # unique_references = references - {class_name}  # Exclude self-references
         # cbo_results[class_name] = len(unique_references)  # CBO is the number of unique class references
-        #all_references.update(unique_references)  # Track all references
+        # all_references.update(unique_references)  # Track all references
         cbo_results[class_name] = sum(references.values())
         logging.info(f"CBO for class {class_name}: {cbo_results[class_name]}")
 
     return cbo_results
 
+
 # Set up logging configuration
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+
 
 # Function to extract method calls (message passing) and classify their complexity
 def extract_message_passing(java_code):
@@ -459,8 +466,10 @@ def extract_message_passing(java_code):
                 method_name = method_call[1]
                 # Skip ignored methods
                 if method_name not in ignore_methods:
-                    message_passing[current_class][method_name] = message_passing[current_class].get(method_name,0) + 1  # Weight = 1
-                    logging.info(f'Found simple message passing in {current_class}: {method_name} (Weight = 1)')  # Log simple message passing
+                    message_passing[current_class][method_name] = message_passing[current_class].get(method_name,
+                                                                                                     0) + 1  # Weight = 1
+                    logging.info(
+                        f'Found simple message passing in {current_class}: {method_name} (Weight = 1)')  # Log simple message passing
 
             # Find moderate message passing (e.g., with callback)
             moderate_messages = re.findall(moderate_message_pattern, line)
@@ -477,23 +486,30 @@ def extract_message_passing(java_code):
             for method_call in async_messages:
                 method_name = method_call
                 if method_name not in ignore_methods:
-                    message_passing[current_class][method_name] = message_passing[current_class].get(method_name,0) + 3  # Weight = 3
-                    logging.info(f'Found complex message passing in {current_class}: {method_name} (Weight = 3)')  # Log complex message passing
+                    message_passing[current_class][method_name] = message_passing[current_class].get(method_name,
+                                                                                                     0) + 3  # Weight = 3
+                    logging.info(
+                        f'Found complex message passing in {current_class}: {method_name} (Weight = 3)')  # Log complex message passing
             # Find callback handling in async methods
             callback_messages = re.findall(callback_pattern, line)
             for method_name in callback_messages:
                 if method_name not in ignore_methods:
-                    message_passing[current_class][method_name] = message_passing[current_class].get(method_name, 0) + 3  # Weight = 3
-                    logging.info(f'Found callback in async message passing in {current_class}: {method_name} (Weight = 3)')
+                    message_passing[current_class][method_name] = message_passing[current_class].get(method_name,
+                                                                                                     0) + 3  # Weight = 3
+                    logging.info(
+                        f'Found callback in async message passing in {current_class}: {method_name} (Weight = 3)')
 
             # Find exceptional handling in async methods
             exceptional_messages = re.findall(exceptional_pattern, line)
             for method_name in exceptional_messages:
                 if method_name not in ignore_methods:
-                    message_passing[current_class][method_name] = message_passing[current_class].get(method_name, 0) + 3  # Weight = 3
-                    logging.info(f'Found exceptional handling in async message passing in {current_class}: {method_name} (Weight = 3)')
+                    message_passing[current_class][method_name] = message_passing[current_class].get(method_name,
+                                                                                                     0) + 3  # Weight = 3
+                    logging.info(
+                        f'Found exceptional handling in async message passing in {current_class}: {method_name} (Weight = 3)')
 
     return message_passing
+
 
 # Function to calculate MPC
 def calculate_mpc(message_passing):
@@ -531,6 +547,7 @@ def track_inheritance_depth_across_files(file_contents):
                 if class_name not in inheritance_depth:
                     inheritance_depth[class_name] = 1  # Base class gets depth 1
 
+
 # Revised training data with WCC metrics
 training_data = np.array([
     [0, 0, 0, 0, 1, 2],  # Simple sequential code, low complexity
@@ -552,7 +569,7 @@ training_data = np.array([
     [1, 2, 2, 2, 1, 2],  # Moderate complexity with threads and conditions
     [2, 1, 3, 0, 0, 0],  # Simple branch with deep inheritance
     [0, 0, 3, 0, 0, 0],  # Simple branch with deep inheritance
-    [0, 1, 0, 1, 0, 0],   # Sequential in nested try-catch
+    [0, 1, 0, 1, 0, 0],  # Sequential in nested try-catch
     [2, 2, 1, 0, 0, 0],
     [0, 2, 1, 0, 0, 0],
     [1, 3, 1, 1, 0, 0],
@@ -587,18 +604,55 @@ labels = [
     "no action needed",
 ]
 
+# CBO and MPC dataset (per class, not line-by-line)
+coupling_data = np.array([
+    [2, 3],  # Low MPC, Moderate CBO
+    [3, 5],  # High MPC, High CBO
+    [4, 6],  # High MPC, High CBO
+    [5, 7],  # Very High MPC and CBO
+    [1, 2],  # Low MPC and CBO
+    [2, 2],  # Low MPC and Moderate CBO
+    [7, 9],  # Extremely High MPC and CBO
+    [6, 8],  # High MPC and CBO
+])
+
+# Corresponding labels for CBO and MPC
+coupling_labels = [
+    "no action needed",
+    "reduce coupling",
+    "urgent refactor for high MPC and CBO",
+    "urgent refactor for very high MPC and CBO",
+    "no action needed",
+    "reduce coupling",
+    "urgent refactor for extreme MPC and CBO",
+    "reduce coupling",
+]
+
 print("Length of training_data:", len(training_data))
 print("Length of labels:", len(labels))
 # Step 1: Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(training_data, labels, test_size=0.2, random_state=42)
 
+X_train_coupling, X_test_coupling, y_train_coupling, y_test_coupling = train_test_split(
+    coupling_data, coupling_labels, test_size=0.2, random_state=42
+)
+
 # Step 2: Train the model
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
+model_coupling = RandomForestClassifier(n_estimators=100, random_state=42)
+model_coupling.fit(X_train_coupling, y_train_coupling)
+
 # Step 3: Evaluate the model
+print("=== Complexity Metrics Report ===")
 y_pred = model.predict(X_test)
 print(classification_report(y_test, y_pred))
+
+print("=== Coupling Metrics Report ===")
+y_pred_coupling = model_coupling.predict(X_test_coupling)
+print(classification_report(y_test_coupling, y_pred_coupling))
+
 
 # Function to calculate inheritance level (Wi)
 def calculate_inheritance_level2(class_name):
@@ -607,7 +661,7 @@ def calculate_inheritance_level2(class_name):
 
 
 # Step 4: Integrate with existing rule-based recommendations
-def ai_recommend_refactoring(line_complexities):
+def ai_recommend_refactoring(line_complexities, cbo_value, mpc_value):
     recommendations = []
 
     for line_info in line_complexities:
@@ -619,14 +673,21 @@ def ai_recommend_refactoring(line_complexities):
             line_info['try_catch_weight'],
             line_info['thread_weight']
         ]
+
+        metrics1 = [
+            cbo_value,
+            mpc_value
+        ]
         # AI-based recommendation
         ai_recommendation = model.predict([metrics])
+        ai_recommendation1 = model_coupling.predict([metrics1])
 
         # Add to recommendations
         recommendations.append({
             'line_number': line_info['line_number'],
             'line_content': line_info['line_content'],
-            'recommendation': ai_recommendation
+            'recommendation': ai_recommendation,
+            'recommendation1': ai_recommendation1,
         })
 
     return recommendations
@@ -650,7 +711,7 @@ def calculate_code_complexity_line_by_line(code):
         #     continue
         wc = calculate_control_structure_complexity(line)
         current_nesting, in_control_structure, control_structure_stack, wn = calculate_nesting_level(
-            line, current_nesting, in_control_structure,control_structure_stack
+            line, current_nesting, in_control_structure, control_structure_stack
         )
         current_inheritance = calculate_inheritance_level(line, current_inheritance)
         compound_condition_weight = calculate_compound_condition_weight(line)
@@ -661,7 +722,7 @@ def calculate_code_complexity_line_by_line(code):
             'line_number': i,
             'line_content': line.strip(),
             'size': size,
-            'tokens':tokens,
+            'tokens': tokens,
             'control_structure_complexity': wc,
             'nesting_level': current_nesting,
             'inheritance_level': current_inheritance,
@@ -725,7 +786,6 @@ def calculate_code_complexity_multiple_files(file_contents):
         message_passing = extract_message_passing(content)
         # print("Method complex",method_complexities)
 
-
         # Calculate MPC and CBO for this file
         cbo_value = calculate_cbo(class_references).get(class_name, 0)
         mpc_value = calculate_mpc(message_passing).get(class_name, 0)
@@ -734,6 +794,9 @@ def calculate_code_complexity_multiple_files(file_contents):
         line_complexities = []
 
         method_inheritance = {}
+
+        # Initialize total WCC value for the file
+        total_wcc = 0
 
         for line_number, line in enumerate(lines, start=1):
             # Calculate size (token count)
@@ -801,9 +864,12 @@ def calculate_code_complexity_multiple_files(file_contents):
 
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
-                size + control_structure_complexity + wn + current_inheritance +
-                compound_condition_weight + try_catch_weight + thread_weight
+                    size + control_structure_complexity + wn + current_inheritance +
+                    compound_condition_weight + try_catch_weight + thread_weight
             )
+
+            # Update the total WCC for the file
+            total_wcc += total_complexity
 
             # Collect the line's metrics
             complexity_data.append([
@@ -821,7 +887,7 @@ def calculate_code_complexity_multiple_files(file_contents):
             ])
         method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name)
         # Get AI recommendations for each line in the file
-        recommendations = ai_recommend_refactoring(line_complexities)
+        recommendations = ai_recommend_refactoring(line_complexities, cbo_value, mpc_value)
 
         # Filter out "No action needed" recommendations
         filtered_recommendations = [
@@ -837,9 +903,10 @@ def calculate_code_complexity_multiple_files(file_contents):
             'complexity_data': complexity_data,
             'cbo': cbo_value,
             'mpc': mpc_value,
-            'method_complexities':method_complexities,
+            'method_complexities': method_complexities,
             'recommendation': filtered_recommendations,
-            'pie_chart_path': pie_chart_path
+            'pie_chart_path': pie_chart_path,
+            'total_wcc': total_wcc
         }
 
     return results
@@ -855,6 +922,7 @@ method_pattern = re.compile(
 # Keywords to ignore to prevent detecting control structures as methods
 control_keywords = {'if', 'for', 'while', 'switch', 'catch'}
 
+
 # Function to calculate complexity for each method in a file
 def calculate_code_complexity_by_method(content, method_inheritance, class_name):
     methods = {}
@@ -868,7 +936,7 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
         if match:
             # If we're already in a method, calculate its complexity
             if method_name:
-                methods[method_name] = calculate_complexity_for_method(method_lines,method_inheritance, class_name)
+                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name)
             # Start a new method
             method_name = match.group(1)
             method_lines = [line]
@@ -878,12 +946,13 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
 
     # Final method complexity calculation
     if method_name:
-        methods[method_name] = calculate_complexity_for_method(method_lines,method_inheritance, class_name)
+        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name)
 
     return methods
 
+
 # Helper function to calculate complexity for a method based on lines of code
-def calculate_complexity_for_method(lines,method_inheritance, class_name):
+def calculate_complexity_for_method(lines, method_inheritance, class_name):
     size = 0
     control_structure_complexity = 0
     nesting_level = 0
@@ -930,11 +999,11 @@ def calculate_complexity_for_method(lines,method_inheritance, class_name):
 
     # Sum up the complexity metrics for this method
     total_complexity = (
-        size + control_structure_complexity + nesting_level + current_inheritance_sum +
-        compound_condition_weight + try_catch_weight + thread_weight
+            size + control_structure_complexity + nesting_level + current_inheritance_sum +
+            compound_condition_weight + try_catch_weight + thread_weight
     )
 
-    print("current_inheritance_sum",current_inheritance_sum)
+    print("current_inheritance_sum", current_inheritance_sum)
     return {
         "size": size,
         "control_structure_complexity": control_structure_complexity,
@@ -945,6 +1014,7 @@ def calculate_complexity_for_method(lines,method_inheritance, class_name):
         "thread_weight": thread_weight,
         "total_complexity": total_complexity
     }
+
 
 # Function to calculate complexity factors for a file
 def calculate_complexity_factors(filename, data):
@@ -974,8 +1044,11 @@ def calculate_complexity_factors(filename, data):
         'Try-Catch Weight': total_try_catch_weight,
         'Thread Weight': total_thread_weight
     }
+
+
 # Set the backend to Agg
 matplotlib.use("Agg")
+
 
 def plot_complexity_pie_chart(filename, complexity_factors):
     labels = list(complexity_factors.keys())
