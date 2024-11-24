@@ -2,16 +2,15 @@
 {#<html lang="en">#}
 {#<head>#}
 {#    <meta charset="UTF-8">#}
-{#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
-{#    <title>Java Code Analysis</title>#}
+{#    <title>Upload Python Files</title>#}
 {#</head>#}
 {#<body>#}
-{#<h1>Java Code Analysis</h1>#}
-{#<form method="POST" action="">#}
+{#<h1>Upload Python Files</h1>#}
+{#<form method="POST" enctype="multipart/form-data">#}
 {#    {% csrf_token %}#}
-{#    <label for="code">Paste Your Java Code Here:</label><br>#}
-{#    <textarea name="code" id="code" rows="15" cols="80" placeholder="Paste Java code here"></textarea><br><br>#}
-{#    <button type="submit">Analyze Code</button>#}
+{#    <label for="files">Select Python Files:</label>#}
+{#    <input type="file" name="files" id="files" multiple><br><br>#}
+{#    <button type="submit">Analyze Files</button>#}
 {#</form>#}
 {##}
 {#{% if recommendations %}#}
@@ -24,12 +23,14 @@
 {#{% endif %}#}
 {#</body>#}
 {#</html>#}
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Java Code Analysis</title>
+    <title>Upload Python Files</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,7 +42,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 20px auto;
             padding: 20px;
             background: #fff;
@@ -54,23 +55,19 @@
             color: #444;
         }
 
-        form {
-            margin-bottom: 20px;
-        }
-
         label {
             font-weight: bold;
             display: block;
             margin-bottom: 10px;
         }
 
-        textarea, input[type="file"] {
+        input[type="file"] {
+            display: block;
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-family: Arial, sans-serif;
         }
 
         button {
@@ -102,7 +99,7 @@
 
         ul {
             list-style: none;
-            padding-left: 0;
+            padding: 0;
         }
 
         ul li {
@@ -128,36 +125,20 @@
 </head>
 <body>
 <div class="container">
-    <h1>Java Code Analysis</h1>
+    <h1>Upload Python Files</h1>
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <label for="code">Paste Java Code:</label>
-        <textarea
-                name="code"
-                id="code"
-                rows="10"
-                placeholder="Paste your Java code here (e.g., class definitions, methods, or scripts)."
-        ></textarea>
-
-        <label for="files">Or Upload Java Files:</label>
-        <input type="file" name="files" id="files" multiple accept=".java">
-
-        <button type="submit">Analyze Code</button>
+        <label for="files">Select Python Files:</label>
+        <input type="file" name="files" id="files" multiple accept=".py">
+        <button type="submit">Analyze Files</button>
     </form>
 
     {% if recommendations %}
         <div class="recommendations">
             <h2>Analysis Recommendations</h2>
             <ul>
-                {% for line, recs in recommendations.items %}
-                    <li>
-                        <strong>Line {{ line }}</strong>
-                        <ul>
-                            {% for rec in recs %}
-                                <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>
-                            {% endfor %}
-                        </ul>
-                    </li>
+                {% for recommendation in recommendations %}
+                    <li>{{ recommendation }}</li>
                 {% endfor %}
             </ul>
         </div>

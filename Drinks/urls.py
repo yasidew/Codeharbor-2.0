@@ -20,10 +20,16 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
          name='calculate_complexity_line_by_line_csharp'),
 
     path('calculate-complexity-excel/', views.calculate_complexity, name='calculate_complexity-excel'),
+
+    path('python_code_analysis/', views.python_code_analysis, name='python_code_analysis'),
+
+    path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
+
+    # path('upload/python/', views.upload_python_files, name='upload_python_files'),
+
+    # path('upload/java/', views.upload_java_files, name='upload_java_files'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-path('python_code_analysis/', views.python_code_analysis, name='python_code_analysis'),
 
-path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
 
 urlpatterns = format_suffix_patterns(urlpatterns)

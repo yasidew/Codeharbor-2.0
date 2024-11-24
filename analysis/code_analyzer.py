@@ -1,8 +1,12 @@
 import json
+import os
+import tempfile
 
 import pylint.lint
 import ast
 import re
+import io
+import sys
 
 
 class CodeAnalyzer:
@@ -18,25 +22,96 @@ class CodeAnalyzer:
         except SyntaxError as e:
             return [f"Syntax Error: {e}"]
 
-
-
         # Run pylint and custom rules check
         self.run_pylint()
         self.custom_rules_check(tree)
         return self.recommendations
 
-    def run_pylint(self):
-        # Pylint options for checking general coding standards
-        pylint_opts = ['--disable=all', '--enable=E,W,C,R', '--output-format=json']
-        pylint_output = pylint.lint.Run(pylint_opts, do_exit=False)
-        pylint_json = json.loads(pylint_output.linter.reporter.data)
-        for issue in pylint_json:
-            self.recommendations.append(f"Pylint: {issue['message']} at line {issue['line']}")
-        # pylint.lint.Run(pylint_opts)
+    def custom_rules_check(self, tree):
+        for node in ast.walk(tree):
+            if hasattr(node, 'lineno'):
+                # Process nodes with lineno attribute
+                self._check_node(node)
 
-    def custom_rules_check(self):
+    def _check_node(self, node):
+        # Example check for function length
+        if isinstance(node, ast.FunctionDef):
+            if len(node.body) > 50:
+                self.recommendations.append(f"Function '{node.name}' is too long at line {node.lineno}")
+
+        # Ensure the node has the 'lineno' attribute before accessing it
+        if hasattr(node, 'lineno'):
+            pass
+
+
+    def run_pylint(self):
+        pylint_opts = ['--disable=all', '--enable=E,W,C,R', '--output-format=json']
+        pylint_output = ''
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.py') as temp_file:
+                temp_file.write(self.code.encode())
+                temp_file.close()
+                pylint_opts.append(temp_file.name)
+                pylint_output = pylint.lint.Run(pylint_opts, exit=False).linter.reporter.data
+        except Exception as e:
+            self.recommendations.append(f"Pylint Error: {e}")
+        finally:
+            os.unlink(temp_file.name)
+
+        if pylint_output:
+            for issue in json.loads(pylint_output):
+                self.recommendations.append(f"Pylint: {issue['message']} at line {issue.get('line', 'unknown')}")
+
+    # def run_pylint(self):
+    #     # Pylint options for checking general coding standards
+    #     pylint_opts = ['--disable=all', '--enable=E,W,C,R', '--output-format=json']
+    #
+    #     # Redirect stdout and stderr to capture pylint output
+    #     old_stdout = sys.stdout
+    #     old_stderr = sys.stderr
+    #     sys.stdout = io.StringIO()
+    #     sys.stderr = io.StringIO()
+    #
+    #     try:
+    #         pylint.lint.Run(pylint_opts, exit=False)
+    #         pylint_output = sys.stdout.getvalue()
+    #     except SystemExit as e:
+    #         pylint_output = sys.stdout.getvalue()
+    #     finally:
+    #         # Restore stdout and stderr
+    #         sys.stdout = old_stdout
+    #         sys.stderr = old_stderr
+    #
+    #     if pylint_output.strip():
+    #         try:
+    #             pylint_json = json.loads(pylint_output)
+    #             for issue in pylint_json:
+    #                 self.recommendations.append(f"Pylint: {issue['message']} at line {issue['line']}")
+    #         except json.JSONDecodeError as e:
+    #             self.recommendations.append(f"JSON Decode Error: {e}")
+    #     else:
+    #         self.recommendations.append("Pylint did not return any output")
+
+        # pylint_json = json.loads(pylint_output)
+        # for issue in pylint_json:
+        #     self.recommendations.append(f"Pylint: {issue['message']} at line {issue['line']}")
+
+    # def run_pylint(self):
+    #     # Pylint options for checking general coding standards
+    #     pylint_opts = ['--disable=all', '--enable=E,W,C,R', '--output-format=json']
+    #     pylint_output = pylint.lint.Run(pylint_opts, exit=False)
+    #     pylint_json = json.loads(pylint_output.linter.reporter.data)
+    #     for issue in pylint_json:
+    #         self.recommendations.append(f"Pylint: {issue['message']} at line {issue['line']}")
+
+
+    def custom_rules_check(self, tree):
+        for node in ast.walk(tree):
+            if hasattr(node, 'lineno'):
+                # Process nodes with lineno attribute
+                self._check_node(node)
         # Parse the code into an abstract syntax tree (AST)
-        tree = ast.parse(self.code)
+        # tree = ast.parse(self.code)
         # Check custom rules (e.g., function length)
         self._check_function_length(tree)
         self._check_too_many_parameters(tree)
@@ -57,10 +132,10 @@ class CodeAnalyzer:
         self._check_unreachable_code(tree)
         self._check_missing_default_case(tree)
         self._check_circular_imports(tree)
-        self._check_deprecated_syntax(tree)
+        # self._check_deprecated_syntax(tree)
         self._check_unused_imports(tree)
         self._check_sql_injection(tree)
-        self._check_command_injection(tree)
+        # self._check_command_injection(tree)
         self._check_xss(tree)
         self._check_weak_cryptographic_practices(tree)
         self._check_insecure_file_handling(tree)
@@ -81,12 +156,12 @@ class CodeAnalyzer:
         # recommendations = []
         # Check if any function in the code has more than 10 lines
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, ast.FunctionDef)  and hasattr(node, 'lineno'):
                 if len(node.body) > 10:
                     self.recommendations.append({
                         "rule": "Function Length",
                         "message": f"Function {node.name} is too long at line {node.lineno}",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
         # return  recommendations
         # print(f"Function {node.name} is too long at line {node.lineno}")
@@ -95,12 +170,12 @@ class CodeAnalyzer:
         # recommendations = []
         # Check if any function has more than 5 parameters
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, ast.FunctionDef) and hasattr(node, 'lineno'):
                 if len(node.args.args) > 5:
                     self.recommendations.append({
                         "rule": "Too Many Parameters",
                         "message": f"Function {node.name} has too many parameters at line {node.lineno}",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
         # return recommendations
                     # print(f"Function {node.name} has too many parameters at line {node.lineno}")
@@ -108,13 +183,13 @@ class CodeAnalyzer:
     # Custom rule to check cyclomatic complexity of functions
     def _check_cyclomatic_complexity(self, tree):
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, ast.FunctionDef) and hasattr(node, 'lineno'):
                 complexity = sum(1 for n in ast.walk(node) if isinstance(n, (ast.If, ast.For, ast.While, ast.BoolOp)))
                 if complexity > 10:
                     self.recommendations.append({
                         "rule": "Cyclomatic Complexity",
                         "message": f"Function {node.name} has high cyclomatic complexity at line {node.lineno}",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"Function {node.name} at line {node.lineno} has high cyclomatic complexity: {complexity}")
 
@@ -123,9 +198,12 @@ class CodeAnalyzer:
         declared = []
         used = set()
         for node in ast.walk(tree):
+            # Handle variable declarations
             if isinstance(node, ast.Assign):
-                declared.append(node.targets[0].id if hasattr(node.targets[0], 'id') else None)
-            elif isinstance(node, ast.Name):
+                for target in node.targets:
+                    if isinstance(target, ast.Name):  # Ensure target is a Name node
+                        declared.append(target.id)
+            elif isinstance(node, ast.Name):  # Handle variable usage
                 used.add(node.id)
 
         unused = [var for var in declared if var not in used]
@@ -133,17 +211,16 @@ class CodeAnalyzer:
             self.recommendations.append({
                 "rule": "Unused Variables",
                 "message": f"Unused variables: {unused}",
-                "line": None,
             })
-            # print(f"Unused variables: {unused}")
+
 
     # Check for excessive nesting in the code
     def _check_nesting_depth(self, node, depth=0, max_depth=4):
-        if depth > max_depth:
+        if depth > max_depth and hasattr(node, 'lineno'):
             self.recommendations.append({
                 "rule": "Excessive Nesting",
                 "message": f"Excessive nesting found at line {node.lineno}",
-                "line": node.lineno,
+                # "line": node.lineno,
             })
             # print(f"Excessive nesting found at line {node.lineno}")
         for child in ast.iter_child_nodes(node):
@@ -153,42 +230,41 @@ class CodeAnalyzer:
     def _check_hard_coded_secrets(self, tree):
         secret_patterns = [r"API_KEY\s*=\s*[\"'].*[\"']", r"PASSWORD\s*=\s*[\"'].*[\"']"]
         for node in ast.walk(tree):
-            if isinstance(node, ast.Assign) and isinstance(node.value, ast.Str):
+            if isinstance(node, ast.Assign) and isinstance(node.value, ast.Str) and hasattr(node, 'lineno'):
                 for pattern in secret_patterns:
                     if re.search(pattern, node.value.s):
                         # print(f"Hardcoded secret detected at line {node.lineno}: {node.value.s}")
                         self.recommendations.append({
                             "rule": "Hardcoded Secrets",
                             "message": f"Hardcoded secret detected at line {node.lineno}: {node.value.s}",
-                            "line": node.lineno,
+                            # "line": node.lineno,
                         })
 
     # Check for sensitive data exposed in logs
     def _check_sensitive_data_in_logs(self, tree):
         sensitive_keywords = ["password", "token", "api_key"]
         for node in ast.walk(tree):
-            if isinstance(node, ast.Call) and getattr(node.func, "id", "") == "print":
-                for arg in node.args:
-                    if isinstance(arg, ast.Str) and any(kw in arg.s.lower() for kw in sensitive_keywords):
-                        self.recommendations.append({
-                            "rule": "Sensitive Data in Logs",
-                            "message": f"Sensitive data exposed in print statement at line {node.lineno}: {arg.s}",
-                            "line": node.lineno,
-                        })
-                        # print(f"Sensitive data exposed in print statement at line {node.lineno}: {arg.s}")
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id == "print":
+                    for arg in node.args:
+                        if isinstance(arg, ast.Str) and any(kw in arg.s.lower() for kw in sensitive_keywords):
+                            self.recommendations.append({
+                                "rule": "Sensitive Data in Logs",
+                                "message": f"Sensitive data exposed in print statement at line {getattr(node, 'lineno', 'unknown')}: {arg.s}",
+                            })
+
 
 
     # Check for inefficient data structures
     def _check_inefficient_data_structures(self, tree):
         for node in ast.walk(tree):
-            if isinstance(node, ast.Compare) and isinstance(node.ops[0], ast.In):
-                if isinstance(node.left, ast.Name) and isinstance(node.comparators[0], ast.List):
+            if isinstance(node, ast.Compare) and node.ops and isinstance(node.ops[0], ast.In):
+                if isinstance(node.left, ast.Name) and node.comparators and isinstance(node.comparators[0], ast.List):
                     self.recommendations.append({
                         "rule": "Inefficient Data Structures",
-                        "message": f"Inefficient membership check using a list at line {node.lineno}",
-                        "line": node.lineno,
+                        "message": f"Inefficient membership check using a list at line {getattr(node, 'lineno', 'unknown')}",
                     })
-                    # print(f"Inefficient membership check using a list at line {node.lineno}")
+
 
     # Check for long chained method calls
     def _check_long_chained_calls(self, tree):
@@ -199,11 +275,11 @@ class CodeAnalyzer:
                 while isinstance(current, ast.Attribute):
                     chain_length += 1
                     current = current.value
-                if chain_length > 3:
+                if chain_length > 3 and hasattr(node, 'lineno'):
                     self.recommendations.append({
                         "rule": "Long Chained Method Calls",
                         "message": f"Long chained method call of length {chain_length} at line {node.lineno}",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"Long chained method call of length {chain_length} at line {node.lineno}")
 
@@ -214,7 +290,7 @@ class CodeAnalyzer:
             self.recommendations.append({
                 "rule": "Excessive Use of Global Variables",
                 "message": f"Excessive use of global variables: {global_count}",
-                "line": None,
+                # "line": None,
             })
             # print(f"Excessive use of global variables: {global_count}")
 
@@ -224,11 +300,11 @@ class CodeAnalyzer:
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    if alias.name in deprecated_libs:
+                    if alias.name in deprecated_libs and hasattr(node, 'lineno'):
                         self.recommendations.append({
                             "rule": "Deprecated Libraries",
                             "message": f"Deprecated library {alias.name} imported at line {node.lineno}",
-                            "line": node.lineno,
+                            # "line": node.lineno,
                         })
                         # print(f"Deprecated library {alias.name} imported at line {node.lineno}")
 
@@ -247,7 +323,7 @@ class CodeAnalyzer:
                 self.recommendations.append({
                     "rule": "Code Duplication",
                     "message": f"Duplicate code block found at lines {occurrences}",
-                    "line": None,
+                    # "line": None,
                 })
                 # print(f"Duplicate code block found at lines {occurrences}")
 
@@ -256,10 +332,13 @@ class CodeAnalyzer:
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                 if not (node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Str)):
+                    message = f"{type(node).__name__} '{node.name}' lacks a docstring"
+                    if hasattr(node, 'lineno'):
+                        message += f" at line {node.lineno}"
                     self.recommendations.append({
                         "rule": "Lack of Comments",
                         "message": f"{type(node).__name__} '{node.name}' at line {node.lineno} lacks a docstring.",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"{type(node).__name__} '{node.name}' at line {node.lineno} lacks a docstring.")
 
@@ -267,11 +346,11 @@ class CodeAnalyzer:
     def _check_magic_numbers(self, tree, allowed=[0, 1, -1]):
         for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
-                if node.value not in allowed:
+                if node.value not in allowed and hasattr(node, 'lineno'):
                     self.recommendations.append({
                         "rule": "Magic Numbers",
                         "message": f"Magic number {node.value} found at line {node.lineno}. Consider defining it as a constant.",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"Magic number {node.value} found at line {node.lineno}. Consider defining it as a constant.")
 
@@ -279,19 +358,19 @@ class CodeAnalyzer:
     def _check_exception_handling(self, tree):
         for node in ast.walk(tree):
             if isinstance(node, ast.Try):
-                if not node.handlers:
+                if not node.handlers and hasattr(node, 'lineno'):
                     self.recommendations.append({
                         "rule": "Exception Handling",
                         "message": f"Try block at line {node.lineno} lacks exception handling.",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"Try block at line {node.lineno} lacks exception handling.")
                 for handler in node.handlers:
-                    if isinstance(handler.type, ast.Name) and handler.type.id == "Exception":
+                    if isinstance(handler.type, ast.Name) and handler.type.id == "Exception" and hasattr(node, 'lineno'):
                         self.recommendations.append({
                             "rule": "Exception Handling",
                             "message": f"Overly broad exception handling found at line {handler.lineno}",
-                            "line": handler.lineno,
+                            # "line": handler.lineno,
                         })
                         # print(f"Overly broad exception handling found at line {handler.lineno}")
 
@@ -301,11 +380,11 @@ class CodeAnalyzer:
             if isinstance(node, ast.FunctionDef):
                 for sub_node in ast.walk(node):
                     if isinstance(sub_node, ast.Call) and isinstance(sub_node.func,
-                                                                     ast.Name) and sub_node.func.id == node.name:
+                                                                     ast.Name) and sub_node.func.id == node.name and hasattr(node, 'lineno'):
                         self.recommendations.append({
                             "rule": "Recursive Functions",
                             "message": f"Recursive function '{node.name}' detected at line {node.lineno}",
-                            "line": node.lineno,
+                            # "line": node.lineno,
                         })
                         # print(f"Recursive function '{node.name}' detected at line {node.lineno}")
 
@@ -315,13 +394,13 @@ class CodeAnalyzer:
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 for i, stmt in enumerate(node.body[:-1]):
-                    if isinstance(stmt, (ast.Return, ast.Raise, ast.Break)):
+                    if isinstance(stmt, (ast.Return, ast.Raise, ast.Break)) and hasattr(node, 'lineno'):
                         unreachable = node.body[i+1:]
                         if unreachable:
                             self.recommendations.append({
                                 "rule": "Unreachable Code",
                                 "message": f"Unreachable code detected after line {stmt.lineno}",
-                                "line": stmt.lineno,
+                                # "line": stmt.lineno,
                             })
                             # print(f"Unreachable code detected after line {stmt.lineno}")
 
@@ -331,11 +410,11 @@ class CodeAnalyzer:
         for node in ast.walk(tree):
             if isinstance(node, ast.If):
                 has_else = any(isinstance(n, ast.If) and n.orelse for n in ast.walk(node))
-                if not has_else:
+                if not has_else and hasattr(node, 'lineno'):
                     self.recommendations.append({
                         "rule": "Missing Default Case",
                         "message": f"Missing default case for if-statement at line {node.lineno}",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"Missing default case for if-statement at line {node.lineno}")
 
@@ -350,22 +429,22 @@ class CodeAnalyzer:
             self.recommendations.append({
                 "rule": "Circular Imports",
                 "message": "Circular import detected.",
-                "line": None,
+                # "line": None,
             })
             # print("Circular import detected.")
 
 
     # Custom rule to check for deprecated syntax
-    def _check_deprecated_syntax(self, tree):
-        deprecated_nodes = (ast.Print, ast.Exec)  # Example: old Python 2 syntax
-        for node in ast.walk(tree):
-            if isinstance(node, deprecated_nodes):
-                self.recommendations.append({
-                    "rule": "Deprecated Syntax",
-                    "message": f"Deprecated syntax {type(node).__name__} found at line {node.lineno}",
-                    "line": node.lineno,
-                })
-                # print(f"Deprecated syntax {type(node).__name__} found at line {node.lineno}")
+    # def _check_deprecated_syntax(self, tree):
+    #     deprecated_nodes = (ast.Print, ast.Exec)  # Example: old Python 2 syntax
+    #     for node in ast.walk(tree):
+    #         if isinstance(node, deprecated_nodes) and hasattr(node, 'lineno'):
+    #             self.recommendations.append({
+    #                 "rule": "Deprecated Syntax",
+    #                 "message": f"Deprecated syntax {type(node).__name__} found at line {node.lineno}",
+    #                 # "line": node.lineno,
+    #             })
+    #             # print(f"Deprecated syntax {type(node).__name__} found at line {node.lineno}")
 
 
     # Check for unused imports in the code
@@ -380,7 +459,7 @@ class CodeAnalyzer:
             self.recommendations.append({
                 "rule": "Unused Imports",
                 "message": f"Unused import '{imp}' at line {imports[imp]}",
-                "line": imports[imp],
+                # "line": imports[imp],
             })
             # print(f"Unused import '{imp}' at line {imports[imp]}")
 
@@ -389,31 +468,49 @@ class CodeAnalyzer:
         # Check for potential SQL injection vulnerabilities
         for node in ast.walk(tree):
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-                if node.func.attr in ["execute", "executemany"]:
+                if node.func.attr in ["execute", "executemany"] and hasattr(node, 'lineno'):
                     for arg in node.args:
                         if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Mod):
                             self.recommendations.append({
                                 "rule": "SQL Injection",
                                 "message": f"Potential SQL injection vulnerability detected at line {node.lineno}",
-                                "line": node.lineno,
+                                # "line": node.lineno,
                             })
                             # print(f"Potential SQL injection vulnerability detected at line {node.lineno}")
 
 
-    def _check_command_injection(self, tree):
-        # Check for potential command injection vulnerabilities
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-                if node.func.id in ["system", "popen", "call", "check_call", "check_output"]:
-                    for arg in node.args:
-                        if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Mod):
-                            self.recommendations.append({
-                                "rule": "Command Injection",
-                                "message": f"Potential command injection vulnerability detected at line {node.lineno}",
-                                "line": node.lineno,
-                            })
-                            # print(f"Potential command injection vulnerability detected at line {node.lineno}")
+    # def _check_command_injection(self, tree):
+    #     # Check for potential command injection vulnerabilities
+    #     for node in ast.walk(tree):
+    #         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+    #             if node.func.id in ["system", "popen", "call", "check_call", "check_output"]:
+    #                 for arg in node.args:
+    #                     if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Mod) and hasattr(node, 'lineno'):
+    #                         self.recommendations.append({
+    #                             "rule": "Command Injection",
+    #                             "message": f"Potential command injection vulnerability detected at line {node.lineno}",
+    #                             # "line": node.lineno,
+    #                         })
+    #                         # print(f"Potential command injection vulnerability detected at line {node.lineno}")
 
+    # def _check_command_injection(self, tree):
+    # # Check for potential command injection vulnerabilities
+    #     for node in ast.walk(tree):
+    #         if isinstance(node, ast.Call):
+    #             if isinstance(node.func, ast.Name) and node.func.id in ["system", "popen", "call", "check_call", "check_output"]:
+    #                 for arg in node.args:
+    #                     if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Mod) and hasattr(node, 'lineno'):
+    #                         self.recommendations.append({
+    #                             "rule": "Command Injection",
+    #                             "message": f"Potential command injection vulnerability detected at line {node.lineno}",
+    #                         })
+    #         elif isinstance(node.func, ast.Attribute) and node.func.attr in ["system", "popen", "call", "check_call", "check_output"]:
+    #             for arg in node.args:
+    #                 if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Mod) and hasattr(node, 'lineno'):
+    #                     self.recommendations.append({
+    #                         "rule": "Command Injection",
+    #                         "message": f"Potential command injection vulnerability detected at line {node.lineno}",
+    #                     })
 
     def _check_xss(self, tree):
         # Check for potential cross-site scripting (XSS) vulnerabilities
@@ -421,11 +518,11 @@ class CodeAnalyzer:
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
                 if node.func.attr in ["write", "send", "sendall"]:
                     for arg in node.args:
-                        if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Mod):
+                        if isinstance(arg, ast.BinOp) and isinstance(arg.op, ast.Mod) and hasattr(node, 'lineno'):
                             self.recommendations.append({
                                 "rule": "Cross-Site Scripting",
                                 "message": f"Potential XSS vulnerability detected at line {node.lineno}",
-                                "line": node.lineno,
+                                # "line": node.lineno,
                             })
                             # print(f"Potential XSS vulnerability detected at line {node.lineno}")
 
@@ -435,11 +532,11 @@ class CodeAnalyzer:
         weak_crypto_funcs = ["md5", "sha1"]
         for node in ast.walk(tree):
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-                if node.func.id in weak_crypto_funcs:
+                if node.func.id in weak_crypto_funcs and hasattr(node, 'lineno'):
                     self.recommendations.append({
                         "rule": "Weak Cryptographic Practices",
                         "message": f"Weak cryptographic practice detected at line {node.lineno}",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"Weak cryptographic practice detected at line {node.lineno}")
 
@@ -449,11 +546,11 @@ class CodeAnalyzer:
         for node in ast.walk(tree):
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                 if node.func.id in ["open", "os.remove", "os.rename"]:
-                    if any(isinstance(arg, ast.Str) and ".." in arg.s for arg in node.args):
+                    if any(isinstance(arg, ast.Str) and ".." in arg.s for arg in node.args) and hasattr(node, 'lineno'):
                         self.recommendations.append({
                             "rule": "Insecure File Handling",
                             "message": f"Insecure file handling practice detected at line {node.lineno}",
-                            "line": node.lineno,
+                            # "line": node.lineno,
                         })
                     # print(f"Insecure file handling practice detected at line {node.lineno}")
 
@@ -462,11 +559,11 @@ class CodeAnalyzer:
         # Check for session security issues
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Attribute):
-                if node.targets[0].attr in ["session"]:
+                if node.targets[0].attr in ["session"] and hasattr(node, 'lineno'):
                     self.recommendations.append({
                         "rule": "Session Security",
                         "message": f"Potential session security issue detected at line {node.lineno}",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"Potential session security issue detected at line {node.lineno}")
 
@@ -475,11 +572,11 @@ class CodeAnalyzer:
         # Check for unvalidated redirects
         for node in ast.walk(tree):
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-                if node.func.id in ["redirect", "url_for"]:
+                if node.func.id in ["redirect", "url_for"] and hasattr(node, 'lineno'):
                     self.recommendations.append({
                         "rule": "Unvalidated Redirects",
                         "message": f"Potential unvalidated redirect detected at line {node.lineno}",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
                     # print(f"Potential unvalidated redirect detected at line {node.lineno}")
 
@@ -494,39 +591,39 @@ class CodeAnalyzer:
                     self.recommendations.append({
                         "rule": "Package Naming Convention",
                         "message": f"Package name '{package_name}' at line {i+1} does not follow lower-case naming convention.",
-                        "line": i + 1,
+                        # "line": i + 1,
                     })
 
     def _check_class_naming_convention(self, tree):
         # Check for class naming convention (CamelCase)
         for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef):
+            if isinstance(node, ast.ClassDef) and hasattr(node, 'lineno'):
                 if not re.match(r"^[A-Z][a-zA-Z0-9]*$", node.name):
                     self.recommendations.append({
                         "rule": "Class Naming Convention",
                         "message": f"Class name '{node.name}' at line {node.lineno} does not follow CamelCase convention.",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
 
     def _check_method_naming_convention(self, tree):
         # Check for method naming convention (camelCase)
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
+            if isinstance(node, ast.FunctionDef) and hasattr(node, 'lineno'):
                 if not re.match(r"^[a-z][a-zA-Z0-9]*$", node.name):
                     self.recommendations.append({
                         "rule": "Method Naming Convention",
                         "message": f"Method name '{node.name}' at line {node.lineno} does not follow camelCase convention.",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
 
     def _check_thread_safety_violations(self, tree):
         for node in ast.walk(tree):
             if isinstance(node, ast.Attribute) and "lock" not in [n.id for n in ast.walk(node)]:
-                if isinstance(node.ctx, ast.Store) and isinstance(node.value, ast.Name):
+                if isinstance(node.ctx, ast.Store) and isinstance(node.value, ast.Name) and hasattr(node, 'lineno'):
                     self.recommendations.append({
                         "rule": "Thread Safety Violations",
                         "message": f"Possible unsynchronized access to shared resource '{node.attr}' at line {node.lineno}. Consider using locks or synchronization.",
-                        "line": node.lineno,
+                        # "line": node.lineno,
                     })
 
     def _check_inefficient_loops(self, tree):
@@ -538,27 +635,27 @@ class CodeAnalyzer:
             return False
 
         for node in ast.walk(tree):
-            if is_nested_loop(node):
+            if is_nested_loop(node) and hasattr(node, 'lineno'):
                 self.recommendations.append({
                     "rule": "Inefficient Loops",
                     "message": f"Nested loop detected at line {node.lineno}. Consider optimizing the loop structure.",
-                    "line": node.lineno,
+                    # "line": node.lineno,
                 })
 
     def _check_potential_null_pointers(self, tree):
         for node in ast.walk(tree):
-            if isinstance(node, ast.Attribute):
+            if isinstance(node, ast.Attribute) and hasattr(node, 'lineno'):
                 if isinstance(node.value, ast.Name):
                     if node.value.id not in self.defined_variables:
                         self.recommendations.append({
                             "rule": "Potential NullPointerExceptions",
                             "message": f"Variable '{node.value.id}' at line {node.lineno} might be null or undefined. Add proper null checks.",
-                            "line": node.lineno,
+                            # "line": node.lineno,
                         })
 
     def _check_resource_leaks(self, tree):
         for node in ast.walk(tree):
-            if isinstance(node, ast.Call):
+            if isinstance(node, ast.Call) and hasattr(node, 'lineno'):
                 if any(res in ast.dump(node.func) for res in ["open", "socket", "connect", "accept", "bind"]):
                     is_closed = any(
                         isinstance(child, ast.Call) and "close" in ast.dump(child.func)
@@ -568,7 +665,7 @@ class CodeAnalyzer:
                         self.recommendations.append({
                             "rule": "Resource Leaks",
                             "message": f"Resource opened at line {node.lineno} is not properly closed. Ensure to close resources like files or sockets.",
-                            "line": node.lineno,
+                            # "line": node.lineno,
                         })
 
 
@@ -576,11 +673,11 @@ class CodeAnalyzer:
         for node in ast.walk(tree):
             if isinstance(node, ast.Try):
                 for handler in node.handlers:
-                    if not handler.body:
+                    if not handler.body and hasattr(node, 'lineno'):
                         self.recommendations.append({
                             "rule": "Empty Catch Blocks",
                             "message": f"Empty catch block at line {handler.lineno}. Avoid silently swallowing exceptions.",
-                            "line": handler.lineno,
+                            # "line": handler.lineno,
                         })
 
 
