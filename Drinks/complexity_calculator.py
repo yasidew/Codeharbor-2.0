@@ -599,7 +599,7 @@ def track_inheritance_depth_across_files(file_contents):
                 if class_name not in inheritance_depth:
                     inheritance_depth[class_name] = 1  # Base class gets depth 1
 
-
+"""
 # Revised training data with WCC metrics
 training_data = np.array([
     [0, 0, 0, 0, 1, 2],  # Simple sequential code, low complexity
@@ -659,6 +659,119 @@ labels = [
     "consider reducing nesting",
     "consider reducing nesting",
 ]
+"""
+
+# Training data
+training_data = np.array([
+    # Format: [control_structure_complexity, nesting_level, inheritance_level, compound_condition_weight, try_catch_weight, thread_weight]
+    [0, 0, 0, 0, 1, 2],  # Simple sequential code
+    [1, 1, 1, 1, 0, 0],  # Simple branching with one condition
+    [0, 0, 1, 0, 0, 0],  # Inheritance with no control structure
+    [0, 2, 1, 0, 2, 0],  # Nested try-catch with shallow nesting
+    [1, 4, 1, 4, 0, 0],  # Deep nesting and high compound conditions
+    [0, 5, 1, 0, 3, 0],  # Excessive nesting in try-catch
+    [0, 4, 1, 0, 0, 0],  # Deep nesting with no other complexity
+    [0, 3, 1, 4, 0, 0],  # High compound condition weight
+    [0, 2, 1, 0, 0, 0],  # Moderate nesting
+    [1, 1, 1, 0, 0, 0],  # Simple branching with shallow nesting
+    [0, 1, 1, 0, 2, 0],  # Try-catch with shallow nesting
+    [3, 3, 0, 2, 1, 0],  # Complex iterative with try-catch
+    [1, 4, 3, 5, 2, 2],  # Critical refactor: high inheritance, compound conditions, threads
+    [1, 3, 1, 1, 2, 5],  # Threads with moderate nesting
+    [0, 0, 0, 0, 0, 0],  # Sequential, no complexity
+    [3, 4, 2, 4, 3, 2],  # Critical refactor: high across all metrics
+    [2, 2, 3, 2, 1, 2],  # Inheritance and threads with conditions
+    [3, 1, 3, 0, 0, 0],  # Inheritance with deep branching
+    [0, 0, 4, 0, 0, 0],  # Deep inheritance, low other complexity
+    [1, 2, 0, 1, 0, 0],  # Nested try-catch with conditions
+    [2, 2, 1, 0, 0, 0],  # Iterative with shallow nesting
+    [0, 2, 1, 4, 0, 0],  # Nested try-catch with high compound conditions
+    [0, 3, 1, 0, 0, 0],  # Moderate nesting
+    [2, 4, 1, 4, 0, 0],  # Deep nesting and compound conditions
+    [3, 3, 3, 3, 2, 0],  # Critical refactor: inheritance, threads, nesting
+    [0, 3, 1, 0, 0, 0],  # Moderate nesting
+    [3, 5, 2, 5, 1, 3],  # Critical refactor: threads and conditions
+    [2, 4, 3, 4, 2, 3],  # Threads with deep nesting and conditions
+    [1, 3, 2, 1, 0, 2],  # Moderate threads and inheritance
+    [2, 2, 1, 3, 1, 1],  # Iterative with compound conditions
+    [0, 1, 1, 1, 0, 0],  # Simple branching
+    [1, 4, 1, 2, 0, 0],  # Reduce deep nesting
+    [3, 4, 2, 3, 2, 3],  # Threads with critical nesting
+    [0, 3, 1, 1, 0, 0],  # Nested branching
+    [1, 3, 2, 4, 1, 0],  # High inheritance and compound conditions
+    [2, 1, 3, 0, 0, 0],  # Deep inheritance
+    [1, 3, 3, 1, 0, 0],  # High inheritance
+    [3, 5, 4, 5, 3, 2],  # Urgent: high across all metrics
+    [0, 1, 1, 0, 0, 0],  # Sequential with shallow nesting
+    [2, 3, 3, 2, 2, 2],  # Threads with deep nesting and inheritance
+    [3, 3, 3, 4, 3, 2],  # Deep inheritance with threads
+    [3, 5, 2, 3, 2, 3],  # Critical refactor for threads and conditions
+    [2, 3, 1, 3, 0, 0],  # Moderate compound conditions
+    [1, 2, 2, 4, 1, 1],  # Threads and compound conditions
+    [0, 3, 2, 2, 1, 0],  # Nested loops and conditions
+    [1, 2, 1, 0, 0, 0],  # Moderate complexity
+    [2, 3, 3, 1, 0, 1],  # High inheritance and compound conditions
+    [1, 2, 1, 4, 0, 0],  # Compound conditions in try-catch
+    [2, 4, 3, 5, 3, 3],  # High inheritance, conditions, threads
+    [1, 4, 2, 4, 2, 3],  # Deep nesting and threads
+    [0, 3, 1, 0, 0, 0],  # Moderate nesting
+])
+
+# Corresponding labels
+labels = [
+    "no action needed",
+    "no action needed",
+    "no action needed",
+    "Consider reducing nested try-catch.",
+    "Critical refactor: Deep nesting with high compound conditions.",
+    "Critical refactor: Excessive nesting in try-catch.",
+    "Consider simplifying deep nesting.",
+    "Consider reducing compound conditions.",
+    "no action needed",
+    "no action needed",
+    "no action needed",
+    "Consider simplifying complex iterative control structure.",
+    "Urgent refactor: High inheritance, compound conditions, and threads.",
+    "Reduce thread complexity in nested structures.",
+    "no action needed",
+    "Critical refactor: High across all metrics.",
+    "Reduce thread complexity with inheritance.",
+    "Consider simplifying deep branching.",
+    "Consider simplifying deep inheritance.",
+    "Consider reducing nested try-catch with conditions.",
+    "no action needed",
+    "Consider reducing try-catch with high compound conditions.",
+    "Consider reducing moderate nesting.",
+    "Critical refactor: Deep nesting and compound conditions.",
+    "Urgent refactor: Inheritance, threads, and nesting.",
+    "Reduce thread complexity in critical nesting.",
+    "Urgent refactor: Threads and compound conditions.",
+    "Urgent refactor: Threads with deep nesting.",
+    "Reduce thread complexity with moderate inheritance.",
+    "Consider reducing iterative compound conditions.",
+    "no action needed",
+    "Consider reducing deep nesting.",
+    "Critical refactor: Threads with nesting.",
+    "Consider simplifying nested branching.",
+    "Reduce compound conditions with high inheritance.",
+    "Consider simplifying deep inheritance.",
+    "Urgent refactor: High across all metrics.",
+    "no action needed",
+    "no action needed",
+    "Urgent refactor: Deep inheritance and threads.",
+    "Urgent refactor: Threads and high conditions.",
+    "Consider simplifying compound conditions.",
+    "Consider reducing thread complexity in compound conditions.",
+    "Reduce nested loops and conditions.",
+    "no action needed",
+    "Reduce compound conditions with high inheritance.",
+    "Consider simplifying try-catch with compound conditions.",
+    "Urgent refactor: High across all metrics.",
+    "Reduce thread complexity in deep nesting.",
+    "Consider simplifying moderate nesting.",
+"no action needed",
+]
+
 
 # CBO and MPC dataset (per class, not line-by-line)
 coupling_data = np.array([
