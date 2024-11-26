@@ -1,84 +1,259 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Complexity Results</title>
     <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            color: #444;
+        }
+
+        h1 {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .metrics, .line-complexity, .method-complexity, .recommendations {
+            margin: 20px auto;
+            width: 90%;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        /* Table Styles */
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
 
         table, th, td {
-            border: 1px solid black;
+            border: 1px solid #ddd;
         }
 
         th, td {
-            padding: 8px;
             text-align: left;
+            padding: 12px;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #f4f4f4;
+            color: #555;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        td img.pie-chart {
+            display: block;
+            margin: 20px auto;
+            max-width: 300px;
+            height: auto;
+        }
+
+        /* Button */
+        a {
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+            text-align: center;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #5cb85c;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        a:hover {
+            background-color: #4cae4c;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            a {
+                width: 80%;
+                font-size: 14px;
+                padding: 8px 12px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Complexity Results</h1>
+<h1>Code Complexity Results for C#</h1>
 
-    {% for file in complexities %}
+{% for file in complexities %}
+    <div class="metrics">
         <h2>Filename: {{ file.filename }}</h2>
-        <!-- MPC and CBO values -->
         <h3>Overall Metrics</h3>
         <table>
             <thead>
-                <tr>
-                    <th>CBO</th>
-                    <th>MPC</th>
-                </tr>
+            <tr>
+                <th>CBO</th>
+                <th>MPC</th>
+            </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>{{ file.cbo }}</td>
-                    <td>{{ file.mpc }}</td>
-                </tr>
+            <tr>
+                <td>{{ file.cbo }}</td>
+                <td>{{ file.mpc }}</td>
+            </tr>
             </tbody>
         </table>
-        
+    </div>
+
+    <div class="line-complexity">
+        <h3>Line Complexity Details</h3>
         <table>
             <thead>
-                <tr>
-                    <th>Line Number</th>
-                    <th>Line</th>
-                    <th>Size</th>
-                     <th>Tokens</th>
-                    <th>Control Structure Complexity</th>
-                    <th>Nesting Weight</th>
-                    <th>Inheritance Weight</th>
-                    <th>Compound Condition Weight</th>
-                    <th>Try-Catch Weight</th>
-                    <th>Thread Weight</th>
-                    <th>Total Complexity</th>
-                </tr>
+            <tr>
+                <th>Line Number</th>
+                <th>Line</th>
+                <th>Size</th>
+                <th>Tokens</th>
+                <th>Control Structure Complexity</th>
+                <th>Nesting Weight</th>
+                <th>Inheritance Weight</th>
+                <th>Compound Condition Weight</th>
+                <th>Try-Catch Weight</th>
+                <th>Thread Weight</th>
+                <th>Total Complexity</th>
+            </tr>
             </thead>
             <tbody>
-                {% for line in file.complexity_data %}
-                    <tr>
-                        <td>{{ line.0 }}</td>
-                        <td>{{ line.1 }}</td>
-                        <td>{{ line.2 }}</td>
-                        <td>{{ line.3 }}</td>
-                        <td>{{ line.4 }}</td>
-                        <td>{{ line.5 }}</td>
-                        <td>{{ line.6 }}</td>
-                        <td>{{ line.7 }}</td>
-                        <td>{{ line.8 }}</td>
-                        <td>{{ line.9 }}</td>
-                    <td>{{ line.10 }}</td>
-                    </tr>
-                {% endfor %}
+            {% for line in file.complexity_data %}
+                <tr>
+                    <td>{{ line.0 }}</td>
+                    <td>{{ line.1 }}</td>
+                    <td>{% if line.2 != 0 %}{{ line.2 }}{% endif %}</td>
+                    <td>{% if line.2 != 0 %}{{ line.3 }}{% endif %}</td>
+                    <td>{% if line.2 != 0 %}{{ line.4 }}{% endif %}</td>
+                    <td>{% if line.2 != 0 %}{{ line.5 }}{% endif %}</td>
+                    <td>{% if line.2 != 0 %}{{ line.6 }}{% endif %}</td>
+                    <td>{% if line.2 != 0 %}{{ line.7 }}{% endif %}</td>
+                    <td>{% if line.2 != 0 %}{{ line.8 }}{% endif %}</td>
+                    <td>{% if line.2 != 0 %}{{ line.9 }}{% endif %}</td>
+                    <td>{% if line.2 != 0 %}{{ line.10 }}{% endif %}</td>
+                </tr>
+            {% endfor %}
+
+            <tr>
+                <td colspan="10" style="text-align: right; font-weight: bold;">Total WCC:</td>
+                <td style="font-weight: bold;">{{ file.total_wcc }}</td>
+            </tr>
             </tbody>
         </table>
-        <br>
-    {% endfor %}
+    </div>
+
+    <div>
+        <h3>Complexity Contribution</h3>
+        <img src="{% static 'images/' %}{{ file.pie_chart_path }}" class="pie-chart" alt="Complexity Pie Chart">
+    </div>
+    {##}
+    {#        <div>#}
+    {#            <h3>Refactoring Recommendations</h3>#}
+    {#            <table>#}
+    {#                <thead>#}
+    {#                    <tr>#}
+    {#                        <th>Line Number</th>#}
+    {#                        <th>Line Content</th>#}
+    {#                        <th>Recommendation</th>#}
+    {#                    </tr>#}
+    {#                </thead>#}
+    {#                <tbody>#}
+    {#                    {% for rec in file.recommendations %}#}
+    {#                        <tr>#}
+    {#                            <td>{{ rec.line_number }}</td>#}
+    {#                            <td>{{ rec.line_content }}</td>#}
+    {#                            <td>{{ rec.recommendation }}</td>#}
+    {#                        <td>{{ rec.recommendation1 }}</td>#}
+    {#                        </tr>#}
+    {#                    {% endfor %}#}
+    {#                </tbody>#}
+    {#            </table>#}
+    {#        </div>#}
+    {##}
+    <div class="method-complexity">
+        <h3>Method Complexity Details</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Method Name</th>
+                <th>Size</th>
+                <th>Control Structure Complexity</th>
+                <th>Nesting Level</th>
+                <th>Inheritance Level</th>
+                <th>Compound Condition Weight</th>
+                <th>Try-Catch Weight</th>
+                <th>Thread Weight</th>
+                <th>Total Complexity</th>
+                <th>Category</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for method in file.method_complexities %}
+                <tr
+                        style="
+                                {% if method.category == 'High' %}background-color: #f8d7da; color: #721c24;{% endif %}
+                                {% if method.category == 'Medium' %}background-color: #fff3cd; color: #856404;{% endif %}
+                                {% if method.category == 'Low' %}background-color: #d4edda; color: #155724;{% endif %}
+                                "
+                >
+                    <td>{{ method.method_name }}</td>
+                    <td>{{ method.size }}</td>
+                    <td>{{ method.control_structure_complexity }}</td>
+                    <td>{{ method.nesting_level }}</td>
+                    <td>{{ method.inheritance_level }}</td>
+                    <td>{{ method.compound_condition_weight }}</td>
+                    <td>{{ method.try_catch_weight }}</td>
+                    <td>{{ method.thread_weight }}</td>
+                    <td>{{ method.total_complexity }}</td>
+                    <td>{{ method.category }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endfor %}
+
+<a href="/">Upload More Files</a>
 </body>
 </html>
+

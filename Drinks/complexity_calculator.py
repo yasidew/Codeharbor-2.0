@@ -9,6 +9,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 # Global flag to track whether the class declaration has ended
 class_declaration_ended = False
 
@@ -135,83 +136,134 @@ def calculate_control_structure_complexity(line):
     return wc
 
 
-"""
+# def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
+#     # Define control structures that affect nesting
+#     control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
+#
+#     # Initialize Wn (nesting weight)
+#     wn = 0
+#
+#     # Check if the line starts a control structure
+#     if any(cs in line for cs in control_structures):
+#         # Check for 'else if' (or 'else' and 'if' on the same line)
+#         if 'else if' in line:
+#             wn = current_nesting  # Weight for 'else if'
+#         elif 'else' in line:
+#             wn = 1  # Weight for 'else'
+#         else:
+#             current_nesting += 1  # Increase nesting level for 'if'
+#             control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
+#             wn = current_nesting  # Weight for 'if'
+#
+#         in_control_structure = True  # We're inside a control structure
+#         return current_nesting, in_control_structure, control_structure_stack, wn
+#
+#     # Check for closing '}' of control structure
+#     if '}' in line and control_structure_stack:
+#         current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
+#         wn = current_nesting + 1  # Wn based on the new current nesting level
+#
+#         # If stack is empty after popping, we're not in a control structure anymore
+#         in_control_structure = len(control_structure_stack) > 0
+#         return current_nesting, in_control_structure, control_structure_stack, wn
+#
+#     # If we encounter a statement at the same nesting level as the control structure
+#     if in_control_structure:
+#         wn = current_nesting  # Assign weight based on the current nesting level
+#
+#     return current_nesting, in_control_structure, control_structure_stack, wn
+
+
 def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
-    # Define control structures that affect nesting
+    """
+    Calculate the weight due to the nesting level (Wn) for a given line of code.
+
+    Parameters:
+        line (str): The current line of code.
+        current_nesting (int): The current nesting level.
+        in_control_structure (bool): Whether the current context is within a control structure.
+        control_structure_stack (list): Stack to track nesting levels.
+
+    Returns:
+        tuple: Updated values for current_nesting, in_control_structure, control_structure_stack, and Wn.
+    """
+    # Define control structures to detect
     control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
+    control_regex = re.compile(r'\b(?:' + '|'.join(control_structures) + r')\b')
 
     # Initialize Wn (nesting weight)
     wn = 0
 
     # Check if the line starts a control structure
-    if any(cs in line for cs in control_structures):
-        # Check for 'else if' (or 'else' and 'if' on the same line)
-        if 'else if' in line:
+    if control_regex.search(line):
+        if 'else if' in line or 'else if' in line.replace(' ', ''):  # Handle 'else if'
             wn = current_nesting  # Weight for 'else if'
-        elif 'else' in line:
-            wn = 1  # Weight for 'else'
-        else:
-            current_nesting += 1  # Increase nesting level for 'if'
-            control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
-            wn = current_nesting  # Weight for 'if'
+        elif 'else' in line and 'if' not in line:  # Handle 'else' (not 'else if')
+            wn = current_nesting  # Weight for 'else'
+        else:  # Handle new control structures like 'if', 'for', etc.
+            current_nesting += 1
+            control_structure_stack.append(current_nesting)
+            wn = current_nesting
 
-        in_control_structure = True  # We're inside a control structure
+        in_control_structure = True
         return current_nesting, in_control_structure, control_structure_stack, wn
 
-    # Check for closing '}' of control structure
+    # Check for closing '}' of a control structure
     if '}' in line and control_structure_stack:
-        current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
-        wn = current_nesting + 1  # Wn based on the new current nesting level
+        control_structure_stack.pop()
+        current_nesting = len(control_structure_stack)
+        wn = current_nesting
 
-        # If stack is empty after popping, we're not in a control structure anymore
         in_control_structure = len(control_structure_stack) > 0
         return current_nesting, in_control_structure, control_structure_stack, wn
 
-    # If we encounter a statement at the same nesting level as the control structure
+    # Handle sequential statements (non-control-structure lines)
     if in_control_structure:
-        wn = current_nesting  # Assign weight based on the current nesting level
-
-    return current_nesting, in_control_structure, control_structure_stack, wn
-
-"""
-
-
-def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
-    # Define control structures that affect nesting
-    control_structures = ['if', 'else', 'for', 'while', 'switch', 'try', 'catch', 'finally']
-
-    # Initialize Wn (nesting weight)
-    wn = 0
-
-    # Check if the line starts a control structure
-    if any(cs in line for cs in control_structures):
-        # Increase nesting level for control structures
-        current_nesting += 1
-        control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
-
-        # Assign weight based on the new current nesting level
+        # Sequential statements inside control structures take the current nesting weight
         wn = current_nesting
-        in_control_structure = True  # We're inside a control structure
-        return current_nesting, in_control_structure, control_structure_stack, wn
-
-    # Check for closing '}' of control structure
-    if '}' in line and control_structure_stack:
-        current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
-
-        # If stack is empty after popping, we're not in a control structure anymore
-        in_control_structure = len(control_structure_stack) > 0
-
-        # Return the updated nesting level and weight
-        return current_nesting, in_control_structure, control_structure_stack, 0
-
-    # If we're not in any control structure, assign a weight of 0 for sequential statements
-    if not in_control_structure:
-        wn = 0
     else:
-        # If in a control structure, assign weight based on the current nesting level
-        wn = current_nesting
+        wn = 0  # Reset weight for lines outside control structures
 
     return current_nesting, in_control_structure, control_structure_stack, wn
+
+
+# def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
+#     # Define control structures that affect nesting
+#     control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
+#
+#     # Initialize Wn (nesting weight)
+#     wn = 0
+#
+#     # Check if the line starts a control structure
+#     if any(cs in line for cs in control_structures):
+#         # Increase nesting level for control structures
+#         current_nesting += 1
+#         control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
+#
+#         # Assign weight based on the new current nesting level
+#         wn = current_nesting
+#         in_control_structure = True  # We're inside a control structure
+#         return current_nesting, in_control_structure, control_structure_stack, wn
+#
+#     # Check for closing '}' of control structure
+#     if '}' in line and control_structure_stack:
+#         current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
+#
+#         # If stack is empty after popping, we're not in a control structure anymore
+#         in_control_structure = len(control_structure_stack) > 0
+#
+#         # Return the updated nesting level and weight
+#         wn = current_nesting  # Use the current nesting level as the weight
+#         return current_nesting, in_control_structure, control_structure_stack, wn
+#
+#     # If we're not in any control structure, assign a weight of 0 for sequential statements
+#     if not in_control_structure:
+#         wn = 0
+#     else:
+#         # If in a control structure, assign weight based on the current nesting level
+#         wn = current_nesting
+#
+#     return current_nesting, in_control_structure, control_structure_stack, wn
 
 
 # Function to calculate inheritance level for a single line (Wi)
@@ -293,7 +345,7 @@ def calculate_thread_weight(line):
 
     # Detect thread synchronization
     if re.search(r'synchronized\s*\(', line):
-        weight += 3  # Weight of 3 for synchronized blocks/methods
+        weight += 5  # Weight of 3 for synchronized blocks/methods
 
     return weight
 
@@ -562,18 +614,20 @@ training_data = np.array([
     [0, 1, 1, 0, 0, 0],
     [0, 1, 1, 0, 2, 0],
     [2, 2, 0, 2, 1, 0],  # Iterative with a try-catch, moderate complexity
-    [1, 3, 2, 1, 2, 1],  # Complex nested conditions with threads
-    [1, 3, 1, 1, 2, 3],  # Moderate nesting and thread synchronization
+    [1, 3, 2, 1, 2, 2],  # Complex nested conditions with threads
+    [1, 3, 1, 1, 2, 5],  # Moderate nesting and thread synchronization
     [0, 0, 0, 0, 0, 0],  # Sequential, no complexity
-    [2, 3, 1, 2, 3, 4],  # Nested loops with complex try-catch and threads
+    [2, 3, 1, 2, 3, 2],  # Nested loops with complex try-catch and threads
     [1, 2, 2, 2, 1, 2],  # Moderate complexity with threads and conditions
     [2, 1, 3, 0, 0, 0],  # Simple branch with deep inheritance
     [0, 0, 3, 0, 0, 0],  # Simple branch with deep inheritance
     [0, 1, 0, 1, 0, 0],  # Sequential in nested try-catch
     [2, 2, 1, 0, 0, 0],
     [0, 2, 1, 0, 0, 0],
-    [1, 3, 1, 1, 0, 0],
     [0, 3, 1, 0, 0, 0],
+    [1, 1, 1, 2, 0, 0],
+    [1, 3, 1, 1, 0, 0],
+    [0, 3, 1, 0, 0, 0]
 ])
 
 # Corresponding labels based on WCC guidelines
@@ -602,6 +656,8 @@ labels = [
     "no action needed",
     "no action needed",
     "no action needed",
+    "consider reducing nesting",
+    "consider reducing nesting",
 ]
 
 # CBO and MPC dataset (per class, not line-by-line)

@@ -272,7 +272,7 @@
     </style>
 </head>
 <body>
-    <h1>Code Complexity Results</h1>
+    <h1>Code Complexity Results for Java</h1>
 
     {% for file in complexities %}
         <div class="metrics">
@@ -384,7 +384,13 @@
                 </thead>
                 <tbody>
                     {% for method in file.method_complexities %}
-                        <tr>
+                        <tr
+                        style="
+                        {% if method.category == 'High' %}background-color: #f8d7da; color: #721c24;{% endif %}
+                        {% if method.category == 'Medium' %}background-color: #fff3cd; color: #856404;{% endif %}
+                        {% if method.category == 'Low' %}background-color: #d4edda; color: #155724;{% endif %}
+                    "
+                        >
                             <td>{{ method.method_name }}</td>
                             <td>{{ method.size }}</td>
                             <td>{{ method.control_structure_complexity }}</td>

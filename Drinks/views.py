@@ -202,67 +202,157 @@ def calculate_complexity_line_by_line_csharp(request):
     return render(request, 'complexityB_form.html')
 
 
+"""
+@api_view(['GET', 'POST'])
+def calculate_complexity_multiple_csharp_files(request):
+    
+    if request.method == 'POST':
+        files = request.FILES.getlist('files')
+
+        if not files:
+            return Response({'error': 'No files uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+        file_contents = {}
+
+        try:
+            # Read and decode each file, ensuring the content is a string
+            for file in files:
+                try:
+                    content = file.read().decode('utf-8')
+                    if not isinstance(content, str):
+                        raise ValueError(f"File {file.name} did not decode to a valid string.")
+                    file_contents[file.name] = content
+                except Exception as e:
+                    # logger.error(f"Error decoding file {file.name}: {str(e)}")
+                    return Response({'error': f"File decoding failed for {file.name}: {str(e)}"},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            # Validate file_contents are strings
+            for filename, content in file_contents.items():
+                if not isinstance(content, str):
+                    return Response({'error': f"File {filename} contains invalid content."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            # Call the function to calculate complexity
+            result = calculate_code_complexity_multiple_files_csharp(file_contents)
+
+            # Prepare response data
+            complexities = []
+            for filename, file_data in result.items():
+                complexities.append({
+                    'filename': filename,
+                    'complexity_data': file_data['complexity_data'],
+                    # 'cbo': file_data['cbo'],
+                    # 'mpc': file_data['mpc']
+                })
+
+            return render(request, 'complexityC_table.html', {'complexities': complexities})
+
+        except Exception as e:
+            # logger.error(f"Error processing files: {str(e)}")
+            return Response({'error': f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # Render the file upload form for GET requests
+    return render(request, 'complexityC_form.html')
+"""
+
+
 @api_view(['GET', 'POST'])
 def calculate_complexity_multiple_csharp_files(request):
     if request.method == 'POST':
+        # Expecting multiple Java files in the request
         files = request.FILES.getlist('files')
         if not files:
             return Response({'error': 'No files uploaded'}, status=status.HTTP_400_BAD_REQUEST)
 
         file_contents = {}
         for file in files:
-            content = file.read().decode('utf-8')
+            # Read the content of each file
+            content = file.read().decode('utf-8')  # Assuming the files are UTF-8 encoded
             file_contents[file.name] = content
 
-        # Call the function to calculate complexity for multiple files
+        # Load thresholds from the JSON file
+        thresholds = get_thresholds()
+        print("thresholds.....]]]]]]]]]]]]]]]]]]]", thresholds)
+        threshold_low = thresholds.get('threshold_low', 10)
+        threshold_medium = thresholds.get('threshold_medium', 20)
+        threshold_high = thresholds.get('threshold_high', 50)
+
+        # Call your function to calculate complexity for multiple files
         result = calculate_code_complexity_multiple_files(file_contents)
 
-        # Prepare data structures for response
+        # Prepare a list to store complexities for each file
         complexities = []
 
+        # Create a table for the response
         results_table = PrettyTable()
-        results_table.field_names = [
-            "Filename", "Line Number", "Line", "Size", "Tokens",
-            "Control Structure Complexity", "Nesting Weight", "Inheritance Weight",
-            "Compound Condition Weight", "Try-Catch Weight", "Thread Weight", "Total Complexity"
-        ]
+        results_table.field_names = ["Filename", "Line Number", "Line", "Size", "Tokens",
+                                     "Control Structure Complexity", "Nesting Weight",
+                                     "Inheritance Weight", "Compound Condition Weight",
+                                     "Try-Catch Weight", "Thread Weight", "Total Complexity"]
 
+        # Prepare another table for displaying MPC and CBO values
         mp_cbo_table = PrettyTable()
         mp_cbo_table.field_names = ["Filename", "CBO", "MPC"]
 
+        # Collect complexities for each file
         for filename, file_data in result.items():
             complexity_data = file_data['complexity_data']
             cbo = file_data['cbo']
             mpc = file_data['mpc']
+            method_complexities = file_data['method_complexities']
+            # recommendations = file_data['recommendation']
+            pie_chart_path = file_data['pie_chart_path']
+            total_wcc = file_data['total_wcc']
 
-            # Check the structure of line_data and adjust if necessary
+            print("method_complexities.....", method_complexities)
+
             for line_data in complexity_data:
-                # Ensure line_data is a dictionary and has the expected keys
-                if isinstance(line_data, dict):
-                    total_complexity = sum([
-                        line_data.get('size', 0), line_data.get('control_structure_complexity', 0),
-                        line_data.get('nesting_level', 0), line_data.get('inheritance_level', 0),
-                        line_data.get('compound_condition_weight', 0), line_data.get('try_catch_weight', 0),
-                        line_data.get('thread_weight', 0)
-                    ])
-                    results_table.add_row([
-                        filename, line_data.get('line_number', ''), line_data.get('line_content', ''),
-                        line_data.get('size', 0), ', '.join(line_data.get('tokens', [])),
-                        line_data.get('control_structure_complexity', 0), line_data.get('nesting_level', 0),
-                        line_data.get('inheritance_level', 0), line_data.get('compound_condition_weight', 0),
-                        line_data.get('try_catch_weight', 0), line_data.get('thread_weight', 0), total_complexity
-                    ])
+                results_table.add_row([filename] + line_data)  # Now line_data has 9 values
+
+            # Categorize each method based on total complexity
+            categorized_methods = []
+            for method_name, method_data in method_complexities.items():
+                if isinstance(method_data, dict):
+                    total_complexity = method_data.get('total_complexity', 0)
+
+                    if threshold_low <= total_complexity <= threshold_medium:
+                        category = 'Low'
+                    elif threshold_medium < total_complexity <= threshold_high:
+                        category = 'Medium'
+                    elif total_complexity > threshold_high:
+                        category = 'High'
+                    elif total_complexity < threshold_low:
+                        category = 'Low'
+                    else:
+                        category = 'Unknown'
+
+                    # Append category to the method data
+                    categorized_method = method_data.copy()
+                    categorized_method['category'] = category
+                    categorized_method['method_name'] = method_name
+                    categorized_methods.append(categorized_method)
+                else:
+                    print(f"Unexpected format in method_data: {method_data}")
 
             complexities.append({
                 'filename': filename,
                 'complexity_data': complexity_data,
                 'cbo': cbo,
-                'mpc': mpc
+                'mpc': mpc,
+                'method_complexities': method_complexities,
+                # 'recommendations': recommendations,
+                'pie_chart_path': pie_chart_path,
+                'total_wcc': total_wcc
             })
-            mp_cbo_table.add_row([filename, cbo, mpc])
 
+        # Log the result table for debugging or reference
+        # print(results_table)
+
+        # Instead of returning a JSON response, render the template and pass complexities
         return render(request, 'complexityC_table.html', {'complexities': complexities})
 
+    # If GET request, just show the form
     return render(request, 'complexityC_form.html')
 
 
