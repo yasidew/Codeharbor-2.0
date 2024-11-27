@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 
+import model
 from . import views
 
 urlpatterns = [
@@ -24,6 +25,10 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
     path('python_code_analysis/', views.python_code_analysis, name='python_code_analysis'),
 
     path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
+
+    path("detect-defects/", views.detect_defects_view, name="detect_defects"),
+
+    # path("api/detect-defects/", model.detect_defects, name="api_detect_defects"),
 
     # path('upload/python/', views.upload_python_files, name='upload_python_files'),
 
