@@ -15,6 +15,8 @@ import analysis
 from Drinks.models import Drink
 from analysis.code_analyzer import CodeAnalyzer
 from analysis.java_code_analyser import JavaCodeAnalyzer
+from analysis.javascript_code_analyser import JavaScriptCodeAnalyzer
+from analysis.php_code_analyser import PHPCodeAnalyzer
 from analysis.python_code_analyser import PythonCodeAnalyzer
 from .serializers import DrinkSerializer
 from rest_framework.decorators import api_view
@@ -30,40 +32,58 @@ import statsmodels.api as sm
 
 
 
+
+
 # @api_view(['GET', 'POST'])
 # def python_code_analysis(request):
 #     if request.method == 'POST':
-#         try:
-#             code = request.POST.get('code', '')
-#             if not code:
-#                 return JsonResponse({'error': 'No code provided'}, status=400)
+#         recommendations = {}
 #
-#             analyser = PythonCodeAnalyzer(code)
-#             recommendations = analyser.generate_recommendations()
 #
-#             # Group recommendations by line number for better readability
-#             grouped_recommendations = {}
+#         # Handle pasted code
+#         code = request.POST.get('code', '').strip()
+#         if code:
+#             try:
+#                 analyzer = PythonCodeAnalyzer(code)
+#                 recommendations = analyzer.generate_recommendations()
+#             except Exception as e:
+#                 return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
+#
+#         # Handle uploaded files
+#         files = request.FILES.getlist('files')
+#         if files:
+#             file_results = {}
+#             for file in files:
+#                 try:
+#                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+#                     analyzer = PythonCodeAnalyzer(content)
+#                     file_results[file.name] = analyzer.generate_recommendations()
+#                 except Exception as e:
+#                     file_results[file.name] = f"Error analyzing file: {str(e)}"
+#             recommendations['files'] = file_results
+#
+#         # Group recommendations by line
+#         grouped_recommendations = {}
+#         if isinstance(recommendations, list):  # For pasted code
 #             for rec in recommendations:
 #                 line = rec.get('line', 'unknown')
 #                 grouped_recommendations.setdefault(line, []).append({
 #                     'rule': rec.get('rule'),
 #                     'message': rec.get('message'),
 #                 })
+#         elif isinstance(recommendations, dict):  # For files
+#             grouped_recommendations = recommendations
 #
-#             return JsonResponse({'recommendations': grouped_recommendations})
-#
-#         except Exception as e:
-#             # Log the exception message
-#             print(f"Exception: {e}")
-#             return JsonResponse({'error': str(e)}, status=500)
-#
+#         # return JsonResponse({'recommendations': grouped_recommendations})
+#         return render(request, 'python_code_analysis.html', {'recommendations': grouped_recommendations})
 #     return render(request, 'python_code_analysis.html')
 
 @api_view(['GET', 'POST'])
 def python_code_analysis(request):
-    if request.method == 'POST':
-        recommendations = {}
+    recommendations = {}
+    code = ""  # Initialize code to maintain state
 
+    if request.method == 'POST':
         # Handle pasted code
         code = request.POST.get('code', '').strip()
         if code:
@@ -71,7 +91,7 @@ def python_code_analysis(request):
                 analyzer = PythonCodeAnalyzer(code)
                 recommendations = analyzer.generate_recommendations()
             except Exception as e:
-                return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
+                recommendations = [{'error': f"Error analyzing pasted code: {str(e)}"}]
 
         # Handle uploaded files
         files = request.FILES.getlist('files')
@@ -83,10 +103,10 @@ def python_code_analysis(request):
                     analyzer = PythonCodeAnalyzer(content)
                     file_results[file.name] = analyzer.generate_recommendations()
                 except Exception as e:
-                    file_results[file.name] = f"Error analyzing file: {str(e)}"
+                    file_results[file.name] = [{'error': f"Error analyzing file: {str(e)}"}]
             recommendations['files'] = file_results
 
-        # Group recommendations by line
+        # Group recommendations by line or filename
         grouped_recommendations = {}
         if isinstance(recommendations, list):  # For pasted code
             for rec in recommendations:
@@ -98,14 +118,213 @@ def python_code_analysis(request):
         elif isinstance(recommendations, dict):  # For files
             grouped_recommendations = recommendations
 
-        return JsonResponse({'recommendations': grouped_recommendations})
+        return render(
+            request,
+            'python_code_analysis.html',
+            {'recommendations': grouped_recommendations, 'code': code}
+        )
 
-    return render(request, 'python_code_analysis.html')
+    return render(request, 'python_code_analysis.html', {'code': code})
 
+
+
+
+# @api_view(['GET', 'POST'])
+# def java_code_analysis(request):
+#     if request.method == 'POST':
+#         recommendations = {}
+#
+#         # Handle pasted code
+#         code = request.POST.get('code', '').strip()
+#         if code:
+#             try:
+#                 analyzer = JavaCodeAnalyzer(code)
+#                 recommendations = analyzer.generate_recommendations()
+#             except Exception as e:
+#                 return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
+#
+#         # Handle uploaded files
+#         files = request.FILES.getlist('files')
+#         if files:
+#             file_results = {}
+#             for file in files:
+#                 try:
+#                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+#                     analyzer = JavaCodeAnalyzer(content)
+#                     file_results[file.name] = analyzer.generate_recommendations()
+#                 except Exception as e:
+#                     file_results[file.name] = f"Error analyzing file: {str(e)}"
+#             recommendations['files'] = file_results
+#
+#         # Group recommendations by line
+#         grouped_recommendations = {}
+#         if isinstance(recommendations, list):  # For pasted code
+#             for rec in recommendations:
+#                 line = rec.get('line', 'unknown')
+#                 grouped_recommendations.setdefault(line, []).append({
+#                     'rule': rec.get('rule'),
+#                     'message': rec.get('message'),
+#                 })
+#         elif isinstance(recommendations, dict):  # For files
+#             grouped_recommendations = recommendations
+#
+#         # return JsonResponse({'recommendations': grouped_recommendations})
+#         return render(request, 'java_code_analysis.html', {'recommendations': grouped_recommendations})
+#     return render(request, 'java_code_analysis.html')
 
 
 @api_view(['GET', 'POST'])
 def java_code_analysis(request):
+    recommendations = {}
+    code = ""
+
+    if request.method == 'POST':
+        # Handle pasted code
+        code = request.POST.get('code', '').strip()  # Keep the submitted code
+        if code:
+            try:
+                analyzer = JavaCodeAnalyzer(code)
+                recommendations = analyzer.generate_recommendations()
+            except Exception as e:
+                recommendations = [{'error': f"Error analyzing pasted code: {str(e)}"}]
+
+        # Handle uploaded files
+        files = request.FILES.getlist('files')
+        if files:
+            file_results = {}
+            for file in files:
+                try:
+                    content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+                    analyzer = JavaCodeAnalyzer(content)
+                    file_results[file.name] = analyzer.generate_recommendations()
+                except Exception as e:
+                    file_results[file.name] = [{'error': f"Error analyzing file: {str(e)}"}]
+            recommendations['files'] = file_results
+
+        # Group recommendations
+        grouped_recommendations = {}
+        if isinstance(recommendations, list):  # For pasted code
+            for rec in recommendations:
+                line = rec.get('line', 'unknown')
+                grouped_recommendations.setdefault(line, []).append({
+                    'rule': rec.get('rule'),
+                    'message': rec.get('message'),
+                })
+        elif isinstance(recommendations, dict):  # For files
+            for filename, recs in recommendations['files'].items():
+                grouped_recommendations[filename] = []
+                for rec in recs:
+                    grouped_recommendations[filename].append({
+                        'rule': rec.get('rule'),
+                        'message': rec.get('message'),
+                        'line': rec.get('line', 'unknown'),
+                    })
+
+        return render(
+            request,
+            'java_code_analysis.html',
+            {'recommendations': grouped_recommendations, 'code': code}
+        )
+
+    return render(request, 'java_code_analysis.html', {'code': code})
+
+
+
+
+
+# @api_view(['GET', 'POST'])
+# def js_code_analyser(request):
+#     if request.method == 'POST':
+#         recommendations = {}
+#
+#         # Handle pasted code
+#         code = request.POST.get('code', '').strip()
+#         if code:
+#             try:
+#                 analyzer = JavaScriptCodeAnalyzer(code)
+#                 recommendations = analyzer.generate_recommendations()
+#             except Exception as e:
+#                 return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
+#
+#         # Handle uploaded files
+#         files = request.FILES.getlist('files')
+#         if files:
+#             file_results = {}
+#             for file in files:
+#                 try:
+#                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+#                     analyzer = JavaScriptCodeAnalyzer(content)
+#                     file_results[file.name] = analyzer.generate_recommendations()
+#                 except Exception as e:
+#                     file_results[file.name] = f"Error analyzing file: {str(e)}"
+#             recommendations['files'] = file_results
+#
+#         # Group recommendations by line
+#         grouped_recommendations = {}
+#         if isinstance(recommendations, list):  # For pasted code
+#             for rec in recommendations:
+#                 line = rec.get('line', 'unknown')
+#                 grouped_recommendations.setdefault(line, []).append({
+#                     'rule': rec.get('rule'),
+#                     'message': rec.get('message'),
+#                 })
+#         elif isinstance(recommendations, dict):  # For files
+#             grouped_recommendations = recommendations
+#
+#         return JsonResponse({'recommendations': grouped_recommendations})
+#
+#     return render(request, 'js_code_analyser.html')
+
+@api_view(['GET', 'POST'])
+def js_code_analyser(request):
+    recommendations = {}
+    code = ""  # Initialize code to maintain state
+
+    if request.method == 'POST':
+        # Handle pasted code
+        code = request.POST.get('code', '').strip()
+        if code:
+            try:
+                analyzer = JavaScriptCodeAnalyzer(code)
+                recommendations = analyzer.generate_recommendations()
+            except Exception as e:
+                recommendations = [{'error': f"Error analyzing pasted code: {str(e)}"}]
+
+        # Handle uploaded files
+        files = request.FILES.getlist('files')
+        if files:
+            file_results = {}
+            for file in files:
+                try:
+                    content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+                    analyzer = JavaScriptCodeAnalyzer(content)
+                    file_results[file.name] = analyzer.generate_recommendations()
+                except Exception as e:
+                    file_results[file.name] = [{'error': f"Error analyzing file: {str(e)}"}]
+            recommendations['files'] = file_results
+
+        # Group recommendations by line or filename
+        grouped_recommendations = {}
+        if isinstance(recommendations, list):  # For pasted code
+            for rec in recommendations:
+                line = rec.get('line', 'unknown')
+                grouped_recommendations.setdefault(line, []).append({
+                    'rule': rec.get('rule'),
+                    'message': rec.get('message'),
+                })
+        elif isinstance(recommendations, dict):  # For files
+            grouped_recommendations = recommendations
+
+        return render(
+            request,
+            'js_code_analyser.html',
+            {'recommendations': grouped_recommendations, 'code': code}
+        )
+
+    return render(request, 'js_code_analyser.html', {'code': code})
+
+@api_view(['GET', 'POST'])
+def php_code_analyser(request):
     if request.method == 'POST':
         recommendations = {}
 
@@ -113,7 +332,7 @@ def java_code_analysis(request):
         code = request.POST.get('code', '').strip()
         if code:
             try:
-                analyzer = JavaCodeAnalyzer(code)
+                analyzer = PHPCodeAnalyzer(code)
                 recommendations = analyzer.generate_recommendations()
             except Exception as e:
                 return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
@@ -125,7 +344,7 @@ def java_code_analysis(request):
             for file in files:
                 try:
                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
-                    analyzer = JavaCodeAnalyzer(content)
+                    analyzer = PHPCodeAnalyzer(content)
                     file_results[file.name] = analyzer.generate_recommendations()
                 except Exception as e:
                     file_results[file.name] = f"Error analyzing file: {str(e)}"
@@ -145,7 +364,9 @@ def java_code_analysis(request):
 
         return JsonResponse({'recommendations': grouped_recommendations})
 
-    return render(request, 'java_code_analysis.html')
+    return render(request, 'php_code_analyser.html')
+
+
 
 
 def detect_defects_view(request):

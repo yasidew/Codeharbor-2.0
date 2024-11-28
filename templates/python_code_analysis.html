@@ -1,3 +1,147 @@
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
+{#    <title>Python Code Analysis</title>#}
+{#    <style>#}
+{#        body {#}
+{#            font-family: Arial, sans-serif;#}
+{#            margin: 0;#}
+{#            padding: 0;#}
+{#            background-color: #f4f4f9;#}
+{#            color: #333;#}
+{#            line-height: 1.6;#}
+{#        }#}
+{##}
+{#        .container {#}
+{#            max-width: 800px;#}
+{#            margin: 20px auto;#}
+{#            padding: 20px;#}
+{#            background: #fff;#}
+{#            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);#}
+{#            border-radius: 8px;#}
+{#        }#}
+{##}
+{#        h1 {#}
+{#            text-align: center;#}
+{#            color: #444;#}
+{#        }#}
+{##}
+{#        form {#}
+{#            margin-bottom: 20px;#}
+{#        }#}
+{##}
+{#        label {#}
+{#            font-weight: bold;#}
+{#            display: block;#}
+{#            margin-bottom: 10px;#}
+{#        }#}
+{##}
+{#        textarea, input[type="file"] {#}
+{#            width: 100%;#}
+{#            padding: 10px;#}
+{#            margin-bottom: 15px;#}
+{#            border: 1px solid #ddd;#}
+{#            border-radius: 4px;#}
+{#            font-family: Arial, sans-serif;#}
+{#        }#}
+{##}
+{#        button {#}
+{#            display: block;#}
+{#            width: 100%;#}
+{#            background: #007BFF;#}
+{#            color: white;#}
+{#            padding: 10px;#}
+{#            border: none;#}
+{#            border-radius: 4px;#}
+{#            cursor: pointer;#}
+{#            font-size: 16px;#}
+{#            text-transform: uppercase;#}
+{#            transition: background 0.3s;#}
+{#        }#}
+{##}
+{#        button:hover {#}
+{#            background: #0056b3;#}
+{#        }#}
+{##}
+{#        .recommendations {#}
+{#            margin-top: 20px;#}
+{#        }#}
+{##}
+{#        .recommendations h2 {#}
+{#            color: #007BFF;#}
+{#            text-align: center;#}
+{#        }#}
+{##}
+{#        ul {#}
+{#            list-style: none;#}
+{#            padding-left: 0;#}
+{#        }#}
+{##}
+{#        ul li {#}
+{#            background: #f9f9f9;#}
+{#            margin: 10px 0;#}
+{#            padding: 10px;#}
+{#            border-left: 4px solid #007BFF;#}
+{#            border-radius: 4px;#}
+{#        }#}
+{##}
+{#        @media (max-width: 600px) {#}
+{#            .container {#}
+{#                margin: 10px;#}
+{#                padding: 15px;#}
+{#            }#}
+{##}
+{#            button {#}
+{#                font-size: 14px;#}
+{#                padding: 8px;#}
+{#            }#}
+{#        }#}
+{#    </style>#}
+{#</head>#}
+{#<body>#}
+{#<div class="container">#}
+{#    <h1>Python Code Analysis</h1>#}
+{#    <form method="POST" enctype="multipart/form-data">#}
+{#        {% csrf_token %}#}
+{#        <label for="code">Paste Python Code:</label>#}
+{#        <textarea#}
+{#                name="code"#}
+{#                id="code"#}
+{#                rows="10"#}
+{#                placeholder="Paste your Python code here (e.g., function definitions, loops, or scripts)."#}
+{#        >{{ code }}</textarea>#}
+{##}
+{#        <label for="files">Or Upload Python Files:</label>#}
+{#        <input type="file" name="files" id="files" multiple accept=".py">#}
+{##}
+{#        <button type="submit">Analyze Code</button>#}
+{#    </form>#}
+{##}
+{#    {% if recommendations %}#}
+{#        <div class="recommendations">#}
+{#            <h2>Analysis Recommendations</h2>#}
+{#            <ul>#}
+{#                {% for line, recs in recommendations.items %}#}
+{#                    <li>#}
+{#                        <strong>Line {{ line }}</strong>#}
+{#                        <ul>#}
+{#                            {% for rec in recs %}#}
+{#                                <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>#}
+{#                            {% endfor %}#}
+{#                        </ul>#}
+{#                    </li>#}
+{#                {% endfor %}#}
+{#            </ul>#}
+{#        </div>#}
+{#    {% endif %}#}
+{#</div>#}
+{#</body>#}
+{#</html>#}
+{##}
+{##}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -111,7 +255,7 @@
                 id="code"
                 rows="10"
                 placeholder="Paste your Python code here (e.g., function definitions, loops, or scripts)."
-        ></textarea>
+        >{{ code }}</textarea>
 
         <label for="files">Or Upload Python Files:</label>
         <input type="file" name="files" id="files" multiple accept=".py">
@@ -123,180 +267,33 @@
         <div class="recommendations">
             <h2>Analysis Recommendations</h2>
             <ul>
-                {% for line, recs in recommendations.items %}
-                    <li>
-                        <strong>Line {{ line }}</strong>
-                        <ul>
-                            {% for rec in recs %}
-                                <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>
-                            {% endfor %}
-                        </ul>
-                    </li>
+                {% for key, recs in recommendations.items %}
+                    {% if key == 'unknown' %}
+                        <li><strong>Line Unknown:</strong>
+                            <ul>
+                                {% for rec in recs %}
+                                    <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li><strong>File: {{ key }}</strong>
+                            <ul>
+                                {% for rec in recs %}
+                                    <li>
+                                        <strong>Line {{ rec.line }}:</strong>
+                                        <strong>{{ rec.rule }}:</strong> {{ rec.message }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endif %}
                 {% endfor %}
             </ul>
         </div>
+    {% else %}
+        <p>No recommendations available. Paste or upload code to analyze.</p>
     {% endif %}
 </div>
 </body>
 </html>
-
-
-{#<!DOCTYPE html>#}
-{#<html lang="en">#}
-{#<head>#}
-{#    <meta charset="UTF-8">#}
-{#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
-{#    <title>Python Code Analysis</title>#}
-{#    <style>#}
-{#        body {#}
-{#            font-family: Arial, sans-serif;#}
-{#            margin: 0;#}
-{#            padding: 0;#}
-{#            background-color: #f4f4f9;#}
-{#            color: #333;#}
-{#            line-height: 1.6;#}
-{#        }#}
-{##}
-{#        .container {#}
-{#            display: flex;#}
-{#            max-width: 1200px;#}
-{#            margin: 20px auto;#}
-{#            padding: 20px;#}
-{#            background: #fff;#}
-{#            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);#}
-{#            border-radius: 8px;#}
-{#        }#}
-{##}
-{#        .form-section, .recommendations-section {#}
-{#            flex: 1;#}
-{#            margin: 0 10px;#}
-{#        }#}
-{##}
-{#        h1 {#}
-{#            text-align: center;#}
-{#            color: #444;#}
-{#            margin-bottom: 20px;#}
-{#        }#}
-{##}
-{#        form {#}
-{#            margin-bottom: 20px;#}
-{#        }#}
-{##}
-{#        label {#}
-{#            font-weight: bold;#}
-{#            display: block;#}
-{#            margin-bottom: 10px;#}
-{#        }#}
-{##}
-{#        textarea, input[type="file"] {#}
-{#            width: 100%;#}
-{#            padding: 10px;#}
-{#            margin-bottom: 15px;#}
-{#            border: 1px solid #ddd;#}
-{#            border-radius: 4px;#}
-{#            font-family: Arial, sans-serif;#}
-{#        }#}
-{##}
-{#        button {#}
-{#            display: block;#}
-{#            width: 100%;#}
-{#            background: #007BFF;#}
-{#            color: white;#}
-{#            padding: 10px;#}
-{#            border: none;#}
-{#            border-radius: 4px;#}
-{#            cursor: pointer;#}
-{#            font-size: 16px;#}
-{#            text-transform: uppercase;#}
-{#            transition: background 0.3s;#}
-{#        }#}
-{##}
-{#        button:hover {#}
-{#            background: #0056b3;#}
-{#        }#}
-{##}
-{#        .recommendations-section {#}
-{#            overflow-y: auto;#}
-{#            max-height: 500px;#}
-{#        }#}
-{##}
-{#        .recommendations-section h2 {#}
-{#            color: #007BFF;#}
-{#            text-align: center;#}
-{#            margin-bottom: 10px;#}
-{#        }#}
-{##}
-{#        ul {#}
-{#            list-style: none;#}
-{#            padding-left: 0;#}
-{#        }#}
-{##}
-{#        ul li {#}
-{#            background: #f9f9f9;#}
-{#            margin: 10px 0;#}
-{#            padding: 10px;#}
-{#            border-left: 4px solid #007BFF;#}
-{#            border-radius: 4px;#}
-{#        }#}
-{##}
-{#        @media (max-width: 768px) {#}
-{#            .container {#}
-{#                flex-direction: column;#}
-{#            }#}
-{##}
-{#            .form-section, .recommendations-section {#}
-{#                margin: 10px 0;#}
-{#            }#}
-{##}
-{#            button {#}
-{#                font-size: 14px;#}
-{#                padding: 8px;#}
-{#            }#}
-{#        }#}
-{#    </style>#}
-{#</head>#}
-{#<body>#}
-{#<h1>Python Code Analysis</h1>#}
-{#<div class="container">#}
-{#    <!-- Form Section -->#}
-{#    <div class="form-section">#}
-{#        <form method="POST" enctype="multipart/form-data">#}
-{#            {% csrf_token %}#}
-{#            <label for="code">Paste Python Code:</label>#}
-{#            <textarea#}
-{#                    name="code"#}
-{#                    id="code"#}
-{#                    rows="10"#}
-{#                    placeholder="Paste your Python code here (e.g., function definitions, loops, or scripts)."#}
-{#            ></textarea>#}
-{##}
-{#            <label for="files">Or Upload Python Files:</label>#}
-{#            <input type="file" name="files" id="files" multiple accept=".py">#}
-{##}
-{#            <button type="submit">Analyze Code</button>#}
-{#        </form>#}
-{#    </div>#}
-{##}
-{#    <!-- Recommendations Section -->#}
-{#    <div class="recommendations-section">#}
-{#        {% if recommendations %}#}
-{#            <h2>Analysis Recommendations</h2>#}
-{#            <ul>#}
-{#                {% for line, recs in recommendations.items %}#}
-{#                    <li>#}
-{#                        <strong>Line {{ line }}</strong>#}
-{#                        <ul>#}
-{#                            {% for rec in recs %}#}
-{#                                <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>#}
-{#                            {% endfor %}#}
-{#                        </ul>#}
-{#                    </li>#}
-{#                {% endfor %}#}
-{#            </ul>#}
-{#        {% else %}#}
-{#            <p>No recommendations available. Paste or upload code to analyze.</p>#}
-{#        {% endif %}#}
-{#    </div>#}
-{#</div>#}
-{#</body>#}
-{#</html>#}
