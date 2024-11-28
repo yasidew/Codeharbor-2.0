@@ -1,7 +1,9 @@
 import logging
 import os
 import re
-
+from pyparsing import (
+    Word, alphas, alphanums, Keyword, Suppress, Optional, Group, ZeroOrMore, Forward, OneOrMore
+)
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -80,42 +82,97 @@ def calculate_control_structure_complexity(line):
     return wc
 
 
-def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
-    # Define control structures that affect nesting
-    control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
+# def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
+#     # Define control structures that affect nesting
+#     control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
+#
+#     # Initialize Wn (nesting weight)
+#     wn = 0
+#
+#     # Check if the line starts a control structure
+#     if any(cs in line for cs in control_structures):
+#         # Check for 'else if' (or 'else' and 'if' on the same line)
+#         if 'else if' in line:
+#             wn = current_nesting  # Weight for 'else if'
+#         elif 'else' in line:
+#             wn = 1  # Weight for 'else'
+#         else:
+#             current_nesting += 1  # Increase nesting level for 'if'
+#             control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
+#             wn = current_nesting  # Weight for 'if'
+#
+#         in_control_structure = True  # We're inside a control structure
+#         return current_nesting, in_control_structure, control_structure_stack, wn
+#
+#     # Check for closing '}' of control structure
+#     if '}' in line and control_structure_stack:
+#         current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
+#         wn = current_nesting + 1  # Wn based on the new current nesting level
+#
+#         # If stack is empty after popping, we're not in a control structure anymore
+#         in_control_structure = len(control_structure_stack) > 0
+#         return current_nesting, in_control_structure, control_structure_stack, wn
+#
+#     # If we encounter a statement at the same nesting level as the control structure
+#     if in_control_structure:
+#         wn = current_nesting  # Assign weight based on the current nesting level
+#
+#     return current_nesting, in_control_structure, control_structure_stack, wn
 
-    # Initialize Wn (nesting weight)
-    wn = 0
 
-    # Check if the line starts a control structure
-    if any(cs in line for cs in control_structures):
-        # Check for 'else if' (or 'else' and 'if' on the same line)
-        if 'else if' in line:
-            wn = current_nesting  # Weight for 'else if'
-        elif 'else' in line:
-            wn = 1  # Weight for 'else'
-        else:
-            current_nesting += 1  # Increase nesting level for 'if'
-            control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
-            wn = current_nesting  # Weight for 'if'
+def calculate_nesting_level(java_code):
+    """
+    Calculates the nesting level of control structures (if-else, for, while, do-while)
+    in Java code line by line, ignoring class and method declarations.
+    """
+    # Remove comments from the Java code
+    java_code = remove_comments(java_code)
+    lines = java_code.splitlines()
 
-        in_control_structure = True  # We're inside a control structure
-        return current_nesting, in_control_structure, control_structure_stack, wn
+    # Control structure keywords to consider
+    control_keywords = ['if', 'else', 'for', 'while', 'do']
 
-    # Check for closing '}' of control structure
-    if '}' in line and control_structure_stack:
-        current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
-        wn = current_nesting + 1  # Wn based on the new current nesting level
+    # State variables to track nesting level
+    current_nesting = 0
+    control_structure_stack = []  # Stack to track nesting levels
+    nesting_levels = []
 
-        # If stack is empty after popping, we're not in a control structure anymore
-        in_control_structure = len(control_structure_stack) > 0
-        return current_nesting, in_control_structure, control_structure_stack, wn
+    # Regular expressions for detecting control structures
+    control_regex = re.compile(r'\b(if|else if|else|for|while|do)\b')
+    open_brace_regex = re.compile(r'\{')  # Opening brace
+    close_brace_regex = re.compile(r'\}')  # Closing brace
 
-    # If we encounter a statement at the same nesting level as the control structure
-    if in_control_structure:
-        wn = current_nesting  # Assign weight based on the current nesting level
+    for line_no, line in enumerate(lines, start=1):
+        stripped_line = line.strip()
 
-    return current_nesting, in_control_structure, control_structure_stack, wn
+        # Skip empty lines
+        if not stripped_line:
+            nesting_levels.append((line_no, stripped_line, current_nesting))
+            continue
+
+        # Check if the line contains a control structure
+        control_match = control_regex.search(stripped_line)
+        if control_match:
+            # Increment nesting level for a new control structure
+            current_nesting += 1
+            control_structure_stack.append(current_nesting)
+
+        # Record the current nesting level for the line
+        nesting_levels.append((line_no, stripped_line, current_nesting))
+
+        # Adjust nesting level based on braces
+        # Count the opening and closing braces in the line
+        opening_braces = len(open_brace_regex.findall(stripped_line))
+        closing_braces = len(close_brace_regex.findall(stripped_line))
+
+        # Adjust the nesting level for each closing brace
+        if closing_braces > 0:
+            for _ in range(closing_braces):
+                if control_structure_stack:
+                    control_structure_stack.pop()
+                    current_nesting = len(control_structure_stack)
+
+    return nesting_levels
 
 
 """
@@ -879,6 +936,10 @@ def calculate_code_complexity_multiple_files(file_contents):
 
         # nesting_levels  = calculate_nesting_level1(content)
         # display_nesting_levels(nesting_levels)
+        nesting_levels = calculate_nesting_level(content)
+        nesting_level_dict = {line[0]: line[2] for line in nesting_levels}
+
+        print("nesting_levels----------------------", nesting_levels)
 
         # Calculate MPC and CBO for this file
         cbo_value = calculate_cbo(class_references).get(class_name, 0)
@@ -921,13 +982,15 @@ def calculate_code_complexity_multiple_files(file_contents):
                 ])
                 continue
 
+            nesting_level = nesting_level_dict.get(line_number, 0)
+
             # Calculate control structure complexity
             control_structure_complexity = calculate_control_structure_complexity(line)
 
             # Calculate nesting level
-            current_nesting, in_control_structure, control_structure_stack, wn = calculate_nesting_level(
-                line, current_nesting, in_control_structure, control_structure_stack
-            )
+            # current_nesting, in_control_structure, control_structure_stack, wn = calculate_nesting_level(
+            #     line, current_nesting, in_control_structure, control_structure_stack
+            # )
 
             # Calculate inheritance level
             # current_inheritance = calculate_inheritance_level(line, current_inheritance)
@@ -951,7 +1014,7 @@ def calculate_code_complexity_multiple_files(file_contents):
                 'size': size,
                 'tokens': tokens,
                 'control_structure_complexity': control_structure_complexity,
-                'nesting_level': wn,
+                'nesting_level': nesting_level,
                 'inheritance_level': current_inheritance,
                 'compound_condition_weight': compound_condition_weight,
                 'try_catch_weight': try_catch_weight,
@@ -960,7 +1023,7 @@ def calculate_code_complexity_multiple_files(file_contents):
 
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
-                    size + control_structure_complexity + 0 + current_inheritance +
+                    size + control_structure_complexity + nesting_level + current_inheritance +
                     compound_condition_weight + try_catch_weight + thread_weight
             )
 
@@ -974,7 +1037,7 @@ def calculate_code_complexity_multiple_files(file_contents):
                 size,
                 ', '.join(tokens),
                 control_structure_complexity,
-                wn,
+                nesting_level,
                 current_inheritance,
                 compound_condition_weight,
                 try_catch_weight,
@@ -1026,6 +1089,11 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
     method_name = None
     method_lines = []
 
+    nesting_levels = calculate_nesting_level(content)
+    nesting_level_dict = {line[0]: line[2] for line in nesting_levels}
+
+    print("nesting_levels----------------------", nesting_levels)
+
     # Split content by line and analyze each one
     for line in content.splitlines():
         # Detect method declarations (example pattern; adapt as needed)
@@ -1033,7 +1101,7 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
         if match:
             # If we're already in a method, calculate its complexity
             if method_name:
-                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name)
+                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict)
             # Start a new method
             method_name = match.group(1)
             method_lines = [line]
@@ -1043,13 +1111,13 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
 
     # Final method complexity calculation
     if method_name:
-        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name)
+        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict)
 
     return methods
 
 
 # Helper function to calculate complexity for a method based on lines of code
-def calculate_complexity_for_method(lines, method_inheritance, class_name):
+def calculate_complexity_for_method(lines, method_inheritance, class_name, nesting_level_dict):
     size = 0
     control_structure_complexity = 0
     nesting_level = 0
@@ -1058,12 +1126,13 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name):
     thread_weight = 0
     current_inheritance_sum = 0
     current_class = class_name
+    total_nesting = 0
 
     current_nesting = 0
     control_structure_stack = []
 
     # Analyze each line within the method
-    for line in lines:
+    for line_number, line in enumerate(lines, start=1):
         # Calculate size (token count) for this line
         line_size, tokens = calculate_size(line)
 
@@ -1071,6 +1140,11 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name):
             continue  # Skip this line if size is 0
 
         total_inheritance = method_inheritance[current_class]
+
+        nesting_level = nesting_level_dict.get(line_number, 0)
+        total_nesting += nesting_level
+
+        print("total_nesting))))))))))))))))))))))))))))))))))", total_nesting)
 
         size += line_size
 
@@ -1080,11 +1154,11 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name):
         control_structure_complexity += calculate_control_structure_complexity(line)
 
         # Calculate nesting level and control structures
-        current_nesting, _, control_structure_stack, wn = calculate_nesting_level(
-            line, current_nesting, False, control_structure_stack
-        )
+        # current_nesting, _, control_structure_stack, wn = calculate_nesting_level(
+        #     line, current_nesting, False, control_structure_stack
+        # )
         # wn =calculate_nesting_level(line)
-        nesting_level += wn
+        # nesting_level += wn
 
         # Compound condition weight
         compound_condition_weight += calculate_compound_condition_weight(line)
@@ -1097,7 +1171,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name):
 
     # Sum up the complexity metrics for this method
     total_complexity = (
-            size + control_structure_complexity + nesting_level + current_inheritance_sum +
+            size + control_structure_complexity + total_nesting + current_inheritance_sum +
             compound_condition_weight + try_catch_weight + thread_weight
     )
 
