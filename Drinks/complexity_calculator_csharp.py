@@ -377,6 +377,111 @@ def calculate_inheritance_level2(class_name):
     return inheritance_depth.get(class_name, 1)
 
 
+# Refined method pattern for accurate method detection
+method_pattern = re.compile(
+    r'^\s*(public|private|protected)?\s*(static\s+)?'  # Access modifiers and 'static' keyword
+    r'(\w+\s+)?'  # Optional return type (including void)
+    r'(\w+)\s*\([^)]*\)\s*\{'  # Method name and parameter list
+)
+
+# Keywords to ignore to prevent detecting control structures as methods
+control_keywords = {'if', 'for', 'while', 'switch', 'catch'}
+
+# Function to calculate complexity for each method in a C# file
+def calculate_code_complexity_by_method(content, method_inheritance, class_name):
+    print("content......................................33333333333333333333", content)
+    methods = {}
+    method_name = None
+    method_lines = []
+
+    # Split content by line and analyze each one
+    for line in content.splitlines():
+        print("line..................", line)
+        # Detect C# method declarations
+        match = re.search(r'\b(?:public|private|protected)?\s*(?:static)?\s*(?:\w+<.*?>|\w+)\s+(\w+)\s*\(.*\)\s*{', line)
+        print("match//////////////", match)
+        if match:
+            # If we're already in a method, calculate its complexity
+            if method_name:
+                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name)
+            # Start a new method
+            method_name = match.group(1)
+            method_lines = [line]
+        elif method_name:
+            # Append lines within the current method
+            method_lines.append(line)
+
+    # Final method complexity calculation
+    if method_name:
+        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name)
+
+    return methods
+
+
+# Helper function to calculate complexity for a C# method based on lines of code
+def calculate_complexity_for_method(lines, method_inheritance, class_name):
+    size = 0
+    control_structure_complexity = 0
+    nesting_level = 0
+    compound_condition_weight = 0
+    try_catch_weight = 0
+    thread_weight = 0
+    current_inheritance_sum = 0
+    current_class = class_name
+
+    current_nesting = 0
+    control_structure_stack = []
+
+    # Analyze each line within the method
+    for line in lines:
+        # Calculate size (token count) for this line
+        line_size, tokens = calculate_size(line)
+
+        if line_size == 0:
+            continue  # Skip this line if size is 0
+
+        total_inheritance = method_inheritance.get(current_class, 0)
+
+        size += line_size
+        current_inheritance_sum += total_inheritance
+
+        # Calculate control structure complexity
+        control_structure_complexity += calculate_control_structure_complexity(line)
+
+        # Calculate nesting level and control structures
+        current_nesting, _, control_structure_stack, wn = calculate_nesting_level(
+            line, current_nesting, False, control_structure_stack
+        )
+        nesting_level += wn
+
+        # Compound condition weight
+        compound_condition_weight += calculate_compound_condition_weight(line)
+
+        # Try-catch weight
+        try_catch_weight += calculate_try_catch_weight(line, current_nesting)
+
+        # Thread weight (specific to threading constructs in C#)
+        thread_weight += calculate_thread_weight(line)
+
+    # Sum up the complexity metrics for this method
+    total_complexity = (
+        size + control_structure_complexity + nesting_level + current_inheritance_sum +
+        compound_condition_weight + try_catch_weight + thread_weight
+    )
+
+    print("current_inheritance_sum", current_inheritance_sum)
+    return {
+        "size": size,
+        "control_structure_complexity": control_structure_complexity,
+        "nesting_level": nesting_level,
+        "inheritance_level": current_inheritance_sum,
+        "compound_condition_weight": compound_condition_weight,
+        "try_catch_weight": try_catch_weight,
+        "thread_weight": thread_weight,
+        "total_complexity": total_complexity
+    }
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def calculate_code_complexity_multiple_files_csharp(file_contents):
     results = {}
@@ -505,7 +610,10 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
                 thread_weight,
                 total_complexity,
             ])
-        # method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name)
+        # Calculate method complexities
+        method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name)
+
+        print("method_complexities------------------------------", method_complexities)
 
         # Calculate contributing factors and plot pie chart
         complexity_factors = calculate_complexity_factors(filename, complexity_data)
@@ -516,30 +624,13 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
             'complexity_data': complexity_data,
             'cbo': cbo_value,
             'mpc': mpc_value,
-            # 'method_complexities': method_complexities,
+            'method_complexities': method_complexities,
             # 'recommendation': filtered_recommendations,
             'pie_chart_path': pie_chart_path,
             'total_wcc': total_wcc
         }
 
     return results
-
-
-# Function to calculate overall complexity factors
-# def calculate_complexity_factors(data):
-#     totals = {key: 0 for key in ['Size', 'Control Structure Complexity', 'Nesting Level', 'Inheritance Level',
-#                                  'Compound Condition Weight', 'Try-Catch Weight', 'Thread Weight']}
-#
-#     for line in data:
-#         totals['Size'] += line['size']
-#         totals['Control Structure Complexity'] += line['control_structure_complexity']
-#         totals['Nesting Level'] += line['nesting_level']
-#         totals['Inheritance Level'] += line['inheritance_level']
-#         totals['Compound Condition Weight'] += line['compound_condition_weight']
-#         totals['Try-Catch Weight'] += line['try_catch_weight']
-#         totals['Thread Weight'] += line['thread_weight']
-#
-#     return totals
 
 # Function to calculate complexity factors for a file
 def calculate_complexity_factors(filename, data):

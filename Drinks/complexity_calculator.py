@@ -71,62 +71,6 @@ def calculate_size(line):
     return len(tokens), tokens
 
 
-"""
-def calculate_size(line):
-    global class_declaration_ended
-    # Remove comments from the line
-    line = remove_comments(line)
-
-    # Check for class declaration and skip until it's completed
-    if not class_declaration_ended:
-        # Detect the class declaration pattern
-        if re.search(r'\bclass\b\s+\w+', line):
-            class_declaration_ended = True
-            return 0, []  # Do not count tokens until after class declaration
-        return 0, []  # Still in class declaration, so ignore
-
-    # Print to debug line content after removing comments
-    print("Line after removing comments:", line)
-
-    # Exclude access modifiers and certain keywords that do not affect complexity
-    line = re.sub(r'\b(public|private|protected|static|final|else|return|try|catch)\b', '', line)
-    line = re.sub(r'\(\s*\w+\s*\w*\s*\)', '()', line)  # Ignore function parameters
-
-    # Token pattern to capture common constructs in code
-    token_pattern = r'''
-        "[^"]*"                 # Strings inside double quotes
-        | '[^']*'               # Strings inside single quotes
-        | \+\+|--               # Increment/decrement operators
-        | \b(?:if|for|while|switch|case|default|catch|throw)\b  # Control structures
-        | \b(?:int|float|double|char|boolean|long|short|byte|void|string)\b  # Data types
-        | [\+\*/%=&|<>!~^]      # Operators (except '-')
-        | ==|>=|<=|!=           # Relational operators
-        | -?\b\d+\b             # Numbers (positive or negative)
-        | \.                    # Dot operator for method/field access
-        | ,                     # Comma separator
-        | \(|\)|\{|\}|\[|\]     # Brackets and braces
-        | [a-zA-Z_]\w*          # Identifiers (variable names, method names, etc.)
-    '''
-
-    # Print the line before tokenizing to ensure correct pattern application
-    print("Line before tokenizing:", line)
-
-    # Remove ignored tokens like return, try, and ;
-    line = re.sub(r'\b(return|try)\b', '', line)
-    line = re.sub(r';', '', line)
-
-    # Apply tokenization based on the updated pattern
-    tokens = re.findall(token_pattern, line, re.VERBOSE)
-
-    # Print the tokens to confirm what’s being captured
-    print("Tokens captured:", tokens)
-
-    # Return the count of tokens and the tokens list
-    return len(tokens), tokens
-    
-"""
-
-
 # Function to calculate control structure complexity for a single line (Wc)
 def calculate_control_structure_complexity(line):
     wc = 0
@@ -136,57 +80,47 @@ def calculate_control_structure_complexity(line):
     return wc
 
 
-# def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
-#     # Define control structures that affect nesting
-#     control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
-#
-#     # Initialize Wn (nesting weight)
-#     wn = 0
-#
-#     # Check if the line starts a control structure
-#     if any(cs in line for cs in control_structures):
-#         # Check for 'else if' (or 'else' and 'if' on the same line)
-#         if 'else if' in line:
-#             wn = current_nesting  # Weight for 'else if'
-#         elif 'else' in line:
-#             wn = 1  # Weight for 'else'
-#         else:
-#             current_nesting += 1  # Increase nesting level for 'if'
-#             control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
-#             wn = current_nesting  # Weight for 'if'
-#
-#         in_control_structure = True  # We're inside a control structure
-#         return current_nesting, in_control_structure, control_structure_stack, wn
-#
-#     # Check for closing '}' of control structure
-#     if '}' in line and control_structure_stack:
-#         current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
-#         wn = current_nesting + 1  # Wn based on the new current nesting level
-#
-#         # If stack is empty after popping, we're not in a control structure anymore
-#         in_control_structure = len(control_structure_stack) > 0
-#         return current_nesting, in_control_structure, control_structure_stack, wn
-#
-#     # If we encounter a statement at the same nesting level as the control structure
-#     if in_control_structure:
-#         wn = current_nesting  # Assign weight based on the current nesting level
-#
-#     return current_nesting, in_control_structure, control_structure_stack, wn
-
-
 def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
-    """
-    Calculate the weight due to the nesting level (Wn) for a given line of code.
+    # Define control structures that affect nesting
+    control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
 
-    Parameters:
-        line (str): The current line of code.
-        current_nesting (int): The current nesting level.
-        in_control_structure (bool): Whether the current context is within a control structure.
-        control_structure_stack (list): Stack to track nesting levels.
+    # Initialize Wn (nesting weight)
+    wn = 0
 
-    Returns:
-        tuple: Updated values for current_nesting, in_control_structure, control_structure_stack, and Wn.
-    """
+    # Check if the line starts a control structure
+    if any(cs in line for cs in control_structures):
+        # Check for 'else if' (or 'else' and 'if' on the same line)
+        if 'else if' in line:
+            wn = current_nesting  # Weight for 'else if'
+        elif 'else' in line:
+            wn = 1  # Weight for 'else'
+        else:
+            current_nesting += 1  # Increase nesting level for 'if'
+            control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
+            wn = current_nesting  # Weight for 'if'
+
+        in_control_structure = True  # We're inside a control structure
+        return current_nesting, in_control_structure, control_structure_stack, wn
+
+    # Check for closing '}' of control structure
+    if '}' in line and control_structure_stack:
+        current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
+        wn = current_nesting + 1  # Wn based on the new current nesting level
+
+        # If stack is empty after popping, we're not in a control structure anymore
+        in_control_structure = len(control_structure_stack) > 0
+        return current_nesting, in_control_structure, control_structure_stack, wn
+
+    # If we encounter a statement at the same nesting level as the control structure
+    if in_control_structure:
+        wn = current_nesting  # Assign weight based on the current nesting level
+
+    return current_nesting, in_control_structure, control_structure_stack, wn
+
+
+"""
+def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
+
     # Define control structures to detect
     control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
     control_regex = re.compile(r'\b(?:' + '|'.join(control_structures) + r')\b')
@@ -225,45 +159,7 @@ def calculate_nesting_level(line, current_nesting, in_control_structure, control
         wn = 0  # Reset weight for lines outside control structures
 
     return current_nesting, in_control_structure, control_structure_stack, wn
-
-
-# def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
-#     # Define control structures that affect nesting
-#     control_structures = ['if', 'else', 'for', 'while', 'switch', 'try']
-#
-#     # Initialize Wn (nesting weight)
-#     wn = 0
-#
-#     # Check if the line starts a control structure
-#     if any(cs in line for cs in control_structures):
-#         # Increase nesting level for control structures
-#         current_nesting += 1
-#         control_structure_stack.append(current_nesting)  # Push current nesting level to the stack
-#
-#         # Assign weight based on the new current nesting level
-#         wn = current_nesting
-#         in_control_structure = True  # We're inside a control structure
-#         return current_nesting, in_control_structure, control_structure_stack, wn
-#
-#     # Check for closing '}' of control structure
-#     if '}' in line and control_structure_stack:
-#         current_nesting = control_structure_stack.pop() - 1  # Pop the last nesting level
-#
-#         # If stack is empty after popping, we're not in a control structure anymore
-#         in_control_structure = len(control_structure_stack) > 0
-#
-#         # Return the updated nesting level and weight
-#         wn = current_nesting  # Use the current nesting level as the weight
-#         return current_nesting, in_control_structure, control_structure_stack, wn
-#
-#     # If we're not in any control structure, assign a weight of 0 for sequential statements
-#     if not in_control_structure:
-#         wn = 0
-#     else:
-#         # If in a control structure, assign weight based on the current nesting level
-#         wn = current_nesting
-#
-#     return current_nesting, in_control_structure, control_structure_stack, wn
+"""
 
 
 # Function to calculate inheritance level for a single line (Wi)
@@ -359,8 +255,9 @@ def extract_class_references(java_code):
     instantiation_pattern = r'new\s+([A-Z][\w]*)'
     inheritance_pattern = r'class\s+\w+\s+extends\s+([A-Z][\w]*)'
     interface_pattern = r'class\s+\w+\s+implements\s+([A-Z][\w]*)'
-    constructor_pattern = r'\bpublic\s+\w+\s*\(([^)]*)\)'
-    method_pattern = r'\b(public|private|protected)?\s+(\w+|\s*<[^>]+>)\s+(\w+)\s*\(([^)]*)\)'
+    constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'
+    method_pattern = r'(public|private)?\s*void\s+(?!set[A-Z])\w+\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+    setter_injection_pattern = r'(public)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
 
     # Dictionary to store class references per class
     class_references = {}
@@ -384,26 +281,58 @@ def extract_class_references(java_code):
             # Find class instantiations
             instantiations = re.findall(instantiation_pattern, line)
             for instantiated_class in instantiations:
-                class_references[current_class][instantiated_class] = 2  # Tight coupling: assign 2
-                logging.debug(f"Class instantiation found: {instantiated_class} in class {current_class}")
+                if instantiated_class in class_references[current_class]:
+                    print("param_classes-----------------------------284", instantiated_class)
+                    class_references[current_class][instantiated_class] += 3  # Tight coupling: assign 2
+                    logging.debug(f"Class instantiation found: {instantiated_class} in class {current_class}")
+                else:
+                    class_references[current_class][instantiated_class] = 3
 
             # Find inheritance (extends)
             inheritance = re.findall(inheritance_pattern, line)
             for inherited_class in inheritance:
-                class_references[current_class][inherited_class] = 2  # Tight coupling: assign 2
-                logging.debug(f"Inheritance found: {inherited_class} for class {current_class}")
+                if inherited_class in class_references[current_class]:
+                    print("param_classes-----------------------------291", inherited_class)
+                    class_references[current_class][inherited_class] += 3  # Tight coupling: assign 2
+                    logging.debug(f"Inheritance found: {inherited_class} for class {current_class}")
+                else:
+                    class_references[current_class][inherited_class] = 3
 
             # Find implemented interfaces (implements)
             interfaces = re.findall(interface_pattern, line)
             for implemented_interface in interfaces:
+                print("param_classes-----------------------------298", implemented_interface)
                 class_references[current_class][implemented_interface] = 1  # Loose coupling: assign 1
                 logging.debug(f"Interface implementation found: {implemented_interface} for class {current_class}")
+
+            constructor_matches = re.findall(constructor_pattern, line)
+            for match in constructor_matches:
+                # Extract parameter classes, excluding primitive types and wrappers
+                param_classes = re.findall(r'([A-Z][\w]*)', match)
+                # print("param_classes-----------------------------", param_classes)
+
+                for param_class in param_classes:
+                    print("param_classes-----------------------------309", param_class)
+                    if param_class in class_references[current_class]:  # Exclude primitives and wrappers
+                        class_references[current_class][param_class] += 1  # Loose coupling: assign 1
+                        print("class_references[current_class][param_class]-----------------------------------------------------pppppppppppppppp", class_references[current_class][param_class])
+                        logging.debug(f"Constructor parameter found: {param_class} in class {current_class}")
+                    else:
+                        class_references[current_class][param_class] = 1
+
+            # Detect setter injection
+            setter_matches = re.findall(setter_injection_pattern, line)
+            for setter_class in setter_matches:
+                class_references[current_class][setter_class] = 1  # Loose coupling
+                logging.debug(f"Setter DI: {setter_class} in class {current_class}")
+
 
             # List of Java primitive data types and their wrapper classes
             excluded_types = [
                 'int', 'float', 'double', 'boolean', 'char', 'byte', 'short', 'long',  # Primitives
                 'Integer', 'Float', 'Double', 'Boolean', 'Character', 'Byte', 'Short', 'Long',  # Wrapper classes
-                'String'  # Adding String as it's often treated like a primitive
+                'String' , 'List', 'Map', 'Set', 'HashMap', 'ArrayList', 'HashSet', 'LinkedList',  # Java standard library classes
+        'Optional', 'Stream'
             ]
 
             # Check for any method signature and log method details
@@ -420,9 +349,14 @@ def extract_class_references(java_code):
                 # Register each found class as tight coupling, excluding primitives and wrapper classes
                 for param_class in param_classes:
                     if param_class not in excluded_types:  # Exclude primitives and wrappers
-                        class_references[current_class][param_class] = 2  # Tight coupling to the parameter class
-                        logging.debug(
-                            f"Tight coupling with {param_class} found in method {method_name} of class {current_class}")
+                        if param_class in class_references[current_class]:
+                            print("AnotherClass..................................336", param_class)
+
+                            class_references[current_class][param_class] += 3  # Tight coupling to the parameter class
+                            logging.debug(
+                                f"Tight coupling with {param_class} found in method {method_name} of class {current_class}")
+                        else:
+                            class_references[current_class][param_class] = 3
 
                 # Additional check for generics (classes inside angle brackets <>)
                 # Example: List<Order>, Set<Customer>, ArrayList<Product>
@@ -430,27 +364,11 @@ def extract_class_references(java_code):
 
                 for generic_class in generic_matches:
                     if generic_class not in excluded_types:  # Exclude primitives and wrappers
-                        class_references[current_class][generic_class] = 2  # Tight coupling to the generic class
+                        print("param_classes-----------------------------348", generic_class)
+                        class_references[current_class][generic_class] = 3  # Tight coupling to the generic class
                         logging.debug(
                             f"Tight coupling with generic type {generic_class} found in method {method_name} of class {current_class}")
 
-            # Find constructor parameters and add them as references
-            constructor_matches = re.findall(constructor_pattern, line)
-            for match in constructor_matches:
-                # Extract parameter classes, excluding primitive types and wrappers
-                param_classes = re.findall(r'([A-Z][\w]*)', match)
-
-                for param_class in param_classes:
-                    if param_class not in excluded_types:  # Exclude primitives and wrappers
-                        class_references[current_class][param_class] = 1  # Loose coupling: assign 1
-                        logging.debug(f"Constructor parameter found: {param_class} in class {current_class}")
-
-                # Handle generics like List<Order>, Set<Customer>, etc.
-                generic_matches = re.findall(r'<\s*([A-Z][\w]*)\s*>', match)
-                for generic_class in generic_matches:
-                    if generic_class not in excluded_types:  # Exclude primitives and wrappers inside generics
-                        class_references[current_class][generic_class] = 1  # Loose coupling: assign 1
-                        logging.debug(f"Generic type parameter found: {generic_class} in class {current_class}")
 
     logging.info("Finished extracting class references.")
     logging.info(class_references)
@@ -462,12 +380,14 @@ def extract_class_references(java_code):
 def calculate_cbo(class_references):
     cbo_results = {}
 
+
     # Create a set to track all class references globally
     # all_references = set()
 
     # Loop through each class's references and count them
     for class_name, references in class_references.items():
         logging.debug(f"Calculating CBO for class {class_name} with references: {references}")
+        print(f"Calculating CBO for class {class_name} with references: {references}")
         # Count unique references to other classes
         # unique_references = references - {class_name}  # Exclude self-references
         # cbo_results[class_name] = len(unique_references)  # CBO is the number of unique class references
@@ -955,9 +875,16 @@ def calculate_code_complexity_multiple_files(file_contents):
         message_passing = extract_message_passing(content)
         # print("Method complex",method_complexities)
 
+        print("class_references................................", class_references)
+
+        # nesting_levels  = calculate_nesting_level1(content)
+        # display_nesting_levels(nesting_levels)
+
         # Calculate MPC and CBO for this file
         cbo_value = calculate_cbo(class_references).get(class_name, 0)
         mpc_value = calculate_mpc(message_passing).get(class_name, 0)
+
+        print("cbo_value", cbo_value)
 
         # Prepare line_complexities for recommendation engine
         line_complexities = []
@@ -1033,7 +960,7 @@ def calculate_code_complexity_multiple_files(file_contents):
 
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
-                    size + control_structure_complexity + wn + current_inheritance +
+                    size + control_structure_complexity + 0 + current_inheritance +
                     compound_condition_weight + try_catch_weight + thread_weight
             )
 
@@ -1054,6 +981,7 @@ def calculate_code_complexity_multiple_files(file_contents):
                 thread_weight,
                 total_complexity,
             ])
+        # Calculate method complexities
         method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name)
         # Get AI recommendations for each line in the file
         recommendations = ai_recommend_refactoring(line_complexities, cbo_value, mpc_value)
@@ -1155,6 +1083,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name):
         current_nesting, _, control_structure_stack, wn = calculate_nesting_level(
             line, current_nesting, False, control_structure_stack
         )
+        # wn =calculate_nesting_level(line)
         nesting_level += wn
 
         # Compound condition weight
@@ -1246,3 +1175,4 @@ def plot_complexity_pie_chart(filename, complexity_factors):
     plt.close()
 
     return f"{filename}_complexity_pie.png"
+

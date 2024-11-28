@@ -17,6 +17,7 @@ from sklearn.cluster import KMeans
 from Drinks.models import Drink
 from .complexity_calculator import calculate_code_complexity_line_by_line
 from .complexity_calculator import calculate_code_complexity_multiple_files
+from .complexity_calculator_csharp import calculate_code_complexity_multiple_files_csharp
 from .serializers import DrinkSerializer
 
 
@@ -202,60 +203,6 @@ def calculate_complexity_line_by_line_csharp(request):
     return render(request, 'complexityB_form.html')
 
 
-"""
-@api_view(['GET', 'POST'])
-def calculate_complexity_multiple_csharp_files(request):
-    
-    if request.method == 'POST':
-        files = request.FILES.getlist('files')
-
-        if not files:
-            return Response({'error': 'No files uploaded'}, status=status.HTTP_400_BAD_REQUEST)
-
-        file_contents = {}
-
-        try:
-            # Read and decode each file, ensuring the content is a string
-            for file in files:
-                try:
-                    content = file.read().decode('utf-8')
-                    if not isinstance(content, str):
-                        raise ValueError(f"File {file.name} did not decode to a valid string.")
-                    file_contents[file.name] = content
-                except Exception as e:
-                    # logger.error(f"Error decoding file {file.name}: {str(e)}")
-                    return Response({'error': f"File decoding failed for {file.name}: {str(e)}"},
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-            # Validate file_contents are strings
-            for filename, content in file_contents.items():
-                if not isinstance(content, str):
-                    return Response({'error': f"File {filename} contains invalid content."},
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-            # Call the function to calculate complexity
-            result = calculate_code_complexity_multiple_files_csharp(file_contents)
-
-            # Prepare response data
-            complexities = []
-            for filename, file_data in result.items():
-                complexities.append({
-                    'filename': filename,
-                    'complexity_data': file_data['complexity_data'],
-                    # 'cbo': file_data['cbo'],
-                    # 'mpc': file_data['mpc']
-                })
-
-            return render(request, 'complexityC_table.html', {'complexities': complexities})
-
-        except Exception as e:
-            # logger.error(f"Error processing files: {str(e)}")
-            return Response({'error': f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    # Render the file upload form for GET requests
-    return render(request, 'complexityC_form.html')
-"""
-
 
 @api_view(['GET', 'POST'])
 def calculate_complexity_multiple_csharp_files(request):
@@ -279,7 +226,7 @@ def calculate_complexity_multiple_csharp_files(request):
         threshold_high = thresholds.get('threshold_high', 50)
 
         # Call your function to calculate complexity for multiple files
-        result = calculate_code_complexity_multiple_files(file_contents)
+        result = calculate_code_complexity_multiple_files_csharp(file_contents)
 
         # Prepare a list to store complexities for each file
         complexities = []
@@ -305,12 +252,12 @@ def calculate_complexity_multiple_csharp_files(request):
             pie_chart_path = file_data['pie_chart_path']
             total_wcc = file_data['total_wcc']
 
-            print("method_complexities.....", method_complexities)
+            print("method_complexities.....]]]]]]]]]]", method_complexities)
 
             for line_data in complexity_data:
                 results_table.add_row([filename] + line_data)  # Now line_data has 9 values
 
-            # Categorize each method based on total complexity
+            # # Categorize each method based on total complexity
             categorized_methods = []
             for method_name, method_data in method_complexities.items():
                 if isinstance(method_data, dict):
@@ -335,12 +282,13 @@ def calculate_complexity_multiple_csharp_files(request):
                 else:
                     print(f"Unexpected format in method_data: {method_data}")
 
+                print("categorized_method", categorized_method)
             complexities.append({
                 'filename': filename,
                 'complexity_data': complexity_data,
                 'cbo': cbo,
                 'mpc': mpc,
-                'method_complexities': method_complexities,
+                'method_complexities': categorized_methods,
                 # 'recommendations': recommendations,
                 'pie_chart_path': pie_chart_path,
                 'total_wcc': total_wcc
@@ -354,93 +302,6 @@ def calculate_complexity_multiple_csharp_files(request):
 
     # If GET request, just show the form
     return render(request, 'complexityC_form.html')
-
-
-# @api_view(['GET', 'POST'])
-# def calculate_complexity(request):
-#     if request.method == 'POST':
-#         uploaded_file = request.FILES['file']  # Assuming a form is used for file upload
-#
-#         # Check if the file is a CSV
-#         if uploaded_file.name.endswith('.csv'):
-#             # Define the media directory path
-#             media_dir = os.path.join(settings.BASE_DIR, 'media')
-#
-#             # Create the media directory if it doesn't exist
-#             if not os.path.exists(media_dir):
-#                 os.makedirs(media_dir)
-#
-#             # Save the uploaded file in the media directory
-#             file_path = os.path.join(media_dir, uploaded_file.name)
-#             with open(file_path, 'wb+') as destination:
-#                 for chunk in uploaded_file.chunks():
-#                     destination.write(chunk)
-#
-#             # Load the CSV into a Pandas DataFrame
-#             data = pd.read_csv(file_path)
-#
-#             # Columns to calculate correlations with WCC
-#             target_columns = ['Complexity', 'Maintainability', 'Readability']
-#
-#             # Initialize dictionaries to store correlation results
-#             pearson_results = {}
-#             spearman_results = {}
-#
-#             # Perform Pearson and Spearman correlations
-#             for column in target_columns:
-#                 # Pearson Correlation
-#                 pearson_corr, pearson_p_value = pearsonr(data['WCC'], data[column])
-#                 pearson_results[column] = {
-#                     'correlation': round(pearson_corr, 4),
-#                     'p_value': round(pearson_p_value, 4)
-#                 }
-#
-#                 # Spearman Correlation
-#                 spearman_corr, spearman_p_value = spearmanr(data['WCC'], data[column])
-#                 spearman_results[column] = {
-#                     'correlation': round(spearman_corr, 4),
-#                     'p_value': round(spearman_p_value, 4)
-#                 }
-#
-#             # Generate correlation matrix
-#             correlation_matrix = data[['WCC', 'Complexity', 'Maintainability', 'Readability']].corr()
-#
-#             # Save the heatmap as an image
-#             sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', center=0)
-#             heatmap_path = os.path.join(media_dir, 'heatmap.png')
-#             plt.title('Correlation Matrix between WCC and Metrics')
-#             plt.savefig(heatmap_path)
-#             plt.close()  # Close the plot after saving to avoid memory leaks
-#
-#             # Scatter plot for each target column
-#             scatter_plots = {}
-#             for column in target_columns:
-#                 plt.figure(figsize=(10, 6))
-#                 plt.scatter(data['WCC'], data[column], alpha=0.6, c='green')
-#                 plt.title(f'WCC vs {column}')
-#                 plt.xlabel('WCC Scores')
-#                 plt.ylabel(column)
-#                 scatter_plot_path = os.path.join(media_dir, f'scatter_{column}.png')
-#                 plt.savefig(scatter_plot_path)
-#                 plt.close()
-#                 scatter_plots[column] = scatter_plot_path
-#
-#             # Prepare the results
-#             context = {
-#                 'pearson_results': pearson_results,
-#                 'spearman_results': spearman_results,
-#                 'heatmap_path': heatmap_path,
-#                 'scatter_plots': scatter_plots
-#             }
-#
-#             # Render the result page with the context
-#             return render(request, 'analysis_result.html', context)
-#
-#         else:
-#             return HttpResponse("Invalid file format. Please upload a CSV file.")
-#
-#     # If it's a GET request, render the upload form page
-#     return render(request, 'upload.html')
 
 @api_view(['GET', 'POST'])
 def calculate_complexity(request):
