@@ -1,8 +1,11 @@
 import logging
 import os
 import re
+
+import pandas as pd
 from pyparsing import (
-    Word, alphas, alphanums, Keyword, Suppress, Optional, Group, ZeroOrMore, Forward, OneOrMore
+    Word, alphas, alphanums, Keyword, Suppress, Optional, Group, ZeroOrMore, Forward, OneOrMore, printables, SkipTo,
+    ParseException, nestedExpr, Literal, restOfLine
 )
 import matplotlib
 import matplotlib.pyplot as plt
@@ -262,30 +265,84 @@ def calculate_compound_condition_weight(line):
 
 
 # Function to calculate weight due to try-catch-finally blocks
-def calculate_try_catch_weight(line, current_nesting_level):
-    weight = 0
+# def calculate_try_catch_weight(line, current_nesting_level):
+#     weight = 0
+#
+#     # Detecting try blocks
+#     if re.search(r'\btry\b', line):
+#         # Weight is 1 for the outer try and 2 for nested try blocks
+#         if current_nesting_level > 1:
+#             weight += 2  # Inner try block weight
+#         else:
+#             weight += 1  # Outer try block weight
+#
+#     # Detecting catch blocks
+#     elif re.search(r'\bcatch\b', line):
+#         # Weight is 1 for the outer catch and 2 for nested catch blocks
+#         if current_nesting_level > 1:
+#             weight += 2  # Inner catch block weight
+#         else:
+#             weight += 1  # Outer catch block weight
+#
+#     # Detecting finally block
+#     elif re.search(r'\bfinally\b', line):
+#         weight += 2  # Weight of 2 for the finally block
+#
+#     return weight
 
-    # Detecting try blocks
-    if re.search(r'\btry\b', line):
-        # Weight is 1 for the outer try and 2 for nested try blocks
-        if current_nesting_level > 1:
-            weight += 2  # Inner try block weight
-        else:
-            weight += 1  # Outer try block weight
 
-    # Detecting catch blocks
-    elif re.search(r'\bcatch\b', line):
-        # Weight is 1 for the outer catch and 2 for nested catch blocks
-        if current_nesting_level > 1:
-            weight += 2  # Inner catch block weight
-        else:
-            weight += 1  # Outer catch block weight
+def calculate_try_catch_weight(java_code):
+    """
+    Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
+    - Increment nesting level for `try`.
+    - Maintain nesting level for `catch` and `finally` but add weights.
+    """
+    java_code = remove_comments(java_code)
+    lines = java_code.splitlines()
 
-    # Detecting finally block
-    elif re.search(r'\bfinally\b', line):
-        weight += 2  # Weight of 2 for the finally block
+    # State variables
+    current_nesting = 0
+    total_weight = 0
+    nesting_levels = []
 
-    return weight
+    # Regular expressions
+    control_regex = re.compile(r'\b(try|catch|finally)\b')
+
+    # Weights for `catch` based on nesting levels
+    catch_weights = {1: 1, 2: 3, 3: 4, 4: 5}
+
+    for line_no, line in enumerate(lines, start=1):
+        stripped_line = line.strip()
+
+        if not stripped_line:
+            # Empty lines, just carry over nesting and weight
+            nesting_levels.append((line_no, stripped_line, current_nesting, total_weight))
+            continue
+
+        control_match = control_regex.search(stripped_line)
+        if control_match:
+            control_type = control_match.group()
+
+            if control_type == 'try':
+                current_nesting += 1  # Increment nesting for `try`
+
+            elif control_type == 'catch':
+                # Add weight for `catch` based on the current nesting level
+                weight = catch_weights.get(current_nesting, 5)
+                total_weight += weight
+
+            elif control_type == 'finally':
+                # Add a fixed weight of 2 for `finally`
+                total_weight += 2
+
+        nesting_levels.append((line_no, stripped_line, current_nesting, total_weight))
+
+        # Adjust nesting levels for closing braces
+        if stripped_line.endswith('}'):
+            current_nesting -= 1
+
+    return nesting_levels
+
 
 
 # Function to calculate weight due to thread operations
@@ -941,6 +998,12 @@ def calculate_code_complexity_multiple_files(file_contents):
 
         print("nesting_levels----------------------", nesting_levels)
 
+        try_catch_weights = calculate_try_catch_weight(content)
+        try_catch_weight_dict = {line[0]: line[3] for line in try_catch_weights}
+        print("try_catch_weight_dict###############################################", try_catch_weight_dict)
+
+        print("try_catch_weights---------------------------------", try_catch_weights)
+
         # Calculate MPC and CBO for this file
         cbo_value = calculate_cbo(class_references).get(class_name, 0)
         mpc_value = calculate_mpc(message_passing).get(class_name, 0)
@@ -983,6 +1046,10 @@ def calculate_code_complexity_multiple_files(file_contents):
                 continue
 
             nesting_level = nesting_level_dict.get(line_number, 0)
+            try_catch_weight = try_catch_weight_dict.get(line_number, 0)
+            try_catch_weight2 = try_catch_weight_dict.get(line_number + 1, 0)
+            print("try_catch_weight", try_catch_weight)
+            print("try_catch_weight2", try_catch_weight2)
 
             # Calculate control structure complexity
             control_structure_complexity = calculate_control_structure_complexity(line)
@@ -1002,7 +1069,7 @@ def calculate_code_complexity_multiple_files(file_contents):
             compound_condition_weight = calculate_compound_condition_weight(line)
 
             # Calculate weights for try-catch-finally blocks
-            try_catch_weight = calculate_try_catch_weight(line, current_nesting)
+            # try_catch_weight = calculate_try_catch_weight(line, current_nesting)
 
             # Calculate weights for thread operations
             thread_weight = calculate_thread_weight(line)
@@ -1024,7 +1091,7 @@ def calculate_code_complexity_multiple_files(file_contents):
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
                     size + control_structure_complexity + nesting_level + current_inheritance +
-                    compound_condition_weight + try_catch_weight + thread_weight
+                    compound_condition_weight + 0 + thread_weight
             )
 
             # Update the total WCC for the file
@@ -1164,7 +1231,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         compound_condition_weight += calculate_compound_condition_weight(line)
 
         # Try-catch weight
-        try_catch_weight += calculate_try_catch_weight(line, current_nesting)
+        # try_catch_weight += calculate_try_catch_weight(line, current_nesting)
 
         # Thread weight
         thread_weight += calculate_thread_weight(line)
@@ -1172,7 +1239,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
     # Sum up the complexity metrics for this method
     total_complexity = (
             size + control_structure_complexity + total_nesting + current_inheritance_sum +
-            compound_condition_weight + try_catch_weight + thread_weight
+            compound_condition_weight + 0 + thread_weight
     )
 
     print("current_inheritance_sum", current_inheritance_sum)
@@ -1250,3 +1317,18 @@ def plot_complexity_pie_chart(filename, complexity_factors):
 
     return f"{filename}_complexity_pie.png"
 
+java_code = """
+try {
+    try {
+        processFile("file.txt");
+    } catch (IOException e) { // assign 3
+        System.out.println("Error reading file.");
+    }
+} catch (Exception e) { // assign 1
+    System.out.println("General exception occurred.");
+}
+"""
+
+
+# weight = calculate_try_catch_weight(java_code)
+# print("Total Try-Catch Weight:", weight)
