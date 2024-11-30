@@ -33,6 +33,8 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
     # path('upload/python/', views.upload_python_files, name='upload_python_files'),
 
     # path('upload/java/', views.upload_java_files, name='upload_java_files'),
+
+    path('', views.home, name='home'),  # Root URL
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

@@ -58,6 +58,8 @@ import statsmodels.api as sm
 #             return JsonResponse({'error': str(e)}, status=500)
 #
 #     return render(request, 'python_code_analysis.html')
+def home(request):
+    return render(request, 'home.html')
 
 @api_view(['GET', 'POST'])
 def python_code_analysis(request):
