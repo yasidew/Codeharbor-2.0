@@ -2,19 +2,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Complexity Results</title>
+    <title>Code Complexity Calculator - Java</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: #f9f9f9;
             color: #333;
             margin: 0;
             padding: 0;
         }
 
-        h1, h2 {
+        h1, h2, h3 {
             text-align: center;
-            margin: 20px;
+            color: #444;
+        }
+
+        h1 {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin-top: 20px;
+            margin-bottom: 10px;
         }
 
         .metrics, .method-complexity {
@@ -43,6 +53,7 @@
             color: #555;
         }
 
+        /* Button */
         .btn {
             display: inline-block;
             padding: 8px 12px;
@@ -84,6 +95,12 @@
             text-align: center;
         }
 
+        .modal-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -101,10 +118,6 @@
 
         .close:hover {
             color: #000;
-        }
-
-        canvas {
-            max-width: 100%;
         }
     </style>
 </head>

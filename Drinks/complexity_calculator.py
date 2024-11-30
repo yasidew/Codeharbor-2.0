@@ -295,7 +295,7 @@ def calculate_try_catch_weight(java_code):
     """
     Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
     - Increment nesting level for `try`.
-    - Maintain nesting level for `catch` and `finally` but add weights.
+    - Assign weights line by line for `catch` and `finally`.
     """
     java_code = remove_comments(java_code)
     lines = java_code.splitlines()
@@ -304,6 +304,7 @@ def calculate_try_catch_weight(java_code):
     current_nesting = 0
     total_weight = 0
     nesting_levels = []
+    line_weights = {}
 
     # Regular expressions
     control_regex = re.compile(r'\b(try|catch|finally)\b')
@@ -316,7 +317,7 @@ def calculate_try_catch_weight(java_code):
 
         if not stripped_line:
             # Empty lines, just carry over nesting and weight
-            nesting_levels.append((line_no, stripped_line, current_nesting, total_weight))
+            nesting_levels.append((line_no, stripped_line, current_nesting, 0))
             continue
 
         control_match = control_regex.search(stripped_line)
@@ -327,21 +328,21 @@ def calculate_try_catch_weight(java_code):
                 current_nesting += 1  # Increment nesting for `try`
 
             elif control_type == 'catch':
-                # Add weight for `catch` based on the current nesting level
+                # Assign weight for `catch` based on the current nesting level
                 weight = catch_weights.get(current_nesting, 5)
-                total_weight += weight
+                line_weights[line_no] = weight
 
             elif control_type == 'finally':
-                # Add a fixed weight of 2 for `finally`
-                total_weight += 2
+                # Assign a fixed weight of 2 for `finally`
+                line_weights[line_no] = 2
 
-        nesting_levels.append((line_no, stripped_line, current_nesting, total_weight))
+        nesting_levels.append((line_no, stripped_line, current_nesting, line_weights.get(line_no, 0)))
 
         # Adjust nesting levels for closing braces
         if stripped_line.endswith('}'):
             current_nesting -= 1
 
-    return nesting_levels
+    return nesting_levels, line_weights
 
 
 
@@ -998,11 +999,15 @@ def calculate_code_complexity_multiple_files(file_contents):
 
         print("nesting_levels----------------------", nesting_levels)
 
-        try_catch_weights = calculate_try_catch_weight(content)
-        try_catch_weight_dict = {line[0]: line[3] for line in try_catch_weights}
-        print("try_catch_weight_dict###############################################", try_catch_weight_dict)
+        # try_catch_weights = calculate_try_catch_weight(content)
+        # try_catch_weight_dict = {line[0]: line[3] for line in try_catch_weights}
+        # print("try_catch_weight_dict###############################################", try_catch_weight_dict)
+        #
+        # print("try_catch_weights---------------------------------", try_catch_weights)
 
-        print("try_catch_weights---------------------------------", try_catch_weights)
+        try_catch_weights, try_catch_weight_dict = calculate_try_catch_weight(content)
+
+        print("try_catch_weights---------------------------------", try_catch_weight_dict)
 
         # Calculate MPC and CBO for this file
         cbo_value = calculate_cbo(class_references).get(class_name, 0)
@@ -1047,9 +1052,7 @@ def calculate_code_complexity_multiple_files(file_contents):
 
             nesting_level = nesting_level_dict.get(line_number, 0)
             try_catch_weight = try_catch_weight_dict.get(line_number, 0)
-            try_catch_weight2 = try_catch_weight_dict.get(line_number + 1, 0)
             print("try_catch_weight", try_catch_weight)
-            print("try_catch_weight2", try_catch_weight2)
 
             # Calculate control structure complexity
             control_structure_complexity = calculate_control_structure_complexity(line)
@@ -1091,7 +1094,7 @@ def calculate_code_complexity_multiple_files(file_contents):
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
                     size + control_structure_complexity + nesting_level + current_inheritance +
-                    compound_condition_weight + 0 + thread_weight
+                    compound_condition_weight + try_catch_weight + thread_weight
             )
 
             # Update the total WCC for the file
@@ -1129,8 +1132,18 @@ def calculate_code_complexity_multiple_files(file_contents):
 
         # Generate bar chart for each method
         bar_chart_paths = {}
-        for method_name, complexity_factors in method_complexities.items():
-            bar_chart_path = plot_complexity_bar_chart(method_name, complexity_factors, filename)
+        for method_name, method_data in method_complexities.items():
+            relevant_factors = {
+                "size": method_data["size"],
+                "control_structure_complexity": method_data["control_structure_complexity"],
+                "nesting_level": method_data["nesting_level"],
+                "inheritance_level": method_data["inheritance_level"],
+                "compound_condition_weight": method_data["compound_condition_weight"],
+                "try_catch_weight": method_data["try_catch_weight"],
+                "thread_weight": method_data["thread_weight"],
+            }
+
+            bar_chart_path = plot_complexity_bar_chart(method_name, relevant_factors, filename)
             bar_chart_paths[method_name] = bar_chart_path
             print(f"Bar chart generated for method '{method_name}': {bar_chart_path}")
 
@@ -1169,6 +1182,8 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
     nesting_levels = calculate_nesting_level(content)
     nesting_level_dict = {line[0]: line[2] for line in nesting_levels}
 
+    try_catch_weights, try_catch_weight_dict = calculate_try_catch_weight(content)
+
     print("nesting_levels----------------------", nesting_levels)
 
     # Split content by line and analyze each one
@@ -1178,7 +1193,7 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
         if match:
             # If we're already in a method, calculate its complexity
             if method_name:
-                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict)
+                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict)
             # Start a new method
             method_name = match.group(1)
             method_lines = [line]
@@ -1188,13 +1203,13 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
 
     # Final method complexity calculation
     if method_name:
-        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict)
+        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict)
 
     return methods
 
 
 # Helper function to calculate complexity for a method based on lines of code
-def calculate_complexity_for_method(lines, method_inheritance, class_name, nesting_level_dict):
+def calculate_complexity_for_method(lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict):
     size = 0
     control_structure_complexity = 0
     nesting_level = 0
@@ -1204,6 +1219,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
     current_inheritance_sum = 0
     current_class = class_name
     total_nesting = 0
+    total_try_catch_weight = 0
 
     current_nesting = 0
     control_structure_stack = []
@@ -1222,6 +1238,9 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         total_nesting += nesting_level
 
         print("total_nesting))))))))))))))))))))))))))))))))))", total_nesting)
+
+        try_catch_weight = try_catch_weight_dict.get(line_number, 0)
+        total_try_catch_weight += try_catch_weight
 
         size += line_size
 
@@ -1249,7 +1268,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
     # Sum up the complexity metrics for this method
     total_complexity = (
             size + control_structure_complexity + total_nesting + current_inheritance_sum +
-            compound_condition_weight + 0 + thread_weight
+            compound_condition_weight + total_try_catch_weight + thread_weight
     )
 
     print("current_inheritance_sum", current_inheritance_sum)
@@ -1259,7 +1278,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         "nesting_level": nesting_level,
         "inheritance_level": current_inheritance_sum,
         "compound_condition_weight": compound_condition_weight,
-        "try_catch_weight": try_catch_weight,
+        "try_catch_weight": total_try_catch_weight,
         "thread_weight": thread_weight,
         "total_complexity": total_complexity
     }
@@ -1335,6 +1354,8 @@ def plot_complexity_bar_chart(method_name, complexity_factors, filename):
     labels = list(complexity_factors.keys())
     values = list(complexity_factors.values())
 
+    print("labels---------------------------", labels)
+    print("values---------------------------", values)
     # Define colors for the bars
     colors = plt.cm.tab20.colors[:len(values)]  # Using tab20 colormap for variety
 
