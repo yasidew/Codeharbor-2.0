@@ -1121,9 +1121,18 @@ def calculate_code_complexity_multiple_files(file_contents):
             rec for rec in recommendations if rec['recommendation'] != "no action needed"
         ]
 
+        print("method_complexities>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>????????????????????",method_complexities)
+
         # Calculate contributing factors and plot pie chart
         complexity_factors = calculate_complexity_factors(filename, complexity_data)
         pie_chart_path = plot_complexity_pie_chart(filename, complexity_factors)
+
+        # Generate bar chart for each method
+        bar_chart_paths = {}
+        for method_name, complexity_factors in method_complexities.items():
+            bar_chart_path = plot_complexity_bar_chart(method_name, complexity_factors, filename)
+            bar_chart_paths[method_name] = bar_chart_path
+            print(f"Bar chart generated for method '{method_name}': {bar_chart_path}")
 
         # results[filename] = complexity_data
         results[filename] = {
@@ -1133,6 +1142,7 @@ def calculate_code_complexity_multiple_files(file_contents):
             'method_complexities': method_complexities,
             'recommendation': filtered_recommendations,
             'pie_chart_path': pie_chart_path,
+            'bar_charts': bar_chart_paths,
             'total_wcc': total_wcc
         }
 
@@ -1317,18 +1327,35 @@ def plot_complexity_pie_chart(filename, complexity_factors):
 
     return f"{filename}_complexity_pie.png"
 
-java_code = """
-try {
-    try {
-        processFile("file.txt");
-    } catch (IOException e) { // assign 3
-        System.out.println("Error reading file.");
-    }
-} catch (Exception e) { // assign 1
-    System.out.println("General exception occurred.");
-}
-"""
 
+def plot_complexity_bar_chart(method_name, complexity_factors, filename):
+    """
+    Plots a bar graph to visualize complexity contributions for a specific method.
+    """
+    labels = list(complexity_factors.keys())
+    values = list(complexity_factors.values())
 
-# weight = calculate_try_catch_weight(java_code)
-# print("Total Try-Catch Weight:", weight)
+    # Define colors for the bars
+    colors = plt.cm.tab20.colors[:len(values)]  # Using tab20 colormap for variety
+
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(labels, values, color=colors)
+
+    # Add value labels on top of the bars
+    for bar in bars:
+        plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
+                 f'{bar.get_height():.1f}', ha='center', va='bottom')
+
+    plt.title(f'Complexity Contributions for Method: {method_name}')
+    plt.xlabel('Complexity Factors')
+    plt.ylabel('Contribution Value')
+    plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for better readability
+
+    # Save the bar chart as an image
+    output_dir = "static/images"
+    os.makedirs(output_dir, exist_ok=True)
+    chart_path = os.path.join(output_dir, f"{filename}_{method_name}_bar_chart.png")
+    plt.savefig(chart_path, bbox_inches="tight")
+    plt.close()
+
+    return f"{filename}_{method_name}_bar_chart.png"

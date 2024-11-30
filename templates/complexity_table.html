@@ -4,36 +4,20 @@
 <head>
     <title>Complexity Results</title>
     <style>
-        /* General Styles */
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             background-color: #f9f9f9;
             color: #333;
             margin: 0;
             padding: 0;
         }
 
-        h1, h2, h3 {
+        h1, h2 {
             text-align: center;
-            color: #444;
+            margin: 20px;
         }
 
-        h1 {
-            margin-top: 20px;
-            margin-bottom: 30px;
-        }
-
-        h2 {
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-
-        h3 {
-            margin-top: 15px;
-            margin-bottom: 10px;
-        }
-
-        .metrics, .line-complexity, .method-complexity, .recommendations {
+        .metrics, .method-complexity {
             margin: 20px auto;
             width: 90%;
             background: #fff;
@@ -42,20 +26,16 @@
             padding: 20px;
         }
 
-        /* Table Styles */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
 
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-
         th, td {
-            text-align: left;
+            border: 1px solid #ddd;
             padding: 12px;
+            text-align: left;
         }
 
         th {
@@ -63,56 +43,68 @@
             color: #555;
         }
 
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        td img.pie-chart {
-            display: block;
-            margin: 20px auto;
-            max-width: 300px;
-            height: auto;
-        }
-
-        /* Button */
-        a {
-            display: block;
-            width: 200px;
-            margin: 30px auto;
-            text-align: center;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
+        .btn {
+            display: inline-block;
+            padding: 8px 12px;
+            font-size: 14px;
             color: #fff;
-            background-color: #5cb85c;
-            text-decoration: none;
+            background-color: #007bff;
+            border: none;
             border-radius: 4px;
-            transition: background-color 0.3s ease;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
 
-        a:hover {
-            background-color: #4cae4c;
+        .btn:hover {
+            background-color: #0056b3;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            table {
-                font-size: 14px;
-            }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
-            th, td {
-                padding: 8px;
-            }
+        .modal-content {
+            background: #fff;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            text-align: center;
+        }
 
-            a {
-                width: 80%;
-                font-size: 14px;
-                padding: 8px 12px;
-            }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+
+        .close {
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #444;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        canvas {
+            max-width: 100%;
         }
     </style>
 </head>
@@ -122,21 +114,27 @@
     {% for file in complexities %}
         <div class="metrics">
             <h2>Filename: {{ file.filename }}</h2>
-            <h3>Overall Metrics</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>CBO</th>
-                        <th>MPC</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ file.cbo }}</td>
-                        <td>{{ file.mpc }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <h2>Class Complexity</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Class Name</th>
+                    <th>Complexity Score</th>
+                    <th>Pie Chart</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in complexities %}
+                <tr>
+                    <td>{{ file.filename }}</td>
+                    <td>{{ file.total_wcc }}</td>
+                    <td>
+                        <button class="btn" onclick="showPieChart('{{ file.filename }}', '{{ file.pie_chart_path }}')">View Pie Chart</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         </div>
         
         <div class="line-complexity">
@@ -181,11 +179,30 @@
                 </tbody>
             </table>
         </div>
-
-        <div>
-            <h3>Complexity Contribution</h3>
-            <img src="{% static 'images/' %}{{ file.pie_chart_path }}" class="pie-chart" alt="Complexity Pie Chart">
+        
+        
+        <div class="metrics">
+            <h3>CBO & MPC</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>CBO</th>
+                        <th>MPC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ file.cbo }}</td>
+                        <td>{{ file.mpc }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+
+{#        <div>#}
+{#            <h3>Complexity Contribution</h3>#}
+{#            <img src="{% static 'images/' %}{{ file.pie_chart_path }}" class="pie-chart" alt="Complexity Pie Chart">#}
+{#        </div>#}
 
         <div>
             <h3>Refactoring Recommendations</h3>
@@ -225,6 +242,7 @@
                         <th>Thread Weight</th>
                         <th>Total Complexity</th>
                         <th>Category</th>
+                        <th>Bar Chart</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -246,6 +264,9 @@
                             <td>{{ method.thread_weight }}</td>
                             <td>{{ method.total_complexity }}</td>
                             <td>{{ method.category }}</td>
+                        <td>
+                        <button class="btn" onclick="showBarChart('{{ method.method_name }}', '{{ method.bar_chart }}')">View Chart</button>
+                    </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -254,7 +275,27 @@
     {% endfor %}
     
     <a href="/">Upload More Files</a>
+    <div id="barChartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalMethodName"></h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <img id="modalBarChart" src="" alt="Bar Chart">
+        </div>
+    </div>
 
+    <div id="chartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalChartTitle"></h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <img id="modalPieChart" src="" alt="Pie Chart">
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
         document.addEventListener('DOMContentLoaded', () => {
             const recommendationRows = document.querySelectorAll('.recommendation-row');
@@ -267,6 +308,50 @@
                 }
             });
         });
+        
+        
+        function showBarChart(methodName, chartPath) {
+            // Set the method name and bar chart in the modal
+            document.getElementById('modalMethodName').textContent = `Bar Chart for Method: ${methodName}`;
+            document.getElementById('modalBarChart').src = `/static/images/${chartPath}`;
+
+            // Display the modal
+            document.getElementById('barChartModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            // Hide the modal
+            document.getElementById('barChartModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside the content
+        window.onclick = function(event) {
+            const modal = document.getElementById('barChartModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        function showPieChart(filename, pieChartData) {
+            document.getElementById('modalChartTitle').textContent = `Pie Chart for Class: ${filename}`;
+            document.getElementById('modalPieChart').src = `/static/images/${pieChartData}`;
+
+            // Display the modal
+            document.getElementById('chartModal').style.display = 'flex';
+
+        }
+
+        function closeModal1() {
+            document.getElementById('chartModal').style.display = 'none';
+        }
+
+        // Close modal on clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('chartModal');
+            if (event.target === modal) {
+                closeModal1();
+            }
+        }
     </script>
 
 </body>

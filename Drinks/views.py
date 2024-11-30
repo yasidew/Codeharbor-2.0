@@ -134,6 +134,7 @@ def calculate_complexity_multiple_java_files(request):
             recommendations = file_data['recommendation']
             pie_chart_path = file_data['pie_chart_path']
             total_wcc = file_data['total_wcc']
+            bar_charts = file_data.get('bar_charts', {})
 
             for line_data in complexity_data:
                 results_table.add_row([filename] + line_data)  # Now line_data has 9 values
@@ -156,10 +157,16 @@ def calculate_complexity_multiple_java_files(request):
                         category = 'Unknown'
 
                     # Append category to the method data
-                    categorized_method = method_data.copy()
-                    categorized_method['category'] = category
-                    categorized_method['method_name'] = method_name
-                    categorized_methods.append(categorized_method)
+                    # categorized_method = method_data.copy()
+                    # categorized_method['category'] = category
+                    # categorized_method['method_name'] = method_name
+                    # categorized_methods.append(categorized_method)
+                    categorized_methods.append({
+                        **method_data,
+                        'category': category,
+                        'method_name': method_name,
+                        'bar_chart': bar_charts.get(method_name, '')
+                    })
                 else:
                     print(f"Unexpected format in method_data: {method_data}")
 
