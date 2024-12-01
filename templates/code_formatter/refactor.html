@@ -16,6 +16,10 @@
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%;"></div>
         </div>
     </div>
+    <div class="mt-5">
+        <h3 class="text-center">Code Complexity Metrics</h3>
+        <canvas id="complexityChart" width="400" height="200"></canvas>
+    </div>
 </div>
 
 <!-- Include CodeMirror -->
@@ -61,6 +65,9 @@
             if (response.ok) {
                 const data = await response.json();
                 codeMirrorEditor.setValue(data.refactored_code);
+
+                // Update chart with metrics
+                generateChart(data.before_metrics, data.after_metrics);
             } else {
                 alert('Error processing the code!');
             }
@@ -70,5 +77,31 @@
             loadingBar.style.display = 'none'; // Hide loading bar
         }
     });
+
+    // Generate Complexity Metrics Chart
+    function generateChart(before, after) {
+        const ctx = document.getElementById('complexityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Before Refactoring', 'After Refactoring'],
+                datasets: [{
+                    label: 'Cyclomatic Complexity',
+                    data: [before, after],
+                    backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(75, 192, 192, 0.2)'],
+                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
 </script>
 {% endblock %}
