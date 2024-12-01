@@ -546,7 +546,6 @@ control_keywords = {'if', 'for', 'while', 'switch', 'catch'}
 
 # Function to calculate complexity for each method in a C# file
 def calculate_code_complexity_by_method(content, method_inheritance, class_name):
-    print("content......................................33333333333333333333", content)
     methods = {}
     method_name = None
     method_lines = []
@@ -556,16 +555,12 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
 
     try_catch_weights, try_catch_weight_dict = calculate_try_catch_weight(content)
 
-    print("nesting_levels----------------------", nesting_levels)
-
     thread_weights = calculate_thread_weight(content)
 
     # Split content by line and analyze each one
     for line in content.splitlines():
-        print("line..................", line)
         # Detect C# method declarations
         match = re.search(r'\b(?:public|private|protected)?\s*(?:static)?\s*(?:\w+<.*?>|\w+)\s+(\w+)\s*\(.*\)\s*{', line)
-        print("match//////////////", match)
         if match:
             method_name = match.group(1)
             if method_name in ["if", "for", "while", "switch", "Thread", "run"]:  # Ignore control structures
@@ -680,8 +675,6 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         in_control_structure = False
         control_structure_stack = []
 
-        print("content...............................", content)
-
         # Split content into lines
         lines = content.splitlines()
         complexity_data = []
@@ -727,7 +720,6 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         for line_number, line in enumerate(lines, start=1):
             # Calculate size (token count)
             size, tokens = calculate_size(line)
-            sys.stdout.write(f"Your message\n ${size}")
 
             # Skip further calculations if size is zero
             if size == 0:
@@ -821,8 +813,6 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
             ])
         # Calculate method complexities
         method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name)
-
-        print("method_complexities------------------------------", method_complexities)
 
         # Calculate contributing factors and plot pie chart
         complexity_factors = calculate_complexity_factors(filename, complexity_data)

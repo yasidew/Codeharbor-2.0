@@ -118,7 +118,7 @@ def calculate_complexity_multiple_java_files(request):
         results_table.field_names = ["Filename", "Line Number", "Line", "Size", "Tokens",
                                      "Control Structure Complexity", "Nesting Weight",
                                      "Inheritance Weight", "Compound Condition Weight",
-                                     "Try-Catch Weight", "Thread Weight", "Total Complexity"]
+                                     "Try-Catch Weight", "Thread Weight", "CBO", "MPC", "Total Complexity"]
 
         # Prepare another table for displaying MPC and CBO values
         mp_cbo_table = PrettyTable()
@@ -127,6 +127,7 @@ def calculate_complexity_multiple_java_files(request):
         # Collect complexities for each file
         for filename, file_data in result.items():
             complexity_data = file_data['complexity_data']
+            print("Complexity data@@@@@@@@@@@@@@@@@@@@@22", complexity_data)
             cbo = file_data['cbo']
             mpc = file_data['mpc']
             method_complexities = file_data.get('method_complexities', [])
@@ -137,7 +138,11 @@ def calculate_complexity_multiple_java_files(request):
             bar_charts = file_data.get('bar_charts', {})
 
             for line_data in complexity_data:
-                results_table.add_row([filename] + line_data)  # Now line_data has 9 values
+                print("line_data", line_data)
+                if len(line_data) == 12:  # Ensure the row matches the expected number of columns
+                    results_table.add_row([filename] + line_data)
+                else:
+                    print(f"Skipping malformed data for {filename}: {line_data}")
 
             # Categorize each method based on total complexity
             categorized_methods = []

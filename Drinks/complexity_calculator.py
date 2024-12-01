@@ -123,52 +123,114 @@ def calculate_control_structure_complexity(line):
 #     return current_nesting, in_control_structure, control_structure_stack, wn
 
 
+# def calculate_nesting_level(java_code):
+#     """
+#     Calculates the nesting level of control structures (if-else, for, while, do-while)
+#     in Java code line by line, ignoring class and method declarations.
+#     """
+#     # Remove comments from the Java code
+#     java_code = remove_comments(java_code)
+#     lines = java_code.splitlines()
+#
+#     # Control structure keywords to consider
+#     control_keywords = ['if', 'else', 'for', 'while', 'do']
+#
+#     # State variables to track nesting level
+#     current_nesting = 0
+#     control_structure_stack = []  # Stack to track nesting levels
+#     nesting_levels = []
+#
+#     # Regular expressions for detecting control structures
+#     control_regex = re.compile(r'\b(if|else if|else|for|while|do)\b')
+#     open_brace_regex = re.compile(r'\{')  # Opening brace
+#     close_brace_regex = re.compile(r'\}')  # Closing brace
+#
+#     for line_no, line in enumerate(lines, start=1):
+#         stripped_line = line.strip()
+#
+#         # Skip empty lines
+#         if not stripped_line:
+#             nesting_levels.append((line_no, stripped_line, current_nesting))
+#             continue
+#
+#         # Check if the line contains a control structure
+#         control_match = control_regex.search(stripped_line)
+#         if control_match:
+#             # Increment nesting level for a new control structure
+#             current_nesting += 1
+#             control_structure_stack.append(current_nesting)
+#
+#         # Record the current nesting level for the line
+#         nesting_levels.append((line_no, stripped_line, current_nesting))
+#
+#         # Adjust nesting level based on braces
+#         # Count the opening and closing braces in the line
+#         opening_braces = len(open_brace_regex.findall(stripped_line))
+#         closing_braces = len(close_brace_regex.findall(stripped_line))
+#
+#         # Adjust the nesting level for each closing brace
+#         if closing_braces > 0:
+#             for _ in range(closing_braces):
+#                 if control_structure_stack:
+#                     control_structure_stack.pop()
+#                     current_nesting = len(control_structure_stack)
+#
+#     return nesting_levels
+
 def calculate_nesting_level(java_code):
     """
-    Calculates the nesting level of control structures (if-else, for, while, do-while)
-    in Java code line by line, ignoring class and method declarations.
+    Dynamically calculates the nesting level of control structures (if-else, switch-case, loops, etc.)
+    in Java-like code line by line, and assigns appropriate weights without hardcoding specific cases.
     """
     # Remove comments from the Java code
     java_code = remove_comments(java_code)
     lines = java_code.splitlines()
 
-    # Control structure keywords to consider
-    control_keywords = ['if', 'else', 'for', 'while', 'do']
-
     # State variables to track nesting level
     current_nesting = 0
     control_structure_stack = []  # Stack to track nesting levels
     nesting_levels = []
+    line_weights = {}
 
-    # Regular expressions for detecting control structures
-    control_regex = re.compile(r'\b(if|else if|else|for|while|do)\b')
+    # Regular expressions for detecting control structures and braces
+    control_regex = re.compile(r'\b(if|else if|else|for|while|do|switch|case|default)\b')
     open_brace_regex = re.compile(r'\{')  # Opening brace
     close_brace_regex = re.compile(r'\}')  # Closing brace
+
+    # Default weight for any control structure
+    default_weight = 1
 
     for line_no, line in enumerate(lines, start=1):
         stripped_line = line.strip()
 
         # Skip empty lines
         if not stripped_line:
-            nesting_levels.append((line_no, stripped_line, current_nesting))
+            nesting_levels.append((line_no, stripped_line, current_nesting, 0))
             continue
 
         # Check if the line contains a control structure
         control_match = control_regex.search(stripped_line)
         if control_match:
-            # Increment nesting level for a new control structure
-            current_nesting += 1
-            control_structure_stack.append(current_nesting)
+            control_type = control_match.group()
 
-        # Record the current nesting level for the line
-        nesting_levels.append((line_no, stripped_line, current_nesting))
+            # Assign weight dynamically based on nesting
+            weight = default_weight
+            if control_type in ['case', 'default']:
+                # Special handling for case and default (keep at the same nesting level)
+                line_weights[line_no] = weight
+            else:
+                # Increment nesting level for all other control structures
+                current_nesting += 1
+                control_structure_stack.append(current_nesting)
+                line_weights[line_no] = weight
+
+        # Record the current nesting level and weight for the line
+        nesting_levels.append((line_no, stripped_line, current_nesting, line_weights.get(line_no, 0)))
 
         # Adjust nesting level based on braces
-        # Count the opening and closing braces in the line
         opening_braces = len(open_brace_regex.findall(stripped_line))
         closing_braces = len(close_brace_regex.findall(stripped_line))
 
-        # Adjust the nesting level for each closing brace
         if closing_braces > 0:
             for _ in range(closing_braces):
                 if control_structure_stack:
@@ -176,6 +238,7 @@ def calculate_nesting_level(java_code):
                     current_nesting = len(control_structure_stack)
 
     return nesting_levels
+
 
 
 """
@@ -616,6 +679,99 @@ def calculate_cbo(class_references):
 
     return cbo_results
 
+def extract_class_references_with_lines(java_code):
+    logging.info("Starting extraction of class references.")
+    # Patterns to match class instantiation, inheritance, and interface implementation
+    instantiation_pattern = r'new\s+([A-Z][\w]*)'
+    inheritance_pattern = r'class\s+\w+\s+extends\s+([A-Z][\w]*)'
+    interface_pattern = r'class\s+\w+\s+implements\s+([A-Z][\w]*)'
+    constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'
+    method_pattern = r'(public|private)?\s*void\s+(?!set[A-Z])\w+\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+    setter_injection_pattern = r'(public)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+
+    # Dictionary to store class references per line
+    line_references = []
+
+    # Split code into lines and process each line
+    lines = java_code.splitlines()
+    current_class = None
+
+    for line_no, line in enumerate(lines, start=1):
+        stripped_line = line.strip()
+        line_data = {"line": line_no, "code": stripped_line, "weights": {}}
+
+        # Check for class declaration (detect current class)
+        class_declaration = re.search(r'class\s+([A-Z][\w]*)', stripped_line)
+        if class_declaration:
+            current_class = class_declaration.group(1)
+
+        if current_class:
+            # Initialize weights for the current line
+            weights = {}
+
+            # Find class instantiations
+            instantiations = re.findall(instantiation_pattern, stripped_line)
+            for instantiated_class in instantiations:
+                weights[instantiated_class] = 3  # Tight coupling due to instantiation
+
+            # Find inheritance (extends)
+            inheritance = re.findall(inheritance_pattern, stripped_line)
+            for inherited_class in inheritance:
+                weights[inherited_class] = 3  # Tight coupling due to inheritance
+
+            # Find implemented interfaces (implements)
+            interfaces = re.findall(interface_pattern, stripped_line)
+            for implemented_interface in interfaces:
+                weights[implemented_interface] = 1  # Loose coupling due to interface implementation
+
+            # Detect constructor parameters
+            constructor_matches = re.findall(constructor_pattern, stripped_line)
+            for match in constructor_matches:
+                param_classes = re.findall(r'([A-Z][\w]*)', match)
+                for param_class in param_classes:
+                    weights[param_class] = 1  # Loose coupling due to constructor injection
+
+            # Detect setter injection
+            setter_matches = re.findall(setter_injection_pattern, stripped_line)
+            for setter_class in setter_matches:
+                weights[setter_class] = 1  # Loose coupling due to setter injection
+
+            # Detect method parameters
+            method_match = re.search(method_pattern, stripped_line)
+            if method_match:
+                param_classes = re.findall(r'([A-Z][\w]*)', method_match.group(2))
+                for param_class in param_classes:
+                    weights[param_class] = 3  # Tight coupling due to method parameters
+
+            # Add weights to the current line
+            line_data["weights"] = weights
+
+        # Add the processed line data to the list
+        line_references.append(line_data)
+
+    logging.info("Finished extracting class references line by line.")
+    logging.info(line_references)
+
+    return line_references
+
+
+# Function to calculate CBO line by line
+def calculate_cbo_line_by_line(line_references):
+    """
+    Calculate Coupling Between Objects (CBO) line by line.
+    """
+    cbo_results = []
+
+    for line_data in line_references:
+        total_weight = sum(line_data["weights"].values())
+        cbo_results.append({
+            "line": line_data["line"],
+            "code": line_data["code"],
+            "total_weight": total_weight,
+            "weights": line_data["weights"]
+        })
+
+    return cbo_results
 
 # Set up logging configuration
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -713,6 +869,113 @@ def calculate_mpc(message_passing):
         logging.info(f'MPC for {class_name}: {total_weight}')  # Log MPC calculation
 
     return mpc_results
+
+
+def extract_message_passing_with_lines(java_code):
+    # Patterns to match different types of message passing
+    simple_message_pattern = r'([a-zA-Z_]\w*)\s*\.\s*([a-zA-Z_]\w*)\s*\('  # Simple method call
+    moderate_message_pattern = r'([a-zA-Z_]\w*)\s*\.\s*([a-zA-Z_]\w*)\s*\(.*new\s+\w+\s*\('  # Moderate with callback or new instance
+    async_message_pattern = r'CompletableFuture\s*\.\s*([a-zA-Z_]\w+)'  # Asynchronous message pattern
+    callback_pattern = r'CompletableFuture\s*\.\s*(thenApply|thenAccept|thenRun|whenComplete)\s*\(\s*.*\s*->\s*\{'  # Callback methods
+    exceptional_pattern = r'CompletableFuture\s*\.\s*exceptionally\s*\(\s*.*\s*->\s*\{'  # Exception handling in async
+
+    # Methods to ignore, such as println
+    ignore_methods = {"println", "print", "printf"}
+
+    # Dictionary to store the message passing weights per line
+    message_passing_lines = {}
+
+    # Split code into lines and process each line
+    lines = java_code.splitlines()
+
+    current_class = None
+    for line_number, line in enumerate(lines, start=1):
+        # Check for class declaration (detect current class)
+        class_declaration = re.search(r'class\s+([A-Z][\w]*)', line)
+        if class_declaration:
+            current_class = class_declaration.group(1)
+
+        if current_class:
+            if line_number not in message_passing_lines:
+                message_passing_lines[line_number] = 0
+
+            # Find simple message passing
+            simple_messages = re.findall(simple_message_pattern, line)
+            for method_call in simple_messages:
+                method_name = method_call[1]
+                if method_name not in ignore_methods:
+                    message_passing_lines[line_number] += 1  # Weight = 1
+                    logging.info(
+                        f'Found simple message passing at line {line_number} in {current_class}: {method_name} (Weight = 1)'
+                    )
+
+            # Find moderate message passing (e.g., with callback)
+            moderate_messages = re.findall(moderate_message_pattern, line)
+            for method_call in moderate_messages:
+                method_name = method_call[1]
+                if method_name not in ignore_methods:
+                    message_passing_lines[line_number] += 2  # Weight = 2
+                    logging.info(
+                        f'Found moderate message passing at line {line_number} in {current_class}: {method_name} (Weight = 2)'
+                    )
+
+            # Find complex asynchronous message passing
+            async_messages = re.findall(async_message_pattern, line)
+            for method_call in async_messages:
+                method_name = method_call
+                if method_name not in ignore_methods:
+                    message_passing_lines[line_number] += 3  # Weight = 3
+                    logging.info(
+                        f'Found complex message passing at line {line_number} in {current_class}: {method_name} (Weight = 3)'
+                    )
+
+            # Find callback handling in async methods
+            callback_messages = re.findall(callback_pattern, line)
+            for method_name in callback_messages:
+                if method_name not in ignore_methods:
+                    message_passing_lines[line_number] += 3  # Weight = 3
+                    logging.info(
+                        f'Found callback in async message passing at line {line_number} in {current_class}: {method_name} (Weight = 3)'
+                    )
+
+            # Find exceptional handling in async methods
+            exceptional_messages = re.findall(exceptional_pattern, line)
+            for method_name in exceptional_messages:
+                if method_name not in ignore_methods:
+                    message_passing_lines[line_number] += 3  # Weight = 3
+                    logging.info(
+                        f'Found exceptional handling in async message passing at line {line_number} in {current_class}: {method_name} (Weight = 3)'
+                    )
+
+    return message_passing_lines
+
+
+def calculate_mpc_line_by_line(message_passing_lines):
+    mpc_line_results = {}
+
+    # Aggregate MPC values for each line
+    for line_number, weight in message_passing_lines.items():
+        mpc_line_results[line_number] = weight
+        logging.info(f'MPC at line {line_number}: {weight}')  # Log MPC calculation per line
+
+    return mpc_line_results
+
+
+# Example Integration in File Processing
+def calculate_mpc_for_java_code(file_contents):
+    # Dictionary to store the results for each file
+    mpc_results = {}
+
+    # Process each file
+    for filename, java_code in file_contents.items():
+        # Extract message passing weights with line numbers for the current file
+        message_passing_lines = extract_message_passing_with_lines(java_code)
+
+        # Calculate MPC values line by line
+        mpc_results[filename] = calculate_mpc_line_by_line(message_passing_lines)
+
+    return mpc_results
+
 
 
 # Function to track inheritance depth across multiple files
@@ -1070,12 +1333,31 @@ def calculate_code_complexity_line_by_line(code):
 
     # return line_complexities
 
+def calculate_code_complexity_multiple(file_contents):
+    results = {}
+
+    # Iterate through each file content
+    for filename, content in file_contents.items():
+        # Extract class references line by line
+        line_references = extract_class_references_with_lines(content)
+        cbo_line_results = calculate_cbo_line_by_line(line_references)
+
+        # Add results to the file's analysis
+        results[filename] = cbo_line_results
+
+    return results
 
 def calculate_code_complexity_multiple_files(file_contents):
     results = {}
 
     # Step 1: Track inheritance across all files
     track_inheritance_depth_across_files(file_contents)
+
+    result1 = calculate_code_complexity_multiple(file_contents)
+
+    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@result1@@@@@@@@@@@@@@@@@@@@@@@@", result1)
+
+    mpc_results = calculate_mpc_for_java_code(file_contents)
 
     # Iterate through each file content
     for filename, content in file_contents.items():
@@ -1088,6 +1370,10 @@ def calculate_code_complexity_multiple_files(file_contents):
         # Split content into lines
         lines = content.splitlines()
         complexity_data = []
+
+        # Extract CBO results for each line
+        cbo_line_data = result1.get(filename, [])
+        mpc_line_data = mpc_results.get(filename, [])
 
         # Extract class references and message passing for MPC and CBO
         class_references = extract_class_references(content)
@@ -1122,7 +1408,7 @@ def calculate_code_complexity_multiple_files(file_contents):
         cbo_value = calculate_cbo(class_references).get(class_name, 0)
         mpc_value = calculate_mpc(message_passing).get(class_name, 0)
 
-        print("cbo_value", cbo_value)
+        print("cbo_value$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", cbo_value)
 
         # Prepare line_complexities for recommendation engine
         line_complexities = []
@@ -1149,6 +1435,7 @@ def calculate_code_complexity_multiple_files(file_contents):
                     'compound_condition_weight': 0,
                     'try_catch_weight': 0,
                     'thread_weight': 0,
+                    'cbo_weights': 0,
                 })
                 complexity_data.append([
                     line_number,
@@ -1158,6 +1445,11 @@ def calculate_code_complexity_multiple_files(file_contents):
                     0, 0, 0, 0, 0, 0, 0
                 ])
                 continue
+
+            cbo_weights = cbo_line_data[line_number - 1]["weights"] if line_number - 1 < len(cbo_line_data) else {}
+            total_cbo_weight = sum(cbo_weights.values())
+
+            mpc_weight = mpc_line_data.get(line_number, 0)
 
             nesting_level = nesting_level_dict.get(line_number, 0)
             try_catch_weight = try_catch_weight_dict.get(line_number, 0)
@@ -1199,12 +1491,14 @@ def calculate_code_complexity_multiple_files(file_contents):
                 'compound_condition_weight': compound_condition_weight,
                 'try_catch_weight': try_catch_weight,
                 'thread_weight': thread_weight,
+                'cbo_weights': total_cbo_weight,
+                'mpc_weight': mpc_weight,
             })
 
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
                     size + control_structure_complexity + nesting_level + current_inheritance +
-                    compound_condition_weight + try_catch_weight + 0
+                    compound_condition_weight + try_catch_weight + thread_weight + total_cbo_weight
             )
 
             # Update the total WCC for the file
@@ -1222,6 +1516,8 @@ def calculate_code_complexity_multiple_files(file_contents):
                 compound_condition_weight,
                 try_catch_weight,
                 thread_weight,
+                total_cbo_weight,
+                mpc_weight,
                 total_complexity,
             ])
         # Calculate method complexities
