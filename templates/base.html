@@ -10,11 +10,15 @@
     <!-- Custom CSS -->
     <link href="{% static 'styles.css' %}" rel="stylesheet">
 </head>
-<body>
+<body class="light-mode">
     <!-- Header -->
     <header class="bg-primary text-white text-center py-3">
         <h1>Code Harbor</h1>
         <p>Your tool for code analysis, defect detection, and formatting</p>
+        <div>
+            <button id="light-mode-btn" class="btn btn-light">Light Mode</button>
+            <button id="dark-mode-btn" class="btn btn-dark">Dark Mode</button>
+        </div>
     </header>
 
     <!-- Main Content -->
@@ -27,5 +31,16 @@
     <footer class="bg-dark text-white text-center py-3 mt-auto">
         <p>&copy; 2024 Code Harbor. All rights reserved.</p>
     </footer>
+
+    <script>
+        // Light and Dark Mode Toggle
+        document.getElementById('light-mode-btn').addEventListener('click', () => {
+            document.body.className = 'light-mode';
+        });
+
+        document.getElementById('dark-mode-btn').addEventListener('click', () => {
+            document.body.className = 'dark-mode';
+        });
+    </script>
 </body>
 </html>

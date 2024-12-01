@@ -3,49 +3,61 @@
 {% block content %}
 <h1 class="text-center mb-4">Code Refactoring Tool</h1>
 <div class="container">
-    <div class="row">
-        <!-- Upload Section -->
-        <div class="col-md-4">
-            <form id="upload-form" method="post" enctype="multipart/form-data" action="/code-formatter/upload-code/">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="fileInput" class="form-label">Upload Code File:</label>
-                    <input type="file" name="file" id="fileInput" class="form-control">
-                </div>
-                <button type="submit" class="btn btn-primary w-100">Upload</button>
-            </form>
-        </div>
-
-        <!-- Code Editor Section -->
-        <div class="col-md-8">
-            <div class="mb-3">
-                <label for="codeEditor" class="form-label">Code Editor:</label>
-                <textarea id="codeEditor" name="code" class="form-control" rows="15" placeholder="Paste or edit your code here..."></textarea>
-            </div>
-            <button id="refactor-btn" class="btn btn-success w-100">Refactor Code</button>
+    <!-- File Upload and Code Editor Combined -->
+    <div class="mb-3">
+        <label for="fileInput" class="form-label">Upload or Paste Code Below:</label>
+        <input type="file" name="file" id="fileInput" class="form-control mb-3">
+        <textarea id="codeEditor" name="code" class="form-control" rows="15" placeholder="Paste or edit your code here..."></textarea>
+    </div>
+    <div class="text-center">
+        <button id="refactor-btn" class="btn btn-success">Refactor Code</button>
+    </div>
+    <div id="loading-bar" class="mt-3" style="display: none;">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%;"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // JavaScript to handle the refactor button
+    // Handle file upload and display content in the code editor
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('codeEditor').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // Handle the refactor button click
     document.getElementById('refactor-btn').addEventListener('click', async () => {
         const code = document.getElementById('codeEditor').value;
+        const loadingBar = document.getElementById('loading-bar');
+        loadingBar.style.display = 'block'; // Show loading bar
 
-        const response = await fetch('/code-formatter/refactor-code/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ code })
-        });
+        try {
+            const response = await fetch('/code-formatter/refactor-code/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ code })
+            });
 
-        if (response.ok) {
-            const data = await response.json();
-            document.getElementById('codeEditor').value = data.refactored_code;
-        } else {
-            alert('Error processing the code!');
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('codeEditor').value = data.refactored_code;
+            } else {
+                alert('Error processing the code!');
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        } finally {
+            loadingBar.style.display = 'none'; // Hide loading bar
         }
     });
 </script>
