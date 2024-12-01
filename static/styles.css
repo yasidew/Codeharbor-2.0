@@ -21,6 +21,21 @@ footer {
     text-align: center;
 }
 
+/* Code Editor Styling */
+#codeEditor {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #f8f9fa;
+    color: #212529;
+    border: 1px solid #ced4da;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.dark-mode #codeEditor {
+    background-color: #343a40;
+    color: #f8f9fa;
+}
+
 /* Light Mode */
 .light-mode {
     background-color: #f8f9fa;
@@ -38,18 +53,15 @@ footer {
     color: #f8f9fa;
 }
 
-/* Code Editor Styling */
-#codeEditor {
-    font-family: 'Courier New', Courier, monospace;
-    background-color: #f8f9fa;
-    color: #212529;
-    border: 1px solid #ced4da;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.dark-mode #codeEditor {
+.dark-mode .CodeMirror {
     background-color: #343a40;
     color: #f8f9fa;
+}
+
+/* Code Editor Styling */
+.CodeMirror {
+    height: 400px; /* Set fixed height */
+    border: 1px solid #ced4da;
+    border-radius: 5px;
 }
 

@@ -3,11 +3,10 @@
 {% block content %}
 <h1 class="text-center mb-4">Code Refactoring Tool</h1>
 <div class="container">
-    <!-- File Upload and Code Editor Combined -->
     <div class="mb-3">
         <label for="fileInput" class="form-label">Upload or Paste Code Below:</label>
         <input type="file" name="file" id="fileInput" class="form-control mb-3">
-        <textarea id="codeEditor" name="code" class="form-control" rows="15" placeholder="Paste or edit your code here..."></textarea>
+        <textarea id="codeEditor" name="code" class="form-control"></textarea>
     </div>
     <div class="text-center">
         <button id="refactor-btn" class="btn btn-success">Refactor Code</button>
@@ -19,14 +18,25 @@
     </div>
 </div>
 
+<!-- Include CodeMirror -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+
 <script>
-    // Handle file upload and display content in the code editor
+    // Initialize CodeMirror
+    const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+        lineNumbers: true,
+        mode: "javascript", // Adjust mode based on the code language
+        theme: "default", // Change theme for dark mode
+    });
+
+    // Handle file upload and display content in the editor
     document.getElementById('fileInput').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('codeEditor').value = e.target.result;
+                codeMirrorEditor.setValue(e.target.result);
             };
             reader.readAsText(file);
         }
@@ -34,7 +44,7 @@
 
     // Handle the refactor button click
     document.getElementById('refactor-btn').addEventListener('click', async () => {
-        const code = document.getElementById('codeEditor').value;
+        const code = codeMirrorEditor.getValue();
         const loadingBar = document.getElementById('loading-bar');
         loadingBar.style.display = 'block'; // Show loading bar
 
@@ -50,7 +60,7 @@
 
             if (response.ok) {
                 const data = await response.json();
-                document.getElementById('codeEditor').value = data.refactored_code;
+                codeMirrorEditor.setValue(data.refactored_code);
             } else {
                 alert('Error processing the code!');
             }
