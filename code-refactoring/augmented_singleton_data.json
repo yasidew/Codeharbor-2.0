@@ -1,0 +1,227 @@
+[
+    {
+        "type": "EagerlyInitializedSingleton",
+        "input": "public class EagerlyInitializedSingletonExample1 {\n\n    public EagerlyInitializedSingletonExample1() {}\n\n}",
+        "output": "public class EagerlyInitializedSingletonExample1 {\n\n    private EagerlyInitializedSingletonExample1() {}\n\n    private static final EagerlyInitializedSingletonExample1 instance = new EagerlyInitializedSingletonExample1();\n\n    public static EagerlyInitializedSingletonExample1 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "EagerlyInitializedSingleton",
+        "input": "public class EagerlyInitializedSingletonExample2 {\n\n    public EagerlyInitializedSingletonExample2() {}\n\n}",
+        "output": "public class EagerlyInitializedSingletonExample2 {\n\n    private EagerlyInitializedSingletonExample2() {}\n\n    private static final EagerlyInitializedSingletonExample2 instance = new EagerlyInitializedSingletonExample2();\n\n    public static EagerlyInitializedSingletonExample2 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "EagerlyInitializedSingleton",
+        "input": "public class EagerlyInitializedSingletonExample3 {\n\n    public EagerlyInitializedSingletonExample3() {}\n\n}",
+        "output": "public class EagerlyInitializedSingletonExample3 {\n\n    private EagerlyInitializedSingletonExample3() {}\n\n    private static final EagerlyInitializedSingletonExample3 instance = new EagerlyInitializedSingletonExample3();\n\n    public static EagerlyInitializedSingletonExample3 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "EagerlyInitializedSingleton",
+        "input": "public class EagerlyInitializedSingletonExample4 {\n\n    public EagerlyInitializedSingletonExample4() {}\n\n}",
+        "output": "public class EagerlyInitializedSingletonExample4 {\n\n    private EagerlyInitializedSingletonExample4() {}\n\n    private static final EagerlyInitializedSingletonExample4 instance = new EagerlyInitializedSingletonExample4();\n\n    public static EagerlyInitializedSingletonExample4 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "EagerlyInitializedSingleton",
+        "input": "public class EagerlyInitializedSingletonExample5 {\n\n    public EagerlyInitializedSingletonExample5() {}\n\n}",
+        "output": "public class EagerlyInitializedSingletonExample5 {\n\n    private EagerlyInitializedSingletonExample5() {}\n\n    private static final EagerlyInitializedSingletonExample5 instance = new EagerlyInitializedSingletonExample5();\n\n    public static EagerlyInitializedSingletonExample5 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "LazyInitializedSingleton",
+        "input": "public class LazyInitializedSingletonExample1 {\n\n    public LazyInitializedSingletonExample1() {}\n\n}",
+        "output": "public class LazyInitializedSingletonExample1 {\n\n    private static LazyInitializedSingletonExample1 instance;\n\n    private LazyInitializedSingletonExample1() {}\n\n    public static LazyInitializedSingletonExample1 getInstance() {\n        if (instance == null) {\n            instance = new LazyInitializedSingletonExample1();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "LazyInitializedSingleton",
+        "input": "public class LazyInitializedSingletonExample2 {\n\n    public LazyInitializedSingletonExample2() {}\n\n}",
+        "output": "public class LazyInitializedSingletonExample2 {\n\n    private static LazyInitializedSingletonExample2 instance;\n\n    private LazyInitializedSingletonExample2() {}\n\n    public static LazyInitializedSingletonExample2 getInstance() {\n        if (instance == null) {\n            instance = new LazyInitializedSingletonExample2();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "LazyInitializedSingleton",
+        "input": "public class LazyInitializedSingletonExample3 {\n\n    public LazyInitializedSingletonExample3() {}\n\n}",
+        "output": "public class LazyInitializedSingletonExample3 {\n\n    private static LazyInitializedSingletonExample3 instance;\n\n    private LazyInitializedSingletonExample3() {}\n\n    public static LazyInitializedSingletonExample3 getInstance() {\n        if (instance == null) {\n            instance = new LazyInitializedSingletonExample3();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "LazyInitializedSingleton",
+        "input": "public class LazyInitializedSingletonExample4 {\n\n    public LazyInitializedSingletonExample4() {}\n\n}",
+        "output": "public class LazyInitializedSingletonExample4 {\n\n    private static LazyInitializedSingletonExample4 instance;\n\n    private LazyInitializedSingletonExample4() {}\n\n    public static LazyInitializedSingletonExample4 getInstance() {\n        if (instance == null) {\n            instance = new LazyInitializedSingletonExample4();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "LazyInitializedSingleton",
+        "input": "public class LazyInitializedSingletonExample5 {\n\n    public LazyInitializedSingletonExample5() {}\n\n}",
+        "output": "public class LazyInitializedSingletonExample5 {\n\n    private static LazyInitializedSingletonExample5 instance;\n\n    private LazyInitializedSingletonExample5() {}\n\n    public static LazyInitializedSingletonExample5 getInstance() {\n        if (instance == null) {\n            instance = new LazyInitializedSingletonExample5();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "ThreadSafeSingleton",
+        "input": "public class ThreadSafeSingletonExample1 {\n\n    public ThreadSafeSingletonExample1() {}\n\n}",
+        "output": "public class ThreadSafeSingletonExample1 {\n\n    private static ThreadSafeSingletonExample1 instance;\n\n    private ThreadSafeSingletonExample1() {}\n\n    public static synchronized ThreadSafeSingletonExample1 getInstance() {\n        if (instance == null) {\n            instance = new ThreadSafeSingletonExample1();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "ThreadSafeSingleton",
+        "input": "public class ThreadSafeSingletonExample2 {\n\n    public ThreadSafeSingletonExample2() {}\n\n}",
+        "output": "public class ThreadSafeSingletonExample2 {\n\n    private static ThreadSafeSingletonExample2 instance;\n\n    private ThreadSafeSingletonExample2() {}\n\n    public static synchronized ThreadSafeSingletonExample2 getInstance() {\n        if (instance == null) {\n            instance = new ThreadSafeSingletonExample2();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "ThreadSafeSingleton",
+        "input": "public class ThreadSafeSingletonExample3 {\n\n    public ThreadSafeSingletonExample3() {}\n\n}",
+        "output": "public class ThreadSafeSingletonExample3 {\n\n    private static ThreadSafeSingletonExample3 instance;\n\n    private ThreadSafeSingletonExample3() {}\n\n    public static synchronized ThreadSafeSingletonExample3 getInstance() {\n        if (instance == null) {\n            instance = new ThreadSafeSingletonExample3();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "ThreadSafeSingleton",
+        "input": "public class ThreadSafeSingletonExample4 {\n\n    public ThreadSafeSingletonExample4() {}\n\n}",
+        "output": "public class ThreadSafeSingletonExample4 {\n\n    private static ThreadSafeSingletonExample4 instance;\n\n    private ThreadSafeSingletonExample4() {}\n\n    public static synchronized ThreadSafeSingletonExample4 getInstance() {\n        if (instance == null) {\n            instance = new ThreadSafeSingletonExample4();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "ThreadSafeSingleton",
+        "input": "public class ThreadSafeSingletonExample5 {\n\n    public ThreadSafeSingletonExample5() {}\n\n}",
+        "output": "public class ThreadSafeSingletonExample5 {\n\n    private static ThreadSafeSingletonExample5 instance;\n\n    private ThreadSafeSingletonExample5() {}\n\n    public static synchronized ThreadSafeSingletonExample5 getInstance() {\n        if (instance == null) {\n            instance = new ThreadSafeSingletonExample5();\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "BillPughSingleton",
+        "input": "public class BillPughSingletonExample1 {\n\n    public BillPughSingletonExample1() {}\n\n}",
+        "output": "public class BillPughSingletonExample1 {\n\n    private BillPughSingletonExample1() {}\n\n    private static class SingletonHelper {\n        private static final BillPughSingletonExample1 INSTANCE = new BillPughSingletonExample1();\n    }\n\n    public static BillPughSingletonExample1 getInstance() {\n        return SingletonHelper.INSTANCE;\n    }\n\n}"
+    },
+    {
+        "type": "BillPughSingleton",
+        "input": "public class BillPughSingletonExample2 {\n\n    public BillPughSingletonExample2() {}\n\n}",
+        "output": "public class BillPughSingletonExample2 {\n\n    private BillPughSingletonExample2() {}\n\n    private static class SingletonHelper {\n        private static final BillPughSingletonExample2 INSTANCE = new BillPughSingletonExample2();\n    }\n\n    public static BillPughSingletonExample2 getInstance() {\n        return SingletonHelper.INSTANCE;\n    }\n\n}"
+    },
+    {
+        "type": "BillPughSingleton",
+        "input": "public class BillPughSingletonExample3 {\n\n    public BillPughSingletonExample3() {}\n\n}",
+        "output": "public class BillPughSingletonExample3 {\n\n    private BillPughSingletonExample3() {}\n\n    private static class SingletonHelper {\n        private static final BillPughSingletonExample3 INSTANCE = new BillPughSingletonExample3();\n    }\n\n    public static BillPughSingletonExample3 getInstance() {\n        return SingletonHelper.INSTANCE;\n    }\n\n}"
+    },
+    {
+        "type": "BillPughSingleton",
+        "input": "public class BillPughSingletonExample4 {\n\n    public BillPughSingletonExample4() {}\n\n}",
+        "output": "public class BillPughSingletonExample4 {\n\n    private BillPughSingletonExample4() {}\n\n    private static class SingletonHelper {\n        private static final BillPughSingletonExample4 INSTANCE = new BillPughSingletonExample4();\n    }\n\n    public static BillPughSingletonExample4 getInstance() {\n        return SingletonHelper.INSTANCE;\n    }\n\n}"
+    },
+    {
+        "type": "BillPughSingleton",
+        "input": "public class BillPughSingletonExample5 {\n\n    public BillPughSingletonExample5() {}\n\n}",
+        "output": "public class BillPughSingletonExample5 {\n\n    private BillPughSingletonExample5() {}\n\n    private static class SingletonHelper {\n        private static final BillPughSingletonExample5 INSTANCE = new BillPughSingletonExample5();\n    }\n\n    public static BillPughSingletonExample5 getInstance() {\n        return SingletonHelper.INSTANCE;\n    }\n\n}"
+    },
+    {
+        "type": "SerializableSingleton",
+        "input": "public class SerializableSingletonExample1 {\n\n    public SerializableSingletonExample1() {}\n\n}",
+        "output": "import java.io.Serializable;\n\npublic class SerializableSingletonExample1 implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n    private static SerializableSingletonExample1 instance;\n\n    private SerializableSingletonExample1() {}\n\n    public static SerializableSingletonExample1 getInstance() {\n        if (instance == null) {\n            instance = new SerializableSingletonExample1();\n        }\n        return instance;\n    }\n\n    protected Object readResolve() {\n        return getInstance();\n    }\n\n}"
+    },
+    {
+        "type": "SerializableSingleton",
+        "input": "public class SerializableSingletonExample2 {\n\n    public SerializableSingletonExample2() {}\n\n}",
+        "output": "import java.io.Serializable;\n\npublic class SerializableSingletonExample2 implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n    private static SerializableSingletonExample2 instance;\n\n    private SerializableSingletonExample2() {}\n\n    public static SerializableSingletonExample2 getInstance() {\n        if (instance == null) {\n            instance = new SerializableSingletonExample2();\n        }\n        return instance;\n    }\n\n    protected Object readResolve() {\n        return getInstance();\n    }\n\n}"
+    },
+    {
+        "type": "SerializableSingleton",
+        "input": "public class SerializableSingletonExample3 {\n\n    public SerializableSingletonExample3() {}\n\n}",
+        "output": "import java.io.Serializable;\n\npublic class SerializableSingletonExample3 implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n    private static SerializableSingletonExample3 instance;\n\n    private SerializableSingletonExample3() {}\n\n    public static SerializableSingletonExample3 getInstance() {\n        if (instance == null) {\n            instance = new SerializableSingletonExample3();\n        }\n        return instance;\n    }\n\n    protected Object readResolve() {\n        return getInstance();\n    }\n\n}"
+    },
+    {
+        "type": "SerializableSingleton",
+        "input": "public class SerializableSingletonExample4 {\n\n    public SerializableSingletonExample4() {}\n\n}",
+        "output": "import java.io.Serializable;\n\npublic class SerializableSingletonExample4 implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n    private static SerializableSingletonExample4 instance;\n\n    private SerializableSingletonExample4() {}\n\n    public static SerializableSingletonExample4 getInstance() {\n        if (instance == null) {\n            instance = new SerializableSingletonExample4();\n        }\n        return instance;\n    }\n\n    protected Object readResolve() {\n        return getInstance();\n    }\n\n}"
+    },
+    {
+        "type": "SerializableSingleton",
+        "input": "public class SerializableSingletonExample5 {\n\n    public SerializableSingletonExample5() {}\n\n}",
+        "output": "import java.io.Serializable;\n\npublic class SerializableSingletonExample5 implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n    private static SerializableSingletonExample5 instance;\n\n    private SerializableSingletonExample5() {}\n\n    public static SerializableSingletonExample5 getInstance() {\n        if (instance == null) {\n            instance = new SerializableSingletonExample5();\n        }\n        return instance;\n    }\n\n    protected Object readResolve() {\n        return getInstance();\n    }\n\n}"
+    },
+    {
+        "type": "DoubleCheckedLockingSingleton",
+        "input": "public class DoubleCheckedLockingSingletonExample1 {\n\n    public DoubleCheckedLockingSingletonExample1() {}\n\n}",
+        "output": "public class DoubleCheckedLockingSingletonExample1 {\n\n    private static volatile DoubleCheckedLockingSingletonExample1 instance;\n\n    private DoubleCheckedLockingSingletonExample1() {}\n\n    public static DoubleCheckedLockingSingletonExample1 getInstance() {\n        if (instance == null) {\n            synchronized (DoubleCheckedLockingSingletonExample1.class) {\n                if (instance == null) {\n                    instance = new DoubleCheckedLockingSingletonExample1();\n                }\n            }\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "DoubleCheckedLockingSingleton",
+        "input": "public class DoubleCheckedLockingSingletonExample2 {\n\n    public DoubleCheckedLockingSingletonExample2() {}\n\n}",
+        "output": "public class DoubleCheckedLockingSingletonExample2 {\n\n    private static volatile DoubleCheckedLockingSingletonExample2 instance;\n\n    private DoubleCheckedLockingSingletonExample2() {}\n\n    public static DoubleCheckedLockingSingletonExample2 getInstance() {\n        if (instance == null) {\n            synchronized (DoubleCheckedLockingSingletonExample2.class) {\n                if (instance == null) {\n                    instance = new DoubleCheckedLockingSingletonExample2();\n                }\n            }\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "DoubleCheckedLockingSingleton",
+        "input": "public class DoubleCheckedLockingSingletonExample3 {\n\n    public DoubleCheckedLockingSingletonExample3() {}\n\n}",
+        "output": "public class DoubleCheckedLockingSingletonExample3 {\n\n    private static volatile DoubleCheckedLockingSingletonExample3 instance;\n\n    private DoubleCheckedLockingSingletonExample3() {}\n\n    public static DoubleCheckedLockingSingletonExample3 getInstance() {\n        if (instance == null) {\n            synchronized (DoubleCheckedLockingSingletonExample3.class) {\n                if (instance == null) {\n                    instance = new DoubleCheckedLockingSingletonExample3();\n                }\n            }\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "DoubleCheckedLockingSingleton",
+        "input": "public class DoubleCheckedLockingSingletonExample4 {\n\n    public DoubleCheckedLockingSingletonExample4() {}\n\n}",
+        "output": "public class DoubleCheckedLockingSingletonExample4 {\n\n    private static volatile DoubleCheckedLockingSingletonExample4 instance;\n\n    private DoubleCheckedLockingSingletonExample4() {}\n\n    public static DoubleCheckedLockingSingletonExample4 getInstance() {\n        if (instance == null) {\n            synchronized (DoubleCheckedLockingSingletonExample4.class) {\n                if (instance == null) {\n                    instance = new DoubleCheckedLockingSingletonExample4();\n                }\n            }\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "DoubleCheckedLockingSingleton",
+        "input": "public class DoubleCheckedLockingSingletonExample5 {\n\n    public DoubleCheckedLockingSingletonExample5() {}\n\n}",
+        "output": "public class DoubleCheckedLockingSingletonExample5 {\n\n    private static volatile DoubleCheckedLockingSingletonExample5 instance;\n\n    private DoubleCheckedLockingSingletonExample5() {}\n\n    public static DoubleCheckedLockingSingletonExample5 getInstance() {\n        if (instance == null) {\n            synchronized (DoubleCheckedLockingSingletonExample5.class) {\n                if (instance == null) {\n                    instance = new DoubleCheckedLockingSingletonExample5();\n                }\n            }\n        }\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "StaticBlockSingleton",
+        "input": "public class StaticBlockSingletonExample1 {\n\n    public StaticBlockSingletonExample1() {}\n\n}",
+        "output": "public class StaticBlockSingletonExample1 {\n\n    private static StaticBlockSingletonExample1 instance;\n\n    static {\n        try {\n            instance = new StaticBlockSingletonExample1();\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n\n    private StaticBlockSingletonExample1() {}\n\n    public static StaticBlockSingletonExample1 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "StaticBlockSingleton",
+        "input": "public class StaticBlockSingletonExample2 {\n\n    public StaticBlockSingletonExample2() {}\n\n}",
+        "output": "public class StaticBlockSingletonExample2 {\n\n    private static StaticBlockSingletonExample2 instance;\n\n    static {\n        try {\n            instance = new StaticBlockSingletonExample2();\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n\n    private StaticBlockSingletonExample2() {}\n\n    public static StaticBlockSingletonExample2 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "StaticBlockSingleton",
+        "input": "public class StaticBlockSingletonExample3 {\n\n    public StaticBlockSingletonExample3() {}\n\n}",
+        "output": "public class StaticBlockSingletonExample3 {\n\n    private static StaticBlockSingletonExample3 instance;\n\n    static {\n        try {\n            instance = new StaticBlockSingletonExample3();\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n\n    private StaticBlockSingletonExample3() {}\n\n    public static StaticBlockSingletonExample3 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "StaticBlockSingleton",
+        "input": "public class StaticBlockSingletonExample4 {\n\n    public StaticBlockSingletonExample4() {}\n\n}",
+        "output": "public class StaticBlockSingletonExample4 {\n\n    private static StaticBlockSingletonExample4 instance;\n\n    static {\n        try {\n            instance = new StaticBlockSingletonExample4();\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n\n    private StaticBlockSingletonExample4() {}\n\n    public static StaticBlockSingletonExample4 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "StaticBlockSingleton",
+        "input": "public class StaticBlockSingletonExample5 {\n\n    public StaticBlockSingletonExample5() {}\n\n}",
+        "output": "public class StaticBlockSingletonExample5 {\n\n    private static StaticBlockSingletonExample5 instance;\n\n    static {\n        try {\n            instance = new StaticBlockSingletonExample5();\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n\n    private StaticBlockSingletonExample5() {}\n\n    public static StaticBlockSingletonExample5 getInstance() {\n        return instance;\n    }\n\n}"
+    },
+    {
+        "type": "ObserverPatternSingleton",
+        "input": "public class ObserverPatternSingletonExample1 {\n\n    public ObserverPatternSingletonExample1() {}\n\n}",
+        "output": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class ObserverPatternSingletonExample1 {\n\n    private static ObserverPatternSingletonExample1 instance;\n    private List<Observer> observers;\n\n    private ObserverPatternSingletonExample1() {\n        observers = new ArrayList<>();\n    }\n\n    public static ObserverPatternSingletonExample1 getInstance() {\n        if (instance == null) {\n            instance = new ObserverPatternSingletonExample1();\n        }\n        return instance;\n    }\n\n    public void addObserver(Observer observer) {\n        observers.add(observer);\n    }\n\n    public void notifyObservers() {\n        for (Observer observer : observers) {\n            observer.update();\n        }\n    }\n\n}\n\ninterface Observer {\n    void update();\n}"
+    },
+    {
+        "type": "ObserverPatternSingleton",
+        "input": "public class ObserverPatternSingletonExample2 {\n\n    public ObserverPatternSingletonExample2() {}\n\n}",
+        "output": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class ObserverPatternSingletonExample2 {\n\n    private static ObserverPatternSingletonExample2 instance;\n    private List<Observer> observers;\n\n    private ObserverPatternSingletonExample2() {\n        observers = new ArrayList<>();\n    }\n\n    public static ObserverPatternSingletonExample2 getInstance() {\n        if (instance == null) {\n            instance = new ObserverPatternSingletonExample2();\n        }\n        return instance;\n    }\n\n    public void addObserver(Observer observer) {\n        observers.add(observer);\n    }\n\n    public void notifyObservers() {\n        for (Observer observer : observers) {\n            observer.update();\n        }\n    }\n\n}\n\ninterface Observer {\n    void update();\n}"
+    },
+    {
+        "type": "ObserverPatternSingleton",
+        "input": "public class ObserverPatternSingletonExample3 {\n\n    public ObserverPatternSingletonExample3() {}\n\n}",
+        "output": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class ObserverPatternSingletonExample3 {\n\n    private static ObserverPatternSingletonExample3 instance;\n    private List<Observer> observers;\n\n    private ObserverPatternSingletonExample3() {\n        observers = new ArrayList<>();\n    }\n\n    public static ObserverPatternSingletonExample3 getInstance() {\n        if (instance == null) {\n            instance = new ObserverPatternSingletonExample3();\n        }\n        return instance;\n    }\n\n    public void addObserver(Observer observer) {\n        observers.add(observer);\n    }\n\n    public void notifyObservers() {\n        for (Observer observer : observers) {\n            observer.update();\n        }\n    }\n\n}\n\ninterface Observer {\n    void update();\n}"
+    },
+    {
+        "type": "ObserverPatternSingleton",
+        "input": "public class ObserverPatternSingletonExample4 {\n\n    public ObserverPatternSingletonExample4() {}\n\n}",
+        "output": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class ObserverPatternSingletonExample4 {\n\n    private static ObserverPatternSingletonExample4 instance;\n    private List<Observer> observers;\n\n    private ObserverPatternSingletonExample4() {\n        observers = new ArrayList<>();\n    }\n\n    public static ObserverPatternSingletonExample4 getInstance() {\n        if (instance == null) {\n            instance = new ObserverPatternSingletonExample4();\n        }\n        return instance;\n    }\n\n    public void addObserver(Observer observer) {\n        observers.add(observer);\n    }\n\n    public void notifyObservers() {\n        for (Observer observer : observers) {\n            observer.update();\n        }\n    }\n\n}\n\ninterface Observer {\n    void update();\n}"
+    },
+    {
+        "type": "ObserverPatternSingleton",
+        "input": "public class ObserverPatternSingletonExample5 {\n\n    public ObserverPatternSingletonExample5() {}\n\n}",
+        "output": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class ObserverPatternSingletonExample5 {\n\n    private static ObserverPatternSingletonExample5 instance;\n    private List<Observer> observers;\n\n    private ObserverPatternSingletonExample5() {\n        observers = new ArrayList<>();\n    }\n\n    public static ObserverPatternSingletonExample5 getInstance() {\n        if (instance == null) {\n            instance = new ObserverPatternSingletonExample5();\n        }\n        return instance;\n    }\n\n    public void addObserver(Observer observer) {\n        observers.add(observer);\n    }\n\n    public void notifyObservers() {\n        for (Observer observer : observers) {\n            observer.update();\n        }\n    }\n\n}\n\ninterface Observer {\n    void update();\n}"
+    },
+    {
+        "type": "ThreadLocalSingleton",
+        "input": "public class ThreadLocalSingletonExample1 {\n\n    public ThreadLocalSingletonExample1() {}\n\n}",
+        "output": "public class ThreadLocalSingletonExample1 {\n\n    private static final ThreadLocal<ThreadLocalSingletonExample1> threadLocalInstance = ThreadLocal.withInitial(ThreadLocalSingletonExample1::new);\n\n    private ThreadLocalSingletonExample1() {}\n\n    public static ThreadLocalSingletonExample1 getInstance() {\n        return threadLocalInstance.get();\n    }\n\n}"
+    },
+    {
+        "type": "ThreadLocalSingleton",
+        "input": "public class ThreadLocalSingletonExample2 {\n\n    public ThreadLocalSingletonExample2() {}\n\n}",
+        "output": "public class ThreadLocalSingletonExample2 {\n\n    private static final ThreadLocal<ThreadLocalSingletonExample2> threadLocalInstance = ThreadLocal.withInitial(ThreadLocalSingletonExample2::new);\n\n    private ThreadLocalSingletonExample2() {}\n\n    public static ThreadLocalSingletonExample2 getInstance() {\n        return threadLocalInstance.get();\n    }\n\n}"
+    },
+    {
+        "type": "ThreadLocalSingleton",
+        "input": "public class ThreadLocalSingletonExample3 {\n\n    public ThreadLocalSingletonExample3() {}\n\n}",
+        "output": "public class ThreadLocalSingletonExample3 {\n\n    private static final ThreadLocal<ThreadLocalSingletonExample3> threadLocalInstance = ThreadLocal.withInitial(ThreadLocalSingletonExample3::new);\n\n    private ThreadLocalSingletonExample3() {}\n\n    public static ThreadLocalSingletonExample3 getInstance() {\n        return threadLocalInstance.get();\n    }\n\n}"
+    },
+    {
+        "type": "ThreadLocalSingleton",
+        "input": "public class ThreadLocalSingletonExample4 {\n\n    public ThreadLocalSingletonExample4() {}\n\n}",
+        "output": "public class ThreadLocalSingletonExample4 {\n\n    private static final ThreadLocal<ThreadLocalSingletonExample4> threadLocalInstance = ThreadLocal.withInitial(ThreadLocalSingletonExample4::new);\n\n    private ThreadLocalSingletonExample4() {}\n\n    public static ThreadLocalSingletonExample4 getInstance() {\n        return threadLocalInstance.get();\n    }\n\n}"
+    },
+    {
+        "type": "ThreadLocalSingleton",
+        "input": "public class ThreadLocalSingletonExample5 {\n\n    public ThreadLocalSingletonExample5() {}\n\n}",
+        "output": "public class ThreadLocalSingletonExample5 {\n\n    private static final ThreadLocal<ThreadLocalSingletonExample5> threadLocalInstance = ThreadLocal.withInitial(ThreadLocalSingletonExample5::new);\n\n    private ThreadLocalSingletonExample5() {}\n\n    public static ThreadLocalSingletonExample5 getInstance() {\n        return threadLocalInstance.get();\n    }\n\n}"
+    }
+]
