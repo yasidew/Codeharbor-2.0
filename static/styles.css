@@ -1,0 +1,22 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.card {
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+footer {
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    color: white;
+    background-color: #343a40;
+    text-align: center;
+}

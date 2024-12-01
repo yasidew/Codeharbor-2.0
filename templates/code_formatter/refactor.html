@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-center mb-4">Code Refactoring Tool</h1>
+<div class="container">
+    <div class="row">
+        <!-- Upload Section -->
+        <div class="col-md-4">
+            <form id="upload-form" method="post" enctype="multipart/form-data" action="/code-formatter/upload-code/">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="fileInput" class="form-label">Upload Code File:</label>
+                    <input type="file" name="file" id="fileInput" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Upload</button>
+            </form>
+        </div>
+
+        <!-- Code Editor Section -->
+        <div class="col-md-8">
+            <div class="mb-3">
+                <label for="codeEditor" class="form-label">Code Editor:</label>
+                <textarea id="codeEditor" name="code" class="form-control" rows="15" placeholder="Paste or edit your code here..."></textarea>
+            </div>
+            <button id="refactor-btn" class="btn btn-success w-100">Refactor Code</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // JavaScript to handle the refactor button
+    document.getElementById('refactor-btn').addEventListener('click', async () => {
+        const code = document.getElementById('codeEditor').value;
+
+        const response = await fetch('/code-formatter/refactor-code/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ code })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('codeEditor').value = data.refactored_code;
+        } else {
+            alert('Error processing the code!');
+        }
+    });
+</script>
+{% endblock %}
