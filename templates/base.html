@@ -10,16 +10,23 @@
     <!-- Custom CSS -->
     <link href="{% static 'styles.css' %}" rel="stylesheet">
     <!-- CodeMirror CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/theme/material-darker.min.css" rel="stylesheet">
 </head>
 <body class="light-mode">
     <!-- Header -->
-    <header id="header" class="text-white text-center py-3 shadow">
-        <div class="d-flex justify-content-between align-items-center px-3">
-            <h1 class="m-0">Code Harbor</h1>
-            <div>
-                <button id="light-mode-btn" class="btn btn-outline-light me-2"><i class="fas fa-sun"></i> Light</button>
-                <button id="dark-mode-btn" class="btn btn-outline-dark"><i class="fas fa-moon"></i> Dark</button>
+    <header id="header" class="bg-primary text-white text-center py-3">
+        <div class="d-flex align-items-center justify-content-between container">
+            <div class="d-flex align-items-center">
+                <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" style="height: 50px; margin-right: 15px;">
+                <h1 class="mb-0">Code Harbor</h1>
+            </div>
+            <div class="toggle-container">
+                <span class="text-white me-2">Light</span>
+                <div id="toggle" class="toggle">
+                    <div class="circle"></div>
+                </div>
+                <span class="text-white ms-2">Dark</span>
             </div>
         </div>
         <p>Your tool for code analysis, defect detection, and formatting</p>
@@ -32,27 +39,22 @@
     </main>
 
     <!-- Footer -->
-    <footer class="text-white text-center py-3 mt-auto shadow">
+    <footer class="bg-dark text-white text-center py-3 mt-auto">
         <p>&copy; 2024 Code Harbor. All rights reserved.</p>
     </footer>
 
     <!-- JavaScript -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/addon/edit/matchbrackets.min.js"></script>
     <script>
-        // Light and Dark Mode Toggle with Header Updates
-        const lightModeBtn = document.getElementById('light-mode-btn');
-        const darkModeBtn = document.getElementById('dark-mode-btn');
+        // JavaScript for the toggle button
+        const toggle = document.getElementById('toggle');
         const body = document.body;
-        const header = document.getElementById('header');
 
-        lightModeBtn.addEventListener('click', () => {
-            body.className = 'light-mode';
-            header.className = 'text-white text-center py-3 shadow bg-primary';
-        });
-
-        darkModeBtn.addEventListener('click', () => {
-            body.className = 'dark-mode';
-            header.className = 'text-white text-center py-3 shadow bg-dark';
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            toggle.classList.toggle('dark');
         });
     </script>
 </body>
