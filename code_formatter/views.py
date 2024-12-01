@@ -1,6 +1,7 @@
 import os
 from django.http import JsonResponse
 from django.shortcuts import render
+from .complexity_calculator import calculate_complexity
 from .utils import format_code_with_model
 
 # Function to display the refactor page
@@ -16,13 +17,6 @@ def upload_code(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 # Function to handle code refactoring
-# Function to calculate cyclomatic complexity (placeholder function)
-def calculate_complexity(code):
-    # Replace this with actual complexity calculation logic
-    # For now, it returns a dummy value for demonstration
-    return len(code.split('\n'))  # Example: number of lines in the code
-
-# Function to handle code refactoring
 def refactor_code(request):
     if request.method == 'POST':
         import json
@@ -31,20 +25,21 @@ def refactor_code(request):
         if not code:
             return JsonResponse({'error': 'No code provided'}, status=400)
 
-        # Calculate complexity before refactoring
-        before_complexity = calculate_complexity(code)
+        # Calculate complexity of the original code
+        original_complexity = calculate_complexity(code)
 
-        # Use the Singleton model for processing
+        # Refactor the code using your existing model
         refactored_code = format_code_with_model(code)
 
-        # Calculate complexity after refactoring
-        after_complexity = calculate_complexity(refactored_code)
+        # Calculate complexity of the refactored code
+        refactored_complexity = calculate_complexity(refactored_code)
 
-        # Return refactored code and complexity metrics
+        # Return both complexities and the refactored code
         return JsonResponse({
             'refactored_code': refactored_code,
-            'before_metrics': before_complexity,
-            'after_metrics': after_complexity,
+            'original_complexity': original_complexity,
+            'refactored_complexity': refactored_complexity
         })
+
     return JsonResponse({'error': 'Invalid request'}, status=400)
 

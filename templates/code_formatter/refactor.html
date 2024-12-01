@@ -67,7 +67,7 @@
                 codeMirrorEditor.setValue(data.refactored_code);
 
                 // Update chart with metrics
-                generateChart(data.before_metrics, data.after_metrics);
+                generateChart(data.original_complexity, data.refactored_complexity);
             } else {
                 alert('Error processing the code!');
             }
