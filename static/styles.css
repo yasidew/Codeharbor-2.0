@@ -1,39 +1,10 @@
+/* Smooth transition for animations */
 body {
-    background-color: #f8f9fa;
+    transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-.navbar-brand {
-    font-weight: bold;
-    font-size: 1.5rem;
-}
-
-.card {
-    border-radius: 8px;
-    background-color: #ffffff;
-}
-
-footer {
-    position: relative;
-    bottom: 0;
-    width: 100%;
-    color: white;
-    background-color: #343a40;
-    text-align: center;
-}
-
-/* Code Editor Styling */
-#codeEditor {
-    font-family: 'Courier New', Courier, monospace;
-    background-color: #f8f9fa;
-    color: #212529;
-    border: 1px solid #ced4da;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-.dark-mode #codeEditor {
-    background-color: #343a40;
-    color: #f8f9fa;
+header, footer {
+    transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 /* Light Mode */
@@ -42,26 +13,57 @@ footer {
     color: #212529;
 }
 
+.light-mode header {
+    background-color: #007bff;
+}
+
+.light-mode footer {
+    background-color: #343a40;
+}
+
 /* Dark Mode */
 .dark-mode {
     background-color: #212529;
     color: #f8f9fa;
 }
 
-.dark-mode .form-control, .dark-mode .btn {
+.dark-mode header {
     background-color: #343a40;
+}
+
+.dark-mode footer {
+    background-color: #000;
+}
+
+.dark-mode .btn-outline-dark {
+    border-color: #f8f9fa;
     color: #f8f9fa;
+}
+
+/* Enhanced CodeMirror Styling */
+.CodeMirror {
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-family: "Fira Code", monospace;
+    height: 400px;
+}
+
+.light-mode .CodeMirror {
+    background-color: #ffffff;
+    color: #212529;
 }
 
 .dark-mode .CodeMirror {
-    background-color: #343a40;
+    background-color: #2b2b2b;
     color: #f8f9fa;
 }
 
-/* Code Editor Styling */
-.CodeMirror {
-    height: 400px; /* Set fixed height */
-    border: 1px solid #ced4da;
-    border-radius: 5px;
+/* Button Animations */
+.btn {
+    transition: all 0.3s ease;
 }
 
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

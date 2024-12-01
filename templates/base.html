@@ -14,12 +14,12 @@
 </head>
 <body class="light-mode">
     <!-- Header -->
-    <header class="bg-primary text-white text-center py-3 shadow-sm">
+    <header id="header" class="text-white text-center py-3 shadow">
         <div class="d-flex justify-content-between align-items-center px-3">
             <h1 class="m-0">Code Harbor</h1>
             <div>
-                <button id="light-mode-btn" class="btn btn-light me-2"><i class="fas fa-sun"></i> Light Mode</button>
-                <button id="dark-mode-btn" class="btn btn-dark"><i class="fas fa-moon"></i> Dark Mode</button>
+                <button id="light-mode-btn" class="btn btn-outline-light me-2"><i class="fas fa-sun"></i> Light</button>
+                <button id="dark-mode-btn" class="btn btn-outline-dark"><i class="fas fa-moon"></i> Dark</button>
             </div>
         </div>
         <p>Your tool for code analysis, defect detection, and formatting</p>
@@ -32,20 +32,27 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-3 mt-auto shadow-sm">
+    <footer class="text-white text-center py-3 mt-auto shadow">
         <p>&copy; 2024 Code Harbor. All rights reserved.</p>
     </footer>
 
     <!-- JavaScript -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script>
-        // Light and Dark Mode Toggle
-        document.getElementById('light-mode-btn').addEventListener('click', () => {
-            document.body.className = 'light-mode';
+        // Light and Dark Mode Toggle with Header Updates
+        const lightModeBtn = document.getElementById('light-mode-btn');
+        const darkModeBtn = document.getElementById('dark-mode-btn');
+        const body = document.body;
+        const header = document.getElementById('header');
+
+        lightModeBtn.addEventListener('click', () => {
+            body.className = 'light-mode';
+            header.className = 'text-white text-center py-3 shadow bg-primary';
         });
 
-        document.getElementById('dark-mode-btn').addEventListener('click', () => {
-            document.body.className = 'dark-mode';
+        darkModeBtn.addEventListener('click', () => {
+            body.className = 'dark-mode';
+            header.className = 'text-white text-center py-3 shadow bg-dark';
         });
     </script>
 </body>
