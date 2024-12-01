@@ -7,6 +7,22 @@ header, footer {
     transition: background-color 0.5s ease, color 0.5s ease;
 }
 
+/* Logo Styling */
+.logo-styling {
+    height: 50px;
+    margin-right: 15px;
+    border: 2px solid white;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo-styling:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+}
+
 /* Light Mode */
 .light-mode {
     background-color: #f8f9fa;
@@ -40,10 +56,12 @@ header, footer {
     color: #f8f9fa;
 }
 
-/* Centering the Header */
+/* Center the Header */
 header h1 {
     font-size: 2.5rem;
     font-weight: bold;
+    flex-grow: 1;
+    text-align: center;
 }
 
 header p {
@@ -86,26 +104,4 @@ header p {
 .toggle.dark .circle {
     left: 32.5px;
     background-color: #1e90ff;
-}
-
-.toggle-container span {
-    color: white;
-    font-weight: bold;
-}
-
-/* CodeMirror Customization */
-.CodeMirror {
-    height: auto;
-    font-size: 14px;
-    line-height: 1.5;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    background: #f8f9fa;
-    transition: background-color 0.5s ease, color 0.5s ease;
-}
-
-body.dark-mode .CodeMirror {
-    background: #1e1e1e;
-    color: #f8f9fa;
 }
