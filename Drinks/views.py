@@ -369,6 +369,51 @@ def php_code_analyser(request):
     return render(request, 'php_code_analyser.html')
 
 
+def normalize_and_validate_indentation(code_snippet):
+    """
+    Normalize and validate indentation in the code snippet to prevent parsing errors.
+    """
+    lines = code_snippet.splitlines()
+    corrected_lines = []
+    indent_stack = [0]  # Track indentation levels
+
+    for index, line in enumerate(lines):
+        stripped_line = line.strip()
+
+        # Skip empty lines
+        if not stripped_line:
+            corrected_lines.append("")
+            continue
+
+        # Calculate current indentation level
+        current_indent = len(line) - len(line.lstrip())
+
+        # Check for invalid indentation
+        if current_indent > indent_stack[-1]:
+            # Ensure a block follows structures like def, if, for, etc.
+            if corrected_lines and corrected_lines[-1].rstrip().endswith((':',)):
+                indent_stack.append(current_indent)
+            else:
+                # Force valid indentation
+                current_indent = indent_stack[-1]
+
+        elif current_indent < indent_stack[-1]:
+            while indent_stack and current_indent < indent_stack[-1]:
+                indent_stack.pop()
+
+        # Fix indentation if mismatched
+        if current_indent != indent_stack[-1]:
+            corrected_line = " " * indent_stack[-1] + stripped_line
+        else:
+            corrected_line = line
+
+        corrected_lines.append(corrected_line)
+
+    # Ensure every block with a colon has an indented body
+    normalized_code = "\n".join(corrected_lines)
+    fixed_code = ensure_blocks_have_bodies(normalized_code)
+
+    return fixed_code
 
 
 def detect_defects_view(request):
