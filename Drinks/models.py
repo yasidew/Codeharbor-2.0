@@ -1,6 +1,6 @@
 from django.db import models
 
-from challenges.models import Challenge
+from challenges.models import Challenges
 
 
 class Drink(models.Model):

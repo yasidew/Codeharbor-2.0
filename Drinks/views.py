@@ -22,7 +22,7 @@ from .complexity_calculator_csharp import calculate_code_complexity_line_by_line
 from django.shortcuts import render
 from prettytable import PrettyTable
 import statsmodels.api as sm
-from challenges.models import Challenge
+from challenges.models import Challenges
 
 @api_view(['GET', 'POST'])
 def drink_list(request, format=None):

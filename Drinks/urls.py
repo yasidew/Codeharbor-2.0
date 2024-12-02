@@ -15,6 +15,7 @@ urlpatterns = [
     path('drinks/', views.drink_list),
     path('challenges/', include('challenges.urls')),
     path('', include("user.urls")),
+    path('check/', include('checker.urls')),
 
     path('drinks/<int:id>', views.drink_detail),
     path('calculate-complexity-line-by-line/', views.calculate_complexity_multiple_java_files,

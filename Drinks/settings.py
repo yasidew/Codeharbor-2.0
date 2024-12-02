@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'challenges',
     'rest_framework_simplejwt',
     'user',
-
+    'checker',
 ]
 
 MIDDLEWARE = [
@@ -155,6 +155,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+
 }
 
 SIMPLE_JWT = {
@@ -164,3 +165,5 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER': timedelta(days=1),
     'SLIDING_TOKEN_LIFETIME_LATE_USER': timedelta(days=30),
 }
+
+
