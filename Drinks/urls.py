@@ -32,6 +32,8 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
 
     path("detect-defects/", views.detect_defects_view, name="detect_defects"),
 
+    path('analyze-code/', views.analyze_code_view, name='analyze_code'),
+
     # path("api/detect-defects/", model.detect_defects, name="api_detect_defects"),
 
     # path('upload/python/', views.upload_python_files, name='upload_python_files'),
