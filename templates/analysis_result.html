@@ -1,150 +1,281 @@
+{% load static %}
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
+{#    <title>Correlation Analysis Results</title>#}
+{#    <style>#}
+{#        body {#}
+{#            font-family: Arial, sans-serif;#}
+{#            margin: 0;#}
+{#            padding: 20px;#}
+{#            background-color: #f9f9f9;#}
+{#            color: #333;#}
+{#        }#}
+{##}
+{#        h1, h2, h3 {#}
+{#            color: #004085;#}
+{#        }#}
+{##}
+{#        .summary {#}
+{#            background-color: #e9ecef;#}
+{#            padding: 15px;#}
+{#            margin-bottom: 20px;#}
+{#            border-radius: 5px;#}
+{#            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);#}
+{#        }#}
+{##}
+{#        table {#}
+{#            width: 100%;#}
+{#            border-collapse: collapse;#}
+{#            margin-bottom: 20px;#}
+{#            background-color: #fff;#}
+{#            border-radius: 5px;#}
+{#            overflow: hidden;#}
+{#            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);#}
+{#        }#}
+{##}
+{#        table th, table td {#}
+{#            padding: 12px;#}
+{#            text-align: left;#}
+{#            border-bottom: 1px solid #ddd;#}
+{#        }#}
+{##}
+{#        table th {#}
+{#            background-color: #004085;#}
+{#            color: #fff;#}
+{#        }#}
+{##}
+{#        table td.highlight {#}
+{#            background-color: #d4edda;#}
+{#            color: #155724;#}
+{#            font-weight: bold;#}
+{#        }#}
+{##}
+{#        img {#}
+{#            width: 100%;#}
+{#            max-width: 800px;#}
+{#            display: block;#}
+{#            margin: 20px auto;#}
+{#            border: 2px solid #ddd;#}
+{#            border-radius: 5px;#}
+{#        }#}
+{##}
+{#        a, button {#}
+{#            display: inline-block;#}
+{#            text-decoration: none;#}
+{#            color: #fff;#}
+{#            background-color: #007bff;#}
+{#            padding: 10px 20px;#}
+{#            border-radius: 5px;#}
+{#            font-size: 16px;#}
+{#            margin-top: 20px;#}
+{#        }#}
+{##}
+{#        a:hover, button:hover {#}
+{#            background-color: #0056b3;#}
+{#        }#}
+{##}
+{#        @media (max-width: 768px) {#}
+{#            table, th, td {#}
+{#                font-size: 14px;#}
+{#            }#}
+{##}
+{#            img {#}
+{#                width: 90%;#}
+{#            }#}
+{#        }#}
+{#    </style>#}
+{#</head>#}
+{#<body>#}
+{#<h1>Clustering Analysis Results</h1>#}
+{##}
+{#<h2>Correlation Analysis</h2>#}
+{#<table>#}
+{#    <thead>#}
+{#    <tr>#}
+{#        <th>Metric</th>#}
+{#        <th>Pearson Correlation</th>#}
+{#        <th>Pearson p-value</th>#}
+{#    </tr>#}
+{#    </thead>#}
+{#    <tbody>#}
+{#    {% for column, result in pearson_results.items %}#}
+{#        <tr>#}
+{#            <td>{{ column }}</td>#}
+{#            <td>{{ result.correlation }}</td>#}
+{#            <td>{{ result.p_value }}</td>#}
+{#        </tr>#}
+{#    {% endfor %}#}
+{#    </tbody>#}
+{#</table>#}
+{##}
+{#<table>#}
+{#    <thead>#}
+{#    <tr>#}
+{#        <th>Metric</th>#}
+{#        <th>Spearman Correlation</th>#}
+{#        <th>Spearman p-value</th>#}
+{#    </tr>#}
+{#    </thead>#}
+{#    <tbody>#}
+{#    {% for column, result in spearman_results.items %}#}
+{#        <tr>#}
+{#            <td>{{ column }}</td>#}
+{#            <td>{{ result.correlation }}</td>#}
+{#            <td>{{ result.p_value }}</td>#}
+{#        </tr>#}
+{#    {% endfor %}#}
+{#    </tbody>#}
+{#</table>#}
+{##}
+{#<h2>Cluster Centers (Thresholds)</h2>#}
+{#<p><strong>Low Center:</strong> {{ low_center }}</p>#}
+{#<p><strong>Medium Center:</strong> {{ medium_center }}</p>#}
+{#<p><strong>High Center:</strong> {{ high_center }}</p>#}
+{##}
+{#<h2>Scatter Plots</h2>#}
+{#{% for column, plot_path in scatter_plots.items %}#}
+{#    <h3>{{ column }} vs WCC</h3>#}
+{#    <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}">#}
+{#{% endfor %}#}
+{##}
+{#<h2>Boxplot of WCC by Complexity Level</h2>#}
+{#<img src="{{ MEDIA_URL }}/media/boxplot.png" alt="Boxplot of WCC by Complexity Level">#}
+{##}
+{#<h2>Correlation Matrix Heatmap</h2>#}
+{#<img src="{{ MEDIA_URL }}/media/heatmap.png" alt="Correlation Heatmap">#}
+{##}
+{#</body>#}
+{#</html>#}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Correlation Analysis Results</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-
-        h1, h2, h3 {
-            color: #004085;
-        }
-
-        .summary {
-            background-color: #e9ecef;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        table th, table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #004085;
-            color: #fff;
-        }
-
-        table td.highlight {
-            background-color: #d4edda;
-            color: #155724;
-            font-weight: bold;
-        }
-
-        img {
-            width: 100%;
-            max-width: 800px;
-            display: block;
-            margin: 20px auto;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-        }
-
-        a, button {
-            display: inline-block;
-            text-decoration: none;
-            color: #fff;
-            background-color: #007bff;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 16px;
-            margin-top: 20px;
-        }
-
-        a:hover, button:hover {
-            background-color: #0056b3;
-        }
-
-        @media (max-width: 768px) {
-            table, th, td {
-                font-size: 14px;
-            }
-
-            img {
-                width: 90%;
-            }
-        }
-    </style>
+    <title>Code Harbor - Clustering Analysis Results</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{% static 'style.css' %}" rel="stylesheet">
 </head>
-<body>
-<h1>Clustering Analysis Results</h1>
+<body class="light-mode">
+    <!-- Header -->
+    <header id="header" class="bg-primary text-white text-center py-3">
+        <div class="container d-flex align-items-center justify-content-between">
+            <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" class="logo-styling">
+            <h1 class="mb-0">Code Harbor</h1>
+            <div class="toggle-container">
+                <span class="text-white me-2">Light</span>
+                <div id="toggle" class="toggle">
+                    <div class="circle"></div>
+                </div>
+                <span class="text-white ms-2">Dark</span>
+            </div>
+        </div>
+        <p>Your tool for code analysis, defect detection, and formatting</p>
+    </header>
 
-<h2>Correlation Analysis</h2>
-<table>
-    <thead>
-    <tr>
-        <th>Metric</th>
-        <th>Pearson Correlation</th>
-        <th>Pearson p-value</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for column, result in pearson_results.items %}
-        <tr>
-            <td>{{ column }}</td>
-            <td>{{ result.correlation }}</td>
-            <td>{{ result.p_value }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+    <!-- Main Content -->
+    <main class="container my-5">
+        <h1 class="text-center mb-4">Clustering Analysis Results</h1>
 
-<table>
-    <thead>
-    <tr>
-        <th>Metric</th>
-        <th>Spearman Correlation</th>
-        <th>Spearman p-value</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for column, result in spearman_results.items %}
-        <tr>
-            <td>{{ column }}</td>
-            <td>{{ result.correlation }}</td>
-            <td>{{ result.p_value }}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        <!-- Correlation Analysis -->
+        <section class="mb-5">
+            <h2 class="text-primary">Correlation Analysis</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Metric</th>
+                            <th>Pearson Correlation</th>
+                            <th>Pearson p-value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for column, result in pearson_results.items %}
+                        <tr>
+                            <td>{{ column }}</td>
+                            <td>{{ result.correlation }}</td>
+                            <td>{{ result.p_value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-<h2>Cluster Centers (Thresholds)</h2>
-<p><strong>Low Center:</strong> {{ low_center }}</p>
-<p><strong>Medium Center:</strong> {{ medium_center }}</p>
-<p><strong>High Center:</strong> {{ high_center }}</p>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Metric</th>
+                            <th>Spearman Correlation</th>
+                            <th>Spearman p-value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for column, result in spearman_results.items %}
+                        <tr>
+                            <td>{{ column }}</td>
+                            <td>{{ result.correlation }}</td>
+                            <td>{{ result.p_value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-<h2>Scatter Plots</h2>
-{% for column, plot_path in scatter_plots.items %}
-    <h3>{{ column }} vs WCC</h3>
-    <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}">
-{% endfor %}
+        <!-- Cluster Centers -->
+        <section class="mb-5">
+            <h2 class="text-primary">Cluster Centers (Thresholds)</h2>
+            <p><strong>Low Center:</strong> {{ low_center }}</p>
+            <p><strong>Medium Center:</strong> {{ medium_center }}</p>
+            <p><strong>High Center:</strong> {{ high_center }}</p>
+        </section>
 
-<h2>Boxplot of WCC by Complexity Level</h2>
-<img src="{{ MEDIA_URL }}/media/boxplot.png" alt="Boxplot of WCC by Complexity Level">
+        <!-- Scatter Plots -->
+        <section class="mb-5">
+            <h2 class="text-primary">Scatter Plots</h2>
+            {% for column, plot_path in scatter_plots.items %}
+            <div class="mb-4">
+                <h3 class="text-muted">{{ column }} vs WCC</h3>
+                <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}" class="img-fluid rounded shadow">
+            </div>
+            {% endfor %}
+        </section>
 
-<h2>Correlation Matrix Heatmap</h2>
-<img src="{{ MEDIA_URL }}/media/heatmap.png" alt="Correlation Heatmap">
+        <!-- Boxplot -->
+        <section class="mb-5">
+            <h2 class="text-primary">Boxplot of WCC by Complexity Level</h2>
+            <img src="{{ MEDIA_URL }}/media/boxplot.png" alt="Boxplot of WCC by Complexity Level" class="img-fluid rounded shadow">
+        </section>
 
+        <!-- Heatmap -->
+        <section>
+            <h2 class="text-primary">Correlation Matrix Heatmap</h2>
+            <img src="{{ MEDIA_URL }}/media/heatmap.png" alt="Correlation Heatmap" class="img-fluid rounded shadow">
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3">
+        <p>&copy; 2024 Code Harbor. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // JavaScript for the toggle button
+        const toggle = document.getElementById('toggle');
+        const body = document.body;
+
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            toggle.classList.toggle('dark');
+        });
+    </script>
 </body>
 </html>
+

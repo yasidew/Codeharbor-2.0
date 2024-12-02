@@ -418,6 +418,112 @@ def calculate_cbo(class_references):
         logging.info(f"CBO for {class_name}: {cbo_results[class_name]}")
     return cbo_results
 
+def extract_class_references_with_lines(java_code):
+    logging.info("Starting extraction of class references.")
+    # Patterns to match class instantiation, inheritance, and interface implementation
+    instantiation_pattern = r'new\s+([A-Z][\w]*)'
+    inheritance_pattern = r'class\s+\w+\s+extends\s+([A-Z][\w]*)'
+    interface_pattern = r'class\s+\w+\s+implements\s+([A-Z][\w]*)'
+    constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'
+    method_pattern = r'(public|private)?\s*void\s+(?!set[A-Z])\w+\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+    setter_injection_pattern = r'(public)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+
+    # Dictionary to store class references per line
+    line_references = []
+
+    # Split code into lines and process each line
+    lines = java_code.splitlines()
+    current_class = None
+
+    for line_no, line in enumerate(lines, start=1):
+        stripped_line = line.strip()
+        line_data = {"line": line_no, "code": stripped_line, "weights": {}}
+
+        # Check for class declaration (detect current class)
+        class_declaration = re.search(r'class\s+([A-Z][\w]*)', stripped_line)
+        if class_declaration:
+            current_class = class_declaration.group(1)
+
+        if current_class:
+            # Initialize weights for the current line
+            weights = {}
+
+            # Find class instantiations
+            instantiations = re.findall(instantiation_pattern, stripped_line)
+            for instantiated_class in instantiations:
+                weights[instantiated_class] = 3  # Tight coupling due to instantiation
+
+            # Find inheritance (extends)
+            inheritance = re.findall(inheritance_pattern, stripped_line)
+            for inherited_class in inheritance:
+                weights[inherited_class] = 3  # Tight coupling due to inheritance
+
+            # Find implemented interfaces (implements)
+            interfaces = re.findall(interface_pattern, stripped_line)
+            for implemented_interface in interfaces:
+                weights[implemented_interface] = 1  # Loose coupling due to interface implementation
+
+            # Detect constructor parameters
+            constructor_matches = re.findall(constructor_pattern, stripped_line)
+            for match in constructor_matches:
+                param_classes = re.findall(r'([A-Z][\w]*)', match)
+                for param_class in param_classes:
+                    weights[param_class] = 1  # Loose coupling due to constructor injection
+
+            # Detect setter injection
+            setter_matches = re.findall(setter_injection_pattern, stripped_line)
+            for setter_class in setter_matches:
+                weights[setter_class] = 1  # Loose coupling due to setter injection
+
+            # Detect method parameters
+            method_match = re.search(method_pattern, stripped_line)
+            if method_match:
+                param_classes = re.findall(r'([A-Z][\w]*)', method_match.group(2))
+                for param_class in param_classes:
+                    weights[param_class] = 3  # Tight coupling due to method parameters
+
+            # Add weights to the current line
+            line_data["weights"] = weights
+
+        # Add the processed line data to the list
+        line_references.append(line_data)
+
+    logging.info("Finished extracting class references line by line.")
+    logging.info(line_references)
+
+    return line_references
+
+def calculate_cbo_line_by_line(line_references):
+    """
+    Calculate Coupling Between Objects (CBO) line by line.
+    """
+    cbo_results = []
+
+    for line_data in line_references:
+        total_weight = sum(line_data["weights"].values())
+        cbo_results.append({
+            "line": line_data["line"],
+            "code": line_data["code"],
+            "total_weight": total_weight,
+            "weights": line_data["weights"]
+        })
+
+    return cbo_results
+
+def calculate_code_complexity_multiple(file_contents):
+    results = {}
+
+    # Iterate through each file content
+    for filename, content in file_contents.items():
+        # Extract class references line by line
+        line_references = extract_class_references_with_lines(content)
+        cbo_line_results = calculate_cbo_line_by_line(line_references)
+
+        # Add results to the file's analysis
+        results[filename] = cbo_line_results
+
+    return results
+
 
 def extract_message_passing(csharp_code):
     """
@@ -505,6 +611,108 @@ def calculate_mpc(message_passing):
     return mpc_results
 
 
+def extract_message_passing_with_lines_csharp(csharp_code):
+    """
+    Extracts message passing interactions for calculating Message Passing Complexity (MPC) in C# code,
+    associating weights with specific lines.
+    """
+    # Patterns to match different types of message passing
+    simple_message_pattern = r'([a-zA-Z_]\w*)\s*\.\s*([a-zA-Z_]\w*)\s*\('  # Simple method calls
+    complex_message_pattern = r'new\s+([A-Z][\w]*)\('  # Object instantiation
+    async_message_pattern = r'\bTask\s*\.\s*([a-zA-Z_]\w+)\s*\('  # Asynchronous calls (e.g., Task.Run)
+    linq_pattern = r'\b([a-zA-Z_]\w*)\s*\.\s*(Where|Select|OrderBy|GroupBy|ToList|First|FirstOrDefault)\s*\('  # LINQ queries
+    fluent_pattern = r'\b([a-zA-Z_]\w*)\s*\.\s*([a-zA-Z_]\w*)\.\s*([a-zA-Z_]\w*)\('  # Fluent APIs (chained calls)
+    exceptional_pattern = r'try\s*\{|catch\s*\(|finally\s*\{'  # Exception handling patterns
+
+    # Methods to ignore, such as Console.WriteLine
+    ignore_methods = {"WriteLine", "ReadLine", "ToString"}
+
+    # Dictionary to store the message passing weights per line
+    message_passing_lines = {}
+
+    # Split code into lines and process each line
+    lines = csharp_code.splitlines()
+
+    current_class = None
+    for line_number, line in enumerate(lines, start=1):
+        # Detect current class declaration
+        class_declaration = re.search(r'class\s+([A-Z][\w]*)', line)
+        if class_declaration:
+            current_class = class_declaration.group(1)
+
+        # Initialize the line weight
+        if line_number not in message_passing_lines:
+            message_passing_lines[line_number] = 0
+
+        # Detect simple method calls
+        simple_messages = re.findall(simple_message_pattern, line)
+        for method_call in simple_messages:
+            method_name = method_call[1]
+            if method_name not in ignore_methods:
+                message_passing_lines[line_number] += 1  # Weight = 1
+                logging.info(f"Simple message passing at line {line_number}: {method_name} (Weight = 1)")
+
+        # Detect complex message passing (e.g., object instantiation)
+        complex_messages = re.findall(complex_message_pattern, line)
+        for method_call in complex_messages:
+            message_passing_lines[line_number] += 2  # Weight = 2
+            logging.info(f"Complex message passing at line {line_number}: {method_call} (Weight = 2)")
+
+        # Detect asynchronous calls
+        async_messages = re.findall(async_message_pattern, line)
+        for async_call in async_messages:
+            message_passing_lines[line_number] += 3  # Weight = 3
+            logging.info(f"Asynchronous message passing at line {line_number}: {async_call} (Weight = 3)")
+
+        # Detect LINQ queries
+        linq_calls = re.findall(linq_pattern, line)
+        for linq_call in linq_calls:
+            method_name = linq_call[1]
+            message_passing_lines[line_number] += 2  # Weight = 2
+            logging.info(f"LINQ query at line {line_number}: {method_name} (Weight = 2)")
+
+        # Detect fluent API calls
+        fluent_calls = re.findall(fluent_pattern, line)
+        for fluent_call in fluent_calls:
+            method_name = fluent_call[2]
+            message_passing_lines[line_number] += 3  # Weight = 3
+            logging.info(f"Fluent API call at line {line_number}: {method_name} (Weight = 3)")
+
+        # Detect exceptional handling patterns
+        exceptional_calls = re.findall(exceptional_pattern, line)
+        if exceptional_calls:
+            message_passing_lines[line_number] += 3  # Weight = 3
+            logging.info(f"Exceptional handling at line {line_number} (Weight = 3)")
+
+    return message_passing_lines
+
+
+def calculate_mpc_line_by_line_csharp(message_passing_lines):
+    """
+    Aggregates MPC values line by line for C# code.
+    """
+    mpc_line_results = {}
+    for line_number, weight in message_passing_lines.items():
+        mpc_line_results[line_number] = weight
+        logging.info(f"MPC at line {line_number}: {weight}")
+    return mpc_line_results
+
+
+def calculate_mpc_for_csharp_code(file_contents):
+    """
+    Processes multiple C# files and calculates line-by-line MPC for each.
+    """
+    mpc_results = {}
+
+    for filename, csharp_code in file_contents.items():
+        # Extract message passing weights with line numbers for the current file
+        message_passing_lines = extract_message_passing_with_lines_csharp(csharp_code)
+
+        # Calculate MPC values line by line
+        mpc_results[filename] = calculate_mpc_line_by_line_csharp(message_passing_lines)
+
+    return mpc_results
+
 # Function to track inheritance depth across multiple files
 def track_inheritance_depth_across_files(file_contents):
     global inheritance_depth  # Reference the global inheritance_depth
@@ -545,7 +753,7 @@ method_pattern = re.compile(
 control_keywords = {'if', 'for', 'while', 'switch', 'catch'}
 
 # Function to calculate complexity for each method in a C# file
-def calculate_code_complexity_by_method(content, method_inheritance, class_name):
+def calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data):
     methods = {}
     method_name = None
     method_lines = []
@@ -567,7 +775,7 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
                 continue
             # If we're already in a method, calculate its complexity
             if method_name:
-                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights)
+                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data)
             # Start a new method
             method_name = match.group(1)
             method_lines = [line]
@@ -577,13 +785,13 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name)
 
     # Final method complexity calculation
     if method_name:
-        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights)
+        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data)
 
     return methods
 
 
 # Helper function to calculate complexity for a C# method based on lines of code
-def calculate_complexity_for_method(lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights):
+def calculate_complexity_for_method(lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data):
     size = 0
     control_structure_complexity = 0
     nesting_level = 0
@@ -595,6 +803,8 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
     total_nesting = 0
     total_try_catch_weight = 0
     total_thread_weight = 0
+    total_cbo = 0
+    total_mpc = 0
 
     current_nesting = 0
     control_structure_stack = []
@@ -632,6 +842,13 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         # )
         # nesting_level += wn
 
+        cbo_weights = cbo_line_data[line_number - 1]["weights"] if line_number - 1 < len(cbo_line_data) else {}
+        total_cbo_weight = sum(cbo_weights.values())
+        total_cbo += total_cbo_weight
+
+        mpc_weight = mpc_line_data.get(line_number, 0)
+        total_mpc += mpc_weight
+
         # Compound condition weight
         compound_condition_weight += calculate_compound_condition_weight(line)
 
@@ -644,7 +861,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
     # Sum up the complexity metrics for this method
     total_complexity = (
             size + control_structure_complexity + total_nesting + current_inheritance_sum +
-            compound_condition_weight + total_try_catch_weight + total_thread_weight
+            compound_condition_weight + total_try_catch_weight + total_thread_weight + total_cbo + total_mpc
     )
 
     print("current_inheritance_sum", current_inheritance_sum)
@@ -656,6 +873,8 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         "compound_condition_weight": compound_condition_weight,
         "try_catch_weight": try_catch_weight,
         "thread_weight": thread_weight,
+        'cbo_weights': total_cbo,
+        'mpc_weight': total_mpc,
         "total_complexity": total_complexity
     }
 
@@ -663,6 +882,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 def calculate_code_complexity_multiple_files_csharp(file_contents):
     results = {}
+
+    result1 = calculate_code_complexity_multiple(file_contents)
+
+    mpc_results = calculate_mpc_for_csharp_code(file_contents)
 
     # Step 1: Track inheritance across all files
     track_inheritance_depth_across_files(file_contents)
@@ -678,6 +901,9 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         # Split content into lines
         lines = content.splitlines()
         complexity_data = []
+
+        cbo_line_data = result1.get(filename, [])
+        mpc_line_data = mpc_results.get(filename, [])
 
         # Extract class references and message passing for MPC and CBO
         class_references = extract_class_references(content)
@@ -734,15 +960,21 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
                     'compound_condition_weight': 0,
                     'try_catch_weight': 0,
                     'thread_weight': 0,
+                    'cbo_weights': 0,
+                    'mpc_weight': 0,
                 })
                 complexity_data.append([
                     line_number,
                     line.strip(),
                     size,
                     ', '.join(tokens),
-                    0, 0, 0, 0, 0, 0, 0
+                    0, 0, 0, 0, 0, 0, 0, 0, 0
                 ])
                 continue
+            cbo_weights = cbo_line_data[line_number - 1]["weights"] if line_number - 1 < len(cbo_line_data) else {}
+            total_cbo_weight = sum(cbo_weights.values())
+
+            mpc_weight = mpc_line_data.get(line_number, 0)
 
             nesting_level = nesting_level_dict.get(line_number, 0)
             try_catch_weight = try_catch_weight_dict.get(line_number, 0)
@@ -784,12 +1016,14 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
                 'compound_condition_weight': compound_condition_weight,
                 'try_catch_weight': try_catch_weight,
                 'thread_weight': thread_weight,
+                'cbo_weights': total_cbo_weight,
+                'mpc_weight': mpc_weight,
             })
 
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
                     size + control_structure_complexity + nesting_level + current_inheritance +
-                    compound_condition_weight + try_catch_weight + thread_weight
+                    compound_condition_weight + try_catch_weight + thread_weight + total_cbo_weight + mpc_weight
             )
 
             # Update the total WCC for the file
@@ -809,10 +1043,12 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
                 compound_condition_weight,
                 try_catch_weight,
                 thread_weight,
+                total_cbo_weight,
+                mpc_weight,
                 total_complexity,
             ])
         # Calculate method complexities
-        method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name)
+        method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data)
 
         # Calculate contributing factors and plot pie chart
         complexity_factors = calculate_complexity_factors(filename, complexity_data)
@@ -828,6 +1064,8 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
                 "compound_condition_weight": method_data["compound_condition_weight"],
                 "try_catch_weight": method_data["try_catch_weight"],
                 "thread_weight": method_data["thread_weight"],
+                "cbo_weights": method_data["cbo_weights"],
+                "mpc_weight": method_data["mpc_weight"]
             }
 
             bar_chart_path = plot_complexity_bar_chart(method_name, relevant_factors, filename)
@@ -858,6 +1096,8 @@ def calculate_complexity_factors(filename, data):
     total_compound_condition_weight = 0
     total_try_catch_weight = 0
     total_thread_weight = 0
+    total_cbo_weight = 0
+    total_mpc_weight = 0
 
     for line in data:
         total_size += line[2]
@@ -867,6 +1107,8 @@ def calculate_complexity_factors(filename, data):
         total_compound_condition_weight += line[7]
         total_try_catch_weight += line[8]
         total_thread_weight += line[9]
+        total_cbo_weight += line[10]
+        total_mpc_weight += line[11]
 
     return {
         'Size': total_size,
@@ -875,7 +1117,9 @@ def calculate_complexity_factors(filename, data):
         'Inheritance Level': total_inheritance_level,
         'Compound Condition Weight': total_compound_condition_weight,
         'Try-Catch Weight': total_try_catch_weight,
-        'Thread Weight': total_thread_weight
+        'Thread Weight': total_thread_weight,
+        'CBO': total_cbo_weight,
+        'MPC': total_mpc_weight
     }
 
 

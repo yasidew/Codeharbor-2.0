@@ -2,6 +2,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+    <!-- CodeMirror CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/theme/material-darker.min.css" rel="stylesheet">
     <title>Code Complexity Calculator - C#</title>
     <style>
         body {
@@ -121,7 +127,20 @@
         }
     </style>
 </head>
-<body>
+<body class="light-mode">
+<header id="header" class="bg-primary text-white text-center py-3">
+        <div class="container d-flex align-items-center justify-content-between">
+            <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" class="logo-styling">
+            <h1 class="mb-0 flex-grow-1" style="color: white">Code Harbor</h1>
+            <div class="toggle-container d-flex align-items-center">
+                <span class="text-white me-2">Light</span>
+                <div id="toggle" class="toggle">
+                    <div class="circle"></div>
+                </div>
+                <span class="text-white ms-2">Dark</span>
+            </div>
+        </div>
+    </header>
 <h1>Code Complexity Results for C#</h1>
 
 {% for file in complexities %}
@@ -165,6 +184,8 @@
                 <th>Compound Condition Weight</th>
                 <th>Try-Catch Weight</th>
                 <th>Thread Weight</th>
+                <th>CBO</th>
+                <th>MPC</th>
                 <th>Total Complexity</th>
             </tr>
             </thead>
@@ -182,11 +203,13 @@
                     <td>{% if line.2 != 0 %}{{ line.8 }}{% endif %}</td>
                     <td>{% if line.2 != 0 %}{{ line.9 }}{% endif %}</td>
                     <td>{% if line.2 != 0 %}{{ line.10 }}{% endif %}</td>
+                <td>{% if line.2 != 0 %}{{ line.11 }}{% endif %}</td>
+                <td>{% if line.2 != 0 %}{{ line.12 }}{% endif %}</td>
                 </tr>
             {% endfor %}
 
             <tr>
-                <td colspan="10" style="text-align: right; font-weight: bold;">Total WCC:</td>
+                <td colspan="12" style="text-align: right; font-weight: bold;">Total WCC:</td>
                 <td style="font-weight: bold;">{{ file.total_wcc }}</td>
             </tr>
             </tbody>
@@ -288,6 +311,11 @@
 
 <a href="/">Upload More Files</a>
 
+<!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3">
+        <p>&copy; 2024 Code Harbor. All rights reserved.</p>
+    </footer>
+
 <div id="barChartModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -310,6 +338,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    
+    const toggle = document.getElementById('toggle');
+        const body = document.body;
+
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            toggle.classList.toggle('dark');
+        });
+        
         document.addEventListener('DOMContentLoaded', () => {
             const recommendationRows = document.querySelectorAll('.recommendation-row');
             recommendationRows.forEach(row => {

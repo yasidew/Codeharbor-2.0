@@ -248,7 +248,7 @@ def calculate_complexity_multiple_csharp_files(request):
         results_table.field_names = ["Filename", "Line Number", "Line", "Size", "Tokens",
                                      "Control Structure Complexity", "Nesting Weight",
                                      "Inheritance Weight", "Compound Condition Weight",
-                                     "Try-Catch Weight", "Thread Weight", "Total Complexity"]
+                                     "Try-Catch Weight", "Thread Weight", "CBO", "MPC", "Total Complexity"]
 
         # Prepare another table for displaying MPC and CBO values
         mp_cbo_table = PrettyTable()

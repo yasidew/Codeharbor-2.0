@@ -495,6 +495,7 @@ def calculate_thread_weight(java_code):
     # Regular expressions
     thread_creation_regex = re.compile(r'\bnew\s+Thread\b|\bRunnable\b')
     thread_sync_regex = re.compile(r'\bsynchronized\b')
+    wait_notify_regex = re.compile(r'\bwait\b|\bnotify\b|\bnotifyAll\b')
 
     # Weights
     thread_creation_weight = 2
@@ -519,6 +520,9 @@ def calculate_thread_weight(java_code):
 
         # Check for thread synchronization
         if thread_sync_regex.search(stripped_line):
+            weight += thread_sync_weight
+
+        if wait_notify_regex.search(stripped_line):
             weight += thread_sync_weight
 
         # Store weight if it's greater than 0
@@ -1370,6 +1374,7 @@ def calculate_code_complexity_multiple_files(file_contents):
         # Split content into lines
         lines = content.splitlines()
         complexity_data = []
+        class_declaration_found = False
 
         # Extract CBO results for each line
         cbo_line_data = result1.get(filename, [])
@@ -1419,6 +1424,12 @@ def calculate_code_complexity_multiple_files(file_contents):
         total_wcc = 0
 
         for line_number, line in enumerate(lines, start=1):
+            # Detect class declaration
+            if not class_declaration_found:
+                if "class" in line and re.search(r'class\s+[A-Z][\w]*', line):
+                    class_declaration_found = True
+                else:
+                    continue
             # Calculate size (token count)
             size, tokens = calculate_size(line)
 
