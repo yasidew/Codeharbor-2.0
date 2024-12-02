@@ -1,0 +1,283 @@
+[
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class ShapeFactory {\n\n    public abstract Shape createShape();\n\n}\n\ninterface Shape {\n    void draw();\n}\n\nclass Circle implements Shape {\n    @Override\n    public void draw() {\n        System.out.println(\"Drawing a Circle\");\n    }\n}\n\nclass Rectangle implements Shape {\n    @Override\n    public void draw() {\n        System.out.println(\"Drawing a Rectangle\");\n    }\n}\n",
+    "output": "public abstract class ShapeFactory {\n    public abstract Shape createShape();\n}\n\npublic class CircleFactory extends ShapeFactory {\n    @Override\n    public Shape createShape() {\n        return new Circle();\n    }\n}\n\npublic class RectangleFactory extends ShapeFactory {\n    @Override\n    public Shape createShape() {\n        return new Rectangle();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamic creation of shapes based on runtime requirements",
+    "edge_cases": [
+      "Ensure factory produces only valid shapes",
+      "Handle incorrect inputs gracefully"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Efficiently uses polymorphism to extend behavior",
+    "real_world_usage": "Drawing applications where shapes need to be dynamically generated",
+    "testing_notes": "Test with different subclasses to verify object creation",
+    "comments": "This implementation adheres to the Open-Closed Principle",
+    "source": "Inspired by GUI frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class NotificationFactory {\n\n    public abstract Notification createNotification();\n\n}\n\ninterface Notification {\n    void notifyUser();\n}\n\nclass EmailNotification implements Notification {\n    @Override\n    public void notifyUser() {\n        System.out.println(\"Sending an Email Notification\");\n    }\n}\n\nclass SMSNotification implements Notification {\n    @Override\n    public void notifyUser() {\n        System.out.println(\"Sending an SMS Notification\");\n    }\n}\n",
+    "output": "public abstract class NotificationFactory {\n    public abstract Notification createNotification();\n}\n\npublic class EmailNotificationFactory extends NotificationFactory {\n    @Override\n    public Notification createNotification() {\n        return new EmailNotification();\n    }\n}\n\npublic class SMSNotificationFactory extends NotificationFactory {\n    @Override\n    public Notification createNotification() {\n        return new SMSNotification();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Generating different types of notifications",
+    "edge_cases": [
+      "Incorrect notification type",
+      "Large-scale notifications"
+    ],
+    "dependencies": [
+      "SMTP libraries for email notifications"
+    ],
+    "performance_notes": "Ensures loose coupling between object instantiation and client code",
+    "real_world_usage": "Used in notification services for e-commerce platforms",
+    "testing_notes": "Test with mock dependencies for SMS and email",
+    "comments": "Factory enables scalability by adding new notification types",
+    "source": "Inspired by notification systems in enterprise applications"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class DatabaseConnectionFactory {\n\n    public abstract DatabaseConnection createConnection();\n\n}\n\ninterface DatabaseConnection {\n    void connect();\n}\n\nclass MySQLConnection implements DatabaseConnection {\n    @Override\n    public void connect() {\n        System.out.println(\"Connecting to MySQL Database\");\n    }\n}\n\nclass PostgreSQLConnection implements DatabaseConnection {\n    @Override\n    public void connect() {\n        System.out.println(\"Connecting to PostgreSQL Database\");\n    }\n}\n",
+    "output": "public abstract class DatabaseConnectionFactory {\n    public abstract DatabaseConnection createConnection();\n}\n\npublic class MySQLConnectionFactory extends DatabaseConnectionFactory {\n    @Override\n    public DatabaseConnection createConnection() {\n        return new MySQLConnection();\n    }\n}\n\npublic class PostgreSQLConnectionFactory extends DatabaseConnectionFactory {\n    @Override\n    public DatabaseConnection createConnection() {\n        return new PostgreSQLConnection();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Abstracting database connection creation",
+    "edge_cases": [
+      "Connection pool exhaustion",
+      "Invalid connection strings"
+    ],
+    "dependencies": [
+      "JDBC drivers"
+    ],
+    "performance_notes": "Reduces boilerplate code and isolates database-specific logic",
+    "real_world_usage": "Used in ORM frameworks for database abstraction",
+    "testing_notes": "Simulate database failures to verify resilience",
+    "comments": "Facilitates switching between databases with minimal changes",
+    "source": "Inspired by database connection management systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class ReportFactory {\n\n    public abstract Report createReport();\n\n}\n\ninterface Report {\n    void generate();\n}\n\nclass PDFReport implements Report {\n    @Override\n    public void generate() {\n        System.out.println(\"Generating PDF Report\");\n    }\n}\n\nclass ExcelReport implements Report {\n    @Override\n    public void generate() {\n        System.out.println(\"Generating Excel Report\");\n    }\n}\n",
+    "output": "public abstract class ReportFactory {\n    public abstract Report createReport();\n}\n\npublic class PDFReportFactory extends ReportFactory {\n    @Override\n    public Report createReport() {\n        return new PDFReport();\n    }\n}\n\npublic class ExcelReportFactory extends ReportFactory {\n    @Override\n    public Report createReport() {\n        return new ExcelReport();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamic generation of reports in different formats",
+    "edge_cases": [
+      "Large reports exceeding memory limits",
+      "Invalid format types"
+    ],
+    "dependencies": [
+      "PDF libraries, Excel APIs"
+    ],
+    "performance_notes": "Minimizes code duplication for report creation",
+    "real_world_usage": "Used in business intelligence and reporting tools",
+    "testing_notes": "Ensure compatibility with various data sources",
+    "comments": "Extending for a new report type is straightforward",
+    "source": "Inspired by reporting engines in financial systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class VehicleFactory {\n\n    public abstract Vehicle createVehicle();\n\n}\n\ninterface Vehicle {\n    void drive();\n}\n\nclass Car implements Vehicle {\n    @Override\n    public void drive() {\n        System.out.println(\"Driving a car\");\n    }\n}\n\nclass Bike implements Vehicle {\n    @Override\n    public void drive() {\n        System.out.println(\"Riding a bike\");\n    }\n}\n",
+    "output": "public abstract class VehicleFactory {\n    public abstract Vehicle createVehicle();\n}\n\npublic class CarFactory extends VehicleFactory {\n    @Override\n    public Vehicle createVehicle() {\n        return new Car();\n    }\n}\n\npublic class BikeFactory extends VehicleFactory {\n    @Override\n    public Vehicle createVehicle() {\n        return new Bike();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Creating vehicles based on user preferences or application requirements",
+    "edge_cases": [
+      "Invalid vehicle type",
+      "Multiple concurrent requests"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Efficiently decouples vehicle creation logic from client code",
+    "real_world_usage": "Used in ride-sharing applications to manage vehicle types",
+    "testing_notes": "Test with invalid inputs and verify correct object creation",
+    "comments": "Simplifies adding new vehicle types",
+    "source": "Inspired by vehicle management systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class PaymentGatewayFactory {\n\n    public abstract PaymentGateway createGateway();\n\n}\n\ninterface PaymentGateway {\n    void processPayment(double amount);\n}\n\nclass PayPalGateway implements PaymentGateway {\n    @Override\n    public void processPayment(double amount) {\n        System.out.println(\"Processing payment via PayPal: \" + amount);\n    }\n}\n\nclass StripeGateway implements PaymentGateway {\n    @Override\n    public void processPayment(double amount) {\n        System.out.println(\"Processing payment via Stripe: \" + amount);\n    }\n}\n",
+    "output": "public abstract class PaymentGatewayFactory {\n    public abstract PaymentGateway createGateway();\n}\n\npublic class PayPalGatewayFactory extends PaymentGatewayFactory {\n    @Override\n    public PaymentGateway createGateway() {\n        return new PayPalGateway();\n    }\n}\n\npublic class StripeGatewayFactory extends PaymentGatewayFactory {\n    @Override\n    public PaymentGateway createGateway() {\n        return new StripeGateway();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Integrating multiple payment gateways in an e-commerce application",
+    "edge_cases": [
+      "Invalid payment amount",
+      "API rate limits"
+    ],
+    "dependencies": [
+      "API keys for payment gateways"
+    ],
+    "performance_notes": "Decouples payment processing logic for scalability",
+    "real_world_usage": "Used in e-commerce platforms for flexible payment options",
+    "testing_notes": "Simulate API failures and timeouts",
+    "comments": "Supports adding new payment gateways with minimal changes",
+    "source": "Inspired by payment integration frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class DocumentEditorFactory {\n\n    public abstract DocumentEditor createEditor();\n\n}\n\ninterface DocumentEditor {\n    void edit();\n}\n\nclass WordEditor implements DocumentEditor {\n    @Override\n    public void edit() {\n        System.out.println(\"Editing a Word document\");\n    }\n}\n\nclass SpreadsheetEditor implements DocumentEditor {\n    @Override\n    public void edit() {\n        System.out.println(\"Editing a Spreadsheet document\");\n    }\n}\n",
+    "output": "public abstract class DocumentEditorFactory {\n    public abstract DocumentEditor createEditor();\n}\n\npublic class WordEditorFactory extends DocumentEditorFactory {\n    @Override\n    public DocumentEditor createEditor() {\n        return new WordEditor();\n    }\n}\n\npublic class SpreadsheetEditorFactory extends DocumentEditorFactory {\n    @Override\n    public DocumentEditor createEditor() {\n        return new SpreadsheetEditor();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamically creating editors for different document types",
+    "edge_cases": [
+      "Unsupported document type",
+      "Large document handling"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Optimized for memory usage when loading large documents",
+    "real_world_usage": "Used in document management systems like Google Docs",
+    "testing_notes": "Verify document compatibility with editors",
+    "comments": "Follows Open-Closed Principle for adding new editors",
+    "source": "Inspired by office productivity tools"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class LoggerFactory {\n\n    public abstract Logger createLogger();\n\n}\n\ninterface Logger {\n    void log(String message);\n}\n\nclass FileLogger implements Logger {\n    @Override\n    public void log(String message) {\n        System.out.println(\"Logging to a file: \" + message);\n    }\n}\n\nclass ConsoleLogger implements Logger {\n    @Override\n    public void log(String message) {\n        System.out.println(\"Logging to console: \" + message);\n    }\n}\n",
+    "output": "public abstract class LoggerFactory {\n    public abstract Logger createLogger();\n}\n\npublic class FileLoggerFactory extends LoggerFactory {\n    @Override\n    public Logger createLogger() {\n        return new FileLogger();\n    }\n}\n\npublic class ConsoleLoggerFactory extends LoggerFactory {\n    @Override\n    public Logger createLogger() {\n        return new ConsoleLogger();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Abstracting logging mechanisms for different environments",
+    "edge_cases": [
+      "Disk space issues for file logging",
+      "Console unavailable"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Minimizes latency by buffering log messages",
+    "real_world_usage": "Used in logging frameworks like SLF4J",
+    "testing_notes": "Ensure thread safety for concurrent logging",
+    "comments": "Easily extendable for new logging mechanisms",
+    "source": "Inspired by enterprise logging solutions"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class EnemyFactory {\n\n    public abstract Enemy createEnemy();\n\n}\n\ninterface Enemy {\n    void attack();\n}\n\nclass Goblin implements Enemy {\n    @Override\n    public void attack() {\n        System.out.println(\"Goblin attacks with a club\");\n    }\n}\n\nclass Dragon implements Enemy {\n    @Override\n    public void attack() {\n        System.out.println(\"Dragon breathes fire\");\n    }\n}\n",
+    "output": "public abstract class EnemyFactory {\n    public abstract Enemy createEnemy();\n}\n\npublic class GoblinFactory extends EnemyFactory {\n    @Override\n    public Enemy createEnemy() {\n        return new Goblin();\n    }\n}\n\npublic class DragonFactory extends EnemyFactory {\n    @Override\n    public Enemy createEnemy() {\n        return new Dragon();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamically creating enemies for a game environment",
+    "edge_cases": [
+      "Invalid enemy types",
+      "Handling multiple enemy spawns"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Optimized for creating multiple enemies in real-time",
+    "real_world_usage": "Used in game development for enemy management",
+    "testing_notes": "Verify enemy behavior in different game scenarios",
+    "comments": "Supports easy addition of new enemy types",
+    "source": "Inspired by game development frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class TransportFactory {\n\n    public abstract Transport createTransport();\n\n}\n\ninterface Transport {\n    void deliver();\n}\n\nclass Ship implements Transport {\n    @Override\n    public void deliver() {\n        System.out.println(\"Delivering by ship\");\n    }\n}\n\nclass Truck implements Transport {\n    @Override\n    public void deliver() {\n        System.out.println(\"Delivering by truck\");\n    }\n}\n",
+    "output": "public abstract class TransportFactory {\n    public abstract Transport createTransport();\n}\n\npublic class ShipFactory extends TransportFactory {\n    @Override\n    public Transport createTransport() {\n        return new Ship();\n    }\n}\n\npublic class TruckFactory extends TransportFactory {\n    @Override\n    public Transport createTransport() {\n        return new Truck();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Creating different transport modes for logistics applications",
+    "edge_cases": [
+      "Invalid transport mode",
+      "High volume deliveries"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Decouples transport mode logic for scalability",
+    "real_world_usage": "Used in logistics and supply chain management systems",
+    "testing_notes": "Simulate different delivery scenarios for reliability",
+    "comments": "Supports Open-Closed Principle for adding new transport types",
+    "source": "Inspired by logistics optimization systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class OSFactory {\n\n    public abstract OS createOS();\n\n}\n\ninterface OS {\n    void boot();\n}\n\nclass WindowsOS implements OS {\n    @Override\n    public void boot() {\n        System.out.println(\"Booting Windows OS\");\n    }\n}\n\nclass LinuxOS implements OS {\n    @Override\n    public void boot() {\n        System.out.println(\"Booting Linux OS\");\n    }\n}\n",
+    "output": "public abstract class OSFactory {\n    public abstract OS createOS();\n}\n\npublic class WindowsFactory extends OSFactory {\n    @Override\n    public OS createOS() {\n        return new WindowsOS();\n    }\n}\n\npublic class LinuxFactory extends OSFactory {\n    @Override\n    public OS createOS() {\n        return new LinuxOS();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamically configuring operating systems in virtual machines",
+    "edge_cases": [
+      "Unsupported OS type",
+      "Resource allocation failures"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Efficiently manages OS configurations",
+    "real_world_usage": "Used in cloud platforms for creating virtual machines",
+    "testing_notes": "Simulate multiple boot scenarios for robustness",
+    "comments": "Extensible for adding new operating systems",
+    "source": "Inspired by virtual machine management systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class ParserFactory {\n\n    public abstract Parser createParser();\n\n}\n\ninterface Parser {\n    void parse(String data);\n}\n\nclass JSONParser implements Parser {\n    @Override\n    public void parse(String data) {\n        System.out.println(\"Parsing JSON data: \" + data);\n    }\n}\n\nclass XMLParser implements Parser {\n    @Override\n    public void parse(String data) {\n        System.out.println(\"Parsing XML data: \" + data);\n    }\n}\n",
+    "output": "public abstract class ParserFactory {\n    public abstract Parser createParser();\n}\n\npublic class JSONParserFactory extends ParserFactory {\n    @Override\n    public Parser createParser() {\n        return new JSONParser();\n    }\n}\n\npublic class XMLParserFactory extends ParserFactory {\n    @Override\n    public Parser createParser() {\n        return new XMLParser();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Creating parsers for different data formats",
+    "edge_cases": [
+      "Invalid data formats",
+      "Large data handling"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Optimized for fast parsing of structured data",
+    "real_world_usage": "Used in ETL (Extract, Transform, Load) pipelines",
+    "testing_notes": "Verify parser accuracy with edge cases",
+    "comments": "Simplifies adding new parsers for additional formats",
+    "source": "Inspired by data integration tools"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class AuthenticationFactory {\n\n    public abstract Authentication createAuthentication();\n\n}\n\ninterface Authentication {\n    void authenticate(String credentials);\n}\n\nclass OAuthAuthentication implements Authentication {\n    @Override\n    public void authenticate(String credentials) {\n        System.out.println(\"Authenticating using OAuth: \" + credentials);\n    }\n}\n\nclass LDAPAuthentication implements Authentication {\n    @Override\n    public void authenticate(String credentials) {\n        System.out.println(\"Authenticating using LDAP: \" + credentials);\n    }\n}\n",
+    "output": "public abstract class AuthenticationFactory {\n    public abstract Authentication createAuthentication();\n}\n\npublic class OAuthFactory extends AuthenticationFactory {\n    @Override\n    public Authentication createAuthentication() {\n        return new OAuthAuthentication();\n    }\n}\n\npublic class LDAPFactory extends AuthenticationFactory {\n    @Override\n    public Authentication createAuthentication() {\n        return new LDAPAuthentication();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Abstracting authentication mechanisms for secure applications",
+    "edge_cases": [
+      "Invalid credentials",
+      "High load on authentication server"
+    ],
+    "dependencies": [
+      "OAuth libraries, LDAP servers"
+    ],
+    "performance_notes": "Minimizes latency for user authentication",
+    "real_world_usage": "Used in identity management systems",
+    "testing_notes": "Simulate invalid and expired credentials",
+    "comments": "Extends easily to support new authentication methods",
+    "source": "Inspired by enterprise security frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class AnalyticsEngineFactory {\n\n    public abstract AnalyticsEngine createEngine();\n\n}\n\ninterface AnalyticsEngine {\n    void analyze(String data);\n}\n\nclass BatchAnalyticsEngine implements AnalyticsEngine {\n    @Override\n    public void analyze(String data) {\n        System.out.println(\"Performing batch analytics on data: \" + data);\n    }\n}\n\nclass StreamAnalyticsEngine implements AnalyticsEngine {\n    @Override\n    public void analyze(String data) {\n        System.out.println(\"Performing stream analytics on data: \" + data);\n    }\n}\n",
+    "output": "public abstract class AnalyticsEngineFactory {\n    public abstract AnalyticsEngine createEngine();\n}\n\npublic class BatchAnalyticsFactory extends AnalyticsEngineFactory {\n    @Override\n    public AnalyticsEngine createEngine() {\n        return new BatchAnalyticsEngine();\n    }\n}\n\npublic class StreamAnalyticsFactory extends AnalyticsEngineFactory {\n    @Override\n    public AnalyticsEngine createEngine() {\n        return new StreamAnalyticsEngine();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Configuring analytics engines for different use cases",
+    "edge_cases": [
+      "High data volume",
+      "Real-time data ingestion issues"
+    ],
+    "dependencies": [
+      "Batch processing frameworks",
+      "Stream processing APIs"
+    ],
+    "performance_notes": "Optimized for both batch and stream data analysis",
+    "real_world_usage": "Used in big data analytics platforms",
+    "testing_notes": "Test with varied data sets and streaming rates",
+    "comments": "Facilitates switching between analytics engines seamlessly",
+    "source": "Inspired by big data frameworks"
+  }
+]
