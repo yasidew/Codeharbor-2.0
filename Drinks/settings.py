@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'challenges',
     'rest_framework_simplejwt',
     'user',
+    'accessibility_checker',
 ]
 
 MIDDLEWARE = [
