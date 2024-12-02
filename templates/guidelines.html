@@ -1,0 +1,239 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{% static 'style.css' %}" rel="stylesheet">
+    <!-- CodeMirror CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/theme/material-darker.min.css" rel="stylesheet">
+    <title>Weighted Class Complexity Guidelines</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<!-- Header -->
+    <header id="header" class="bg-primary text-white text-center py-3">
+        <div class="d-flex align-items-center justify-content-between container">
+            <div class="d-flex align-items-center">
+                <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" class="logo-styling">
+            </div>
+            <h1 class="mb-0 text-center flex-grow-1">Code Harbor</h1>
+            <div class="toggle-container">
+                <span class="text-white me-2">Light</span>
+                <div id="toggle" class="toggle">
+                    <div class="circle"></div>
+                </div>
+                <span class="text-white ms-2">Dark</span>
+            </div>
+        </div>
+        <p>Your tool for code analysis, defect detection, and formatting</p>
+    </header>
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Weighted Class Complexity (WCC) Guidelines for Java</h1>
+
+        <!-- Guidelines Accordion -->
+        <div class="accordion" id="guidelinesAccordion">
+            <!-- Section 1 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading1">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                        1. Weight Due to Type of Control Structures (Wc)
+                    </button>
+                </h2>
+                <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="heading1" data-bs-parent="#guidelinesAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Type of Control Structure and Weights:</strong></p>
+                        <ul>
+                            <li>Sequential: 0</li>
+                            <li>Branch (if, else, else if): 1</li>
+                            <li>Iterative (for, while, do-while): 2</li>
+                            <li>Switch statement with <em>n</em> cases: <em>n</em></li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="showGuideline('Guideline for Control Structures', `
+                            Sequential: Assign a weight of 0 for sequential statements as they don't introduce additional complexity.
+                            Branch: Assign a weight of 1 for each branching control structure. Branching increases the decision paths in the code.
+                            Iterative: Assign a weight of 2 for each loop. Iterations add complexity due to repeated execution paths.
+                            Switch: Assign a weight equal to the number of cases (n) in a switch statement. Each case represents a different execution path.
+                        `)">View Detailed Guideline</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading2">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                        2. Weight Due to Nesting Level of Control Structures (Wn)
+                    </button>
+                </h2>
+                <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="heading2" data-bs-parent="#guidelinesAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Nesting Levels and Weights:</strong></p>
+                        <ul>
+                            <li>Sequential statements: 0</li>
+                            <li>Statements inside the outermost level: 1</li>
+                            <li>Statements inside the second level: 2</li>
+                            <li>Statements inside the nth level: <em>n</em></li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="showGuideline('Guideline for Nesting Levels', `
+                            Sequential Statements: Assign a weight of 0 for statements not nested inside any control structure.
+                            First Level: Assign a weight of 1 for statements inside the outermost control structure.
+                            Second Level: Assign a weight of 2 for statements nested inside a control structure within another control structure.
+                            Nth Level: Assign a weight equal to the level of nesting for deeper levels. Nesting increases complexity as it makes the code harder to follow and understand.
+                        `)">View Detailed Guideline</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading3">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                        3. Weight Due to Inheritance Level of Statements (Wi)
+                    </button>
+                </h2>
+                <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#guidelinesAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Inheritance Levels and Weights:</strong></p>
+                        <ul>
+                            <li>Statements inside the base class: 0</li>
+                            <li>Statements inside the first derived class: 1</li>
+                            <li>Statements inside the nth derived class: <em>n</em></li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="showGuideline('Guideline for Inheritance Levels', `
+                            Base Class: Assign a weight of 0 for statements inside the root class.
+                            First Derived Class: Assign a weight of 1 for statements inside the first level of derived classes.
+                            Nth Derived Class: Assign a weight equal to the inheritance level. Deeper inheritance increases complexity as it requires understanding the entire hierarchy to grasp class behavior.
+                        `)">View Detailed Guideline</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading4">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+                        4. Weight Due to Try-Catch Blocks
+                    </button>
+                </h2>
+                <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4" data-bs-parent="#guidelinesAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Try-Catch Block Weights:</strong></p>
+                        <ul>
+                            <li>Simple try-catch: 1</li>
+                            <li>Try-catch-finally: 2</li>
+                            <li>Nested try-catch with level <em>n</em>: <em>n</em></li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="showGuideline('Guideline for Try-Catch Blocks', `
+                            Simple Try-Catch: Assign a weight of 1 for each simple try-catch block.
+                            Try-Catch-Finally: Assign a weight of 2 for try-catch-finally blocks due to the added complexity of finalization logic.
+                            Nested Try-Catch: Assign weights based on the nesting level.
+                            - First level: 1
+                            - Second level: 3
+                            - Third level: 4
+                        `)">View Detailed Guideline</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading5">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
+                        5. Weight Due to Compound Conditional Statements
+                    </button>
+                </h2>
+                <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="heading5" data-bs-parent="#guidelinesAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Compound Conditional Weights:</strong></p>
+                        <ul>
+                            <li>Simple condition: 1</li>
+                            <li>Compound condition with <em>n</em> logical operators: <em>n</em></li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="showGuideline('Guideline for Compound Conditional Statements', `
+                            Simple Condition: Assign a weight of 1 for simple conditions.
+                            Compound Condition: Assign a weight based on the number of logical operators in the condition.
+                            Example:
+                            - if (a > 10): Weight 1
+                            - if (a > 10 && b < 20): Weight 2
+                        `)">View Detailed Guideline</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading6">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapse6">
+                        6. Weight Due to Threads
+                    </button>
+                </h2>
+                <div id="collapse6" class="accordion-collapse collapse" aria-labelledby="heading6" data-bs-parent="#guidelinesAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Thread Weights:</strong></p>
+                        <ul>
+                            <li>Simple thread creation: 2</li>
+                            <li>Thread synchronization: 4</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="showGuideline('Guideline for Threads', `
+                            Simple Thread Creation: Assign a weight of 2 for creating and starting threads.
+                            Thread Synchronization: Assign a weight of 4 for synchronized blocks or methods due to the added complexity of ensuring thread safety.
+                        `)">View Detailed Guideline</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Guidelines -->
+    <div class="modal fade" id="guidelineModal" tabindex="-1" aria-labelledby="guidelineModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="guidelineModalLabel"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="guidelineModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<footer class="bg-dark text-white text-center py-3 mt-auto">
+        <p>&copy; 2024 Code Harbor. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/addon/edit/matchbrackets.min.js"></script>
+    <script>
+        // JavaScript for the toggle button
+        const toggle = document.getElementById('toggle');
+        const body = document.body;
+
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            toggle.classList.toggle('dark');
+        });
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showGuideline(title, body) {
+            document.getElementById('guidelineModalLabel').textContent = title;
+            document.getElementById('guidelineModalBody').textContent = body;
+            const guidelineModal = new bootstrap.Modal(document.getElementById('guidelineModal'));
+            guidelineModal.show();
+        }
+    </script>
+</body>
+</html>

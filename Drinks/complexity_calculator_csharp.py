@@ -947,6 +947,10 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
             # Calculate size (token count)
             size, tokens = calculate_size(line)
 
+            # Skip processing lines with "using", "namespace", or "class"
+            if any(keyword in line for keyword in ["using", "namespace", "class"]):
+                continue
+
             # Skip further calculations if size is zero
             if size == 0:
                 line_complexities.append({

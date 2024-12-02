@@ -130,10 +130,12 @@
 </head>
 <body class="light-mode">
 <header id="header" class="bg-primary text-white text-center py-3">
-        <div class="container d-flex align-items-center justify-content-between">
-            <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" class="logo-styling">
-            <h1 class="mb-0 flex-grow-1" style="color: white">Code Harbor</h1>
-            <div class="toggle-container d-flex align-items-center">
+        <div class="d-flex align-items-center justify-content-between container">
+            <div class="d-flex align-items-center">
+                <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" class="logo-styling">
+            </div>
+            <h1 class="mb-0 text-center flex-grow-1" style="color: white">Code Harbor</h1>
+            <div class="toggle-container">
                 <span class="text-white me-2">Light</span>
                 <div id="toggle" class="toggle">
                     <div class="circle"></div>
@@ -141,9 +143,14 @@
                 <span class="text-white ms-2">Dark</span>
             </div>
         </div>
+        <p>Your tool for code analysis, defect detection, and formatting</p>
     </header>
 
     <h1>Code Complexity Results for Java</h1>
+
+
+    <button class="btn btn-info" onclick="window.location.href='/guidelines/'">View Guidelines</button>
+
 
     {% for file in complexities %}
         <div class="metrics">

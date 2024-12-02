@@ -1424,14 +1424,12 @@ def calculate_code_complexity_multiple_files(file_contents):
         total_wcc = 0
 
         for line_number, line in enumerate(lines, start=1):
-            # Detect class declaration
-            if not class_declaration_found:
-                if "class" in line and re.search(r'class\s+[A-Z][\w]*', line):
-                    class_declaration_found = True
-                else:
-                    continue
             # Calculate size (token count)
             size, tokens = calculate_size(line)
+
+            # Skip processing lines with "using", "namespace", or "class"
+            if any(keyword in line for keyword in ["class"]):
+                continue
 
             # Skip further calculations if size is zero
             if size == 0:

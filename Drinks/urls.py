@@ -20,6 +20,8 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
          name='calculate_complexity_line_by_line_csharp'),
 
     path('calculate-complexity-excel/', views.calculate_complexity, name='calculate_complexity-excel'),
+
+path('guidelines/', views.guidelines_view, name='guidelines'),
 ]
 
 if settings.DEBUG:

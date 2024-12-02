@@ -448,3 +448,6 @@ def calculate_complexity(request):
             return HttpResponse("Invalid file format. Please upload a CSV file.")
 
     return render(request, 'upload.html')
+
+def guidelines_view(request):
+    return render(request, 'guidelines.html', {})
