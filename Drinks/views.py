@@ -471,6 +471,105 @@ def split_code_snippets(code_snippet):
         return []  # Return an empty list if parsing fails
 
 
+@api_view(['GET', 'POST'])
+def analyze_code_view(request):
+    """
+    Analyze the given code snippet(s) for vulnerabilities using the trained model.
+    """
+    suggestions = []
+    code_snippet = ""
+
+    if request.method == 'POST':
+        # Get the code snippet(s) from the form
+        code_snippet = request.POST.get('code', '').strip()
+        print("=== Received Code ===")
+        print(code_snippet)
+
+        if not code_snippet:
+            message = "No code provided for analysis."
+            print(f"ERROR: {message}")
+            suggestions.append({"code": "", "suggestion": message})
+        else:
+            try:
+                # Normalize and split code into individual snippets
+                try:
+                    print("\n=== Normalizing and Splitting Code ===")
+                    snippets = split_code_snippets(code_snippet)
+                    print(f"Extracted {len(snippets)} snippet(s):")
+                    for i, snippet in enumerate(snippets, 1):
+                        print(f"Snippet {i}:\n{snippet}\n")
+                except Exception as parse_error:
+                    error_message = f"Error during code parsing: {str(parse_error)}. Check for syntax or indentation issues."
+                    print(f"ERROR: {error_message}")
+                    suggestions.append({"code": "", "suggestion": error_message})
+                    snippets = []
+
+                if not snippets:
+                    message = "No valid code snippets were extracted. Ensure the code is properly formatted."
+                    print(f"WARNING: {message}")
+                    suggestions.append({"code": "", "suggestion": message})
+                else:
+                    # Load model and tokenizer
+                    print("\n=== Loading Model and Tokenizer ===")
+                    model_path = "./models/custom_seq2seq_model"  # Adjust path if needed
+                    tokenizer = AutoTokenizer.from_pretrained(model_path)
+                    model = T5ForConditionalGeneration.from_pretrained(model_path)
+                    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                    model.to(device)
+                    print("Model and tokenizer loaded successfully.")
+
+                    # Process each snippet
+                    for snippet in snippets:
+                        try:
+                            print(f"\n=== Processing Snippet ===\n{snippet}")
+                            # Tokenize the individual snippet
+                            inputs = tokenizer(
+                                snippet,
+                                truncation=True,
+                                padding="max_length",
+                                max_length=512,
+                                return_tensors="pt"
+                            )
+                            inputs = {key: value.to(device) for key, value in inputs.items()}
+                            print(f"Tokenized Inputs: {inputs}")
+
+                            # Generate suggestion for the snippet
+                            model.eval()
+                            with torch.no_grad():
+                                outputs = model.generate(
+                                    inputs["input_ids"],
+                                    max_length=256,
+                                    num_beams=5,
+                                    early_stopping=True
+                                )
+                                print(f"Raw Model Output: {outputs}")
+
+                                # Decode the suggestion
+                                suggestion = tokenizer.decode(outputs[0], skip_special_tokens=True)
+                                print(f"Suggestion: {suggestion}")
+
+                            # Append the result as a dictionary
+                            suggestions.append({"code": snippet, "suggestion": suggestion})
+                        except Exception as snippet_error:
+                            error_message = f"Error processing snippet: {str(snippet_error)}"
+                            print(f"ERROR: {error_message}")
+                            suggestions.append({"code": snippet, "suggestion": error_message})
+            except Exception as e:
+                error_message = f"Error analyzing the code: {str(e)}"
+                print(f"ERROR: {error_message}")
+                suggestions.append({"code": "", "suggestion": error_message})
+
+    print("\n=== Final Suggestions ===")
+    for i, suggestion in enumerate(suggestions, 1):
+        print(f"Suggestion {i}: {suggestion}")
+
+    return render(
+        request,
+        'analyze_code.html',
+        {'code': code_snippet, 'suggestions': suggestions}
+    )
+
+
 def detect_defects_view(request):
     model_path = "./models/defect_detection_model"
     model = RobertaForSequenceClassification.from_pretrained(model_path)
