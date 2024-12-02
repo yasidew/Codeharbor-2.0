@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Accessibility Checker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.3.0/axe.min.js"></script>
+</head>
+<body>
+    <h1>Accessibility Checker</h1>
+
+    <!-- Form for uploading the HTML file -->
+    <form id="accessibility-form" enctype="multipart/form-data">
+        <input type="file" name="html_file" accept=".html" required>
+        <button type="submit">Check Accessibility</button>
+    </form>
+
+    <!-- Area to display the results -->
+    <div id="results" style="margin-top: 20px;">
+        <h2>Results:</h2>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        // Add an event listener for form submission
+        document.getElementById('accessibility-form').addEventListener('submit', async function (e) {
+            e.preventDefault();  // Prevent form submission and page reload
+
+            const formData = new FormData(this);  // Collect form data
+
+            // Send the file to the Django view using the Fetch API
+            const response = await fetch("{% url 'check_accessibility' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token for security
+                },
+                body: formData,  // Send the form data with the file
+            });
+
+            // Handle the response and display the results
+            const data = await response.json();
+
+            // Check if there's an error in the response
+            if (data.error) {
+                document.getElementById('output').textContent = "Error: " + data.error;
+            } else {
+                // Display accessibility check results
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            }
+        });
+    </script>
+</body>
+</html>
