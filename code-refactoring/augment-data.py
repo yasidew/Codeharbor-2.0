@@ -3,69 +3,39 @@ import json
 # Patterns for Singleton types with placeholders
 patterns = [
     {
-        "type": "MultithreadedLazySingleton",
+        "type": "ClusteredSingleton",
         "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "public class {name} {{\n\n    private static volatile {name} instance;\n\n    private {name}() {{}}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            synchronized ({name}.class) {{\n                if (instance == null) {{\n                    instance = new {name}();\n                }}\n            }}\n        }}\n        return instance;\n    }}\n\n}}"
+        "output_template": "import java.util.concurrent.locks.Lock;\nimport java.util.concurrent.locks.ReentrantLock;\n\npublic class {name} {{\n\n    private static volatile {name} instance;\n    private static final Lock lock = new ReentrantLock();\n\n    private {name}() {{}}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            lock.lock();\n            try {{\n                if (instance == null) {{\n                    instance = new {name}();\n                    // Simulate cluster-wide initialization\n                    System.out.println(\"Cluster-wide Singleton instance created\");\n                }}\n            }} finally {{\n                lock.unlock();\n            }}\n        }}\n        return instance;\n    }}\n\n}}"
     },
     {
-        "type": "SerializationSafeSingleton",
+        "type": "SingletonWithSelfDestruct",
         "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "import java.io.Serializable;\n\npublic class {name} implements Serializable {{\n\n    private static final long serialVersionUID = 1L;\n    private static final {name} INSTANCE = new {name}();\n\n    private {name}() {{}}\n\n    public static {name} getInstance() {{\n        return INSTANCE;\n    }}\n\n    protected Object readResolve() {{\n        return INSTANCE;\n    }}\n\n}}"
+        "output_template": "import java.util.Timer;\nimport java.util.TimerTask;\n\npublic class {name} {{\n\n    private static {name} instance;\n    private static final Timer timer = new Timer();\n\n    private {name}() {{}}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            instance = new {name}();\n            scheduleDestruction();\n        }}\n        return instance;\n    }}\n\n    private static void scheduleDestruction() {{\n        timer.schedule(new TimerTask() {{\n            @Override\n            public void run() {{\n                instance = null;\n                System.out.println(\"Singleton instance destroyed due to inactivity\");\n            }}\n        }}, 60000); // Self-destruct after 1 minute\n    }}\n\n}}"
     },
     {
-        "type": "EnumBasedSingleton",
+        "type": "SingletonWithStateRecovery",
         "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "public enum {name} {{\n\n    INSTANCE;\n\n    public void someMethod() {{\n        System.out.println(\"Singleton with enum\");\n    }}\n\n}}"
+        "output_template": "import java.io.*;\n\npublic class {name} {{\n\n    private static {name} instance;\n    private String state;\n\n    private {name}() {{\n        // Recover state from file\n        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(\"singleton_state.dat\"))) {{\n            state = (String) ois.readObject();\n        }} catch (Exception e) {{\n            state = \"Default State\";\n        }}\n    }}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            instance = new {name}();\n        }}\n        return instance;\n    }}\n\n    public String getState() {{\n        return state;\n    }}\n\n    public void setState(String state) {{\n        this.state = state;\n        // Persist state to file\n        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(\"singleton_state.dat\"))) {{\n            oos.writeObject(state);\n        }} catch (IOException e) {{\n            e.printStackTrace();\n        }}\n    }}\n\n}}"
     },
     {
-        "type": "RetryFallbackSingleton",
+        "type": "SingletonWithVersioning",
         "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "public class {name} {{\n\n    private static {name} instance;\n\n    private {name}() {{}}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            for (int retries = 0; retries < 3; retries++) {{\n                try {{\n                    instance = new {name}();\n                    break;\n                }} catch (Exception e) {{\n                    System.out.println(\"Retrying...\" + retries);\n                }}\n            }}\n            if (instance == null) {{\n                instance = new {name}(); // Fallback logic\n            }}\n        }}\n        return instance;\n    }}\n\n}}"
+        "output_template": "import java.util.HashMap;\nimport java.util.Map;\n\npublic class {name} {{\n\n    private static final Map<String, {name}> instances = new HashMap<>();\n\n    private {name}(String version) {{\n        System.out.println(\"Version \" + version + \" initialized\");\n    }}\n\n    public static {name} getInstance(String version) {{\n        return instances.computeIfAbsent(version, v -> new {name}(v));\n    }}\n\n}}"
     },
     {
-        "type": "ThreadLocalSingleton",
+        "type": "SingletonWithTimeoutLock",
         "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "public class {name} {{\n\n    private static final ThreadLocal<{name}> threadLocalInstance = ThreadLocal.withInitial({name}::new);\n\n    private {name}() {{}}\n\n    public static {name} getInstance() {{\n        return threadLocalInstance.get();\n    }}\n\n}}"
+        "output_template": "import java.util.concurrent.locks.ReentrantLock;\nimport java.util.concurrent.TimeUnit;\n\npublic class {name} {{\n\n    private static {name} instance;\n    private static final ReentrantLock lock = new ReentrantLock();\n\n    private {name}() {{}}\n\n    public static {name} getInstance() throws InterruptedException {{\n        if (lock.tryLock(5, TimeUnit.SECONDS)) {{ // Timeout lock for 5 seconds\n            try {{\n                if (instance == null) {{\n                    instance = new {name}();\n                }}\n            }} finally {{\n                lock.unlock();\n            }}\n        }} else {{\n            throw new IllegalStateException(\"Could not acquire lock within the timeout\");\n        }}\n        return instance;\n    }}\n\n}}"
     },
     {
-        "type": "SingletonWithCounter",
+        "type": "SingletonForTesting",
         "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "public class {name} {{\n\n    private static {name} instance;\n    private static int counter = 0;\n\n    private {name}() {{\n        counter++;\n    }}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            instance = new {name}();\n        }}\n        return instance;\n    }}\n\n    public int getInstanceCount() {{\n        return counter;\n    }}\n\n}}"
+        "output_template": "public class {name} {{\n\n    private static {name} instance;\n\n    private {name}() {{}}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            instance = new {name}();\n        }}\n        return instance;\n    }}\n\n    public static void resetInstance() {{\n        instance = null;\n    }}\n\n}}"
     },
     {
-        "type": "MultiTenantSingleton",
+        "type": "SingletonWithRateLimiter",
         "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "import java.util.HashMap;\nimport java.util.Map;\n\npublic class {name} {{\n\n    private static final Map<String, {name}> instances = new HashMap<>();\n\n    private {name}() {{}}\n\n    public static {name} getInstance(String tenantId) {{\n        synchronized (instances) {{\n            return instances.computeIfAbsent(tenantId, k -> new {name}());\n        }}\n    }}\n\n    public static int getTenantCount() {{\n        return instances.size();\n    }}\n\n}}"
-    },
-    {
-        "type": "ReflectionProofSingleton",
-        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "public class {name} {{\n\n    private static final {name} instance = new {name}();\n\n    private {name}() {{\n        if (instance != null) {{\n            throw new IllegalStateException(\"Singleton instance already created\");\n        }}\n    }}\n\n    public static {name} getInstance() {{\n        return instance;\n    }}\n\n}}"
-    },
-    {
-        "type": "LoggerSingleton",
-        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "import java.io.FileWriter;\nimport java.io.IOException;\n\npublic class {name} {{\n\n    private static volatile {name} instance;\n    private FileWriter writer;\n\n    private {name}() {{\n        try {{\n            writer = new FileWriter(\"application.log\", true);\n        }} catch (IOException e) {{\n            e.printStackTrace();\n        }}\n    }}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            synchronized ({name}.class) {{\n                if (instance == null) {{\n                    instance = new {name}();\n                }}\n            }}\n        }}\n        return instance;\n    }}\n\n    public synchronized void log(String message, String level) {{\n        try {{\n            writer.write(level + \": \" + message + \"\\n\");\n            writer.flush();\n        }} catch (IOException e) {{\n            e.printStackTrace();\n        }}\n    }}\n\n    public void close() {{\n        try {{\n            writer.close();\n        }} catch (IOException e) {{\n            e.printStackTrace();\n        }}\n    }}\n\n}}"
-    },
-    {
-        "type": "DatabaseConnectionPoolSingleton",
-        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "import java.sql.Connection;\nimport java.sql.DriverManager;\nimport java.sql.SQLException;\nimport java.util.concurrent.ArrayBlockingQueue;\nimport java.util.concurrent.BlockingQueue;\n\npublic class {name} {{\n\n    private static final int POOL_SIZE = 5;\n    private static {name} instance;\n    private BlockingQueue<Connection> connectionPool;\n\n    private {name}() {{\n        connectionPool = new ArrayBlockingQueue<>(POOL_SIZE);\n        for (int i = 0; i < POOL_SIZE; i++) {{\n            try {{\n                connectionPool.add(DriverManager.getConnection(\"jdbc:mysql://localhost:3306/mydb\", \"user\", \"password\"));\n            }} catch (SQLException e) {{\n                e.printStackTrace();\n            }}\n        }}\n    }}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            synchronized ({name}.class) {{\n                if (instance == null) {{\n                    instance = new {name}();\n                }}\n            }}\n        }}\n        return instance;\n    }}\n\n    public Connection getConnection() throws InterruptedException {{\n        return connectionPool.take();\n    }}\n\n    public void releaseConnection(Connection connection) {{\n        connectionPool.offer(connection);\n    }}\n\n}}"
-    },
-    {
-        "type": "ConfigurationManagerSingleton",
-        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "import java.util.Properties;\nimport java.io.FileInputStream;\nimport java.io.IOException;\n\npublic class {name} {{\n\n    private static {name} instance;\n    private Properties properties;\n\n    private {name}() {{\n        properties = new Properties();\n        try (FileInputStream fis = new FileInputStream(\"application.properties\")) {{\n            properties.load(fis);\n        }} catch (IOException e) {{\n            e.printStackTrace();\n        }}\n    }}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            synchronized ({name}.class) {{\n                if (instance == null) {{\n                    instance = new {name}();\n                }}\n            }}\n        }}\n        return instance;\n    }}\n\n    public String getProperty(String key) {{\n        return properties.getProperty(key);\n    }}\n\n}}"
-    },
-    {
-        "type": "ServiceLocatorSingleton",
-        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "import java.util.HashMap;\nimport java.util.Map;\n\npublic class {name} {{\n\n    private static {name} instance;\n    private Map<String, Object> services;\n\n    private {name}() {{\n        services = new HashMap<>();\n    }}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            synchronized ({name}.class) {{\n                if (instance == null) {{\n                    instance = new {name}();\n                }}\n            }}\n        }}\n        return instance;\n    }}\n\n    public void registerService(String name, Object service) {{\n        services.put(name, service);\n    }}\n\n    public Object getService(String name) {{\n        return services.get(name);\n    }}\n\n}}"
-    },
-    {
-        "type": "CacheSingleton",
-        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
-        "output_template": "import java.util.LinkedHashMap;\nimport java.util.Map;\n\npublic class {name} {{\n\n    private static {name} instance;\n    private final int CACHE_SIZE = 5;\n    private Map<String, String> cache;\n\n    private {name}() {{\n        cache = new LinkedHashMap<String, String>(CACHE_SIZE, 0.75f, true) {{\n            protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {{\n                return size() > CACHE_SIZE;\n            }}\n        }};\n    }}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            synchronized ({name}.class) {{\n                if (instance == null) {{\n                    instance = new {name}();\n                }}\n            }}\n        }}\n        return instance;\n    }}\n\n    public void put(String key, String value) {{\n        cache.put(key, value);\n    }}\n\n    public String get(String key) {{\n        return cache.get(key);\n    }}\n\n}}"
+        "output_template": "import java.util.concurrent.Semaphore;\n\npublic class {name} {{\n\n    private static {name} instance;\n    private static final Semaphore semaphore = new Semaphore(3); // Allow 3 concurrent accesses\n\n    private {name}() {{}}\n\n    public static {name} getInstance() {{\n        if (instance == null) {{\n            synchronized ({name}.class) {{\n                if (instance == null) {{\n                    instance = new {name}();\n                }}\n            }}\n        }}\n        return instance;\n    }}\n\n    public void performAction() throws InterruptedException {{\n        semaphore.acquire();\n        try {{\n            System.out.println(\"Performing rate-limited action\");\n        }} finally {{\n            semaphore.release();\n        }}\n    }}\n\n}}"
     }
 ]
 

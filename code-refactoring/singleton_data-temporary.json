@@ -1,67 +1,37 @@
 [
   {
-    "type": "MultithreadedLazySingleton",
-    "input": "public class MultithreadedLazySingleton {\n\n    public MultithreadedLazySingleton() {}\n\n}",
-    "output": "public class MultithreadedLazySingleton {\n\n    private static volatile MultithreadedLazySingleton instance;\n\n    private MultithreadedLazySingleton() {}\n\n    public static MultithreadedLazySingleton getInstance() {\n        if (instance == null) {\n            synchronized (MultithreadedLazySingleton.class) {\n                if (instance == null) {\n                    instance = new MultithreadedLazySingleton();\n                }\n            }\n        }\n        return instance;\n    }\n\n}"
+    "type": "ClusteredSingleton",
+    "input": "public class ClusteredSingleton {\n\n    public ClusteredSingleton() {}\n\n}",
+    "output": "import java.util.concurrent.locks.Lock;\nimport java.util.concurrent.locks.ReentrantLock;\n\npublic class ClusteredSingleton {\n\n    private static volatile ClusteredSingleton instance;\n    private static final Lock lock = new ReentrantLock();\n\n    private ClusteredSingleton() {}\n\n    public static ClusteredSingleton getInstance() {\n        if (instance == null) {\n            lock.lock();\n            try {\n                if (instance == null) {\n                    instance = new ClusteredSingleton();\n                    // Simulate cluster-wide initialization\n                    System.out.println(\"Cluster-wide Singleton instance created\");\n                }\n            } finally {\n                lock.unlock();\n            }\n        }\n        return instance;\n    }\n\n}"
   },
   {
-    "type": "SerializationSafeSingleton",
-    "input": "public class SerializationSafeSingleton {\n\n    public SerializationSafeSingleton() {}\n\n}",
-    "output": "import java.io.Serializable;\n\npublic class SerializationSafeSingleton implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n    private static final SerializationSafeSingleton INSTANCE = new SerializationSafeSingleton();\n\n    private SerializationSafeSingleton() {}\n\n    public static SerializationSafeSingleton getInstance() {\n        return INSTANCE;\n    }\n\n    protected Object readResolve() {\n        return INSTANCE;\n    }\n\n}"
+    "type": "SingletonWithSelfDestruct",
+    "input": "public class SingletonWithSelfDestruct {\n\n    public SingletonWithSelfDestruct() {}\n\n}",
+    "output": "import java.util.Timer;\nimport java.util.TimerTask;\n\npublic class SingletonWithSelfDestruct {\n\n    private static SingletonWithSelfDestruct instance;\n    private static final Timer timer = new Timer();\n\n    private SingletonWithSelfDestruct() {}\n\n    public static SingletonWithSelfDestruct getInstance() {\n        if (instance == null) {\n            instance = new SingletonWithSelfDestruct();\n            scheduleDestruction();\n        }\n        return instance;\n    }\n\n    private static void scheduleDestruction() {\n        timer.schedule(new TimerTask() {\n            @Override\n            public void run() {\n                instance = null;\n                System.out.println(\"Singleton instance destroyed due to inactivity\");\n            }\n        }, 60000); // Self-destruct after 1 minute\n    }\n\n}"
   },
   {
-    "type": "EnumBasedSingleton",
-    "input": "public class EnumBasedSingleton {\n\n    public EnumBasedSingleton() {}\n\n}",
-    "output": "public enum EnumBasedSingleton {\n\n    INSTANCE;\n\n    public void someMethod() {\n        System.out.println(\"Singleton with enum\");\n    }\n\n}"
+    "type": "SingletonWithStateRecovery",
+    "input": "public class SingletonWithStateRecovery {\n\n    public SingletonWithStateRecovery() {}\n\n}",
+    "output": "import java.io.*;\n\npublic class SingletonWithStateRecovery {\n\n    private static SingletonWithStateRecovery instance;\n    private String state;\n\n    private SingletonWithStateRecovery() {\n        // Recover state from file\n        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(\"singleton_state.dat\"))) {\n            state = (String) ois.readObject();\n        } catch (Exception e) {\n            state = \"Default State\";\n        }\n    }\n\n    public static SingletonWithStateRecovery getInstance() {\n        if (instance == null) {\n            instance = new SingletonWithStateRecovery();\n        }\n        return instance;\n    }\n\n    public String getState() {\n        return state;\n    }\n\n    public void setState(String state) {\n        this.state = state;\n        // Persist state to file\n        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(\"singleton_state.dat\"))) {\n            oos.writeObject(state);\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n\n}"
   },
   {
-    "type": "RetryFallbackSingleton",
-    "input": "public class RetryFallbackSingleton {\n\n    public RetryFallbackSingleton() {}\n\n}",
-    "output": "public class RetryFallbackSingleton {\n\n    private static RetryFallbackSingleton instance;\n\n    private RetryFallbackSingleton() {}\n\n    public static RetryFallbackSingleton getInstance() {\n        if (instance == null) {\n            for (int retries = 0; retries < 3; retries++) {\n                try {\n                    instance = new RetryFallbackSingleton();\n                    break;\n                } catch (Exception e) {\n                    System.out.println(\"Retrying...\" + retries);\n                }\n            }\n            if (instance == null) {\n                instance = new RetryFallbackSingleton(); // Fallback logic\n            }\n        }\n        return instance;\n    }\n\n}"
+    "type": "SingletonWithVersioning",
+    "input": "public class SingletonWithVersioning {\n\n    public SingletonWithVersioning() {}\n\n}",
+    "output": "import java.util.HashMap;\nimport java.util.Map;\n\npublic class SingletonWithVersioning {\n\n    private static final Map<String, SingletonWithVersioning> instances = new HashMap<>();\n\n    private SingletonWithVersioning(String version) {\n        System.out.println(\"Version \" + version + \" initialized\");\n    }\n\n    public static SingletonWithVersioning getInstance(String version) {\n        return instances.computeIfAbsent(version, v -> new SingletonWithVersioning(v));\n    }\n\n}"
   },
   {
-    "type": "ThreadLocalSingleton",
-    "input": "public class ThreadLocalSingleton {\n\n    public ThreadLocalSingleton() {}\n\n}",
-    "output": "public class ThreadLocalSingleton {\n\n    private static final ThreadLocal<ThreadLocalSingleton> threadLocalInstance = ThreadLocal.withInitial(ThreadLocalSingleton::new);\n\n    private ThreadLocalSingleton() {}\n\n    public static ThreadLocalSingleton getInstance() {\n        return threadLocalInstance.get();\n    }\n\n}"
+    "type": "SingletonWithTimeoutLock",
+    "input": "public class SingletonWithTimeoutLock {\n\n    public SingletonWithTimeoutLock() {}\n\n}",
+    "output": "import java.util.concurrent.locks.ReentrantLock;\nimport java.util.concurrent.TimeUnit;\n\npublic class SingletonWithTimeoutLock {\n\n    private static SingletonWithTimeoutLock instance;\n    private static final ReentrantLock lock = new ReentrantLock();\n\n    private SingletonWithTimeoutLock() {}\n\n    public static SingletonWithTimeoutLock getInstance() throws InterruptedException {\n        if (lock.tryLock(5, TimeUnit.SECONDS)) { // Timeout lock for 5 seconds\n            try {\n                if (instance == null) {\n                    instance = new SingletonWithTimeoutLock();\n                }\n            } finally {\n                lock.unlock();\n            }\n        } else {\n            throw new IllegalStateException(\"Could not acquire lock within the timeout\");\n        }\n        return instance;\n    }\n\n}"
   },
   {
-    "type": "SingletonWithCounter",
-    "input": "public class SingletonWithCounter {\n\n    public SingletonWithCounter() {}\n\n}",
-    "output": "public class SingletonWithCounter {\n\n    private static SingletonWithCounter instance;\n    private static int counter = 0;\n\n    private SingletonWithCounter() {\n        counter++;\n    }\n\n    public static SingletonWithCounter getInstance() {\n        if (instance == null) {\n            instance = new SingletonWithCounter();\n        }\n        return instance;\n    }\n\n    public int getInstanceCount() {\n        return counter;\n    }\n\n}"
+    "type": "SingletonForTesting",
+    "input": "public class SingletonForTesting {\n\n    public SingletonForTesting() {}\n\n}",
+    "output": "public class SingletonForTesting {\n\n    private static SingletonForTesting instance;\n\n    private SingletonForTesting() {}\n\n    public static SingletonForTesting getInstance() {\n        if (instance == null) {\n            instance = new SingletonForTesting();\n        }\n        return instance;\n    }\n\n    public static void resetInstance() {\n        instance = null;\n    }\n\n}"
   },
   {
-    "type": "MultiTenantSingleton",
-    "input": "public class MultiTenantSingleton {\n\n    public MultiTenantSingleton() {}\n\n}",
-    "output": "import java.util.HashMap;\nimport java.util.Map;\n\npublic class MultiTenantSingleton {\n\n    private static final Map<String, MultiTenantSingleton> instances = new HashMap<>();\n\n    private MultiTenantSingleton() {}\n\n    public static MultiTenantSingleton getInstance(String tenantId) {\n        synchronized (instances) {\n            return instances.computeIfAbsent(tenantId, k -> new MultiTenantSingleton());\n        }\n    }\n\n    public static int getTenantCount() {\n        return instances.size();\n    }\n\n}"
-  },
-  {
-    "type": "ReflectionProofSingleton",
-    "input": "public class ReflectionProofSingleton {\n\n    public ReflectionProofSingleton() {}\n\n}",
-    "output": "public class ReflectionProofSingleton {\n\n    private static final ReflectionProofSingleton instance = new ReflectionProofSingleton();\n\n    private ReflectionProofSingleton() {\n        if (instance != null) {\n            throw new IllegalStateException(\"Singleton instance already created\");\n        }\n    }\n\n    public static ReflectionProofSingleton getInstance() {\n        return instance;\n    }\n\n}"
-  },
-  {
-    "type": "LoggerSingleton",
-    "input": "public class LoggerSingleton {\n\n    public LoggerSingleton() {}\n\n}",
-    "output": "import java.io.FileWriter;\nimport java.io.IOException;\n\npublic class LoggerSingleton {\n\n    private static volatile LoggerSingleton instance;\n    private FileWriter writer;\n\n    private LoggerSingleton() {\n        try {\n            writer = new FileWriter(\"application.log\", true);\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n\n    public static LoggerSingleton getInstance() {\n        if (instance == null) {\n            synchronized (LoggerSingleton.class) {\n                if (instance == null) {\n                    instance = new LoggerSingleton();\n                }\n            }\n        }\n        return instance;\n    }\n\n    public synchronized void log(String message, String level) {\n        try {\n            writer.write(level + \": \" + message + \"\\n\");\n            writer.flush();\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n\n    public void close() {\n        try {\n            writer.close();\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n\n}"
-  },
-  {
-    "type": "DatabaseConnectionPoolSingleton",
-    "input": "public class DatabaseConnectionPool {\n\n    public DatabaseConnectionPool() {}\n\n}",
-    "output": "import java.sql.Connection;\nimport java.sql.DriverManager;\nimport java.sql.SQLException;\nimport java.util.concurrent.ArrayBlockingQueue;\nimport java.util.concurrent.BlockingQueue;\n\npublic class DatabaseConnectionPool {\n\n    private static final int POOL_SIZE = 5;\n    private static DatabaseConnectionPool instance;\n    private BlockingQueue<Connection> connectionPool;\n\n    private DatabaseConnectionPool() {\n        connectionPool = new ArrayBlockingQueue<>(POOL_SIZE);\n        for (int i = 0; i < POOL_SIZE; i++) {\n            try {\n                connectionPool.add(DriverManager.getConnection(\"jdbc:mysql://localhost:3306/mydb\", \"user\", \"password\"));\n            } catch (SQLException e) {\n                e.printStackTrace();\n            }\n        }\n    }\n\n    public static DatabaseConnectionPool getInstance() {\n        if (instance == null) {\n            synchronized (DatabaseConnectionPool.class) {\n                if (instance == null) {\n                    instance = new DatabaseConnectionPool();\n                }\n            }\n        }\n        return instance;\n    }\n\n    public Connection getConnection() throws InterruptedException {\n        return connectionPool.take();\n    }\n\n    public void releaseConnection(Connection connection) {\n        connectionPool.offer(connection);\n    }\n\n}"
-  },
-  {
-    "type": "ConfigurationManagerSingleton",
-    "input": "public class ConfigurationManager {\n\n    public ConfigurationManager() {}\n\n}",
-    "output": "import java.util.Properties;\nimport java.io.FileInputStream;\nimport java.io.IOException;\n\npublic class ConfigurationManager {\n\n    private static ConfigurationManager instance;\n    private Properties properties;\n\n    private ConfigurationManager() {\n        properties = new Properties();\n        try (FileInputStream fis = new FileInputStream(\"application.properties\")) {\n            properties.load(fis);\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n\n    public static ConfigurationManager getInstance() {\n        if (instance == null) {\n            synchronized (ConfigurationManager.class) {\n                if (instance == null) {\n                    instance = new ConfigurationManager();\n                }\n            }\n        }\n        return instance;\n    }\n\n    public String getProperty(String key) {\n        return properties.getProperty(key);\n    }\n\n}"
-  },
-  {
-    "type": "ServiceLocatorSingleton",
-    "input": "public class ServiceLocator {\n\n    public ServiceLocator() {}\n\n}",
-    "output": "import java.util.HashMap;\nimport java.util.Map;\n\npublic class ServiceLocator {\n\n    private static ServiceLocator instance;\n    private Map<String, Object> services;\n\n    private ServiceLocator() {\n        services = new HashMap<>();\n    }\n\n    public static ServiceLocator getInstance() {\n        if (instance == null) {\n            synchronized (ServiceLocator.class) {\n                if (instance == null) {\n                    instance = new ServiceLocator();\n                }\n            }\n        }\n        return instance;\n    }\n\n    public void registerService(String name, Object service) {\n        services.put(name, service);\n    }\n\n    public Object getService(String name) {\n        return services.get(name);\n    }\n\n}"
-  },
-  {
-    "type": "CacheSingleton",
-    "input": "public class CacheSingleton {\n\n    public CacheSingleton() {}\n\n}",
-    "output": "import java.util.LinkedHashMap;\nimport java.util.Map;\n\npublic class CacheSingleton {\n\n    private static CacheSingleton instance;\n    private final int CACHE_SIZE = 5;\n    private Map<String, String> cache;\n\n    private CacheSingleton() {\n        cache = new LinkedHashMap<String, String>(CACHE_SIZE, 0.75f, true) {\n            protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {\n                return size() > CACHE_SIZE;\n            }\n        };\n    }\n\n    public static CacheSingleton getInstance() {\n        if (instance == null) {\n            synchronized (CacheSingleton.class) {\n                if (instance == null) {\n                    instance = new CacheSingleton();\n                }\n            }\n        }\n        return instance;\n    }\n\n    public void put(String key, String value) {\n        cache.put(key, value);\n    }\n\n    public String get(String key) {\n        return cache.get(key);\n    }\n\n}"
+    "type": "SingletonWithRateLimiter",
+    "input": "public class SingletonWithRateLimiter {\n\n    public SingletonWithRateLimiter() {}\n\n}",
+    "output": "import java.util.concurrent.Semaphore;\n\npublic class SingletonWithRateLimiter {\n\n    private static SingletonWithRateLimiter instance;\n    private static final Semaphore semaphore = new Semaphore(3); // Allow 3 concurrent accesses\n\n    private SingletonWithRateLimiter() {}\n\n    public static SingletonWithRateLimiter getInstance() {\n        if (instance == null) {\n            synchronized (SingletonWithRateLimiter.class) {\n                if (instance == null) {\n                    instance = new SingletonWithRateLimiter();\n                }\n            }\n        }\n        return instance;\n    }\n\n    public void performAction() throws InterruptedException {\n        semaphore.acquire();\n        try {\n            System.out.println(\"Performing rate-limited action\");\n        } finally {\n            semaphore.release();\n        }\n    }\n\n}"
   }
 ]
