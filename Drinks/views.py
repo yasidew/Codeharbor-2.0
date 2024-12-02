@@ -31,7 +31,7 @@ from django.shortcuts import render
 from prettytable import PrettyTable
 import statsmodels.api as sm
 from transformers import T5ForConditionalGeneration, AutoTokenizer
-
+from rest_framework.decorators import api_view
 
 
 
