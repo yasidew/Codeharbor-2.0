@@ -416,6 +416,25 @@ def normalize_and_validate_indentation(code_snippet):
     return fixed_code
 
 
+def ensure_blocks_have_bodies(code_snippet):
+    """
+    Add placeholder 'pass' statements to ensure blocks have valid bodies.
+    """
+    lines = code_snippet.splitlines()
+    corrected_lines = []
+
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.endswith(":") and (index + 1 >= len(lines) or not lines[index + 1].strip()):
+            corrected_lines.append(line)
+            corrected_lines.append("    pass  # Placeholder for empty block")
+        else:
+            corrected_lines.append(line)
+
+    return "\n".join(corrected_lines)
+
+
+
 def detect_defects_view(request):
     model_path = "./models/defect_detection_model"
     model = RobertaForSequenceClassification.from_pretrained(model_path)
