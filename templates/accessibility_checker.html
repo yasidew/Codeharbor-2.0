@@ -21,35 +21,95 @@
         <pre id="output"></pre>
     </div>
 
-    <script>
-        // Add an event listener for form submission
-        document.getElementById('accessibility-form').addEventListener('submit', async function (e) {
-            e.preventDefault();  // Prevent form submission and page reload
+{#    <script>#}
+{#        // Add an event listener for form submission#}
+{#        document.getElementById('accessibility-form').addEventListener('submit', async function (e) {#}
+{#            e.preventDefault();  // Prevent form submission and page reload#}
+{##}
+{#            const formData = new FormData(this);  // Collect form data#}
+{##}
+{#            // Send the file to the Django view using the Fetch API#}
+{#            const response = await fetch("{% url 'check_accessibility' %}", {#}
+{#                method: 'POST',#}
+{#                headers: {#}
+{#                    'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token for security#}
+{#                },#}
+{#                body: formData,  // Send the form data with the file#}
+{#            });#}
+{##}
+{##}
+{#                // Handle the response and display the results#}
+{#const data = await response.json();#}
+{##}
+{#if (data.error) {#}
+{#    document.getElementById('output').textContent = "Error: " + data.error;#}
+{#} else {#}
+{#    // Display accessibility check results along with the score#}
+{#    const scoreMessage = `Accessibility Score: ${data.score.toFixed(2)}%`;#}
+{#    document.getElementById('output').textContent = scoreMessage + "\n\n" + JSON.stringify(data, null, 2);#}
+{#}#}
+{##}
+{#        })#}
+{#    </script>#}
 
-            const formData = new FormData(this);  // Collect form data
+<script>
+    // Add an event listener for form submission
+    document.getElementById('accessibility-form').addEventListener('submit', async function (e) {
+        e.preventDefault();  // Prevent form submission and page reload
 
-            // Send the file to the Django view using the Fetch API
-            const response = await fetch("{% url 'check_accessibility' %}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token for security
-                },
-                body: formData,  // Send the form data with the file
-            });
+        const formData = new FormData(this);  // Collect form data
+
+        // Send the file to the Django view using the Fetch API
+        const response = await fetch("{% url 'check_accessibility' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token for security
+            },
+            body: formData,  // Send the form data with the file
+        });
+
+        // Handle the response and display the results
+        const data = await response.json();
+
+        if (data.error) {
+            document.getElementById('output').textContent = "Error: " + data.error;
+        } else {
+            // Create sections for Passes, Violations, Incomplete, and Score
+            let outputContent = "Accessibility Results:\n\n";
+
+            // Display the score
+            outputContent += `Accessibility Score: ${data.score.toFixed(2)}%\n\n`;
+
+            // Display the passes
+            outputContent += "Passes:\n";
+            if (data.passes.length > 0) {
+                outputContent += JSON.stringify(data.passes, null, 2) + "\n\n";
+            } else {
+                outputContent += "No passes found.\n\n";
+            }
+
+            // Display the violations
+            outputContent += "Violations:\n";
+            if (data.violations.length > 0) {
+                outputContent += JSON.stringify(data.violations, null, 2) + "\n\n";
+            } else {
+                outputContent += "No violations found.\n\n";
+            }
+
+            // Display the incomplete checks
+            outputContent += "Incomplete:\n";
+            if (data.incomplete.length > 0) {
+                outputContent += JSON.stringify(data.incomplete, null, 2) + "\n\n";
+            } else {
+                outputContent += "No incomplete checks found.\n\n";
+            }
+
+            // Display the results
+            document.getElementById('output').textContent = outputContent;
+        }
+    });
+</script>
 
 
-                // Handle the response and display the results
-const data = await response.json();
-
-if (data.error) {
-    document.getElementById('output').textContent = "Error: " + data.error;
-} else {
-    // Display accessibility check results along with the score
-    const scoreMessage = `Accessibility Score: ${data.score.toFixed(2)}%`;
-    document.getElementById('output').textContent = scoreMessage + "\n\n" + JSON.stringify(data, null, 2);
-}
-
-        })
-    </script>
 </body>
 </html>
