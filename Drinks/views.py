@@ -434,6 +434,42 @@ def ensure_blocks_have_bodies(code_snippet):
     return "\n".join(corrected_lines)
 
 
+def split_code_snippets(code_snippet):
+    """
+    Split the input code snippet into individual Python functions or top-level blocks.
+    """
+    try:
+        # Normalize and validate indentation
+        normalized_code = normalize_and_validate_indentation(code_snippet)
+
+        # Parse the normalized code into an Abstract Syntax Tree (AST)
+        tree = ast.parse(normalized_code)
+        snippets = []
+
+        # Extract top-level nodes
+        for node in tree.body:
+            # Extract source code for each node
+            if hasattr(ast, "get_source_segment"):
+                snippet = ast.get_source_segment(normalized_code, node)
+            else:
+                # Fallback: Use line numbers if available
+                start_line = getattr(node, "lineno", None)
+                end_line = getattr(node, "end_lineno", None)
+
+                if start_line and end_line:
+                    snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
+                    snippet = "\n".join(snippet_lines)
+                else:
+                    # Fallback for cases where neither method works
+                    snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
+
+            snippets.append(snippet)
+
+        return snippets
+    except SyntaxError as e:
+        print(f"Error parsing code snippets: {e}")
+        return []  # Return an empty list if parsing fails
+
 
 def detect_defects_view(request):
     model_path = "./models/defect_detection_model"
