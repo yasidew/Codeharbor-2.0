@@ -15,7 +15,7 @@ train_dataset = Dataset.from_list(train_data)
 val_dataset = Dataset.from_list(val_data)
 
 # Step 3: Tokenizer and model
-model_name = "Salesforce/codet5-small"  # Use a smaller model if memory is an issue
+model_name = "Salesforce/codet5-base"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
@@ -53,16 +53,20 @@ data_collator = DataCollatorForSeq2Seq(
 training_args = TrainingArguments(
     output_dir="./results",
     evaluation_strategy="epoch",
-    learning_rate=2e-5,
-    per_device_train_batch_size=2,  # Reduced batch size
-    per_device_eval_batch_size=2,  # Reduced batch size
-    num_train_epochs=3,
+    learning_rate=7e-5,  # Increased learning rate for faster convergence
+    per_device_train_batch_size=8,  # Utilize Colab Pro GPU RAM
+    per_device_eval_batch_size=8,
+    gradient_accumulation_steps=2,  # Accumulate gradients to mimic larger batch sizes
+    num_train_epochs=20,  # Increased epochs to let the model learn better
     weight_decay=0.01,
-    save_total_limit=2,
+    save_total_limit=3,
     save_strategy="epoch",
     logging_dir='./logs',
-    logging_steps=10,
-    load_best_model_at_end=True
+    logging_steps=50,
+    load_best_model_at_end=True,
+    fp16=True,  # Enable mixed precision for faster training
+    dataloader_num_workers=4,  # Utilize CPU cores for loading data
+    report_to="none"  # Suppress unnecessary logging
 )
 
 # Step 7: Trainer
