@@ -279,5 +279,505 @@
     "testing_notes": "Test with varied data sets and streaming rates",
     "comments": "Facilitates switching between analytics engines seamlessly",
     "source": "Inspired by big data frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class LoggerFactory {\n\n    public abstract Logger createLogger();\n\n}\n\ninterface Logger {\n    void log(String message);\n}\n\nclass FileLogger implements Logger {\n    @Override\n    public void log(String message) {\n        System.out.println(\"Logging to file: \" + message);\n    }\n}\n\nclass ConsoleLogger implements Logger {\n    @Override\n    public void log(String message) {\n        System.out.println(\"Logging to console: \" + message);\n    }\n}\n",
+    "output": "public abstract class LoggerFactory {\n    public abstract Logger createLogger();\n}\n\npublic class FileLoggerFactory extends LoggerFactory {\n    @Override\n    public Logger createLogger() {\n        return new FileLogger();\n    }\n}\n\npublic class ConsoleLoggerFactory extends LoggerFactory {\n    @Override\n    public Logger createLogger() {\n        return new ConsoleLogger();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Abstracting logging mechanisms for different environments",
+    "edge_cases": [
+      "File system errors",
+      "Console unavailable in headless mode"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Minimizes overhead by deferring log destination selection",
+    "real_world_usage": "Used in logging frameworks for configurable outputs",
+    "testing_notes": "Ensure log messages are correctly routed to destinations",
+    "comments": "Easily extendable for cloud-based logging solutions",
+    "source": "Inspired by enterprise logging libraries"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class GameCharacterFactory {\n\n    public abstract GameCharacter createCharacter();\n\n}\n\ninterface GameCharacter {\n    void attack();\n}\n\nclass Warrior implements GameCharacter {\n    @Override\n    public void attack() {\n        System.out.println(\"Warrior attacks with a sword\");\n    }\n}\n\nclass Mage implements GameCharacter {\n    @Override\n    public void attack() {\n        System.out.println(\"Mage casts a fireball\");\n    }\n}\n",
+    "output": "public abstract class GameCharacterFactory {\n    public abstract GameCharacter createCharacter();\n}\n\npublic class WarriorFactory extends GameCharacterFactory {\n    @Override\n    public GameCharacter createCharacter() {\n        return new Warrior();\n    }\n}\n\npublic class MageFactory extends GameCharacterFactory {\n    @Override\n    public GameCharacter createCharacter() {\n        return new Mage();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Creating different character types in a role-playing game",
+    "edge_cases": [
+      "Invalid character type",
+      "Unsupported abilities"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Efficiently manages character instantiation",
+    "real_world_usage": "Used in game engines to dynamically generate characters",
+    "testing_notes": "Verify character abilities align with their types",
+    "comments": "Supports adding new character types without major code changes",
+    "source": "Inspired by game development frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class PaymentProcessorFactory {\n\n    public abstract PaymentProcessor createProcessor();\n\n}\n\ninterface PaymentProcessor {\n    void processPayment(double amount);\n}\n\nclass CreditCardProcessor implements PaymentProcessor {\n    @Override\n    public void processPayment(double amount) {\n        System.out.println(\"Processing credit card payment of $\" + amount);\n    }\n}\n\nclass PayPalProcessor implements PaymentProcessor {\n    @Override\n    public void processPayment(double amount) {\n        System.out.println(\"Processing PayPal payment of $\" + amount);\n    }\n}\n",
+    "output": "public abstract class PaymentProcessorFactory {\n    public abstract PaymentProcessor createProcessor();\n}\n\npublic class CreditCardProcessorFactory extends PaymentProcessorFactory {\n    @Override\n    public PaymentProcessor createProcessor() {\n        return new CreditCardProcessor();\n    }\n}\n\npublic class PayPalProcessorFactory extends PaymentProcessorFactory {\n    @Override\n    public PaymentProcessor createProcessor() {\n        return new PayPalProcessor();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Handling different payment methods in an e-commerce system",
+    "edge_cases": [
+      "Payment gateway failures",
+      "Invalid payment details"
+    ],
+    "dependencies": [
+      "Payment gateways"
+    ],
+    "performance_notes": "Reduces coupling between client code and payment processors",
+    "real_world_usage": "Used in e-commerce platforms for flexible payment handling",
+    "testing_notes": "Simulate failures in payment gateways for robustness",
+    "comments": "Enables easy integration of new payment methods",
+    "source": "Inspired by payment processing systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class AIModelFactory {\n\n    public abstract AIModel createModel();\n\n}\n\ninterface AIModel {\n    void train();\n}\n\nclass NeuralNetworkModel implements AIModel {\n    @Override\n    public void train() {\n        System.out.println(\"Training a neural network model\");\n    }\n}\n\nclass DecisionTreeModel implements AIModel {\n    @Override\n    public void train() {\n        System.out.println(\"Training a decision tree model\");\n    }\n}\n",
+    "output": "public abstract class AIModelFactory {\n    public abstract AIModel createModel();\n}\n\npublic class NeuralNetworkModelFactory extends AIModelFactory {\n    @Override\n    public AIModel createModel() {\n        return new NeuralNetworkModel();\n    }\n}\n\npublic class DecisionTreeModelFactory extends AIModelFactory {\n    @Override\n    public AIModel createModel() {\n        return new DecisionTreeModel();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamic creation of AI models for machine learning tasks",
+    "edge_cases": [
+      "Insufficient training data",
+      "Unsupported model types"
+    ],
+    "dependencies": [
+      "Machine learning libraries"
+    ],
+    "performance_notes": "Optimized for dynamic model selection",
+    "real_world_usage": "Used in automated machine learning platforms",
+    "testing_notes": "Ensure models train correctly with different datasets",
+    "comments": "Simplifies switching between AI models in production",
+    "source": "Inspired by AI experimentation platforms"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class UIElementFactory {\n\n    public abstract UIElement createElement();\n\n}\n\ninterface UIElement {\n    void render();\n}\n\nclass Button implements UIElement {\n    @Override\n    public void render() {\n        System.out.println(\"Rendering a button\");\n    }\n}\n\nclass TextBox implements UIElement {\n    @Override\n    public void render() {\n        System.out.println(\"Rendering a text box\");\n    }\n}\n",
+    "output": "public abstract class UIElementFactory {\n    public abstract UIElement createElement();\n}\n\npublic class ButtonFactory extends UIElementFactory {\n    @Override\n    public UIElement createElement() {\n        return new Button();\n    }\n}\n\npublic class TextBoxFactory extends UIElementFactory {\n    @Override\n    public UIElement createElement() {\n        return new TextBox();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Generating UI elements dynamically based on requirements",
+    "edge_cases": [
+      "Unsupported element types",
+      "Cross-browser compatibility"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Optimized for rendering diverse UI elements",
+    "real_world_usage": "Used in front-end frameworks for component creation",
+    "testing_notes": "Ensure compatibility with different screen resolutions",
+    "comments": "Facilitates adding new UI components easily",
+    "source": "Inspired by front-end UI frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class VehicleFactory {\n\n    public abstract Vehicle createVehicle();\n\n}\n\ninterface Vehicle {\n    void drive();\n}\n\nclass Car implements Vehicle {\n    @Override\n    public void drive() {\n        System.out.println(\"Driving a Car\");\n    }\n}\n\nclass Bike implements Vehicle {\n    @Override\n    public void drive() {\n        System.out.println(\"Riding a Bike\");\n    }\n}\n",
+    "output": "public abstract class VehicleFactory {\n    public abstract Vehicle createVehicle();\n}\n\npublic class CarFactory extends VehicleFactory {\n    @Override\n    public Vehicle createVehicle() {\n        return new Car();\n    }\n}\n\npublic class BikeFactory extends VehicleFactory {\n    @Override\n    public Vehicle createVehicle() {\n        return new Bike();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Creating different types of vehicles dynamically",
+    "edge_cases": [
+      "Unsupported vehicle types",
+      "Factory misconfiguration"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Facilitates extensibility for new vehicle types",
+    "real_world_usage": "Used in vehicle rental systems for generating vehicles on-demand",
+    "testing_notes": "Verify specific vehicle behavior after creation",
+    "comments": "Adheres to the Single Responsibility Principle",
+    "source": "Inspired by vehicle management systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class AnimalFactory {\n\n    public abstract Animal createAnimal();\n\n}\n\ninterface Animal {\n    void sound();\n}\n\nclass Dog implements Animal {\n    @Override\n    public void sound() {\n        System.out.println(\"Barking\");\n    }\n}\n\nclass Cat implements Animal {\n    @Override\n    public void sound() {\n        System.out.println(\"Meowing\");\n    }\n}\n",
+    "output": "public abstract class AnimalFactory {\n    public abstract Animal createAnimal();\n}\n\npublic class DogFactory extends AnimalFactory {\n    @Override\n    public Animal createAnimal() {\n        return new Dog();\n    }\n}\n\npublic class CatFactory extends AnimalFactory {\n    @Override\n    public Animal createAnimal() {\n        return new Cat();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamically generating animals in a simulation",
+    "edge_cases": [
+      "Invalid animal types",
+      "Incorrect factory implementation"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Optimized for creating diverse animal types",
+    "real_world_usage": "Used in virtual pet simulators",
+    "testing_notes": "Test various sound behaviors for different animals",
+    "comments": "Supports adding new animals with minimal changes",
+    "source": "Inspired by animal behavior simulators"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class ParserFactory {\n\n    public abstract Parser createParser();\n\n}\n\ninterface Parser {\n    void parse(String data);\n}\n\nclass JSONParser implements Parser {\n    @Override\n    public void parse(String data) {\n        System.out.println(\"Parsing JSON data: \" + data);\n    }\n}\n\nclass XMLParser implements Parser {\n    @Override\n    public void parse(String data) {\n        System.out.println(\"Parsing XML data: \" + data);\n    }\n}\n",
+    "output": "public abstract class ParserFactory {\n    public abstract Parser createParser();\n}\n\npublic class JSONParserFactory extends ParserFactory {\n    @Override\n    public Parser createParser() {\n        return new JSONParser();\n    }\n}\n\npublic class XMLParserFactory extends ParserFactory {\n    @Override\n    public Parser createParser() {\n        return new XMLParser();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Abstracting the parsing logic for different formats",
+    "edge_cases": [
+      "Malformed data",
+      "Unsupported formats"
+    ],
+    "dependencies": [
+      "JSON and XML libraries"
+    ],
+    "performance_notes": "Avoids hardcoding parsing logic in the client",
+    "real_world_usage": "Used in ETL pipelines to process diverse data formats",
+    "testing_notes": "Ensure parsers handle large datasets efficiently",
+    "comments": "Easily extendable for new data formats",
+    "source": "Inspired by data transformation tools"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class CloudStorageFactory {\n\n    public abstract CloudStorage createStorage();\n\n}\n\ninterface CloudStorage {\n    void upload(String fileName);\n}\n\nclass S3Storage implements CloudStorage {\n    @Override\n    public void upload(String fileName) {\n        System.out.println(\"Uploading \" + fileName + \" to Amazon S3\");\n    }\n}\n\nclass GoogleCloudStorage implements CloudStorage {\n    @Override\n    public void upload(String fileName) {\n        System.out.println(\"Uploading \" + fileName + \" to Google Cloud Storage\");\n    }\n}\n",
+    "output": "public abstract class CloudStorageFactory {\n    public abstract CloudStorage createStorage();\n}\n\npublic class S3StorageFactory extends CloudStorageFactory {\n    @Override\n    public CloudStorage createStorage() {\n        return new S3Storage();\n    }\n}\n\npublic class GoogleCloudStorageFactory extends CloudStorageFactory {\n    @Override\n    public CloudStorage createStorage() {\n        return new GoogleCloudStorage();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Managing cloud storage providers dynamically",
+    "edge_cases": [
+      "Storage service unavailability",
+      "Authentication failures"
+    ],
+    "dependencies": [
+      "Cloud SDKs"
+    ],
+    "performance_notes": "Ensures decoupling from specific cloud storage APIs",
+    "real_world_usage": "Used in cloud-based file management systems",
+    "testing_notes": "Test with different storage providers for interoperability",
+    "comments": "Facilitates seamless integration of multiple cloud services",
+    "source": "Inspired by cloud storage management tools"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class FoodFactory {\n\n    public abstract Food createFood();\n\n}\n\ninterface Food {\n    void cook();\n}\n\nclass Pizza implements Food {\n    @Override\n    public void cook() {\n        System.out.println(\"Cooking a Pizza\");\n    }\n}\n\nclass Burger implements Food {\n    @Override\n    public void cook() {\n        System.out.println(\"Cooking a Burger\");\n    }\n}\n",
+    "output": "public abstract class FoodFactory {\n    public abstract Food createFood();\n}\n\npublic class PizzaFactory extends FoodFactory {\n    @Override\n    public Food createFood() {\n        return new Pizza();\n    }\n}\n\npublic class BurgerFactory extends FoodFactory {\n    @Override\n    public Food createFood() {\n        return new Burger();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Generating food items dynamically for a food delivery system",
+    "edge_cases": [
+      "Unavailable food ingredients",
+      "Invalid food types"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Supports scaling up with additional food items",
+    "real_world_usage": "Used in food delivery and restaurant management systems",
+    "testing_notes": "Ensure food objects behave as expected when cooked",
+    "comments": "Promotes scalability for new food types",
+    "source": "Inspired by food ordering applications"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class AIModelFactory {\n\n    public abstract AIModel createModel();\n\n}\n\ninterface AIModel {\n    void train();\n    void predict();\n}\n\nclass NeuralNetwork implements AIModel {\n    @Override\n    public void train() {\n        System.out.println(\"Training a Neural Network\");\n    }\n\n    @Override\n    public void predict() {\n        System.out.println(\"Predicting with Neural Network\");\n    }\n}\n\nclass DecisionTree implements AIModel {\n    @Override\n    public void train() {\n        System.out.println(\"Training a Decision Tree\");\n    }\n\n    @Override\n    public void predict() {\n        System.out.println(\"Predicting with Decision Tree\");\n    }\n}\n",
+    "output": "public abstract class AIModelFactory {\n    public abstract AIModel createModel();\n}\n\npublic class NeuralNetworkFactory extends AIModelFactory {\n    @Override\n    public AIModel createModel() {\n        return new NeuralNetwork();\n    }\n}\n\npublic class DecisionTreeFactory extends AIModelFactory {\n    @Override\n    public AIModel createModel() {\n        return new DecisionTree();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamically creating AI models for different use cases",
+    "edge_cases": [
+      "Large datasets causing memory overflows",
+      "Invalid hyperparameters"
+    ],
+    "dependencies": [
+      "Machine learning libraries"
+    ],
+    "performance_notes": "Factory isolates model creation logic from clients",
+    "real_world_usage": "Used in ML pipelines for deploying diverse models",
+    "testing_notes": "Test with varying dataset sizes and hyperparameters",
+    "comments": "Facilitates extensibility for new model types",
+    "source": "Inspired by machine learning frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class PaymentGatewayFactory {\n\n    public abstract PaymentGateway createGateway();\n\n}\n\ninterface PaymentGateway {\n    void processPayment(double amount);\n}\n\nclass PayPalGateway implements PaymentGateway {\n    @Override\n    public void processPayment(double amount) {\n        System.out.println(\"Processing payment via PayPal: \" + amount);\n    }\n}\n\nclass StripeGateway implements PaymentGateway {\n    @Override\n    public void processPayment(double amount) {\n        System.out.println(\"Processing payment via Stripe: \" + amount);\n    }\n}\n",
+    "output": "public abstract class PaymentGatewayFactory {\n    public abstract PaymentGateway createGateway();\n}\n\npublic class PayPalFactory extends PaymentGatewayFactory {\n    @Override\n    public PaymentGateway createGateway() {\n        return new PayPalGateway();\n    }\n}\n\npublic class StripeFactory extends PaymentGatewayFactory {\n    @Override\n    public PaymentGateway createGateway() {\n        return new StripeGateway();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamic selection of payment gateways",
+    "edge_cases": [
+      "Invalid payment credentials",
+      "Gateway unavailability"
+    ],
+    "dependencies": [
+      "Gateway SDKs for PayPal and Stripe"
+    ],
+    "performance_notes": "Ensures scalability for adding new gateways",
+    "real_world_usage": "Used in e-commerce platforms for seamless payment processing",
+    "testing_notes": "Simulate failures for resilience testing",
+    "comments": "Adheres to the Open-Closed Principle",
+    "source": "Inspired by payment systems in online stores"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class CloudServiceFactory {\n\n    public abstract CloudService createService();\n\n}\n\ninterface CloudService {\n    void provision();\n}\n\nclass ComputeEngine implements CloudService {\n    @Override\n    public void provision() {\n        System.out.println(\"Provisioning Compute Engine\");\n    }\n}\n\nclass KubernetesEngine implements CloudService {\n    @Override\n    public void provision() {\n        System.out.println(\"Provisioning Kubernetes Engine\");\n    }\n}\n",
+    "output": "public abstract class CloudServiceFactory {\n    public abstract CloudService createService();\n}\n\npublic class ComputeEngineFactory extends CloudServiceFactory {\n    @Override\n    public CloudService createService() {\n        return new ComputeEngine();\n    }\n}\n\npublic class KubernetesEngineFactory extends CloudServiceFactory {\n    @Override\n    public CloudService createService() {\n        return new KubernetesEngine();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamic provisioning of cloud services",
+    "edge_cases": [
+      "Resource quota exceeded",
+      "Provisioning errors"
+    ],
+    "dependencies": [
+      "Cloud provider APIs"
+    ],
+    "performance_notes": "Abstracts complex API calls for client simplicity",
+    "real_world_usage": "Used in cloud automation tools for service provisioning",
+    "testing_notes": "Verify provisioning under different resource constraints",
+    "comments": "Enhances extensibility for new cloud services",
+    "source": "Inspired by cloud management platforms"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class EncryptionAlgorithmFactory {\n\n    public abstract EncryptionAlgorithm createAlgorithm();\n\n}\n\ninterface EncryptionAlgorithm {\n    String encrypt(String data);\n    String decrypt(String data);\n}\n\nclass AESAlgorithm implements EncryptionAlgorithm {\n    @Override\n    public String encrypt(String data) {\n        return \"AES Encrypted: \" + data;\n    }\n\n    @Override\n    public String decrypt(String data) {\n        return data.replace(\"AES Encrypted: \", \"\");\n    }\n}\n\nclass RSAAlgorithm implements EncryptionAlgorithm {\n    @Override\n    public String encrypt(String data) {\n        return \"RSA Encrypted: \" + data;\n    }\n\n    @Override\n    public String decrypt(String data) {\n        return data.replace(\"RSA Encrypted: \", \"\");\n    }\n}\n",
+    "output": "public abstract class EncryptionAlgorithmFactory {\n    public abstract EncryptionAlgorithm createAlgorithm();\n}\n\npublic class AESFactory extends EncryptionAlgorithmFactory {\n    @Override\n    public EncryptionAlgorithm createAlgorithm() {\n        return new AESAlgorithm();\n    }\n}\n\npublic class RSAFactory extends EncryptionAlgorithmFactory {\n    @Override\n    public EncryptionAlgorithm createAlgorithm() {\n        return new RSAAlgorithm();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Abstracting encryption algorithms for secure data transfer",
+    "edge_cases": [
+      "Unsupported algorithms",
+      "Key management issues"
+    ],
+    "dependencies": [
+      "Cryptographic libraries"
+    ],
+    "performance_notes": "Improves modularity and testability of cryptographic operations",
+    "real_world_usage": "Used in secure communication protocols",
+    "testing_notes": "Test with large datasets and invalid keys",
+    "comments": "Facilitates adding new algorithms seamlessly",
+    "source": "Inspired by cryptographic frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class PluginFactory {\n\n    public abstract Plugin createPlugin();\n\n}\n\ninterface Plugin {\n    void initialize();\n    void execute();\n}\n\nclass AuthenticationPlugin implements Plugin {\n    @Override\n    public void initialize() {\n        System.out.println(\"Initializing Authentication Plugin\");\n    }\n\n    @Override\n    public void execute() {\n        System.out.println(\"Executing Authentication Plugin\");\n    }\n}\n\nclass LoggingPlugin implements Plugin {\n    @Override\n    public void initialize() {\n        System.out.println(\"Initializing Logging Plugin\");\n    }\n\n    @Override\n    public void execute() {\n        System.out.println(\"Executing Logging Plugin\");\n    }\n}\n",
+    "output": "public abstract class PluginFactory {\n    public abstract Plugin createPlugin();\n}\n\npublic class AuthenticationPluginFactory extends PluginFactory {\n    @Override\n    public Plugin createPlugin() {\n        return new AuthenticationPlugin();\n    }\n}\n\npublic class LoggingPluginFactory extends PluginFactory {\n    @Override\n    public Plugin createPlugin() {\n        return new LoggingPlugin();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamic loading of plugins in an extensible system",
+    "edge_cases": [
+      "Plugin dependencies missing",
+      "Incompatible plugin versions"
+    ],
+    "dependencies": [
+      "Plugin frameworks"
+    ],
+    "performance_notes": "Simplifies plugin lifecycle management",
+    "real_world_usage": "Used in IDEs and application frameworks for plugin architecture",
+    "testing_notes": "Test with diverse plugin configurations",
+    "comments": "Promotes loose coupling and flexibility",
+    "source": "Inspired by plugin-based architectures in software frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class GameCharacterFactory {\n\n    public abstract GameCharacter createCharacter();\n\n}\n\ninterface GameCharacter {\n    void attack();\n    void defend();\n}\n\nclass Warrior implements GameCharacter {\n    @Override\n    public void attack() {\n        System.out.println(\"Warrior attacks with sword!\");\n    }\n\n    @Override\n    public void defend() {\n        System.out.println(\"Warrior blocks with shield!\");\n    }\n}\n\nclass Mage implements GameCharacter {\n    @Override\n    public void attack() {\n        System.out.println(\"Mage casts fireball!\");\n    }\n\n    @Override\n    public void defend() {\n        System.out.println(\"Mage creates magic barrier!\");\n    }\n}\n",
+    "output": "public abstract class GameCharacterFactory {\n    public abstract GameCharacter createCharacter();\n}\n\npublic class WarriorFactory extends GameCharacterFactory {\n    @Override\n    public GameCharacter createCharacter() {\n        return new Warrior();\n    }\n}\n\npublic class MageFactory extends GameCharacterFactory {\n    @Override\n    public GameCharacter createCharacter() {\n        return new Mage();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Creating dynamic characters for a role-playing game",
+    "edge_cases": [
+      "Unsupported character types",
+      "Invalid abilities"
+    ],
+    "dependencies": [
+      "Game engine libraries"
+    ],
+    "performance_notes": "Simplifies character generation logic",
+    "real_world_usage": "Used in game development frameworks",
+    "testing_notes": "Verify attack and defense behavior for each character",
+    "comments": "Highly extensible for new character types",
+    "source": "Inspired by RPG game engines"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class DataExporterFactory {\n\n    public abstract DataExporter createExporter();\n\n}\n\ninterface DataExporter {\n    void exportData();\n}\n\nclass JSONExporter implements DataExporter {\n    @Override\n    public void exportData() {\n        System.out.println(\"Exporting data as JSON\");\n    }\n}\n\nclass XMLExporter implements DataExporter {\n    @Override\n    public void exportData() {\n        System.out.println(\"Exporting data as XML\");\n    }\n}\n",
+    "output": "public abstract class DataExporterFactory {\n    public abstract DataExporter createExporter();\n}\n\npublic class JSONExporterFactory extends DataExporterFactory {\n    @Override\n    public DataExporter createExporter() {\n        return new JSONExporter();\n    }\n}\n\npublic class XMLExporterFactory extends DataExporterFactory {\n    @Override\n    public DataExporter createExporter() {\n        return new XMLExporter();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamic data export in different formats",
+    "edge_cases": [
+      "Unsupported formats",
+      "Large datasets causing memory issues"
+    ],
+    "dependencies": [
+      "Serialization libraries"
+    ],
+    "performance_notes": "Abstracts export logic for cleaner client code",
+    "real_world_usage": "Used in data migration tools",
+    "testing_notes": "Test with datasets of varying sizes and types",
+    "comments": "Facilitates adding new export formats",
+    "source": "Inspired by data processing pipelines"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class TransportFactory {\n\n    public abstract Transport createTransport();\n\n}\n\ninterface Transport {\n    void deliver();\n}\n\nclass Truck implements Transport {\n    @Override\n    public void deliver() {\n        System.out.println(\"Delivering by truck!\");\n    }\n}\n\nclass Ship implements Transport {\n    @Override\n    public void deliver() {\n        System.out.println(\"Delivering by ship!\");\n    }\n}\n",
+    "output": "public abstract class TransportFactory {\n    public abstract Transport createTransport();\n}\n\npublic class TruckFactory extends TransportFactory {\n    @Override\n    public Transport createTransport() {\n        return new Truck();\n    }\n}\n\npublic class ShipFactory extends TransportFactory {\n    @Override\n    public Transport createTransport() {\n        return new Ship();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamic selection of transport modes",
+    "edge_cases": [
+      "Invalid transport type",
+      "Unavailable resources"
+    ],
+    "dependencies": [
+      "Logistics system APIs"
+    ],
+    "performance_notes": "Facilitates modularity for transport types",
+    "real_world_usage": "Used in supply chain management systems",
+    "testing_notes": "Simulate deliveries under various scenarios",
+    "comments": "Enables scalability for new transport methods",
+    "source": "Inspired by logistics and delivery systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class ValidatorFactory {\n\n    public abstract Validator createValidator();\n\n}\n\ninterface Validator {\n    boolean validate(String input);\n}\n\nclass EmailValidator implements Validator {\n    @Override\n    public boolean validate(String input) {\n        return input.matches(\"^[\\\\w.-]+@[\\\\w.-]+\\\\.[a-zA-Z]{2,6}$\");\n    }\n}\n\nclass PhoneValidator implements Validator {\n    @Override\n    public boolean validate(String input) {\n        return input.matches(\"^\\\\+?[1-9]\\\\d{1,14}$\");\n    }\n}\n",
+    "output": "public abstract class ValidatorFactory {\n    public abstract Validator createValidator();\n}\n\npublic class EmailValidatorFactory extends ValidatorFactory {\n    @Override\n    public Validator createValidator() {\n        return new EmailValidator();\n    }\n}\n\npublic class PhoneValidatorFactory extends ValidatorFactory {\n    @Override\n    public Validator createValidator() {\n        return new PhoneValidator();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamic creation of validators for different data types",
+    "edge_cases": [
+      "Invalid regex patterns",
+      "Empty input strings"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Reduces duplication of validation logic",
+    "real_world_usage": "Used in form validation libraries",
+    "testing_notes": "Test with valid and invalid inputs",
+    "comments": "Ensures extensibility for new validation types",
+    "source": "Inspired by validation frameworks"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class ThemeFactory {\n\n    public abstract Theme createTheme();\n\n}\n\ninterface Theme {\n    void apply();\n}\n\nclass LightTheme implements Theme {\n    @Override\n    public void apply() {\n        System.out.println(\"Applying Light Theme\");\n    }\n}\n\nclass DarkTheme implements Theme {\n    @Override\n    public void apply() {\n        System.out.println(\"Applying Dark Theme\");\n    }\n}\n",
+    "output": "public abstract class ThemeFactory {\n    public abstract Theme createTheme();\n}\n\npublic class LightThemeFactory extends ThemeFactory {\n    @Override\n    public Theme createTheme() {\n        return new LightTheme();\n    }\n}\n\npublic class DarkThemeFactory extends ThemeFactory {\n    @Override\n    public Theme createTheme() {\n        return new DarkTheme();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamic application of UI themes",
+    "edge_cases": [
+      "Unsupported themes",
+      "Inconsistent color palettes"
+    ],
+    "dependencies": [
+      "UI framework libraries"
+    ],
+    "performance_notes": "Improves modularity of theme application logic",
+    "real_world_usage": "Used in UI frameworks for theme management",
+    "testing_notes": "Ensure themes work across all UI components",
+    "comments": "Easily extensible for new themes",
+    "source": "Inspired by modern UI design systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class PaymentProcessorFactory {\n\n    public abstract PaymentProcessor createProcessor();\n\n}\n\ninterface PaymentProcessor {\n    void processPayment(double amount);\n}\n\nclass CreditCardProcessor implements PaymentProcessor {\n    @Override\n    public void processPayment(double amount) {\n        System.out.println(\"Processing credit card payment of $\" + amount);\n    }\n}\n\nclass PayPalProcessor implements PaymentProcessor {\n    @Override\n    public void processPayment(double amount) {\n        System.out.println(\"Processing PayPal payment of $\" + amount);\n    }\n}\n",
+    "output": "public abstract class PaymentProcessorFactory {\n    public abstract PaymentProcessor createProcessor();\n}\n\npublic class CreditCardProcessorFactory extends PaymentProcessorFactory {\n    @Override\n    public PaymentProcessor createProcessor() {\n        return new CreditCardProcessor();\n    }\n}\n\npublic class PayPalProcessorFactory extends PaymentProcessorFactory {\n    @Override\n    public PaymentProcessor createProcessor() {\n        return new PayPalProcessor();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamic payment processing based on user preference",
+    "edge_cases": [
+      "Invalid payment methods",
+      "Payment gateway failures"
+    ],
+    "dependencies": [
+      "Payment gateway SDKs"
+    ],
+    "performance_notes": "Ensures scalability with new payment methods",
+    "real_world_usage": "Used in e-commerce platforms for payment flexibility",
+    "testing_notes": "Simulate payments for various processors",
+    "comments": "Facilitates integration with new payment gateways",
+    "source": "Inspired by online payment systems"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class NotificationChannelFactory {\n\n    public abstract NotificationChannel createChannel();\n\n}\n\ninterface NotificationChannel {\n    void sendNotification(String message);\n}\n\nclass SlackChannel implements NotificationChannel {\n    @Override\n    public void sendNotification(String message) {\n        System.out.println(\"Sending Slack notification: \" + message);\n    }\n}\n\nclass EmailChannel implements NotificationChannel {\n    @Override\n    public void sendNotification(String message) {\n        System.out.println(\"Sending Email notification: \" + message);\n    }\n}\n",
+    "output": "public abstract class NotificationChannelFactory {\n    public abstract NotificationChannel createChannel();\n}\n\npublic class SlackChannelFactory extends NotificationChannelFactory {\n    @Override\n    public NotificationChannel createChannel() {\n        return new SlackChannel();\n    }\n}\n\npublic class EmailChannelFactory extends NotificationChannelFactory {\n    @Override\n    public NotificationChannel createChannel() {\n        return new EmailChannel();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Dynamic creation of notification channels",
+    "edge_cases": [
+      "Channel unavailability",
+      "Invalid message format"
+    ],
+    "dependencies": [
+      "Messaging platform APIs"
+    ],
+    "performance_notes": "Separates notification logic from channel specifics",
+    "real_world_usage": "Used in alerting systems for incident management",
+    "testing_notes": "Test with real-world APIs for message delivery",
+    "comments": "Easily extensible for new notification channels",
+    "source": "Inspired by communication and alerting tools"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class ReportExporterFactory {\n\n    public abstract ReportExporter createExporter();\n\n}\n\ninterface ReportExporter {\n    void exportReport(String data);\n}\n\nclass PDFExporter implements ReportExporter {\n    @Override\n    public void exportReport(String data) {\n        System.out.println(\"Exporting report as PDF with data: \" + data);\n    }\n}\n\nclass ExcelExporter implements ReportExporter {\n    @Override\n    public void exportReport(String data) {\n        System.out.println(\"Exporting report as Excel with data: \" + data);\n    }\n}\n",
+    "output": "public abstract class ReportExporterFactory {\n    public abstract ReportExporter createExporter();\n}\n\npublic class PDFExporterFactory extends ReportExporterFactory {\n    @Override\n    public ReportExporter createExporter() {\n        return new PDFExporter();\n    }\n}\n\npublic class ExcelExporterFactory extends ReportExporterFactory {\n    @Override\n    public ReportExporter createExporter() {\n        return new ExcelExporter();\n    }\n}",
+    "complexity": "Intermediate",
+    "language": "Java",
+    "context": "Exporting reports in various formats",
+    "edge_cases": [
+      "Large report sizes",
+      "Unsupported formats"
+    ],
+    "dependencies": [
+      "Libraries for PDF and Excel generation"
+    ],
+    "performance_notes": "Reduces code duplication for report export",
+    "real_world_usage": "Used in business reporting and analytics tools",
+    "testing_notes": "Validate exported files with sample data",
+    "comments": "Facilitates easy addition of new formats",
+    "source": "Inspired by enterprise reporting solutions"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class VehicleFactory {\n\n    public abstract Vehicle createVehicle();\n\n}\n\ninterface Vehicle {\n    void drive();\n}\n\nclass Car implements Vehicle {\n    @Override\n    public void drive() {\n        System.out.println(\"Driving a car\");\n    }\n}\n\nclass Bike implements Vehicle {\n    @Override\n    public void drive() {\n        System.out.println(\"Riding a bike\");\n    }\n}\n",
+    "output": "public abstract class VehicleFactory {\n    public abstract Vehicle createVehicle();\n}\n\npublic class CarFactory extends VehicleFactory {\n    @Override\n    public Vehicle createVehicle() {\n        return new Car();\n    }\n}\n\npublic class BikeFactory extends VehicleFactory {\n    @Override\n    public Vehicle createVehicle() {\n        return new Bike();\n    }\n}",
+    "complexity": "Basic",
+    "language": "Java",
+    "context": "Dynamic vehicle creation for a transportation app",
+    "edge_cases": [
+      "Unavailable vehicles",
+      "Unrecognized vehicle types"
+    ],
+    "dependencies": [
+      "None"
+    ],
+    "performance_notes": "Simplifies addition of new vehicle types",
+    "real_world_usage": "Used in ride-hailing and vehicle rental services",
+    "testing_notes": "Simulate vehicle creation with varying conditions",
+    "comments": "Follows Open-Closed Principle",
+    "source": "Inspired by transportation and logistics platforms"
+  },
+  {
+    "type": "FactoryMethod",
+    "input": "public abstract class AuthenticationProviderFactory {\n\n    public abstract AuthenticationProvider createProvider();\n\n}\n\ninterface AuthenticationProvider {\n    void authenticate(String username, String password);\n}\n\nclass GoogleAuthenticationProvider implements AuthenticationProvider {\n    @Override\n    public void authenticate(String username, String password) {\n        System.out.println(\"Authenticating with Google for \" + username);\n    }\n}\n\nclass FacebookAuthenticationProvider implements AuthenticationProvider {\n    @Override\n    public void authenticate(String username, String password) {\n        System.out.println(\"Authenticating with Facebook for \" + username);\n    }\n}\n",
+    "output": "public abstract class AuthenticationProviderFactory {\n    public abstract AuthenticationProvider createProvider();\n}\n\npublic class GoogleAuthenticationProviderFactory extends AuthenticationProviderFactory {\n    @Override\n    public AuthenticationProvider createProvider() {\n        return new GoogleAuthenticationProvider();\n    }\n}\n\npublic class FacebookAuthenticationProviderFactory extends AuthenticationProviderFactory {\n    @Override\n    public AuthenticationProvider createProvider() {\n        return new FacebookAuthenticationProvider();\n    }\n}",
+    "complexity": "Advanced",
+    "language": "Java",
+    "context": "Dynamic authentication for various platforms",
+    "edge_cases": [
+      "Platform unavailability",
+      "Invalid credentials"
+    ],
+    "dependencies": [
+      "OAuth libraries"
+    ],
+    "performance_notes": "Encapsulates authentication logic for various platforms",
+    "real_world_usage": "Used in social login systems",
+    "testing_notes": "Test with mock authentication servers",
+    "comments": "Ensures scalability for new authentication providers",
+    "source": "Inspired by social media integration frameworks"
   }
 ]
