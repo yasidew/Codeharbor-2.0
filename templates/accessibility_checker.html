@@ -37,17 +37,19 @@
                 body: formData,  // Send the form data with the file
             });
 
-            // Handle the response and display the results
-            const data = await response.json();
 
-            // Check if there's an error in the response
-            if (data.error) {
-                document.getElementById('output').textContent = "Error: " + data.error;
-            } else {
-                // Display accessibility check results
-                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
-            }
-        });
+                // Handle the response and display the results
+const data = await response.json();
+
+if (data.error) {
+    document.getElementById('output').textContent = "Error: " + data.error;
+} else {
+    // Display accessibility check results along with the score
+    const scoreMessage = `Accessibility Score: ${data.score.toFixed(2)}%`;
+    document.getElementById('output').textContent = scoreMessage + "\n\n" + JSON.stringify(data, null, 2);
+}
+
+        })
     </script>
 </body>
 </html>
