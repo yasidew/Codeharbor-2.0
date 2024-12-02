@@ -7,28 +7,6 @@ import json
 def index(request):
     return render(request, 'accessibility_checker.html')
 
-# def check_accessibility(request):
-#     if request.method == 'POST' and request.FILES.get('html_file'):
-#         uploaded_file = request.FILES['html_file']
-#         try:
-#             html_content = uploaded_file.read().decode('utf-8')
-#             output = subprocess.run(
-#                 ['node', 'axe-check.js'],
-#                 input=html_content,
-#                 text=True,
-#                 stdout=subprocess.PIPE,
-#                 stderr=subprocess.PIPE
-#             )
-#             try:
-#                 results = json.loads(output.stdout)
-#             except json.JSONDecodeError:
-#                 results = {"error": "Failed to analyze accessibility"}
-#
-#             return JsonResponse(results)
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)})
-#     return JsonResponse({'error': 'Invalid request method or no file provided'})
-
 from django.shortcuts import render
 from django.http import JsonResponse
 import subprocess
