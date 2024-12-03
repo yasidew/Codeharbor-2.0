@@ -187,6 +187,64 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="accordion-item">
+    <h2 class="accordion-header" id="headingCBO">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCBO" aria-expanded="false" aria-controls="collapseCBO">
+            7. Coupling Between Object Classes (CBO)
+        </button>
+    </h2>
+    <div id="collapseCBO" class="accordion-collapse collapse" aria-labelledby="headingCBO" data-bs-parent="#guidelinesAccordion">
+        <div class="accordion-body">
+            <p><strong>CBO Weights:</strong></p>
+            <ul>
+                <li>Loose coupling (e.g., dependency injection, interfaces): <strong>Weight 1</strong></li>
+                <li>Tight coupling (e.g., direct field access, extensive inter-class dependencies): <strong>Weight 3</strong></li>
+            </ul>
+            <button class="btn btn-primary" onclick="showGuideline('Guideline for Coupling Between Object Classes (CBO)', `
+                Coupling Type Weights:
+                1. Loose Coupling: Weight of 1
+                   - Achieved through techniques like dependency injection, interfaces, and design patterns such as Strategy and Observer.
+                2. Tight Coupling: Weight of 3
+                   - Reflects complexity from direct field access or extensive inter-class dependencies.
+                Example:
+                - Loose Coupling: Using an interface for dependency injection.
+                - Tight Coupling: Class directly accessing fields from another class or cyclic dependencies.
+            `)">View Detailed Guideline</button>
+        </div>
+    </div>
+                <div class="accordion-item">
+    <h2 class="accordion-header" id="headingMPC">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMPC" aria-expanded="false" aria-controls="collapseMPC">
+            8. Message Passing Coupling (MPC)
+        </button>
+    </h2>
+    <div id="collapseMPC" class="accordion-collapse collapse" aria-labelledby="headingMPC" data-bs-parent="#guidelinesAccordion">
+        <div class="accordion-body">
+            <p><strong>MPC Weights:</strong></p>
+            <ul>
+                <li>Simple message passing (e.g., single method call): <strong>Weight 1</strong></li>
+                <li>Moderate message passing (e.g., multiple method calls, callback functions): <strong>Weight 2</strong></li>
+                <li>Complex message passing (e.g., event-driven messaging, asynchronous calls): <strong>Weight 3</strong></li>
+            </ul>
+            <button class="btn btn-primary" onclick="showGuideline('Guideline for Message Passing Coupling (MPC)', `
+                Message Passing Types:
+                1. Simple Message Passing: Weight 1
+                   - Involves a single method call, e.g., object.method().
+                2. Moderate Message Passing: Weight 2
+                   - Includes scenarios with multiple method calls or callback functions.
+                3. Complex Message Passing: Weight 3
+                   - Deals with asynchronous messaging, event-driven architecture, or extensive communication between components.
+                Example:
+                - Simple: calling a getter method.
+                - Moderate: invoking a method that uses callbacks.
+                - Complex: asynchronous event listeners or pub-sub messaging.
+            `)">View Detailed Guideline</button>
+        </div>
+    </div>
+</div>
+
+</div>
         </div>
     </div>
 

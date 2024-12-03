@@ -114,12 +114,9 @@ def calculate_control_structure_complexity(line):
 #         wn = 0  # Reset weight outside control structures
 #
 #     return current_nesting, in_control_structure, control_structure_stack, wn
-
+"""
 def calculate_nesting_level(java_code):
-    """
-    Calculates the nesting level of control structures (if-else, for, while, do-while)
-    in Java code line by line, ignoring class and method declarations.
-    """
+    
     # Remove comments from the Java code
     java_code = remove_comments(java_code)
     lines = java_code.splitlines()
@@ -133,7 +130,7 @@ def calculate_nesting_level(java_code):
     nesting_levels = []
 
     # Regular expressions for detecting control structures
-    control_regex = re.compile(r'\b(if|else if|else|for|while|do)\b')
+    control_regex = re.compile(r'\b(if|else if|else|for|while|do|switch|case|default)\b')
     open_brace_regex = re.compile(r'\{')  # Opening brace
     close_brace_regex = re.compile(r'\}')  # Closing brace
 
@@ -168,7 +165,69 @@ def calculate_nesting_level(java_code):
                     current_nesting = len(control_structure_stack)
 
     return nesting_levels
+"""
 
+def calculate_nesting_level(java_code):
+    """
+    Dynamically calculates the nesting level of control structures (if-else, switch-case, loops, etc.)
+    in Java-like code line by line, and assigns appropriate weights without hardcoding specific cases.
+    """
+    # Remove comments from the Java code
+    java_code = remove_comments(java_code)
+    lines = java_code.splitlines()
+
+    # State variables to track nesting level
+    current_nesting = 0
+    control_structure_stack = []  # Stack to track nesting levels
+    nesting_levels = []
+    line_weights = {}
+
+    # Regular expressions for detecting control structures and braces
+    control_regex = re.compile(r'\b(if|else if|else|for|while|do|switch|case|default)\b')
+    open_brace_regex = re.compile(r'\{')  # Opening brace
+    close_brace_regex = re.compile(r'\}')  # Closing brace
+
+    # Default weight for any control structure
+    default_weight = 1
+
+    for line_no, line in enumerate(lines, start=1):
+        stripped_line = line.strip()
+
+        # Skip empty lines
+        if not stripped_line:
+            nesting_levels.append((line_no, stripped_line, current_nesting, 0))
+            continue
+
+        # Check if the line contains a control structure
+        control_match = control_regex.search(stripped_line)
+        if control_match:
+            control_type = control_match.group()
+
+            # Assign weight dynamically based on nesting
+            weight = default_weight
+            if control_type in ['case', 'default']:
+                # Special handling for case and default (keep at the same nesting level)
+                line_weights[line_no] = weight
+            else:
+                # Increment nesting level for all other control structures
+                current_nesting += 1
+                control_structure_stack.append(current_nesting)
+                line_weights[line_no] = weight
+
+        # Record the current nesting level and weight for the line
+        nesting_levels.append((line_no, stripped_line, current_nesting, line_weights.get(line_no, 0)))
+
+        # Adjust nesting level based on braces
+        opening_braces = len(open_brace_regex.findall(stripped_line))
+        closing_braces = len(close_brace_regex.findall(stripped_line))
+
+        if closing_braces > 0:
+            for _ in range(closing_braces):
+                if control_structure_stack:
+                    control_structure_stack.pop()
+                    current_nesting = len(control_structure_stack)
+
+    return nesting_levels
 
 # Function to calculate inheritance level complexity (Wi)
 def calculate_inheritance_level(line, current_inheritance):
