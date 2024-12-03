@@ -245,7 +245,7 @@ def calculate_try_catch_weight(java_code):
     control_regex = re.compile(r'\b(try|catch|finally)\b')
 
     # Weights for `catch` based on nesting levels
-    catch_weights = {1: 1, 2: 3, 3: 4, 4: 5}
+    catch_weights = {0: 1, 1: 1, 2: 3, 3: 4, 4: 5}
     finally_weight = 2
 
     for line_no, line in enumerate(lines, start=1):

@@ -371,15 +371,15 @@ def calculate_complexity(request):
             plt.close()
 
             # Calculate WCC thresholds using percentiles
-            low_threshold = data['WCC'].quantile(0.33)
-            high_threshold = data['WCC'].quantile(0.67)
-
-            # Assign percentile-based categories
-            data['Percentile_Level'] = pd.cut(
-                data['WCC'],
-                bins=[-float('inf'), low_threshold, high_threshold, float('inf')],
-                labels=['Low Complexity', 'Medium Complexity', 'High Complexity']
-            )
+            # low_threshold = data['WCC'].quantile(0.33)
+            # high_threshold = data['WCC'].quantile(0.67)
+            #
+            # # Assign percentile-based categories
+            # data['Percentile_Level'] = pd.cut(
+            #     data['WCC'],
+            #     bins=[-float('inf'), low_threshold, high_threshold, float('inf')],
+            #     labels=['Low Complexity', 'Medium Complexity', 'High Complexity']
+            # )
 
             # Clustering for WCC thresholds
             wcc_values = data['WCC'].values.reshape(-1, 1)
@@ -420,13 +420,26 @@ def calculate_complexity(request):
                 plt.close()
                 scatter_plots[column] = scatter_plot_path
 
-            # Boxplot to show WCC thresholds
-            plt.figure(figsize=(10, 6))
-            sns.boxplot(x='Percentile_Level', y='WCC', data=data)
-            boxplot_path = os.path.join(media_dir, 'boxplot.png')
-            plt.title('WCC by Complexity Level')
-            plt.savefig(boxplot_path)
-            plt.close()
+                # Boxplot to show WCC thresholds with KMeans cluster thresholds
+                plt.figure(figsize=(10, 6))
+                sns.boxplot(x='Cluster_Level', y='WCC', data=data)
+
+                # Add horizontal lines for KMeans thresholds
+                plt.axhline(y=low_center, color='red', linestyle='--', label=f'Low Threshold ({round(low_center, 2)})')
+                plt.axhline(y=medium_center, color='orange', linestyle='--',
+                            label=f'Medium Threshold ({round(medium_center, 2)})')
+                plt.axhline(y=high_center, color='green', linestyle='--',
+                            label=f'High Threshold ({round(high_center, 2)})')
+
+                plt.title('WCC by Complexity Level with KMeans Thresholds')
+                plt.ylabel('WCC')
+                plt.xlabel('Cluster Level')
+                plt.legend()
+
+                # Save the updated boxplot
+                boxplot_path = os.path.join(media_dir, 'boxplot_with_thresholds.png')
+                plt.savefig(boxplot_path)
+                plt.close()
 
             # Prepare context for the result page
             context = {
