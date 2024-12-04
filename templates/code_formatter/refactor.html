@@ -3,19 +3,35 @@
 {% block content %}
 <h1 class="text-center mb-4">Code Refactoring Tool</h1>
 <div class="container">
+    <!-- Original Code Input -->
     <div class="mb-3">
         <label for="fileInput" class="form-label">Upload or Paste Code Below:</label>
         <input type="file" name="file" id="fileInput" class="form-control mb-3">
         <textarea id="codeEditor" name="code" class="form-control"></textarea>
     </div>
+
+    <!-- Refactor Button -->
     <div class="text-center">
         <button id="refactor-btn" class="btn btn-success">Refactor Code</button>
     </div>
+
+    <!-- Loading Bar -->
     <div id="loading-bar" class="mt-3" style="display: none;">
         <div class="progress">
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%;"></div>
         </div>
     </div>
+
+    <!-- Refactored Code Output -->
+    <div class="mt-5">
+        <h3 class="text-center">Refactored Code</h3>
+        <textarea id="refactoredCodeEditor" class="form-control" readonly></textarea>
+        <div class="text-center mt-3">
+            <button id="download-btn" class="btn btn-primary">Download Refactored Code</button>
+        </div>
+    </div>
+
+    <!-- Code Metrics -->
     <div class="mt-5">
         <h3 class="text-center">Code Metrics Visualization</h3>
         <canvas id="metricsChart" width="400" height="200"></canvas>
@@ -27,14 +43,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
 
 <script>
-    // Initialize CodeMirror
+    // Initialize CodeMirror for Original Code
     const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
         lineNumbers: true,
         mode: "javascript",
         theme: "default",
     });
 
-    // Handle file upload and display content in the editor
+    // Initialize CodeMirror for Refactored Code
+    const refactoredCodeMirror = CodeMirror.fromTextArea(document.getElementById('refactoredCodeEditor'), {
+        lineNumbers: true,
+        mode: "javascript",
+        theme: "default",
+        readOnly: true,
+    });
+
+    // Handle File Upload
     document.getElementById('fileInput').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
@@ -46,7 +70,7 @@
         }
     });
 
-    // Handle the refactor button click
+    // Handle Refactor Button Click
     document.getElementById('refactor-btn').addEventListener('click', async () => {
         const code = codeMirrorEditor.getValue();
         const loadingBar = document.getElementById('loading-bar');
@@ -57,25 +81,38 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
+                    'X-CSRFToken': '{{ csrf_token }}',
                 },
-                body: JSON.stringify({ code })
+                body: JSON.stringify({ code }),
             });
 
             if (response.ok) {
                 const data = await response.json();
-                codeMirrorEditor.setValue(data.refactored_code);
+                refactoredCodeMirror.setValue(data.refactored_code);
 
-                // Update chart with metrics
+                // Display Toast for Success
+                showToast("Code refactoring successful!", "success");
+
+                // Update Chart with Metrics
                 generateChart(data.original_loc, data.refactored_loc, data.original_readability, data.refactored_readability);
             } else {
-                alert('Error processing the code!');
+                showToast("Error in refactoring code!", "error");
             }
         } catch (error) {
-            alert('An error occurred: ' + error.message);
+            showToast("An error occurred: " + error.message, "error");
         } finally {
             loadingBar.style.display = 'none';
         }
+    });
+
+    // Download Refactored Code
+    document.getElementById('download-btn').addEventListener('click', () => {
+        const refactoredCode = refactoredCodeMirror.getValue();
+        const blob = new Blob([refactoredCode], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'refactored_code.java';
+        link.click();
     });
 
     // Generate Metrics Chart
@@ -88,30 +125,47 @@
                 datasets: [{
                     label: 'Metrics Comparison',
                     data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+                    borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+                    borderWidth: 1,
+                }],
             },
             options: {
                 responsive: true,
                 scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
+                    y: { beginAtZero: true },
+                },
+            },
         });
     }
+
+    // Show Toast Message
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerText = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
 </script>
+
+<style>
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #000;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        z-index: 1000;
+        opacity: 0.9;
+    }
+    .toast.success {
+        background: #28a745;
+    }
+    .toast.error {
+        background: #dc3545;
+    }
+</style>
 {% endblock %}
