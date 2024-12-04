@@ -23,7 +23,7 @@
     </div>
 
     <!-- Refactored Code Output -->
-    <div class="mt-5">
+    <div id="refactored-section" class="mt-5" style="display: none;">
         <h3 class="text-center">Refactored Code</h3>
         <textarea id="refactoredCodeEditor" class="form-control" readonly></textarea>
         <div class="text-center mt-3">
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Code Metrics -->
-    <div class="mt-5">
+    <div id="metrics-section" class="mt-5" style="display: none;">
         <h3 class="text-center">Code Metrics Visualization</h3>
         <canvas id="metricsChart" width="400" height="200"></canvas>
     </div>
@@ -74,7 +74,12 @@
     document.getElementById('refactor-btn').addEventListener('click', async () => {
         const code = codeMirrorEditor.getValue();
         const loadingBar = document.getElementById('loading-bar');
+        const refactoredSection = document.getElementById('refactored-section');
+        const metricsSection = document.getElementById('metrics-section');
+
         loadingBar.style.display = 'block';
+        refactoredSection.style.display = 'none';
+        metricsSection.style.display = 'none';
 
         try {
             const response = await fetch('/code-formatter/refactor-code/', {
@@ -89,6 +94,10 @@
             if (response.ok) {
                 const data = await response.json();
                 refactoredCodeMirror.setValue(data.refactored_code);
+
+                // Display sections on success
+                refactoredSection.style.display = 'block';
+                metricsSection.style.display = 'block';
 
                 // Display Toast for Success
                 showToast("Code refactoring successful!", "success");
@@ -117,27 +126,37 @@
 
     // Generate Metrics Chart
     function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
-        const ctx = document.getElementById('metricsChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
-                datasets: [{
-                    label: 'Metrics Comparison',
-                    data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-                    borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-                    borderWidth: 1,
-                }],
+    const ctx = document.getElementById('metricsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
+            datasets: [{
+                label: 'Metrics Comparison',
+                data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',  // Semi-transparent red
+                    'rgba(54, 162, 235, 0.5)',  // Semi-transparent blue
+                    'rgba(255, 206, 86, 0.5)',  // Semi-transparent yellow
+                    'rgba(75, 192, 192, 0.5)'   // Semi-transparent teal
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',    // Solid red border
+                    'rgba(54, 162, 235, 1)',    // Solid blue border
+                    'rgba(255, 206, 86, 1)',    // Solid yellow border
+                    'rgba(75, 192, 192, 1)'     // Solid teal border
+                ],
+                borderWidth: 1,
+            }],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true },
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: true },
-                },
-            },
-        });
-    }
+        },
+    });
+}
 
     // Show Toast Message
     function showToast(message, type) {
@@ -145,7 +164,10 @@
         toast.className = `toast ${type}`;
         toast.innerText = message;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+        setTimeout(() => {
+            toast.style.opacity = 0;
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 </script>
 
@@ -159,6 +181,7 @@
         padding: 10px 15px;
         border-radius: 5px;
         z-index: 1000;
+        transition: opacity 0.3s ease-in-out;
         opacity: 0.9;
     }
     .toast.success {
