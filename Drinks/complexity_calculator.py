@@ -1445,14 +1445,14 @@ def calculate_code_complexity_multiple_files(file_contents):
                     'try_catch_weight': 0,
                     'thread_weight': 0,
                     'cbo_weights': 0,
-                    'mpc_weight': 0,
+                    # 'mpc_weight': 0,
                 })
                 complexity_data.append([
                     line_number,
                     line.strip(),
                     size,
                     ', '.join(tokens),
-                    0, 0, 0, 0, 0, 0, 0, 0, 0
+                    0, 0, 0, 0, 0, 0, 0, 0
                 ])
                 continue
 
@@ -1502,13 +1502,13 @@ def calculate_code_complexity_multiple_files(file_contents):
                 'try_catch_weight': try_catch_weight,
                 'thread_weight': thread_weight,
                 'cbo_weights': total_cbo_weight,
-                'mpc_weight': mpc_weight,
+                # 'mpc_weight': mpc_weight,
             })
 
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
                     size + control_structure_complexity + nesting_level + current_inheritance +
-                    compound_condition_weight + try_catch_weight + thread_weight + total_cbo_weight + mpc_weight
+                    compound_condition_weight + try_catch_weight + thread_weight + total_cbo_weight + 0
             )
 
             # Update the total WCC for the file
@@ -1527,7 +1527,7 @@ def calculate_code_complexity_multiple_files(file_contents):
                 try_catch_weight,
                 thread_weight,
                 total_cbo_weight,
-                mpc_weight,
+                # mpc_weight,
                 total_complexity,
             ])
         # Calculate method complexities
@@ -1558,7 +1558,7 @@ def calculate_code_complexity_multiple_files(file_contents):
                 "try_catch_weight": method_data["try_catch_weight"],
                 "thread_weight": method_data["thread_weight"],
                 "cbo_weights": method_data["cbo_weights"],
-                "mpc_weight": method_data["mpc_weight"]
+                # "mpc_weight": method_data["mpc_weight"]
             }
 
             bar_chart_path = plot_complexity_bar_chart(method_name, relevant_factors, filename)
@@ -1680,7 +1680,10 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
 
         cbo_weights = cbo_line_data[line_number - 1]["weights"] if line_number - 1 < len(cbo_line_data) else {}
         total_cbo_weight = sum(cbo_weights.values())
+        print("total_cbo_weight______________________________________________________________________", total_cbo_weight)
         total_cbo += total_cbo_weight
+
+        # total_cbo_weight+= total_cbo_weight
 
         mpc_weight = mpc_line_data.get(line_number, 0)
         total_mpc += mpc_weight
@@ -1704,7 +1707,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
     # Sum up the complexity metrics for this method
     total_complexity = (
             size + control_structure_complexity + total_nesting + current_inheritance_sum +
-            compound_condition_weight + total_try_catch_weight + total_thread_weight + total_cbo + total_mpc
+            compound_condition_weight + total_try_catch_weight + total_thread_weight + total_cbo + 0
     )
 
     print("current_inheritance_sum", current_inheritance_sum)
@@ -1717,7 +1720,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         "try_catch_weight": total_try_catch_weight,
         "thread_weight": total_thread_weight,
         'cbo_weights': total_cbo,
-        'mpc_weight': total_mpc,
+        # 'mpc_weight': total_mpc,
         "total_complexity": total_complexity
     }
 
@@ -1732,7 +1735,7 @@ def calculate_complexity_factors(filename, data):
     total_try_catch_weight = 0
     total_thread_weight = 0
     total_cbo_weight = 0
-    total_mpc_weight = 0
+    # total_mpc_weight = 0
 
     for line in data:
         total_size += line[2]
@@ -1743,7 +1746,7 @@ def calculate_complexity_factors(filename, data):
         total_try_catch_weight += line[8]
         total_thread_weight += line[9]
         total_cbo_weight += line[10]
-        total_mpc_weight += line[11]
+        # total_mpc_weight += line[11]
 
     return {
         'Size': total_size,
@@ -1754,7 +1757,7 @@ def calculate_complexity_factors(filename, data):
         'Try-Catch Weight': total_try_catch_weight,
         'Thread Weight': total_thread_weight,
         'CBO': total_cbo_weight,
-        'MPC': total_mpc_weight
+        # 'MPC': total_mpc_weight
     }
 
 

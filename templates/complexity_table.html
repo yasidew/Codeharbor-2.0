@@ -194,7 +194,7 @@
                         <th>Try-Catch Weight</th>
                         <th>Thread Weight</th>
                         <th>CBO</th>
-                        <th>MPC</th>
+{#                        <th>MPC</th>#}
                         <th>Total Complexity</th>
                     </tr>
                 </thead>
@@ -213,12 +213,12 @@
                             <td>{% if line.2 != 0 %}{{ line.9 }}{% endif %}</td>
                             <td>{% if line.2 != 0 %}{{ line.10 }}{% endif %}</td>
                         <td>{% if line.2 != 0 %}{{ line.11 }}{% endif %}</td>
-                        <td>{% if line.2 != 0 %}{{ line.12 }}{% endif %}</td>
+{#                        <td>{% if line.2 != 0 %}{{ line.12 }}{% endif %}</td>#}
                         </tr>
                     {% endfor %}
 
                 <tr>
-                <td colspan="12" style="text-align: right; font-weight: bold;">Total WCC:</td>
+                <td colspan="11" style="text-align: right; font-weight: bold;">Total WCC:</td>
                 <td style="font-weight: bold;">{{ file.total_wcc }}</td>
             </tr>
                 </tbody>
@@ -226,23 +226,23 @@
         </div>
 
 
-        <div class="metrics">
-            <h3>CBO & MPC</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>CBO</th>
-                        <th>MPC</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ file.cbo }}</td>
-                        <td>{{ file.mpc }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+{#        <div class="metrics">#}
+{#            <h3>CBO & MPC</h3>#}
+{#            <table>#}
+{#                <thead>#}
+{#                    <tr>#}
+{#                        <th>CBO</th>#}
+{#                        <th>MPC</th>#}
+{#                    </tr>#}
+{#                </thead>#}
+{#                <tbody>#}
+{#                    <tr>#}
+{#                        <td>{{ file.cbo }}</td>#}
+{#                        <td>{{ file.mpc }}</td>#}
+{#                    </tr>#}
+{#                </tbody>#}
+{#            </table>#}
+{#        </div>#}
 
 {#        <div>#}
 {#            <h3>Complexity Contribution</h3>#}
@@ -250,7 +250,7 @@
 {#        </div>#}
 
         <div>
-            <h3>Refactoring Recommendations</h3>
+            <h3>Complexity Reduction Recommendations</h3>
             <table>
                 <thead>
                     <tr>
@@ -265,7 +265,7 @@
                             <td>{{ rec.line_number }}</td>
                             <td>{{ rec.line_content }}</td>
                             <td class="recommendation-text">{{ rec.recommendation }}</td>
-                        <td>{{ rec.recommendation1 }}</td>
+{#                        <td>{{ rec.recommendation1 }}</td>#}
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -285,6 +285,7 @@
                         <th>Compound Condition Weight</th>
                         <th>Try-Catch Weight</th>
                         <th>Thread Weight</th>
+                        <th>CBO</th>
                         <th>Total Complexity</th>
                         <th>Category</th>
                         <th>Bar Chart</th>
@@ -307,6 +308,7 @@
                             <td>{{ method.compound_condition_weight }}</td>
                             <td>{{ method.try_catch_weight }}</td>
                             <td>{{ method.thread_weight }}</td>
+                            <td>{{ method.cbo_weights }}</td>
                             <td>{{ method.total_complexity }}</td>
                             <td>{{ method.category }}</td>
                         <td>
