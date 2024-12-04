@@ -13,8 +13,7 @@
     "type": "ThreadSafeSingleton",
     "input": "public class ThreadSafeSingleton {\n\n    public ThreadSafeSingleton() {}\n\n}",
     "output": "public class ThreadSafeSingleton {\n\n    private static ThreadSafeSingleton instance;\n\n    private ThreadSafeSingleton() {}\n\n    public static synchronized ThreadSafeSingleton getInstance() {\n        if (instance == null) {\n            instance = new ThreadSafeSingleton();\n        }\n        return instance;\n    }\n\n}"
-  },
-  {
+  },  {
     "type": "BillPughSingleton",
     "input": "public class BillPughSingleton {\n\n    public BillPughSingleton() {}\n\n}",
     "output": "public class BillPughSingleton {\n\n    private BillPughSingleton() {}\n\n    private static class SingletonHelper {\n        private static final BillPughSingleton INSTANCE = new BillPughSingleton();\n    }\n\n    public static BillPughSingleton getInstance() {\n        return SingletonHelper.INSTANCE;\n    }\n\n}"
