@@ -17,8 +17,8 @@
         </div>
     </div>
     <div class="mt-5">
-        <h3 class="text-center">Code Complexity Metrics</h3>
-        <canvas id="complexityChart" width="400" height="200"></canvas>
+        <h3 class="text-center">Code Metrics Visualization</h3>
+        <canvas id="metricsChart" width="400" height="200"></canvas>
     </div>
 </div>
 
@@ -30,8 +30,8 @@
     // Initialize CodeMirror
     const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
         lineNumbers: true,
-        mode: "javascript", // Adjust mode based on the code language
-        theme: "default", // Change theme for dark mode
+        mode: "javascript",
+        theme: "default",
     });
 
     // Handle file upload and display content in the editor
@@ -50,7 +50,7 @@
     document.getElementById('refactor-btn').addEventListener('click', async () => {
         const code = codeMirrorEditor.getValue();
         const loadingBar = document.getElementById('loading-bar');
-        loadingBar.style.display = 'block'; // Show loading bar
+        loadingBar.style.display = 'block';
 
         try {
             const response = await fetch('/code-formatter/refactor-code/', {
@@ -67,29 +67,39 @@
                 codeMirrorEditor.setValue(data.refactored_code);
 
                 // Update chart with metrics
-                generateChart(data.original_complexity, data.refactored_complexity);
+                generateChart(data.original_loc, data.refactored_loc, data.original_readability, data.refactored_readability);
             } else {
                 alert('Error processing the code!');
             }
         } catch (error) {
             alert('An error occurred: ' + error.message);
         } finally {
-            loadingBar.style.display = 'none'; // Hide loading bar
+            loadingBar.style.display = 'none';
         }
     });
 
-    // Generate Complexity Metrics Chart
-    function generateChart(before, after) {
-        const ctx = document.getElementById('complexityChart').getContext('2d');
+    // Generate Metrics Chart
+    function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
+        const ctx = document.getElementById('metricsChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Before Refactoring', 'After Refactoring'],
+                labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
                 datasets: [{
-                    label: 'Cyclomatic Complexity',
-                    data: [before, after],
-                    backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(75, 192, 192, 0.2)'],
-                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(75, 192, 192, 1)'],
+                    label: 'Metrics Comparison',
+                    data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
                     borderWidth: 1
                 }]
             },

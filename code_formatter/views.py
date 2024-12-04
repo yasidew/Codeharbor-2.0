@@ -1,8 +1,7 @@
-import os
 from django.http import JsonResponse
 from django.shortcuts import render
-from .complexity_calculator import calculate_complexity
 from .utils import format_code_with_model
+from .complexity_calculator import calculate_loc, calculate_readability
 
 # Function to display the refactor page
 def refactor_view(request):
@@ -12,8 +11,8 @@ def refactor_view(request):
 def upload_code(request):
     if request.method == 'POST':
         uploaded_file = request.FILES['file']
-        file_content = uploaded_file.read().decode('utf-8')  # Read the content of the file as text
-        return JsonResponse({'code': file_content})  # Return the extracted code as JSON
+        file_content = uploaded_file.read().decode('utf-8')
+        return JsonResponse({'code': file_content})
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 # Function to handle code refactoring
@@ -25,21 +24,22 @@ def refactor_code(request):
         if not code:
             return JsonResponse({'error': 'No code provided'}, status=400)
 
-        # Calculate complexity of the original code
-        original_complexity = calculate_complexity(code)
+        # Calculate Lines of Code (LOC) and Readability for original code
+        original_loc = calculate_loc(code)
+        original_readability = calculate_readability(code)
 
-        # Refactor the code using your existing model
+        # Refactor the code
         refactored_code = format_code_with_model(code)
 
-        # Calculate complexity of the refactored code
-        refactored_complexity = calculate_complexity(refactored_code)
+        # Calculate LOC and Readability for refactored code
+        refactored_loc = calculate_loc(refactored_code)
+        refactored_readability = calculate_readability(refactored_code)
 
-        # Return both complexities and the refactored code
         return JsonResponse({
             'refactored_code': refactored_code,
-            'original_complexity': original_complexity,
-            'refactored_complexity': refactored_complexity
+            'original_loc': original_loc,
+            'refactored_loc': refactored_loc,
+            'original_readability': original_readability,
+            'refactored_readability': refactored_readability
         })
-
     return JsonResponse({'error': 'Invalid request'}, status=400)
-
