@@ -12,6 +12,12 @@ CodeHabor is a collaborative research project focused on managing code complexit
 
 ---
 
+## **Overall Architectural Diagram**
+
+![image](https://github.com/user-attachments/assets/e1861a5f-166b-43d8-a50c-06fd05ad3a46)
+
+---
+
 ## **Components**
 
 ### **1. Logic for Calculating and Displaying Code Complexity**
