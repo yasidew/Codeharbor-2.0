@@ -14,4 +14,5 @@ urlpatterns = [
     path('api/logout-all', logout_all),
     path('login/', lambda request: render(request, 'login.html'), name='login'),
     path('dashboard/', lambda request: render(request, 'dashboard.html'), name='login'),
+    path('profile/', lambda request: render(request, 'update_profile.html'), name='profile'),
 ]
