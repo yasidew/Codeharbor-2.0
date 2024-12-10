@@ -1,0 +1,55 @@
+# Python/Django
+
+# Byte-compiled files
+*.pyc
+*.pyo
+__pycache__/
+
+# Django specific
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Environment variables
+.env
+
+# VSCode
+.vscode/
+
+# Node.js
+
+# Dependency directories
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# Build outputs
+dist/
+build/
+
+# IDE and OS files
+.DS_Store
+Thumbs.db
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Debug files
+debug.log
+
+# Miscellaneous
+*.swp
+*.bak
+*.tmp
+*.orig
+*.lock
+coverage/
