@@ -17,6 +17,7 @@ urlpatterns = [
     path('', include("user.urls")),
     path('checker/', include('accessibility_checker.urls')),
 
+
     path('drinks/<int:id>', views.drink_detail),
     path('calculate-complexity-line-by-line/', views.calculate_complexity_multiple_java_files,
          name='calculate_complexity_line_by_line'),

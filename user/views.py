@@ -30,26 +30,6 @@ class UserAPI(APIView):
             "email": user.email,
         })
 
-    # def post(self, request):
-    #     username = request.data.get("username", "")
-    #     password = request.data.get("password", "")
-    #
-    #     if (username and password):
-    #         if User.objects.filter(username=username).exists():
-    #             return Response({
-    #                 "error": "A user with that username exists",
-    #             }, status=401)
-    #         user = User.objects.create(username=username, password=password)
-    #         refresh = RefreshToken.for_user(user)
-    #         return Response({
-    #             "refresh": str(refresh),
-    #             'access': str(refresh.access_token),
-    #         }, status=201)
-    #
-    #     return Response({
-    #         "error": "Both username and password must be provided."
-    #     })
-
     def post(self, request):
         username = request.data.get("username", "")
         password = request.data.get("password", "")

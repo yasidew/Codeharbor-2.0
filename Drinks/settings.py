@@ -132,6 +132,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
+# settings.py
+LOGIN_URL = '/api/token/'
 
 
 
