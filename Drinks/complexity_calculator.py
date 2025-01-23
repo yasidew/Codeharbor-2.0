@@ -3,15 +3,10 @@ import os
 import re
 
 import pandas as pd
-from pyparsing import (
-    Word, alphas, alphanums, Keyword, Suppress, Optional, Group, ZeroOrMore, Forward, OneOrMore, printables, SkipTo,
-    ParseException, nestedExpr, Literal, restOfLine
-)
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -74,15 +69,6 @@ def calculate_size(line):
     tokens = re.findall(token_pattern, line, re.VERBOSE)
 
     return len(tokens), tokens
-
-
-# Function to calculate control structure complexity for a single line (Wc)
-# def calculate_control_structure_complexity(line):
-#     wc = 0
-#     wc += len(re.findall(r'\bif\b', line))  # Branch (if-else)
-#     wc += len(re.findall(r'\bfor\b|\bwhile\b|\bdo\b', line)) * 2  # Iterative
-#     wc += len(re.findall(r'\bcase\b', line))  # Switch case
-#     return wc
 
 def calculate_control_structure_complexity(lines):
     """
@@ -172,7 +158,6 @@ def calculate_nesting_level(java_code):
         if control_match:
             control_type = control_match.group()
 
-            # Assign weight dynamically based on nesting
             weight = default_weight
             if control_type in ['case', 'default']:
                 # Special handling for case and default (keep at the same nesting level)
@@ -239,7 +224,6 @@ def calculate_compound_condition_weight(line):
 
     return weight
 
-
 def calculate_try_catch_weight(java_code):
     """
     Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
@@ -297,79 +281,137 @@ def calculate_try_catch_weight(java_code):
 
     return nesting_levels, line_weights
 
-
 def calculate_thread_weight(java_code):
-    """
-    Calculates the complexity weight for thread-related constructs in Java code.
-    Assigns weights for:
-    - Thread creation (e.g., `new Thread` or `Runnable`) with weight 2.
-    - Thread synchronization (`synchronized`) with weight 3.
-    """
+    complexity = {}
 
-    java_code = remove_comments(java_code)
     lines = java_code.splitlines()
-
-    # Regular expressions
-    thread_creation_regex = re.compile(r'\bnew\s+Thread\b|\bRunnable\b')
-    thread_sync_regex = re.compile(r'\bsynchronized\b')
-    wait_notify_regex = re.compile(r'\bwait\b|\bnotify\b|\bnotifyAll\b')
-
-    # Weights
-    thread_creation_weight = 2
-    thread_sync_weight = 4
-
-    # Result variables
-    line_weights = {}
+    synchronized_stack = []
+    block_start_line = None
+    last_thread_creation_line = None
+    lock_order = []
 
     for line_no, line in enumerate(lines, start=1):
-        stripped_line = line.strip()
-
-        if not stripped_line:
-            # Skip empty lines
-            continue
-
-        # Initialize weight for the current line
-        weight = 0
+        score = 0
+        recommendations = []
+        line = line.strip()
 
         # Check for thread creation
-        if thread_creation_regex.search(stripped_line):
-            weight += thread_creation_weight
+        if re.search(r'new\s+Thread\b', line):
+            if last_thread_creation_line is not None and line_no == last_thread_creation_line + 1:
+                score += 2  # Regular thread creation (not nested)
+                recommendations.append({
+                    "line_number": line_no,
+                    "line_content": line,
+                    "recommendation": "Avoid creating threads consecutively; consider using a thread pool instead."
+                })
+            else:
+                score += 2  # Basic thread creation
+                recommendations.append({
+                    "line_number": line_no,
+                    "line_content": line,
+                    "recommendation": "Consider using a thread pool to manage threads more efficiently."
+                })
+            last_thread_creation_line = line_no  # Update the last thread creation line
 
-        # Check for thread synchronization
-        if thread_sync_regex.search(stripped_line):
-            weight += thread_sync_weight
+        # Check for synchronized block
+        lock_match = re.search(r'synchronized\s*\((.*?)\)', line)
+        if lock_match:
+            lock_variable = lock_match.group(1)  # Extract the lock variable
+            if block_start_line is None:
+                block_start_line = line_no  # Start of synchronized block
+            if synchronized_stack:
+                # Detect potential deadlocks due to nested synchronization
+                if lock_variable in lock_order:
+                    score += 8
+                    recommendations.append({
+                        "line_number": line_no,
+                        "line_content": line,
+                        "recommendation": "Avoid re-locking the same lock variable within nested synchronized blocks to prevent deadlocks."
+                    })
+                elif lock_order and lock_variable != lock_order[-1]:
+                    score += 8  # Inconsistent lock order
+                    recommendations.append({
+                        "line_number": line_no,
+                        "line_content": line,
+                        "recommendation": "Maintain a consistent locking order to avoid deadlocks."
+                    })
+                else:
+                    score += 6  # Nested synchronization
+                    recommendations.append({
+                        "line_number": line_no,
+                        "line_content": line,
+                        "recommendation": "Avoid nested synchronized blocks to reduce the risk of deadlocks."
+                    })
+            else:
+                score += 4  # Basic synchronization block
+                recommendations.append({
+                    "line_number": line_no,
+                    "line_content": line,
+                    "recommendation": "Use synchronization carefully to minimize contention and bottlenecks."
+                })
+            synchronized_stack.append(lock_variable)  # Push the lock variable to the stack
+            lock_order.append(lock_variable)  # Track lock order
 
-        if wait_notify_regex.search(stripped_line):
-            weight += thread_sync_weight
+        # Check for end of block
+        if line == "}":
+            if synchronized_stack:
+                start_lock = synchronized_stack.pop()  # Pop the stack
+                if block_start_line and (line_no - block_start_line) > 5:  # Broad synchronization block
+                    score += 5
+                    recommendations.append({
+                        "line_number": line_no,
+                        "line_content": line,
+                        "recommendation": "Refactor to reduce the scope of synchronized blocks for better concurrency."
+                    })
+                if not synchronized_stack:  # Reset start line if stack is empty
+                    block_start_line = None
+                if start_lock in lock_order:
+                    lock_order.remove(start_lock)  # Maintain lock order consistency
 
-        # Store weight if it's greater than 0
-        if weight > 0:
-            line_weights[line_no] = weight
+        # Check for method-level synchronization
+        if re.search(r'public\s+synchronized\b', line):
+            score += 8  # Higher weight for broad synchronization scope
+            recommendations.append({
+                "line_number": line_no,
+                "line_content": line,
+                "recommendation": "Avoid method-level synchronization; prefer fine-grained synchronization."
+            })
 
-    return line_weights
+            # Check for synchronized block inside method-level synchronization
+            if re.search(r'synchronized\s*\(', line):
+                score += 6  # Nested synchronized block inside a synchronized method
+                recommendations.append({
+                    "line_number": line_no,
+                    "line_content": line,
+                    "recommendation": "Refactor to avoid nested synchronized blocks within synchronized methods."
+                })
+
+        # Store the score and reasons for the current line
+        if score > 0:
+            complexity[line_no] = {"score": score, "recommendations": recommendations}
+
+    return complexity
 
 
-# Set up logging
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 # Function to extract class references for CBO calculation
 def extract_class_references(java_code):
-    logging.info("Starting extraction of class references.")
-    # Patterns to match class instantiation, inheritance, and interface implementation
     instantiation_pattern = r'new\s+([A-Z][\w]*)'
-    inheritance_pattern = r'class\s+\w+\s+extends\s+([A-Z][\w]*)'
-    interface_pattern = r'class\s+\w+\s+implements\s+([A-Z][\w]*)'
     constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'
-    method_pattern = r'(public|private)?\s*void\s+(?!set[A-Z])\w+\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
-    setter_injection_pattern = r'(public)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+    setter_injection_pattern = r'(public|private)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+    static_usage_pattern = r'([A-Z][\w]*)\.\w+\s*\('  # Static method call: e.g., Utility.method()
+    static_variable_pattern = r'([A-Z][\w]*)\.\w+'
+    field_declaration_pattern = r'([A-Z][\w]*)\s+\w+\s*;'
 
     # Dictionary to store class references per class
     class_references = {}
 
     # Split code into lines and process each line
     lines = java_code.splitlines()
+    recommendations = []
+    declared_fields = []
 
     current_class = None
-    for line in lines:
+    for line_no, line in enumerate(lines, start=1):
         # Check for class declaration (detect current class)
         class_declaration = re.search(r'class\s+([A-Z][\w]*)', line)
         if class_declaration:
@@ -380,135 +422,121 @@ def extract_class_references(java_code):
         # Print the current class for debugging
         print(f"Current class: {current_class}")
 
+        excluded_classes = [
+            'System', 'String', 'Integer', 'Float', 'Double', 'Boolean', 'Character',
+            'Byte', 'Short', 'Long', 'Math', 'Object', 'Thread', 'Runtime', 'Optional'
+        ]
+
         if current_class:
             # Find class instantiations
             instantiations = re.findall(instantiation_pattern, line)
             for instantiated_class in instantiations:
                 if instantiated_class in class_references[current_class]:
-                    print("param_classes-----------------------------284", instantiated_class)
                     class_references[current_class][instantiated_class] += 3  # Tight coupling: assign 2
-                    logging.debug(f"Class instantiation found: {instantiated_class} in class {current_class}")
+                    recommendations.append({
+                        "line_number": line_no,
+                        "line_content": line,
+                        "recommendation": f"Consider using dependency injection or factory methods instead of directly instantiating {instantiated_class} to improve testability and reduce tight coupling."
+                    })
                 else:
                     class_references[current_class][instantiated_class] = 3
+                    recommendations.append({
+                        "line_number": line_no,
+                        "line_content": line,
+                        "recommendation": f"Consider using dependency injection or factory methods instead of directly instantiating {instantiated_class} to improve testability and reduce tight coupling."
+                    })
 
-            # Find inheritance (extends)
-            inheritance = re.findall(inheritance_pattern, line)
-            for inherited_class in inheritance:
-                if inherited_class in class_references[current_class]:
-                    print("param_classes-----------------------------291", inherited_class)
-                    class_references[current_class][inherited_class] += 3  # Tight coupling: assign 2
-                    logging.debug(f"Inheritance found: {inherited_class} for class {current_class}")
-                else:
-                    class_references[current_class][inherited_class] = 3
+            field_declaration_match = re.search(field_declaration_pattern, line)
+            if field_declaration_match:
+                field_class = field_declaration_match.group(1)
+                declared_fields.add(field_class)  # Track fields for later use
+                class_references[current_class][field_class] = class_references[current_class].get(field_class, 0) + 1
+                recommendations.append({
+                    "line_number": line_no,
+                    "line_content": line.strip(),
+                    "recommendation": f"Field declaration for {field_class} detected. Consider using constructor injection for better flexibility and testability."
+                })
+            # Detect static method usage
+            static_methods = re.findall(static_usage_pattern, line)
+            for static_class in static_methods:
+                if static_class not in excluded_classes:  # Only count non-built-in classes
+                    class_references[current_class][static_class] = class_references[current_class].get(static_class,
+                                                                                                        0) + 2
+                    recommendations.append({
+                        "line_number": line_no,
+                        "line_content": line.strip(),
+                        "recommendation": f"Static method from {static_class} detected. Consider avoiding static methods where possible for better modularity."
+                    })
 
-            # Find implemented interfaces (implements)
-            interfaces = re.findall(interface_pattern, line)
-            for implemented_interface in interfaces:
-                print("param_classes-----------------------------298", implemented_interface)
-                class_references[current_class][implemented_interface] = 1  # Loose coupling: assign 1
-                logging.debug(f"Interface implementation found: {implemented_interface} for class {current_class}")
+            # Detect static variable usage
+            static_variables = re.findall(static_variable_pattern, line)
+            for static_class in static_variables:
+                if static_class not in excluded_classes:  # Only count non-built-in classes
+                    class_references[current_class][static_class] = class_references[current_class].get(static_class,
+                                                                                                        0) + 1
+                    recommendations.append({
+                        "line_number": line_no,
+                        "line_content": line.strip(),
+                        "recommendation": f"Static variable from {static_class} detected. Avoid over-reliance on static variables for better flexibility."
+                    })
 
             constructor_matches = re.findall(constructor_pattern, line)
             for match in constructor_matches:
                 # Extract parameter classes, excluding primitive types and wrappers
                 param_classes = re.findall(r'([A-Z][\w]*)', match)
-                # print("param_classes-----------------------------", param_classes)
 
                 for param_class in param_classes:
-                    print("param_classes-----------------------------309", param_class)
                     if param_class in class_references[current_class]:  # Exclude primitives and wrappers
                         class_references[current_class][param_class] += 1  # Loose coupling: assign 1
-                        print("class_references[current_class][param_class]-----------------------------------------------------pppppppppppppppp", class_references[current_class][param_class])
-                        logging.debug(f"Constructor parameter found: {param_class} in class {current_class}")
+                        recommendations.append({
+                            "line_number": line_no,
+                            "line_content": line,
+                            "recommendation": f"Constructor parameter {param_class} detected. Consider constructor injection to improve testability and decoupling."
+                        })
                     else:
                         class_references[current_class][param_class] = 1
+                        recommendations.append({
+                            "line_number": line_no,
+                            "line_content": line,
+                            "recommendation": f"Constructor parameter {param_class} detected. Consider constructor injection to improve testability and decoupling."
+                        })
 
             # Detect setter injection
             setter_matches = re.findall(setter_injection_pattern, line)
             for setter_class in setter_matches:
                 class_references[current_class][setter_class] = 1  # Loose coupling
-                logging.debug(f"Setter DI: {setter_class} in class {current_class}")
+                recommendations.append({
+                    "line_number": line_no,
+                    "line_content": line,
+                    "recommendation": f"Setter injection for {setter_class} detected. Consider using constructor injection for mandatory dependencies."
+                })
 
-
-            # List of Java primitive data types and their wrapper classes
-            excluded_types = [
-                'int', 'float', 'double', 'boolean', 'char', 'byte', 'short', 'long',  # Primitives
-                'Integer', 'Float', 'Double', 'Boolean', 'Character', 'Byte', 'Short', 'Long',  # Wrapper classes
-                'String' , 'List', 'Map', 'Set', 'HashMap', 'ArrayList', 'HashSet', 'LinkedList',  # Java standard library classes
-        'Optional', 'Stream'
-            ]
-
-            # Check for any method signature and log method details
-            method_match = re.search(method_pattern, line)
-            if method_match:
-                method_name = method_match.group(3)
-                parameters = method_match.group(4)
-                logging.debug(f"Found method '{method_name}' in class {current_class} with parameters: {parameters}")
-
-                # Find all class names in method parameters (classes start with an uppercase letter)
-                # This also checks inside generics like List<Order>, Set<Customer>
-                param_classes = re.findall(r'\b([A-Z][\w]*)\b', parameters)
-
-                # Register each found class as tight coupling, excluding primitives and wrapper classes
-                for param_class in param_classes:
-                    if param_class not in excluded_types:  # Exclude primitives and wrappers
-                        if param_class in class_references[current_class]:
-                            print("AnotherClass..................................336", param_class)
-
-                            class_references[current_class][param_class] += 3  # Tight coupling to the parameter class
-                            logging.debug(
-                                f"Tight coupling with {param_class} found in method {method_name} of class {current_class}")
-                        else:
-                            class_references[current_class][param_class] = 3
-
-                # Additional check for generics (classes inside angle brackets <>)
-                # Example: List<Order>, Set<Customer>, ArrayList<Product>
-                generic_matches = re.findall(r'<\s*([A-Z][\w]*)\s*>', parameters)
-
-                for generic_class in generic_matches:
-                    if generic_class not in excluded_types:  # Exclude primitives and wrappers
-                        print("param_classes-----------------------------348", generic_class)
-                        class_references[current_class][generic_class] = 3  # Tight coupling to the generic class
-                        logging.debug(
-                            f"Tight coupling with generic type {generic_class} found in method {method_name} of class {current_class}")
-
-
-    logging.info("Finished extracting class references.")
-    logging.info(class_references)
-
-    return class_references
+    return class_references, recommendations
 
 
 # Function to calculate CBO
 def calculate_cbo(class_references):
     cbo_results = {}
-
-
-    # Create a set to track all class references globally
-    # all_references = set()
+    # recommendations = []
 
     # Loop through each class's references and count them
     for class_name, references in class_references.items():
-        logging.debug(f"Calculating CBO for class {class_name} with references: {references}")
-        print(f"Calculating CBO for class {class_name} with references: {references}")
-        # Count unique references to other classes
-        # unique_references = references - {class_name}  # Exclude self-references
-        # cbo_results[class_name] = len(unique_references)  # CBO is the number of unique class references
-        # all_references.update(unique_references)  # Track all references
         cbo_results[class_name] = sum(references.values())
-        logging.info(f"CBO for class {class_name}: {cbo_results[class_name]}")
 
     return cbo_results
 
 def extract_class_references_with_lines(java_code):
-    logging.info("Starting extraction of class references.")
-    # Patterns to match class instantiation, inheritance, and interface implementation
     instantiation_pattern = r'new\s+([A-Z][\w]*)'
-    inheritance_pattern = r'class\s+\w+\s+extends\s+([A-Z][\w]*)'
-    interface_pattern = r'class\s+\w+\s+implements\s+([A-Z][\w]*)'
-    constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'
-    method_pattern = r'(public|private)?\s*void\s+(?!set[A-Z])\w+\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
-    setter_injection_pattern = r'(public)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+    field_declaration_pattern = r'([A-Z][\w]*)\s+\w+\s*;'
+    static_usage_pattern = r'([A-Z][\w]*)\.\w+\s*\('  # Static method call
+    static_variable_pattern = r'([A-Z][\w]*)\.\w+'
+    constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'  # Constructor parameters (dependency injection)
+    setter_injection_pattern = r'(public|private)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'  # Setter injection
+
+    excluded_classes = [
+        'System', 'String', 'Integer', 'Float', 'Double', 'Boolean', 'Character',
+        'Byte', 'Short', 'Long', 'Math', 'Object', 'Thread', 'Runtime', 'Optional'
+    ]
 
     # Dictionary to store class   references per line
     line_references = []
@@ -516,6 +544,7 @@ def extract_class_references_with_lines(java_code):
     # Split code into lines and process each line
     lines = java_code.splitlines()
     current_class = None
+    declared_fields = set()
 
     for line_no, line in enumerate(lines, start=1):
         stripped_line = line.strip()
@@ -530,39 +559,47 @@ def extract_class_references_with_lines(java_code):
             # Initialize weights for the current line
             weights = {}
 
+            # Detect field declarations for aggregation coupling
+            # Step 1: Detect field declarations (possible aggregation)
+            field_declaration_match = re.search(field_declaration_pattern, stripped_line)
+            if field_declaration_match:
+                field_class = field_declaration_match.group(1)
+                declared_fields.add(field_class)  # Track fields for later use
+                weights[field_class] = 1  # Default to aggregation (loose coupling)
+
+            # Step 2: Detect composition (field initialization using `new`)
+            # Check if the line initializes a previously declared field
+            for field_class in declared_fields:
+                if f"= new {field_class}" in stripped_line:
+                    weights[field_class] = 3  # Overwrite to composition (tight coupling)
+
             # Find class instantiations
             instantiations = re.findall(instantiation_pattern, stripped_line)
             for instantiated_class in instantiations:
-                weights[instantiated_class] = 3  # Tight coupling due to instantiation
+                weights[instantiated_class] = 3
 
-            # Find inheritance (extends)
-            inheritance = re.findall(inheritance_pattern, stripped_line)
-            for inherited_class in inheritance:
-                weights[inherited_class] = 3  # Tight coupling due to inheritance
-
-            # Find implemented interfaces (implements)
-            interfaces = re.findall(interface_pattern, stripped_line)
-            for implemented_interface in interfaces:
-                weights[implemented_interface] = 1  # Loose coupling due to interface implementation
-
-            # Detect constructor parameters
+            # Detect constructor injection (dependency injection)
             constructor_matches = re.findall(constructor_pattern, stripped_line)
             for match in constructor_matches:
                 param_classes = re.findall(r'([A-Z][\w]*)', match)
                 for param_class in param_classes:
-                    weights[param_class] = 1  # Loose coupling due to constructor injection
+                    weights[param_class] = 1  # Loose coupling for dependency injection
 
-            # Detect setter injection
+            # Detect setter injection (dependency injection)
             setter_matches = re.findall(setter_injection_pattern, stripped_line)
             for setter_class in setter_matches:
-                weights[setter_class] = 1  # Loose coupling due to setter injection
+                weights[setter_class] = 1  # Loose coupling for setter injection
+            # Static method usage
+            static_methods = re.findall(static_usage_pattern, stripped_line)
+            for static_class in static_methods:
+                if static_class not in excluded_classes:
+                    weights[static_class] = weights.get(static_class, 0) + 2  # Medium coupling for static methods
 
-            # Detect method parameters
-            method_match = re.search(method_pattern, stripped_line)
-            if method_match:
-                param_classes = re.findall(r'([A-Z][\w]*)', method_match.group(2))
-                for param_class in param_classes:
-                    weights[param_class] = 3  # Tight coupling due to method parameters
+            # Detect static variable usage
+            static_variables = re.findall(static_variable_pattern, stripped_line)
+            for static_class in static_variables:
+                if static_class not in excluded_classes:
+                    weights[static_class] = weights.get(static_class, 0) + 1
 
             # Add weights to the current line
             line_data["weights"] = weights
@@ -1049,102 +1086,116 @@ print(classification_report(y_test_coupling, y_pred_coupling))
 """
 
 
-# Function to calculate inheritance level (Wi)
+
 def calculate_inheritance_level2(class_name):
-    # Retrieve the inheritance depth from the dictionary, default to 1 if not found
     return inheritance_depth.get(class_name, 1)
 
-"""
-# Step 4: Integrate with existing rule-based recommendations
-def ai_recommend_refactoring(line_complexities, cbo_value, mpc_value):
-    recommendations = []
-
-    for line_info in line_complexities:
-        metrics = [
-            line_info['control_structure_complexity'],
-            line_info['nesting_level'],
-            line_info['inheritance_level'],
-            line_info['compound_condition_weight'],
-            line_info['try_catch_weight'],
-            line_info['thread_weight']
-        ]
-
-        metrics1 = [
-            cbo_value,
-            mpc_value
-        ]
-        # AI-based recommendation
-        ai_recommendation = model.predict([metrics])
-        ai_recommendation1 = model_coupling.predict([metrics1])
-
-        # Add to recommendations
-        recommendations.append({
-            'line_number': line_info['line_number'],
-            'line_content': line_info['line_content'],
-            'recommendation': ai_recommendation,
-            'recommendation1': ai_recommendation1,
-        })
-
-    return recommendations
-    
-
-"""
+# Load or initialize dataset
+data_file = "media/synthetic_training_data_1000.csv"
+if os.path.exists(data_file):
+    dataset = pd.read_csv(data_file)
+else:
+    dataset = pd.DataFrame(columns=["control_structure_complexity", "nesting_level", "compound_condition_weight", "try_catch_weight", "current_inheritance", "label"])
 
 
-# Load Excel data
-file_path = 'media/synthetic_dataset_100.csv'
-print(os.path.exists(file_path))
-try:
-    if file_path.endswith('.xls'):
-        df = pd.read_excel(file_path, engine='xlrd')
-    elif file_path.endswith('.xlsx'):
-        df = pd.read_excel(file_path, engine='openpyxl')
-    elif file_path.endswith('.csv'):
-        df = pd.read_csv(file_path)
-    else:
-        raise ValueError("Unsupported file format")
-except Exception as e:
-    print(f"Error reading file: {e}")
+# Function to clean and convert dataset
+def clean_and_convert_dataset(data):
+    numerical_columns = ["control_structure_complexity", "nesting_level", "compound_condition_weight",
+                         "try_catch_weight", "current_inheritance"]
+    for col in numerical_columns:
+        if col in data.columns:
+            data[col] = data[col].astype(int)
 
-# Separate features and labels
-features = df[['control_structure_complexity', 'nesting_level',
-               'compound_condition_weight']]
-labels = df['label']
+    if "label" in data.columns:
+        data["label"] = data["label"].str.replace('"', '', regex=False)
 
-# Convert to numpy arrays
-X = features.values
-y = labels.values
+    return data
+# Remove duplicates from the dataset
+dataset = dataset.drop_duplicates()
 
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+dataset = clean_and_convert_dataset(dataset)
 
-# Train Random Forest model
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
+# Train the model
+def train_model(data):
+    X = data[["control_structure_complexity", "nesting_level", "compound_condition_weight", "try_catch_weight", "current_inheritance"]]
+    y = data["label"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    print("Model Accuracy:", accuracy_score(y_test, y_pred))
+    print("F1 Score Report:")
+    print(classification_report(y_test, y_pred))
+    return model
 
-# Evaluate the model
-y_pred = model.predict(X_test)
-print("=== Model Evaluation ===")
-print(classification_report(y_test, y_pred))
+model = train_model(dataset)
+
+def update_dataset_and_model(new_data):
+    global dataset, model
+
+    # Clean the new data
+    new_data = clean_and_convert_dataset(new_data)
+
+    print("newData^^^^^^^^^^^^^^^^^^^^^^^^6", new_data)
+
+    dataset = pd.concat([dataset, new_data], ignore_index=True).drop_duplicates()
+    dataset.to_csv(data_file, index=False)
+    model = train_model(dataset)
+
+def recommend_action(metrics):
+    control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
+
+    if control_structure_complexity == 1 and nesting_level >= 3:
+        if compound_condition_weight >= 3:
+            return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
+        return "Critical refactor: High complexity and if nesting"
+
+    if control_structure_complexity == 2 and nesting_level >= 3:
+        if compound_condition_weight >= 3:
+            return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
+        return "Critical refactor: High complexity and for loop nesting"
+
+    if control_structure_complexity >= 3 and nesting_level >= 3:
+        return "Critical refactor: High complexity and switch case nesting"
+
+    if try_catch_weight > 5:
+        if try_catch_weight > 8:
+            return "Critical refactor: Excessive try-catch nesting, simplify error handling"
+        return "Critical refactor: High complexity due to try-catch nesting"
+
+    if current_inheritance > 5:
+        return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
+
+    if current_inheritance > 3:
+        return "Consider reducing inheritance levels to improve maintainability"
+
+    if compound_condition_weight > 3:
+        if compound_condition_weight > 5:
+            return "Critical refactor: Excessive compound conditions, simplify conditional logic"
+        return "Consider simplifying compound conditions to improve readability"
+
+    if try_catch_weight > 3 and try_catch_weight <= 5:
+        return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
+
+    if control_structure_complexity >= 2 and nesting_level > 2:
+        return "Moderate complexity: Control structures are manageable but keep them simple"
+
+    return "No action needed"
 
 
 def ai_recommend_refactoring(new_data):
     recommendations = []
     for line in new_data:
-        # Extract metrics for the line
         metrics = [
             line['control_structure_complexity'],
             line['nesting_level'],
-            # line['inheritance_level'],
             line['compound_condition_weight'],
-            # line['try_catch_weight'],
-            # line['thread_weight']
+            line['try_catch_weight'],
+            line['inheritance_level'],
         ]
 
-        # Get prediction
         prediction = model.predict([metrics])[0]
 
-        # Append to recommendations
         recommendations.append({
             'line_number': line['line_number'],
             'line_content': line['line_content'],
@@ -1154,7 +1205,6 @@ def ai_recommend_refactoring(new_data):
     return recommendations
 
 
-# Main function to calculate complexity line by line
 def calculate_code_complexity_line_by_line(code):
     lines = code.splitlines()
     current_nesting = 0
@@ -1193,11 +1243,11 @@ def calculate_code_complexity_line_by_line(code):
         })
 
     # Get AI recommendations for each line in the file
-    recommendations = ai_recommend_refactoring(line_complexities)
+    # recommendations = ai_recommend_refactoring(line_complexities)
     # Print the recommendations
-    for recommendation in recommendations:
-        print(f"Line {recommendation['line_number']}: {recommendation['line_content']}")
-        print(f"Recommendation: {recommendation['recommendation']}\n")
+    # for recommendation in recommendations:
+    #     print(f"Line {recommendation['line_number']}: {recommendation['line_content']}")
+    #     print(f"Recommendation: {recommendation['recommendation']}\n")
 
     # Extract class references and calculate CBO after processing lines
     class_references = extract_class_references(code)
@@ -1239,6 +1289,7 @@ def calculate_code_complexity_multiple(file_contents):
 
 def calculate_code_complexity_multiple_files(file_contents):
     results = {}
+    new_patterns = []
 
     # Step 1: Track inheritance across all files
     track_inheritance_depth_across_files(file_contents)
@@ -1258,6 +1309,7 @@ def calculate_code_complexity_multiple_files(file_contents):
         # Split content into lines
         lines = content.splitlines()
         complexity_data = []
+        complexity_data2 = []
         class_declaration_found = False
 
         # Extract CBO results for each line
@@ -1265,27 +1317,17 @@ def calculate_code_complexity_multiple_files(file_contents):
         mpc_line_data = mpc_results.get(filename, [])
 
         # Extract class references and message passing for MPC and CBO
-        class_references = extract_class_references(content)
+        class_references, cbo_recommendations = extract_class_references(content)
         message_passing = extract_message_passing(content)
-        # print("Method complex",method_complexities)
-
-        # nesting_levels  = calculate_nesting_level1(content)
-        # display_nesting_levels(nesting_levels)
         nesting_levels = calculate_nesting_level(content)
         nesting_level_dict = {line[0]: line[2] for line in nesting_levels}
-
-        # try_catch_weights = calculate_try_catch_weight(content)
-        # try_catch_weight_dict = {line[0]: line[3] for line in try_catch_weights}
-        # print("try_catch_weight_dict###############################################", try_catch_weight_dict)
-        #
-        # print("try_catch_weights---------------------------------", try_catch_weights)
 
         try_catch_weights, try_catch_weight_dict = calculate_try_catch_weight(content)
 
         thread_weights = calculate_thread_weight(content)
 
         # Calculate MPC and CBO for this file
-        cbo_value = calculate_cbo(class_references).get(class_name, 0)
+        cbo_value = calculate_cbo(class_references)
         mpc_value = calculate_mpc(message_passing).get(class_name, 0)
 
         # Prepare line_complexities for recommendation engine
@@ -1298,7 +1340,6 @@ def calculate_code_complexity_multiple_files(file_contents):
         # line_weights, total_control_complexity = calculate_control_structure_complexity(content)
         lines = content.splitlines()
         line_weights, total_complexity = calculate_control_structure_complexity(lines)
-        print("control_structure_complexity&&&&&&&&&&&&&&&&&&&&&&&%", line_weights)
 
         for line_number, line in enumerate(lines, start=1):
             # Calculate size (token count)
@@ -1340,36 +1381,43 @@ def calculate_code_complexity_multiple_files(file_contents):
 
             nesting_level = nesting_level_dict.get(line_number, 0)
             try_catch_weight = try_catch_weight_dict.get(line_number, 0)
-            print("try_catch_weight", try_catch_weight)
-            thread_weight = thread_weights.get(line_number, 0)
+            thread_weight = thread_weights.get(line_number, {"score": 0, "reasons": []})
 
-            # Calculate control structure complexity
-            # control_structure_complexity = calculate_control_structure_complexity(line)
+            complexity_data2.append({
+                "line_number": line_number,
+                "line_content": line.strip(),
+                "thread_weight": thread_weight.get("score", 0),
+                "recommendations": thread_weight.get("recommendations", [])
+            })
 
-            # for line_number1, details in line_weights.items():
-            #     print(f"Line {line_number1}: {details['line_content']} -> Weight: {details['weight']}")
-
-            # Calculate nesting level
-            # current_nesting, in_control_structure, control_structure_stack, wn = calculate_nesting_level(
-            #     line, current_nesting, in_control_structure, control_structure_stack
-            # )
-
-            # Calculate inheritance level
-            # current_inheritance = calculate_inheritance_level(line, current_inheritance)
-            # Calculate inheritance level (using tracked inheritance from other files)
             current_inheritance = calculate_inheritance_level2(class_name)
             method_inheritance[class_name] = current_inheritance
 
             # Calculate weights due to compound conditions
             compound_condition_weight = calculate_compound_condition_weight(line)
 
-            # Calculate weights for try-catch-finally blocks
-            # try_catch_weight = calculate_try_catch_weight(line, current_nesting)
-
-            # Calculate weights for thread operations
-            # thread_weight = calculate_thread_weight(line)
             control_structure_complexity = line_weights[line_number]["weight"]
-            print("@@@@@@@@@@@@@@@@@@@control_structure_complexity@@@@@@@@@@@@@@@@@", control_structure_complexity)
+
+            print("try_catch_weight******************************************8", try_catch_weight)
+            print("current_inheritance***************************************", current_inheritance)
+
+            metrics = [control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance]
+            recommendation = recommend_action(metrics)
+
+            # Check if pattern exists in dataset; if not, add it
+            if not ((dataset["control_structure_complexity"] == control_structure_complexity) &
+                    (dataset["nesting_level"] == nesting_level) &
+                    (dataset["compound_condition_weight"] == compound_condition_weight) &
+                    (dataset["try_catch_weight"] == try_catch_weight) &
+                    (dataset["current_inheritance"] == current_inheritance)).any():
+                new_patterns.append({
+                    "control_structure_complexity": control_structure_complexity,
+                    "nesting_level": nesting_level,
+                    "compound_condition_weight": compound_condition_weight,
+                    "try_catch_weight":int(try_catch_weight),
+                    "current_inheritance":int(current_inheritance),
+                    "label": recommendation.strip('"')
+                })
 
             # Append complexity details to line_complexities for recommendations
             line_complexities.append({
@@ -1382,7 +1430,7 @@ def calculate_code_complexity_multiple_files(file_contents):
                 'inheritance_level': current_inheritance,
                 'compound_condition_weight': compound_condition_weight,
                 'try_catch_weight': try_catch_weight,
-                'thread_weight': thread_weight,
+                'thread_weight': thread_weight['score'],
                 'cbo_weights': total_cbo_weight,
                 # 'mpc_weight': mpc_weight,
             })
@@ -1390,7 +1438,7 @@ def calculate_code_complexity_multiple_files(file_contents):
             # Calculate the total complexity for this line (this could be the sum of all the metrics)
             total_complexity = (
                     size + control_structure_complexity + nesting_level + current_inheritance +
-                    compound_condition_weight + try_catch_weight + thread_weight + total_cbo_weight + 0
+                    compound_condition_weight + try_catch_weight + thread_weight['score'] + total_cbo_weight + 0
             )
 
             # Update the total WCC for the file
@@ -1407,13 +1455,20 @@ def calculate_code_complexity_multiple_files(file_contents):
                 current_inheritance,
                 compound_condition_weight,
                 try_catch_weight,
-                thread_weight,
+                thread_weight['score'],
                 total_cbo_weight,
                 # mpc_weight,
                 total_complexity,
             ])
         # Calculate method complexities
         method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data, line_weights)
+
+        print("method_complexities**********************************************************$$$$", method_complexities)
+        # Update dataset and retrain model if new patterns were identified
+        if new_patterns:
+            new_data = pd.DataFrame(new_patterns)
+            update_dataset_and_model(new_data)
+
         # Get AI recommendations for each line in the file
         recommendations = ai_recommend_refactoring(line_complexities)
 
@@ -1421,6 +1476,12 @@ def calculate_code_complexity_multiple_files(file_contents):
         filtered_recommendations = [
             rec for rec in recommendations if rec['recommendation'] != "No action needed"
         ]
+
+        for item3 in complexity_data2:
+            if isinstance(item3, dict) and "recommendations" in item3:
+                filtered_recommendations.extend(item3["recommendations"])
+
+        filtered_recommendations.extend(cbo_recommendations)
 
         # Calculate contributing factors and plot pie chart
         complexity_factors = calculate_complexity_factors(filename, complexity_data)
@@ -1470,7 +1531,7 @@ method_pattern = re.compile(
 # Keywords to ignore to prevent detecting control structures as methods
 control_keywords = {'if', 'for', 'while', 'switch', 'catch'}
 
-
+"""
 # Function to calculate complexity for each method in a file
 def calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data, line_weights):
     methods = {}
@@ -1486,7 +1547,6 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name,
 
     # Split content by line and analyze each one
     for line in content.splitlines():
-        # Detect method declarations (example pattern; adapt as needed)
         match = re.search(r'\b(?:public|private|protected)?\s*(?:static)?\s*\w+\s+(\w+)\s*\(.*\)\s*{', line)
         if match:
             method_name = match.group(1)
@@ -1505,38 +1565,123 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name,
     # Final method complexity calculation
     if method_name:
         methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data,line_weights)
+    return methods
+"""
+def calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data, line_weights):
+    """
+    Calculate complexity metrics for each method in a given class.
+
+    :param content: The file content (Java code) as a string.
+    :param method_inheritance: Dictionary containing inheritance levels.
+    :param class_name: The name of the class in the file.
+    :param cbo_line_data: Coupling Between Object (CBO) data per line.
+    :param mpc_line_data: Message Passing Coupling (MPC) data per line.
+    :param line_weights: Control structure weights per line.
+    :return: A dictionary with complexity data for each method.
+    """
+    methods = {}
+    method_name = None
+    method_lines = []
+    brace_counter = 0  # Tracks the number of open braces
+
+    # Precompute additional metrics
+    nesting_levels = calculate_nesting_level(content)
+    nesting_level_dict = {line[0]: line[2] for line in nesting_levels}
+    try_catch_weights, try_catch_weight_dict = calculate_try_catch_weight(content)
+    thread_weights = calculate_thread_weight(content)
+
+    # Regular expression for method signature detection
+    method_signature_regex = r'\b(?:public|private|protected)?\s*(?:static)?\s*\w+\s+(\w+)\s*\(.*\)\s*{'
+
+    # List of keywords to exclude from being treated as methods
+    excluded_keywords = {"if", "for", "while", "switch", "Thread", "run"}
+
+    # Iterate through the file content line by line
+    for line_number, line in enumerate(content.splitlines(), start=1):
+        # Check for method signature
+        match = re.search(method_signature_regex, line.strip())
+        if match and brace_counter == 0:  # Start of a new method
+            candidate_method_name = match.group(1)
+            if candidate_method_name in excluded_keywords:
+                continue  # Ignore if the match is a control structure
+
+            # If we were processing a previous method, finalize its metrics
+            if method_name and method_lines:
+                methods[method_name] = calculate_complexity_for_method(
+                    method_lines, method_inheritance, class_name, nesting_level_dict,
+                    try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data, line_weights
+                )
+
+            # Start tracking the new method
+            method_name = candidate_method_name
+            method_lines = [(line_number, line)]
+            brace_counter = line.count("{") - line.count("}")
+        elif method_name:
+            # Add the current line to the method
+            method_lines.append((line_number, line))
+
+            # Update the brace counter
+            brace_counter += line.count("{") - line.count("}")
+
+            # If braces are balanced, the method ends
+            if brace_counter == 0:
+                methods[method_name] = calculate_complexity_for_method(
+                    method_lines, method_inheritance, class_name, nesting_level_dict,
+                    try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data, line_weights
+                )
+                method_name = None
+                method_lines = []
+
+    # Finalize the last detected method
+    if method_name and method_lines:
+        methods[method_name] = calculate_complexity_for_method(
+            method_lines, method_inheritance, class_name, nesting_level_dict,
+            try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data, line_weights
+        )
 
     return methods
 
-
 # Helper function to calculate complexity for a method based on lines of code
 def calculate_complexity_for_method(lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data, line_weights):
+    """
+    Calculate the complexity of a method based on its lines of code.
+
+    :param lines: List of tuples (line_number, line_content) belonging to a method.
+    :param method_inheritance: Dictionary containing inheritance levels.
+    :param class_name: The name of the class to which this method belongs.
+    :param nesting_level_dict: Dictionary mapping line numbers to nesting levels.
+    :param try_catch_weight_dict: Dictionary mapping line numbers to try-catch weights.
+    :param thread_weights: Dictionary mapping line numbers to thread weights.
+    :param cbo_line_data: Dictionary containing CBO weights for each line.
+    :param mpc_line_data: Dictionary containing MPC weights for each line.
+    :param line_weights: Dictionary containing control structure weights for each line.
+    :return: Dictionary of complexity metrics for the method.
+    """
     size = 0
     control_structure_complexity = 0
     nesting_level = 0
     compound_condition_weight = 0
-    try_catch_weight = 0
-    # thread_weight = 0
     current_inheritance_sum = 0
-    current_class = class_name
     total_nesting = 0
     total_try_catch_weight = 0
     total_thread_weight = 0
     total_cbo = 0
     total_mpc = 0
 
-    current_nesting = 0
-    control_structure_stack = []
+    # Get the inheritance level for the class
+    inheritance_level = method_inheritance.get(class_name, 0)
 
     # Analyze each line within the method
-    for line_number, line in enumerate(lines, start=1):
-        # Calculate size (token count) for this line
-        line_size, tokens = calculate_size(line)
+    for line_number, line_content in lines:  # Unpack tuple into line_number and line_content
+        # Remove comments and calculate size (token count) for this line
+        line_content = remove_comments(line_content)  # Ensure line_content is used, not tuple
+        line_size, tokens = calculate_size(line_content)
+        size += line_size
 
         if line_size == 0:
             continue  # Skip this line if size is 0
 
-        total_inheritance = method_inheritance[current_class]
+        total_inheritance = inheritance_level
 
         nesting_level = nesting_level_dict.get(line_number, 0)
         total_nesting += nesting_level
@@ -1544,63 +1689,45 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         try_catch_weight = try_catch_weight_dict.get(line_number, 0)
         total_try_catch_weight += try_catch_weight
 
-        thread_weight = thread_weights.get(line_number, 0)
+        thread_weight = thread_weights.get(line_number, {"score": 0}).get("score", 0)
         total_thread_weight += thread_weight
-
-        size += line_size
 
         current_inheritance_sum += total_inheritance
 
-        # Calculate control structure complexity
-        # control_structure_complexity += calculate_control_structure_complexity(line)
-        control_structure_complexity = line_weights[line_number]["weight"]
-        print("@@@@@@@@@@@@@@@@@@@control_structure_complexity@@@@@@@@@@@@@@@@@", control_structure_complexity)
+        control_structure_complexity += line_weights.get(line_number, {}).get("weight", 0)
 
         cbo_weights = cbo_line_data[line_number - 1]["weights"] if line_number - 1 < len(cbo_line_data) else {}
         total_cbo_weight = sum(cbo_weights.values())
         total_cbo += total_cbo_weight
 
-        # total_cbo_weight+= total_cbo_weight
-
-        mpc_weight = mpc_line_data.get(line_number, 0)
-        total_mpc += mpc_weight
-
-        # Calculate nesting level and control structures
-        # current_nesting, _, control_structure_stack, wn = calculate_nesting_level(
-        #     line, current_nesting, False, control_structure_stack
-        # )
-        # wn =calculate_nesting_level(line)
-        # nesting_level += wn
+        # mpc_weight = mpc_line_data.get(line_number, 0)
+        # total_mpc += mpc_weight
 
         # Compound condition weight
-        compound_condition_weight += calculate_compound_condition_weight(line)
-
-        # Try-catch weight
-        # try_catch_weight += calculate_try_catch_weight(line, current_nesting)
-
-        # Thread weight
-        # thread_weight += calculate_thread_weight(line)
+        compound_condition_weight += calculate_compound_condition_weight(line_content)
 
     # Sum up the complexity metrics for this method
     total_complexity = (
-            size + control_structure_complexity + total_nesting + current_inheritance_sum +
-            compound_condition_weight + total_try_catch_weight + total_thread_weight + total_cbo + 0
+        size + control_structure_complexity + total_nesting + current_inheritance_sum +
+        compound_condition_weight + total_try_catch_weight + total_thread_weight + total_cbo + 0
     )
 
-    print("current_inheritance_sum", current_inheritance_sum)
+    print("Size ******************************************************8", size)
+    print("current_inheritance_sum ******************************************************8", current_inheritance_sum)
+    print("total_complexity&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&7", total_complexity)
+
     return {
         "size": size,
         "control_structure_complexity": control_structure_complexity,
-        "nesting_level": nesting_level,
+        "nesting_level": total_nesting,
         "inheritance_level": current_inheritance_sum,
         "compound_condition_weight": compound_condition_weight,
         "try_catch_weight": total_try_catch_weight,
         "thread_weight": total_thread_weight,
-        'cbo_weights': total_cbo,
-        # 'mpc_weight': total_mpc,
+        "cbo_weights": total_cbo,
+        # "mpc_weight": total_mpc,
         "total_complexity": total_complexity
     }
-
 
 # Function to calculate complexity factors for a file
 def calculate_complexity_factors(filename, data):
