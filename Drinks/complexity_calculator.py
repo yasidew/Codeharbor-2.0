@@ -227,8 +227,8 @@ def calculate_compound_condition_weight(line):
 def calculate_try_catch_weight(java_code):
     """
     Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
-    - Increment nesting level for `try`.
-    - Assign weights line by line for `catch` and `finally` based on nesting level.
+    - Increment nesting level for try.
+    - Assign weights line by line for catch and finally based on nesting level.
     """
     # Remove comments from the Java code
     java_code = remove_comments(java_code)
@@ -242,8 +242,8 @@ def calculate_try_catch_weight(java_code):
     # Regular expressions for try, catch, and finally
     control_regex = re.compile(r'\b(try|catch|finally)\b')
 
-    # Weights for `catch` based on nesting levels
-    catch_weights = {1: 1, 2: 3, 3: 4, 4: 5}
+    # Weights for catch based on nesting levels
+    catch_weights = {1: 1, 2: 3, 3: 4, 4: 5}  # Assign weights as in the example
     finally_weight = 2
 
     for line_no, line in enumerate(lines, start=1):
@@ -260,23 +260,23 @@ def calculate_try_catch_weight(java_code):
             control_type = control_match.group()
 
             if control_type == 'try':
-                # Increment nesting level for `try`
+                # Increment nesting level for try
                 current_nesting += 1
 
             elif control_type == 'catch':
-                # Assign weight for `catch` based on nesting level
-                weight = catch_weights.get(current_nesting, 5)
+                # Assign weight for catch based on current nesting level
+                weight = catch_weights.get(current_nesting, 1)  # Use nesting level to determine weight
                 line_weights[line_no] = weight
 
             elif control_type == 'finally':
-                # Assign fixed weight for `finally`
+                # Assign fixed weight for finally
                 line_weights[line_no] = finally_weight
 
         # Append the current line and its weight
         nesting_levels.append((line_no, stripped_line, current_nesting, line_weights.get(line_no, 0)))
 
         # Adjust nesting level for closing braces
-        if stripped_line.endswith('}'):
+        if stripped_line.endswith('}') and 'catch' not in stripped_line:
             current_nesting = max(0, current_nesting - 1)
 
     return nesting_levels, line_weights
