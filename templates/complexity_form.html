@@ -145,10 +145,16 @@
                     <label for="files" class="form-label">Upload Your Java Files:</label>
                     <input type="file" name="files" id="files" class="form-control" accept=".java" multiple>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Calculate Complexity</button>
+                <button type="submit" class="btn btn-primary w-100" onclick="showLoading()">Calculate Complexity</button>
             </form>
         </div>
     </main>
+
+    <div id="loading-spinner" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
 
     <!-- Footer -->
     <footer class="bg-dark text-white text-center py-3 mt-auto">
@@ -168,6 +174,19 @@
             body.classList.toggle('dark-mode');
             toggle.classList.toggle('dark');
         });
+
+        function showLoading() {
+        document.getElementById('loading-spinner').style.display = 'block';
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-spinner').style.display = 'none';
+    }
+
+    // Ensure loading stops when the page loads completely
+    window.onload = function () {
+        hideLoading();
+    };
     </script>
 </body>
 </html>

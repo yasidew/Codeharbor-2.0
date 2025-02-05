@@ -58,3 +58,19 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 1,2,1,0,2,No action needed
 0,3,1,0,2,No action needed
 0,4,0,0,2,No action needed
+0,0,6,0,1,Critical refactor: High complexity due to try-catch nesting
+2,1,1,0,3,No action needed
+2,2,1,0,2,No action needed
+2,1,1,0,1,No action needed
+1,1,0,0,1,No action needed
+2,1,2,0,1,No action needed
+0,1,0,1,1,No action needed
+2,3,1,0,1,Critical refactor: High complexity and for loop nesting
+2,1,1,0,2,No action needed
+2,3,1,0,2,Critical refactor: High complexity and for loop nesting
+2,2,1,0,1,No action needed
+2,5,1,0,1,Critical refactor: High complexity and for loop nesting
+2,4,1,0,1,Critical refactor: High complexity and for loop nesting
+0,2,1,0,1,No action needed
+1,2,0,0,1,No action needed
+4,1,0,0,1,No action needed

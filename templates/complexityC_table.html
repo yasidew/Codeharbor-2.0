@@ -241,30 +241,63 @@
 {#        <h3>Complexity Contribution</h3>#}
 {#        <img src="{% static 'images/' %}{{ file.pie_chart_path }}" class="pie-chart" alt="Complexity Pie Chart">#}
 {#    </div>#}
-    {##}
-    {#        <div>#}
-    {#            <h3>Refactoring Recommendations</h3>#}
-    {#            <table>#}
-    {#                <thead>#}
-    {#                    <tr>#}
-    {#                        <th>Line Number</th>#}
-    {#                        <th>Line Content</th>#}
-    {#                        <th>Recommendation</th>#}
-    {#                    </tr>#}
-    {#                </thead>#}
-    {#                <tbody>#}
-    {#                    {% for rec in file.recommendations %}#}
-    {#                        <tr>#}
-    {#                            <td>{{ rec.line_number }}</td>#}
-    {#                            <td>{{ rec.line_content }}</td>#}
-    {#                            <td>{{ rec.recommendation }}</td>#}
-    {#                        <td>{{ rec.recommendation1 }}</td>#}
-    {#                        </tr>#}
-    {#                    {% endfor %}#}
-    {#                </tbody>#}
-    {#            </table>#}
-    {#        </div>#}
-    {##}
+
+            <div>
+                <h3>Refactoring Recommendations</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line Number</th>
+                            <th>Line Content</th>
+                            <th>Recommendation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rec in file.recommendations %}
+                            <tr>
+                                <td>{{ rec.line_number }}</td>
+                                <td>{{ rec.line_content }}</td>
+                                <td>{{ rec.recommendation }}</td>
+                            <td>{{ rec.recommendation1 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+    <!-- CBO Prediction Results -->
+            <h3>🔍 CBO Analysis</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>CBO Prediction</th>
+                        <th>Recommendations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cbo in cbo_predictions %}
+                        {% if cbo.filename == file.filename %}
+                            <tr class="{% if cbo.prediction == 'High CBO (Issue)' %}high-cbo{% else %}low-cbo{% endif %}">
+                                <td>{{ cbo.filename }}</td>
+                                <td>{{ cbo.prediction }}</td>
+                                <td>
+                                    {% if cbo.recommendations %}
+                                        <ul>
+                                            {% for rec in cbo.recommendations %}
+                                                <li>{{ rec }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        ✅ No critical issues detected.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+
     <div class="method-complexity">
         <h3>Method Complexity Details</h3>
         <table>

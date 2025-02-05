@@ -1,0 +1,16 @@
+public class Example {
+    public void Test() {
+        if (x > 0) {
+            Console.WriteLine("Positive");
+        } else {
+            Console.WriteLine("Negative");
+        }
+    }
+}
+from tree_sitter import Language
+
+LANGUAGE_SO = 'my-languages.so'
+C_SHARP_GRAMMAR = 'C:/Users/User/Documents/Github/tree-sitter-c-sharp'
+
+result = Language.build_library(LANGUAGE_SO, [C_SHARP_GRAMMAR])
+print(result)

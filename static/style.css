@@ -7,6 +7,14 @@ header, footer {
     transition: background-color 0.5s ease, color 0.5s ease;
 }
 
+#loading-spinner {
+    z-index: 9999;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
 /* Logo Styling */
 .logo-styling {
     height: 50px;

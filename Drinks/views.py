@@ -108,10 +108,11 @@ def calculate_complexity_multiple_java_files(request):
         threshold_high = thresholds.get('threshold_high', 50)
 
         # Call your function to calculate complexity for multiple files
-        result = calculate_code_complexity_multiple_files(file_contents)
+        result, cbo_predictions = calculate_code_complexity_multiple_files(file_contents)
 
         # Prepare a list to store complexities for each file
         complexities = []
+        cbo_summary = []
 
         # Create a table for the response
         results_table = PrettyTable()
@@ -188,9 +189,21 @@ def calculate_complexity_multiple_java_files(request):
 
         # Log the result table for debugging or reference
         # print(results_table)
+            # Extract CBO Predictions & Recommendations
+        for filename, prediction_data in cbo_predictions.items():
+            cbo_summary.append({
+                    'filename': filename,
+                    'prediction': prediction_data['prediction'],
+                    'recommendations': prediction_data['recommendations']
+            })
+        if request.headers.get('Accept') == 'application/json':
+            return Response({
+                'complexities': complexities,
+                'cbo_predictions': cbo_summary
+            }, status=status.HTTP_200_OK)
 
         # Instead of returning a JSON response, render the template and pass complexities
-        return render(request, 'complexity_table.html', {'complexities': complexities})
+        return render(request, 'complexity_table.html', {'complexities': complexities, 'cbo_predictions': cbo_summary})
 
     # If GET request, just show the form
     return render(request, 'complexity_form.html')
@@ -238,10 +251,11 @@ def calculate_complexity_multiple_csharp_files(request):
         threshold_high = thresholds.get('threshold_high', 50)
 
         # Call your function to calculate complexity for multiple files
-        result = calculate_code_complexity_multiple_files_csharp(file_contents)
+        result, cbo_predictions = calculate_code_complexity_multiple_files_csharp(file_contents)
 
         # Prepare a list to store complexities for each file
         complexities = []
+        cbo_summary = []
 
         # Create a table for the response
         results_table = PrettyTable()
@@ -260,7 +274,7 @@ def calculate_complexity_multiple_csharp_files(request):
             cbo = file_data['cbo']
             mpc = file_data['mpc']
             method_complexities = file_data['method_complexities']
-            # recommendations = file_data['recommendation']
+            recommendations = file_data['recommendation']
             pie_chart_path = file_data['pie_chart_path']
             total_wcc = file_data['total_wcc']
             bar_charts = file_data.get('bar_charts', {})
@@ -309,16 +323,27 @@ def calculate_complexity_multiple_csharp_files(request):
                 'cbo': cbo,
                 'mpc': mpc,
                 'method_complexities': categorized_methods,
-                # 'recommendations': recommendations,
+                'recommendations': recommendations,
                 'pie_chart_path': pie_chart_path,
                 'total_wcc': total_wcc
             })
 
         # Log the result table for debugging or reference
         # print(results_table)
+        for filename, prediction_data in cbo_predictions.items():
+            cbo_summary.append({
+                    'filename': filename,
+                    'prediction': prediction_data['prediction'],
+                    'recommendations': prediction_data['recommendations']
+            })
+        if request.headers.get('Accept') == 'application/json':
+            return Response({
+                'complexities': complexities,
+                'cbo_predictions': cbo_summary
+            }, status=status.HTTP_200_OK)
 
         # Instead of returning a JSON response, render the template and pass complexities
-        return render(request, 'complexityC_table.html', {'complexities': complexities})
+        return render(request, 'complexityC_table.html', {'complexities': complexities, 'cbo_predictions': cbo_summary})
 
     # If GET request, just show the form
     return render(request, 'complexityC_form.html')

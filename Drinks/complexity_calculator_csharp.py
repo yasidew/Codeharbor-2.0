@@ -1,10 +1,56 @@
 import logging
-import os
 import re
-import sys
 
+import joblib
 import matplotlib
 import matplotlib.pyplot as plt
+
+import clr
+import os
+
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.model_selection import train_test_split
+
+from pygments.lexers import CSharpLexer
+from pygments.token import Token
+from pygments import lex
+
+# Load dataset
+dataset = pd.read_csv("media/c#_code_features.csv")
+
+# Drop non-numeric columns
+dataset = dataset.drop(columns=["file_name"], errors="ignore")
+
+# Ensure dataset contains labels
+if "cbo_label" not in dataset.columns:
+    raise ValueError("The dataset must contain a 'cbo_label' column!")
+
+# Split features and labels
+X = dataset.drop(columns=["cbo_label"])
+y = dataset["cbo_label"]
+
+# Handle missing values
+X.fillna(0, inplace=True)
+
+# Split into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Train the Random Forest model
+rf_model = RandomForestClassifier(n_estimators=200, random_state=42, max_depth=10, class_weight="balanced")
+rf_model.fit(X_train, y_train)
+
+# Save trained model
+joblib.dump(rf_model, "random_forest_cbo_model.pkl")
+
+# Evaluate model
+y_pred = rf_model.predict(X_test)
+print(classification_report(y_test, y_pred))
+print("✅ Model saved as 'random_forest_cbo_model.pkl'")
+
+# Load the trained model
+rf_model = joblib.load("random_forest_cbo_model.pkl")
 
 # Global dictionary for tracking inheritance depth
 inheritance_depth = {}
@@ -18,7 +64,7 @@ def remove_comments(line):
     # Remove single-line comments (//)
     line = re.sub(r'//.*', '', line)
     # Remove multi-line comments (/* ... */)
-    line = re.sub(r'/\*.*?\*/', '', line, flags=re.DOTALL)
+    code = re.sub(r'/\*[\s\S]*?\*/', '', line)
     return line
 
 
@@ -31,15 +77,16 @@ def calculate_size(line):
     # Check for class declaration and skip until it's completed
     if not class_declaration_ended:
         # Detect the class declaration pattern
-        if re.search(r'\bclass\b\s+\w+', line):
+        if re.search(r'\b(class|struct)\s+\w+', line):
             class_declaration_ended = True
             return 0, []  # Do not count tokens until after class declaration
         return 0, []  # Still in class declaration, so ignore
 
-    # Remove annotations like @Override
-    line = re.sub(r'@\w+', '', line)
+    # Remove annotations like `[Obsolete]`
+    line = re.sub(r'\[\w+\]', '', line)
+
     # Exclude access modifiers and function parameters
-    line = re.sub(r'\b(public|private|protected|default|static|else)\b', '', line)  # Ignore access modifiers
+    line = re.sub(r'\b(public|private|protected|internal|abstract|static|sealed|readonly|virtual|override|unsafe|async|extern|else)\b', '', line)
     line = re.sub(r'\(\s*\w+\s*\w*\s*\)', '()', line)  # Ignore function parameters
 
     # Token patterns based on WCC rules
@@ -68,104 +115,68 @@ def calculate_size(line):
     return len(tokens), tokens
 
 
-# Function to calculate control structure complexity for a single line (Wc)
-def calculate_control_structure_complexity(line):
-    wc = 0
-    wc += len(re.findall(r'\bif\b', line))  # Branch (if-else)
-    wc += len(re.findall(r'\bfor\b|\bwhile\b|\bdo\b', line)) * 2  # Iterative structures
-    wc += len(re.findall(r'\bcase\b', line))  # Switch cases
-    wc += len(re.findall(r'\btry\b', line))  # Try block
-    return wc
+def get_code_lines(csharp_code):
+    """ Convert C# code into a list of lines for reference. """
+    return {i + 1: line.strip() for i, line in enumerate(csharp_code.split("\n"))}
 
 
-# Function to calculate nesting level complexity (Wn)
-# def calculate_nesting_level(line, current_nesting, in_control_structure, control_structure_stack):
-#     control_structures = ['if', 'else', 'for', 'while', 'switch', 'try', 'catch']
-#     control_regex = re.compile(r'\b(?:' + '|'.join(control_structures) + r')\b')
-#
-#     wn = 0
-#
-#     # Detect the start of a control structure
-#     if control_regex.search(line):
-#         if 'else if' in line or 'else if' in line.replace(' ', ''):  # Handle 'else if'
-#             wn = current_nesting
-#         elif 'else' in line and 'if' not in line:  # Handle 'else' (not 'else if')
-#             wn = current_nesting
-#         else:
-#             current_nesting += 1
-#             control_structure_stack.append(current_nesting)
-#             wn = current_nesting
-#
-#         in_control_structure = True
-#         return current_nesting, in_control_structure, control_structure_stack, wn
-#
-#     # Detect the end of a control structure
-#     if '}' in line and control_structure_stack:
-#         control_structure_stack.pop()
-#         current_nesting = len(control_structure_stack)
-#         wn = current_nesting
-#         in_control_structure = len(control_structure_stack) > 0
-#         return current_nesting, in_control_structure, control_structure_stack, wn
-#
-#     # Handle sequential statements
-#     if in_control_structure:
-#         wn = current_nesting
-#     else:
-#         wn = 0  # Reset weight outside control structures
-#
-#     return current_nesting, in_control_structure, control_structure_stack, wn
-"""
-def calculate_nesting_level(java_code):
-    
-    # Remove comments from the Java code
-    java_code = remove_comments(java_code)
-    lines = java_code.splitlines()
+def calculate_control_structure_complexity(lines):
+    """
+    Calculates control structure complexity for a given C# code.
 
-    # Control structure keywords to consider
-    control_keywords = ['if', 'else', 'for', 'while', 'do']
+    Parameters:
+        - csharp_code (str): C# code as a string.
 
-    # State variables to track nesting level
-    current_nesting = 0
-    control_structure_stack = []  # Stack to track nesting levels
-    nesting_levels = []
+    Returns:
+        - dict: A dictionary with line numbers as keys and assigned complexity weights as values.
+        - int: Total complexity of the code.
+    """
 
-    # Regular expressions for detecting control structures
-    control_regex = re.compile(r'\b(if|else if|else|for|while|do|switch|case|default)\b')
-    open_brace_regex = re.compile(r'\{')  # Opening brace
-    close_brace_regex = re.compile(r'\}')  # Closing brace
+    # Split C# code into lines
+    # lines = csharp_code.split("\n")
+    total_weight = 0
+    line_weights = {}
 
-    for line_no, line in enumerate(lines, start=1):
+    for line_number, line in enumerate(lines, start=1):
         stripped_line = line.strip()
 
-        # Skip empty lines
+        # Ignore empty lines
         if not stripped_line:
-            nesting_levels.append((line_no, stripped_line, current_nesting))
             continue
 
-        # Check if the line contains a control structure
-        control_match = control_regex.search(stripped_line)
-        if control_match:
-            # Increment nesting level for a new control structure
-            current_nesting += 1
-            control_structure_stack.append(current_nesting)
+        # ✅ Branching Statements (if, else if, else) → Weight = 1
+        if re.match(r"^\s*if\b", stripped_line):
+            weight = 1
+        elif re.match(r"^\s*\}?\s*else\s*if\b", stripped_line):  # Ensure 'else if' is correctly captured
+            weight = 1
 
-        # Record the current nesting level for the line
-        nesting_levels.append((line_no, stripped_line, current_nesting))
+        # ✅ Loops (for, while, do-while) → Weight = 2
+        elif re.match(r"^\s*(for|while|do|foreach)\b", stripped_line):
+            weight = 2
 
-        # Adjust nesting level based on braces
-        # Count the opening and closing braces in the line
-        opening_braces = len(open_brace_regex.findall(stripped_line))
-        closing_braces = len(close_brace_regex.findall(stripped_line))
+        # ✅ Switch-Case Complexity → Weight = Number of cases
+        elif re.match(r"^\s*switch\b", stripped_line):
+            case_count = 0
+            for subsequent_line in lines[line_number:]:
+                subsequent_line = subsequent_line.strip()
+                if re.match(r"^\s*(case|default)\b", subsequent_line):
+                    case_count += 1
+                if subsequent_line == "}":  # End of switch block
+                    break
+            weight = case_count
 
-        # Adjust the nesting level for each closing brace
-        if closing_braces > 0:
-            for _ in range(closing_braces):
-                if control_structure_stack:
-                    control_structure_stack.pop()
-                    current_nesting = len(control_structure_stack)
+        else:
+            weight = 0  # Default weight for lines without control structures
 
-    return nesting_levels
-"""
+        # ✅ Store results
+        line_weights[line_number] = {
+            "line_content": stripped_line,
+            "weight": weight
+        }
+        total_weight += weight
+
+    return line_weights, total_weight
+
 
 def calculate_nesting_level(java_code):
     """
@@ -183,7 +194,7 @@ def calculate_nesting_level(java_code):
     line_weights = {}
 
     # Regular expressions for detecting control structures and braces
-    control_regex = re.compile(r'\b(if|else if|else|for|while|do|switch|case|default)\b')
+    control_regex = re.compile(r'\b(if|else if|else|for|while|do|switch|case|default|foreach)\b')
     open_brace_regex = re.compile(r'\{')  # Opening brace
     close_brace_regex = re.compile(r'\}')  # Closing brace
 
@@ -240,50 +251,34 @@ def calculate_inheritance_level(line, current_inheritance):
 
 # Function to calculate compound condition complexity
 def calculate_compound_condition_weight(line):
-    weight = 0
+    """
+        Calculate the complexity of C# compound conditions in a line of code.
+        Formula: Complexity = Base Weight + (Number of Subconditions - 1)
+        """
 
-    # Detect simple conditions
-    simple_condition_pattern = r'\bif\s*\(.*?\)'
+    complexity = 0
 
-    # Detect compound conditions with logical operators (&&, ||)
-    compound_condition_pattern = r'\bif\s*\(.*?(?<!==)(?:&&|\|\|).*?\)'
+    # Patterns to detect C# compound conditions
+    compound_condition_pattern = r'\(.*?(?:&&|\|\||\?.*:).*?\)'
+    logical_operator_pattern = r'&&|\|\|'  # Count logical operators
 
+    # Find all compound conditions in the line
     compound_conditions = re.findall(compound_condition_pattern, line)
-    if compound_conditions:
-        for condition in compound_conditions:
-            logical_operators = len(re.findall(r'&&|\|\|', condition))
-            weight += 1 + logical_operators  # Base condition + number of logical operators
-    else:
+
+    for condition in compound_conditions:
+        logical_operators = len(re.findall(logical_operator_pattern, condition))
+        subconditions = logical_operators + 1  # Subconditions count
+        condition_complexity = 1 + (subconditions - 1)
+        complexity += condition_complexity
+
+    # If no compound condition is found, check for simple conditions
+    if not compound_conditions:
+        simple_condition_pattern = r'\b(if|while|for|switch|return)\s*\(.*?\)'
         simple_conditions = re.findall(simple_condition_pattern, line)
         if simple_conditions:
-            weight += 1  # Simple condition weight
+            complexity += 1  # Assign a base complexity weight
 
-    return weight
-
-
-# Function to calculate weight for try-catch-finally blocks
-# def calculate_try_catch_weight(line, current_nesting_level):
-#     weight = 0
-#
-#     # Detect try blocks
-#     if re.search(r'\btry\b', line):
-#         if current_nesting_level > 1:
-#             weight += 2  # Inner try block weight
-#         else:
-#             weight += 1  # Outer try block weight
-#
-#     # Detect catch blocks
-#     elif re.search(r'\bcatch\b', line):
-#         if current_nesting_level > 1:
-#             weight += 2  # Inner catch block weight
-#         else:
-#             weight += 1  # Outer catch block weight
-#
-#     # Detect finally block
-#     elif re.search(r'\bfinally\b', line):
-#         weight += 2  # Weight of 2 for the finally block
-#
-#     return weight
+    return complexity
 
 def calculate_try_catch_weight(java_code):
     """
@@ -342,21 +337,6 @@ def calculate_try_catch_weight(java_code):
 
     return nesting_levels, line_weights
 
-
-# Function to calculate weight for thread-related operations
-# def calculate_thread_weight(line):
-#     weight = 0
-#
-#     # Detect thread creation
-#     if re.search(r'new\s+Thread\(', line):
-#         weight += 2  # Weight of 2 for thread creation
-#
-#     # Detect thread synchronization
-#     if re.search(r'lock\s*\(', line):  # C# equivalent of synchronized
-#         weight += 5  # Weight of 5 for lock blocks
-#
-#     return weight
-
 def calculate_thread_weight(java_code):
     """
     Calculates the complexity weight for thread-related constructs in Java code.
@@ -406,155 +386,167 @@ def calculate_thread_weight(java_code):
 
 def extract_class_references(csharp_code):
     """
-    Extracts class references for Coupling Between Objects (CBO) calculation in C# code.
+    Extracts class references from C# code and assigns weights based on the type of dependency.
     """
-    # Patterns to match C# constructs
-    instantiation_pattern = r'new\s+([A-Z][\w]*)'  # Object instantiation
-    inheritance_pattern = r'class\s+\w+\s*:\s*([A-Z][\w]*)'  # Inheritance (base class after ':')
-    interface_pattern = r'class\s+\w+\s*:\s*.*\s*,\s*([A-Z][\w]*)'  # Interface implementation
-    constructor_pattern = r'\bpublic\s+\w+\s*\(([^)]*)\)'  # Constructor parameter classes
-    method_pattern = r'\b(public|private|protected|internal)?\s+(\w+|<[^>]+>)\s+(\w+)\s*\(([^)]*)\)'  # Method signature
+
+    # Regular expressions for detecting class references
+    instantiation_pattern = r'new\s+([A-Z][\w]*)\s*\('  # Object instantiation
+    constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'  # Constructor parameters (dependency injection)
+    setter_injection_pattern = r'(public|private)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'  # Setter injection
+    static_usage_pattern = r'([A-Z][\w]*)\.\w+\s*\('  # Static method call
+    static_variable_pattern = r'([A-Z][\w]*)\.\w+'  # Static variable usage
+    field_declaration_pattern = r'([A-Z][\w]*)\s+\w+\s*;'  # Field declaration
+
+    excluded_classes = [
+        'System', 'String', 'int', 'float', 'double', 'bool', 'char', 'byte', 'short', 'long',
+        'Math', 'Object', 'Thread', 'Runtime', 'Optional', 'Task', 'Action', 'Func'
+    ]
 
     # Dictionary to store class references per class
     class_references = {}
-    current_class = None
 
-    # Split code into lines and process each
+    # Split code into lines and process each line
     lines = csharp_code.splitlines()
-    for line in lines:
-        line = remove_comments(line)
+    recommendations = []
+    declared_fields = set()
 
-        # Detect current class declaration
-        class_declaration = re.search(r'class\s+([A-Z][\w]*)', line)
+    current_class = None
+    for line_no, line in enumerate(lines, start=1):
+        stripped_line = line.strip()
+
+        # Check for class declaration (detect current class)
+        class_declaration = re.search(r'class\s+([A-Z][\w]*)', stripped_line)
         if class_declaration:
             current_class = class_declaration.group(1)
             if current_class not in class_references:
                 class_references[current_class] = {}
-            logging.info(f"Detected class: {current_class}")
 
         if current_class:
-            # Detect object instantiations
-            instantiations = re.findall(instantiation_pattern, line)
+            # Detect field declarations (aggregation coupling)
+            field_declaration_match = re.search(field_declaration_pattern, stripped_line)
+            if field_declaration_match:
+                field_class = field_declaration_match.group(1)
+                declared_fields.add(field_class)
+                class_references[current_class][field_class] = class_references[current_class].get(field_class, 0) + 1
+
+            # Detect instantiation (composition coupling)
+            instantiations = re.findall(instantiation_pattern, stripped_line)
             for instantiated_class in instantiations:
-                class_references[current_class][instantiated_class] = 2  # Tight coupling
+                class_references[current_class][instantiated_class] = 3
 
-            # Detect inheritance
-            inheritance = re.findall(inheritance_pattern, line)
-            for inherited_class in inheritance:
-                class_references[current_class][inherited_class] = 2  # Tight coupling
-
-            # Detect interface implementations
-            interfaces = re.findall(interface_pattern, line)
-            for implemented_interface in interfaces:
-                class_references[current_class][implemented_interface] = 1  # Loose coupling
-
-            # Detect method signatures and parameters
-            method_match = re.search(method_pattern, line)
-            if method_match:
-                parameters = method_match.group(4)  # Extract parameters
-                param_classes = re.findall(r'\b([A-Z][\w]*)\b', parameters)
-                for param_class in param_classes:
-                    class_references[current_class][param_class] = 2  # Tight coupling
-
-            # Detect constructor parameters
-            constructor_matches = re.findall(constructor_pattern, line)
+            # Detect constructor injection
+            constructor_matches = re.findall(constructor_pattern, stripped_line)
             for match in constructor_matches:
-                param_classes = re.findall(r'([A-Z][\w]*)', match)  # Extract parameter classes
+                param_classes = re.findall(r'([A-Z][\w]*)', match)
                 for param_class in param_classes:
-                    class_references[current_class][param_class] = 1  # Loose coupling
+                    class_references[current_class][param_class] = class_references[current_class].get(param_class, 0) + 1
 
-    logging.info("Finished extracting class references.")
+            # Detect setter injection
+            setter_matches = re.findall(setter_injection_pattern, stripped_line)
+            for setter_class in setter_matches:
+                class_references[current_class][setter_class] = 1
+
+            # Detect static method usage
+            static_methods = re.findall(static_usage_pattern, stripped_line)
+            for static_class in static_methods:
+                if static_class not in excluded_classes:
+                    class_references[current_class][static_class] = class_references[current_class].get(static_class, 0) + 2
+
+            # Detect static variable usage
+            static_variables = re.findall(static_variable_pattern, stripped_line)
+            for static_class in static_variables:
+                if static_class not in excluded_classes:
+                    class_references[current_class][static_class] = class_references[current_class].get(static_class, 0) + 1
+
     return class_references
 
 
 def calculate_cbo(class_references):
     """
-    Calculates Coupling Between Objects (CBO) from class references.
+    Calculates Coupling Between Objects (CBO) for each class.
     """
     cbo_results = {}
+
+    # Sum the weights of class references per class
     for class_name, references in class_references.items():
         cbo_results[class_name] = sum(references.values())
-        logging.info(f"CBO for {class_name}: {cbo_results[class_name]}")
+
     return cbo_results
 
-def extract_class_references_with_lines(java_code):
-    logging.info("Starting extraction of class references.")
-    # Patterns to match class instantiation, inheritance, and interface implementation
-    instantiation_pattern = r'new\s+([A-Z][\w]*)'
-    inheritance_pattern = r'class\s+\w+\s+extends\s+([A-Z][\w]*)'
-    interface_pattern = r'class\s+\w+\s+implements\s+([A-Z][\w]*)'
+def extract_class_references_with_lines(csharp_code):
+    """
+    Extracts class references from C# code line by line for detailed CBO calculations.
+    """
+    instantiation_pattern = r'new\s+([A-Z][\w]*)\s*\('
+    field_declaration_pattern = r'([A-Z][\w]*)\s+\w+\s*;'
+    static_usage_pattern = r'([A-Z][\w]*)\.\w+\s*\('
+    static_variable_pattern = r'([A-Z][\w]*)\.\w+'
     constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'
-    method_pattern = r'(public|private)?\s*void\s+(?!set[A-Z])\w+\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
-    setter_injection_pattern = r'(public)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
+    setter_injection_pattern = r'(public|private)?\s*void\s+set[A-Z]\w*\s*\(\s*([A-Z][\w]*)\s+\w+\s*\)'
 
-    # Dictionary to store class references per line
+    excluded_classes = [
+        'Console', 'String', 'int', 'float', 'double', 'bool', 'char', 'byte', 'short', 'long',
+        'Math', 'Object', 'Thread', 'Runtime', 'Optional', 'Task', 'Action', 'Func'
+    ]
+
     line_references = []
-
-    # Split code into lines and process each line
-    lines = java_code.splitlines()
+    lines = csharp_code.splitlines()
+    declared_fields = set()
     current_class = None
 
     for line_no, line in enumerate(lines, start=1):
         stripped_line = line.strip()
         line_data = {"line": line_no, "code": stripped_line, "weights": {}}
 
-        # Check for class declaration (detect current class)
         class_declaration = re.search(r'class\s+([A-Z][\w]*)', stripped_line)
         if class_declaration:
             current_class = class_declaration.group(1)
 
         if current_class:
-            # Initialize weights for the current line
             weights = {}
 
-            # Find class instantiations
+            field_declaration_match = re.search(field_declaration_pattern, stripped_line)
+            if field_declaration_match:
+                field_class = field_declaration_match.group(1)
+                declared_fields.add(field_class)
+                weights[field_class] = 1
+
+            for field_class in declared_fields:
+                if f"= new {field_class}" in stripped_line:
+                    weights[field_class] = 3
+
             instantiations = re.findall(instantiation_pattern, stripped_line)
             for instantiated_class in instantiations:
-                weights[instantiated_class] = 3  # Tight coupling due to instantiation
+                weights[instantiated_class] = 3
 
-            # Find inheritance (extends)
-            inheritance = re.findall(inheritance_pattern, stripped_line)
-            for inherited_class in inheritance:
-                weights[inherited_class] = 3  # Tight coupling due to inheritance
-
-            # Find implemented interfaces (implements)
-            interfaces = re.findall(interface_pattern, stripped_line)
-            for implemented_interface in interfaces:
-                weights[implemented_interface] = 1  # Loose coupling due to interface implementation
-
-            # Detect constructor parameters
             constructor_matches = re.findall(constructor_pattern, stripped_line)
             for match in constructor_matches:
                 param_classes = re.findall(r'([A-Z][\w]*)', match)
                 for param_class in param_classes:
-                    weights[param_class] = 1  # Loose coupling due to constructor injection
+                    weights[param_class] = 1
 
-            # Detect setter injection
             setter_matches = re.findall(setter_injection_pattern, stripped_line)
             for setter_class in setter_matches:
-                weights[setter_class] = 1  # Loose coupling due to setter injection
+                weights[setter_class] = 1
 
-            # Detect method parameters
-            method_match = re.search(method_pattern, stripped_line)
-            if method_match:
-                param_classes = re.findall(r'([A-Z][\w]*)', method_match.group(2))
-                for param_class in param_classes:
-                    weights[param_class] = 3  # Tight coupling due to method parameters
+            static_methods = re.findall(static_usage_pattern, stripped_line)
+            for static_class in static_methods:
+                if static_class not in excluded_classes:
+                    weights[static_class] = weights.get(static_class, 0) + 2
 
-            # Add weights to the current line
+            static_variables = re.findall(static_variable_pattern, stripped_line)
+            for static_class in static_variables:
+                if static_class not in excluded_classes:
+                    weights[static_class] = weights.get(static_class, 0) + 1
+
             line_data["weights"] = weights
-
-        # Add the processed line data to the list
         line_references.append(line_data)
-
-    logging.info("Finished extracting class references line by line.")
-    logging.info(line_references)
 
     return line_references
 
 def calculate_cbo_line_by_line(line_references):
     """
-    Calculate Coupling Between Objects (CBO) line by line.
+    Calculates CBO line by line.
     """
     cbo_results = []
 
@@ -800,6 +792,117 @@ def track_inheritance_depth_across_files(file_contents):
 def calculate_inheritance_level2(class_name):
     return inheritance_depth.get(class_name, 1)
 
+# Load or initialize dataset
+data_file = "media/synthetic_training_data_c#_1000.csv"
+if os.path.exists(data_file):
+    dataset = pd.read_csv(data_file)
+else:
+    dataset = pd.DataFrame(columns=["control_structure_complexity", "nesting_level", "compound_condition_weight", "try_catch_weight", "current_inheritance", "label"])
+
+
+# Function to clean and convert dataset
+def clean_and_convert_dataset(data):
+    numerical_columns = ["control_structure_complexity", "nesting_level", "compound_condition_weight",
+                         "try_catch_weight", "current_inheritance"]
+    for col in numerical_columns:
+        if col in data.columns:
+            data[col] = data[col].astype(int)
+
+    if "label" in data.columns:
+        data["label"] = data["label"].str.replace('"', '', regex=False)
+
+    return data
+
+
+dataset = dataset.drop_duplicates()
+
+dataset = clean_and_convert_dataset(dataset)
+
+
+def train_model(data):
+    X = data[["control_structure_complexity", "nesting_level", "compound_condition_weight", "try_catch_weight", "current_inheritance"]]
+    y = data["label"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    print("Model Accuracy:", accuracy_score(y_test, y_pred))
+    print("F1 Score Report:")
+    print(classification_report(y_test, y_pred))
+    return model
+
+model = train_model(dataset)
+
+def update_dataset_and_model(new_data):
+    global dataset, model
+
+    # Clean the new data
+    new_data = clean_and_convert_dataset(new_data)
+
+    dataset = pd.concat([dataset, new_data], ignore_index=True).drop_duplicates()
+    dataset.to_csv(data_file, index=False)
+    model = train_model(dataset)
+
+def recommend_action(metrics):
+    control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
+
+    if control_structure_complexity == 1 and nesting_level >= 3:
+        if compound_condition_weight >= 3:
+            return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
+        return "Critical refactor: High complexity and if nesting"
+
+    if control_structure_complexity == 2 and nesting_level >= 3:
+        if compound_condition_weight >= 3:
+            return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
+        return "Critical refactor: High complexity and for loop nesting"
+
+    if control_structure_complexity >= 3 and nesting_level >= 3:
+        return "Critical refactor: High complexity and switch case nesting"
+
+    if try_catch_weight > 5:
+        return "Critical refactor: High complexity due to try-catch nesting"
+
+    if current_inheritance > 5:
+        return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
+
+    if current_inheritance > 3:
+        return "Consider reducing inheritance levels to improve maintainability"
+
+    if compound_condition_weight > 3:
+        if compound_condition_weight > 5:
+            return "Critical refactor: Excessive compound conditions, simplify conditional logic"
+        return "Consider simplifying compound conditions to improve readability"
+
+    if try_catch_weight > 3 and try_catch_weight <= 5:
+        return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
+
+    if control_structure_complexity >= 2 and nesting_level > 2:
+        return "Moderate complexity: Control structures are manageable but keep them simple"
+
+    return "No action needed"
+
+
+def ai_recommend_refactoring(new_data):
+    recommendations = []
+    for line in new_data:
+        metrics = [
+            line['control_structure_complexity'],
+            line['nesting_level'],
+            line['compound_condition_weight'],
+            line['try_catch_weight'],
+            line['inheritance_level'],
+        ]
+
+        prediction = model.predict([metrics])[0]
+
+        recommendations.append({
+            'line_number': line['line_number'],
+            'line_content': line['line_content'],
+            'recommendation': prediction
+        })
+
+    return recommendations
+
 
 # Refined method pattern for accurate method detection
 method_pattern = re.compile(
@@ -812,7 +915,7 @@ method_pattern = re.compile(
 control_keywords = {'if', 'for', 'while', 'switch', 'catch'}
 
 # Function to calculate complexity for each method in a C# file
-def calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data):
+def calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data, line_weights):
     methods = {}
     method_name = None
     method_lines = []
@@ -834,7 +937,7 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name,
                 continue
             # If we're already in a method, calculate its complexity
             if method_name:
-                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data)
+                methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data, line_weights)
             # Start a new method
             method_name = match.group(1)
             method_lines = [line]
@@ -844,13 +947,13 @@ def calculate_code_complexity_by_method(content, method_inheritance, class_name,
 
     # Final method complexity calculation
     if method_name:
-        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data)
+        methods[method_name] = calculate_complexity_for_method(method_lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data, line_weights)
 
     return methods
 
 
 # Helper function to calculate complexity for a C# method based on lines of code
-def calculate_complexity_for_method(lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data):
+def calculate_complexity_for_method(lines, method_inheritance, class_name, nesting_level_dict, try_catch_weight_dict, thread_weights, cbo_line_data, mpc_line_data, line_weights):
     size = 0
     control_structure_complexity = 0
     nesting_level = 0
@@ -892,8 +995,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         size += line_size
         current_inheritance_sum += total_inheritance
 
-        # Calculate control structure complexity
-        control_structure_complexity += calculate_control_structure_complexity(line)
+        control_structure_complexity += line_weights.get(line_number, {}).get("weight", 0)
 
         # Calculate nesting level and control structures
         # current_nesting, _, control_structure_stack, wn = calculate_nesting_level(
@@ -926,7 +1028,7 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
     print("current_inheritance_sum", current_inheritance_sum)
     return {
         "size": size,
-        "control_structure_complexity": control_structure_complexity,
+        "control_structure_complexity": 0,
         "nesting_level": nesting_level,
         "inheritance_level": current_inheritance_sum,
         "compound_condition_weight": compound_condition_weight,
@@ -939,8 +1041,110 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def extract_csharp_class_dependencies(code):
+    """
+    Extracts class dependencies from C# code using Pygments-based tokenization.
+    """
+
+    cbo_features = {
+        "class_dependencies": set(),
+        "direct_instantiations": 0,
+        "static_method_calls": 0,
+        "static_variable_usage": 0,
+        "interface_implementations": 0,
+        "constructor_injections": 0,
+        "setter_injections": 0,
+        "global_variable_references": 0
+    }
+
+    # Common C# types to exclude
+    excluded_classes = {
+        'System', 'String', 'int', 'float', 'double', 'bool', 'char', 'byte', 'short', 'long',
+        'Math', 'Object', 'Thread', 'Runtime', 'Task', 'Action', 'Func', 'Console', 'List', 'Dictionary'
+    }
+
+    lexer = CSharpLexer()
+    tokens = lex(code, lexer)
+
+    current_class = None
+    last_token = None
+    last_identifier = None
+
+    for ttype, value in tokens:
+        # ✅ Detect class declaration
+        if ttype == Token.Keyword and value == "class":
+            last_token = "class"
+            continue
+        if last_token == "class" and ttype == Token.Name.Class:
+            current_class = value
+            cbo_features["class_dependencies"].add(current_class)
+            last_token = None
+            continue
+
+        # ✅ Detect object instantiations (new ClassName)
+        if last_token == "new" and ttype == Token.Name:
+            if value not in excluded_classes:
+                cbo_features["class_dependencies"].add(value)
+                cbo_features["direct_instantiations"] += 1
+            last_token = None
+            continue
+
+        # ✅ Detect static method calls (ClassName.Method())
+        if last_identifier and ttype == Token.Punctuation and value == ".":
+            last_token = "static_method"
+            continue
+        if last_token == "static_method" and ttype == Token.Name.Function:
+            if last_identifier not in excluded_classes:
+                cbo_features["class_dependencies"].add(last_identifier)
+                cbo_features["static_method_calls"] += 1
+            last_token = None
+            continue
+
+        # ✅ Detect static variable usage (ClassName.Variable)
+        if last_identifier and last_token == "static_method":
+            if last_identifier not in excluded_classes:
+                cbo_features["class_dependencies"].add(last_identifier)
+                cbo_features["static_variable_usage"] += 1
+            last_token = None
+            continue
+
+        # ✅ Detect constructor injection (ConstructorName(params))
+        if last_token == "constructor" and ttype == Token.Punctuation and value == "(":
+            cbo_features["constructor_injections"] += 1
+            last_token = None
+            continue
+
+        # ✅ Detect setter injections (`setClass(Class obj)`)
+        if last_token == "setter" and ttype == Token.Punctuation and value == "(":
+            cbo_features["setter_injections"] += 1
+            last_token = None
+            continue
+
+        # ✅ Detect global variable usage (static variable)
+        if last_token == "static" and ttype == Token.Name:
+            cbo_features["global_variable_references"] += 1
+            last_token = None
+            continue
+
+        # Store last identifier for reference
+        if ttype == Token.Name:
+            last_identifier = value
+        elif ttype == Token.Keyword and value == "new":
+            last_token = "new"
+        elif ttype == Token.Keyword and value == "static":
+            last_token = "static"
+        elif ttype == Token.Keyword and value in {"public", "private", "protected", "internal"}:
+            last_token = "constructor"
+
+    # Convert class dependency set to count
+    cbo_features["class_dependencies"] = len(cbo_features["class_dependencies"])
+
+    return cbo_features
+
 def calculate_code_complexity_multiple_files_csharp(file_contents):
     results = {}
+    results3 = {}
+    new_patterns = []
 
     result1 = calculate_code_complexity_multiple(file_contents)
 
@@ -961,6 +1165,40 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         lines = content.splitlines()
         complexity_data = []
 
+        # Extract features from Java code
+        new_cbo_features = extract_csharp_class_dependencies(content)
+        print("new_cbo_features>>>>>>>>>>>>>>>>>>>>>>>>", new_cbo_features)
+        X_new = pd.DataFrame([new_cbo_features])[X.columns]
+
+        # Predict CBO issue
+        prediction = rf_model.predict(X_new)[0]
+
+        # Generate Recommendations
+        recommendations = []
+        if X_new["class_dependencies"][0] > 5:
+            recommendations.append(
+                "⚠️ Reduce class dependencies by using interfaces instead of direct implementations.")
+        if X_new["direct_instantiations"][0] > 3:
+            recommendations.append("⚠️ Too many direct object instantiations. Use dependency injection instead.")
+        if X_new["static_method_calls"][0] > 3:
+            recommendations.append("⚠️ Reduce static method calls to improve testability and flexibility.")
+        if X_new["static_variable_usage"][0] > 2:
+            recommendations.append("⚠️ Minimize static variable usage to prevent global state issues.")
+        if X_new["setter_injections"][0] > 1:
+            recommendations.append("⚠️ Too many setter injections detected. Prefer constructor injection.")
+        if X_new["interface_implementations"][0] > 2:
+            recommendations.append("⚠️ Avoid God Interfaces.(interfaces with too many responsibilities)")
+        if X_new["global_variable_references"][0] > 2:
+            recommendations.append(
+                "⚠️ Avoid using global variables. Use dependency injection or encapsulation instead to prevent hidden dependencies."
+            )
+
+        # Store results
+        results3[filename] = {
+            "prediction": "High CBO (Issue)" if prediction == 1 else "Low CBO (Good)",
+            "recommendations": recommendations
+        }
+
         cbo_line_data = result1.get(filename, [])
         mpc_line_data = mpc_results.get(filename, [])
 
@@ -972,23 +1210,9 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         nesting_levels = calculate_nesting_level(content)
         nesting_level_dict = {line[0]: line[2] for line in nesting_levels}
 
-        print("nesting_levels----------------------", nesting_levels)
-
-        # try_catch_weights = calculate_try_catch_weight(content)
-        # try_catch_weight_dict = {line[0]: line[3] for line in try_catch_weights}
-        # print("try_catch_weight_dict###############################################", try_catch_weight_dict)
-        #
-        # print("try_catch_weights---------------------------------", try_catch_weights)
-
         try_catch_weights, try_catch_weight_dict = calculate_try_catch_weight(content)
 
-        print("try_catch_weights---------------------------------", try_catch_weight_dict)
-        print("try_catch_weights Nesting Levels-++++++++++++++++++++++++++---------------------------------",
-              try_catch_weights)
-
         thread_weights = calculate_thread_weight(content)
-
-        print("thread_weights---------------------------------", thread_weights)
 
         # Calculate MPC and CBO for this file
         cbo_value = calculate_cbo(class_references).get(class_name, 0)
@@ -1001,6 +1225,9 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
 
         # Initialize total WCC value for the file
         total_wcc = 0
+
+        lines = content.splitlines()
+        line_weights, total_complexity = calculate_control_structure_complexity(lines)
 
         for line_number, line in enumerate(lines, start=1):
             # Calculate size (token count)
@@ -1044,8 +1271,9 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
             print("try_catch_weight", try_catch_weight)
             thread_weight = thread_weights.get(line_number, 0)
 
-            # Calculate control structure complexity
-            control_structure_complexity = calculate_control_structure_complexity(line)
+            # control_structure_complexity = calculate_control_structure_complexity(line)
+
+            control_structure_complexity = line_weights.get(line_number, {"weight": 0})["weight"]
 
             # Calculate nesting level
             # current_nesting, in_control_structure, control_structure_stack, wn = calculate_nesting_level(
@@ -1066,6 +1294,25 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
 
             # Calculate weights for thread operations
             # thread_weight = calculate_thread_weight(line)
+
+            metrics = [control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight,
+                       current_inheritance]
+            recommendation = recommend_action(metrics)
+
+            # Check if pattern exists in dataset; if not, add it
+            if not ((dataset["control_structure_complexity"] == control_structure_complexity) &
+                    (dataset["nesting_level"] == nesting_level) &
+                    (dataset["compound_condition_weight"] == compound_condition_weight) &
+                    (dataset["try_catch_weight"] == try_catch_weight) &
+                    (dataset["current_inheritance"] == current_inheritance)).any():
+                new_patterns.append({
+                    "control_structure_complexity": control_structure_complexity,
+                    "nesting_level": nesting_level,
+                    "compound_condition_weight": compound_condition_weight,
+                    "try_catch_weight": int(try_catch_weight),
+                    "current_inheritance": int(current_inheritance),
+                    "label": recommendation.strip('"')
+                })
 
             # Append complexity details to line_complexities for recommendations
             line_complexities.append({
@@ -1111,7 +1358,20 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
                 total_complexity,
             ])
         # Calculate method complexities
-        method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data)
+        method_complexities = calculate_code_complexity_by_method(content, method_inheritance, class_name, cbo_line_data, mpc_line_data, line_weights)
+
+        # Update dataset and retrain model if new patterns were identified
+        if new_patterns:
+            new_data = pd.DataFrame(new_patterns)
+            update_dataset_and_model(new_data)
+
+        # Get AI recommendations for each line in the file
+        recommendations = ai_recommend_refactoring(line_complexities)
+
+        # Filter out "No action needed" recommendations
+        filtered_recommendations = [
+            rec for rec in recommendations if rec['recommendation'] != "No action needed"
+        ]
 
         # Calculate contributing factors and plot pie chart
         complexity_factors = calculate_complexity_factors(filename, complexity_data)
@@ -1142,13 +1402,13 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
             'cbo': cbo_value,
             'mpc': mpc_value,
             'method_complexities': method_complexities,
-            # 'recommendation': filtered_recommendations,
+            'recommendation': filtered_recommendations,
             'pie_chart_path': pie_chart_path,
             'bar_charts': bar_chart_paths,
             'total_wcc': total_wcc
         }
 
-    return results
+    return results, results3
 
 # Function to calculate complexity factors for a file
 def calculate_complexity_factors(filename, data):

@@ -59,6 +59,16 @@
             background-color: #f4f4f4;
             color: #555;
         }
+        .high-cbo {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .low-cbo {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
 
         /* Button */
         .btn {
@@ -225,30 +235,6 @@
             </table>
         </div>
 
-
-{#        <div class="metrics">#}
-{#            <h3>CBO & MPC</h3>#}
-{#            <table>#}
-{#                <thead>#}
-{#                    <tr>#}
-{#                        <th>CBO</th>#}
-{#                        <th>MPC</th>#}
-{#                    </tr>#}
-{#                </thead>#}
-{#                <tbody>#}
-{#                    <tr>#}
-{#                        <td>{{ file.cbo }}</td>#}
-{#                        <td>{{ file.mpc }}</td>#}
-{#                    </tr>#}
-{#                </tbody>#}
-{#            </table>#}
-{#        </div>#}
-
-{#        <div>#}
-{#            <h3>Complexity Contribution</h3>#}
-{#            <img src="{% static 'images/' %}{{ file.pie_chart_path }}" class="pie-chart" alt="Complexity Pie Chart">#}
-{#        </div>#}
-
         <div>
             <h3>Complexity Reduction Recommendations</h3>
             <table>
@@ -271,6 +257,39 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- CBO Prediction Results -->
+            <h3>🔍 CBO Analysis</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>CBO Prediction</th>
+                        <th>Recommendations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cbo in cbo_predictions %}
+                        {% if cbo.filename == file.filename %}
+                            <tr class="{% if cbo.prediction == 'High CBO (Issue)' %}high-cbo{% else %}low-cbo{% endif %}">
+                                <td>{{ cbo.filename }}</td>
+                                <td>{{ cbo.prediction }}</td>
+                                <td>
+                                    {% if cbo.recommendations %}
+                                        <ul>
+                                            {% for rec in cbo.recommendations %}
+                                                <li>{{ rec }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        ✅ No critical issues detected.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
 
         <div class="method-complexity">
             <h3>Method Complexity Details</h3>
