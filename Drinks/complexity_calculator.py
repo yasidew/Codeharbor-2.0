@@ -11,7 +11,6 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
 import joblib
 
-
 # Load dataset
 dataset = pd.read_csv("media/c#_code_features.csv")
 
@@ -1595,9 +1594,6 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         total_cbo_weight = sum(cbo_weights.values())
         total_cbo += total_cbo_weight
 
-        # mpc_weight = mpc_line_data.get(line_number, 0)
-        # total_mpc += mpc_weight
-
         # Compound condition weight
         compound_condition_weight += calculate_compound_condition_weight(line_content)
 
@@ -1606,10 +1602,6 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         size + control_structure_complexity + total_nesting + current_inheritance_sum +
         compound_condition_weight + total_try_catch_weight + total_thread_weight + total_cbo + 0
     )
-
-    print("Size ******************************************************8", size)
-    print("current_inheritance_sum ******************************************************8", current_inheritance_sum)
-    print("total_complexity&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&7", total_complexity)
 
     return {
         "size": size,

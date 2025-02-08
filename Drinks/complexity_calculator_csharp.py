@@ -980,11 +980,8 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
             continue  # Skip this line if size is 0
 
         total_inheritance = method_inheritance.get(current_class, 0)
-
         nesting_level = nesting_level_dict.get(line_number, 0)
         total_nesting += nesting_level
-
-        print("total_nesting))))))))))))))))))))))))))))))))))", total_nesting)
 
         try_catch_weight = try_catch_weight_dict.get(line_number, 0)
         total_try_catch_weight += try_catch_weight
@@ -995,14 +992,9 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         size += line_size
         current_inheritance_sum += total_inheritance
 
+        print("line weight cc >>>>>>>>>>>>>", line_weights)
         control_structure_complexity += line_weights.get(line_number, {}).get("weight", 0)
-
-        # Calculate nesting level and control structures
-        # current_nesting, _, control_structure_stack, wn = calculate_nesting_level(
-        #     line, current_nesting, False, control_structure_stack
-        # )
-        # nesting_level += wn
-
+        print("consrol_structure??????????????", control_structure_complexity)
         cbo_weights = cbo_line_data[line_number - 1]["weights"] if line_number - 1 < len(cbo_line_data) else {}
         total_cbo_weight = sum(cbo_weights.values())
         total_cbo += total_cbo_weight
@@ -1013,12 +1005,6 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
         # Compound condition weight
         compound_condition_weight += calculate_compound_condition_weight(line)
 
-        # Try-catch weight
-        # try_catch_weight += calculate_try_catch_weight(line, current_nesting)
-
-        # Thread weight (specific to threading constructs in C#)
-        # thread_weight += calculate_thread_weight(line)
-
     # Sum up the complexity metrics for this method
     total_complexity = (
             size + control_structure_complexity + total_nesting + current_inheritance_sum +
@@ -1028,12 +1014,12 @@ def calculate_complexity_for_method(lines, method_inheritance, class_name, nesti
     print("current_inheritance_sum", current_inheritance_sum)
     return {
         "size": size,
-        "control_structure_complexity": 0,
-        "nesting_level": nesting_level,
+        "control_structure_complexity": control_structure_complexity,
+        "nesting_level": total_nesting,
         "inheritance_level": current_inheritance_sum,
         "compound_condition_weight": compound_condition_weight,
-        "try_catch_weight": try_catch_weight,
-        "thread_weight": thread_weight,
+        "try_catch_weight": total_try_catch_weight,
+        "thread_weight": total_thread_weight,
         'cbo_weights': total_cbo,
         # 'mpc_weight': total_mpc,
         "total_complexity": total_complexity
@@ -1271,29 +1257,13 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
             print("try_catch_weight", try_catch_weight)
             thread_weight = thread_weights.get(line_number, 0)
 
-            # control_structure_complexity = calculate_control_structure_complexity(line)
-
             control_structure_complexity = line_weights.get(line_number, {"weight": 0})["weight"]
 
-            # Calculate nesting level
-            # current_nesting, in_control_structure, control_structure_stack, wn = calculate_nesting_level(
-            #     line, current_nesting, in_control_structure, control_structure_stack
-            # )
-
-            # Calculate inheritance level
-            # current_inheritance = calculate_inheritance_level(line, current_inheritance)
-            # Calculate inheritance level (using tracked inheritance from other files)
             current_inheritance = calculate_inheritance_level2(class_name)
             method_inheritance[class_name] = current_inheritance
 
             # Calculate weights due to compound conditions
             compound_condition_weight = calculate_compound_condition_weight(line)
-
-            # Calculate weights for try-catch-finally blocks
-            # try_catch_weight = calculate_try_catch_weight(line, current_nesting)
-
-            # Calculate weights for thread operations
-            # thread_weight = calculate_thread_weight(line)
 
             metrics = [control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight,
                        current_inheritance]
