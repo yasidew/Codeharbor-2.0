@@ -9,13 +9,16 @@ from datetime import datetime
 
 from django.shortcuts import render
 
-# def challenges_view(request):
-#     return render(request, 'monthly_challenge.html')
+def challenges_page(request):
+    return render(request, 'all_monthly_challenges.html')
 
+def challenge_details_page(request):
+    return render(request, 'selectedChallenge.html')
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_all_challenges(request):
     challenges = Challenges.objects.all()
     challenges_data = [
@@ -33,31 +36,58 @@ def get_all_challenges(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
+# def get_challenges_for_current_month(request):
+#     current_month = datetime.now().month
+#     challenges = Challenges.objects.filter(month=current_month)
+#     if challenges.exists():
+#         challenges_data = [
+#             {
+#                 "id": challenge.id,
+#                 "category": challenge.category,
+#                 "template": challenge.template,
+#                 "difficulty": challenge.difficulty,
+#                 "month": challenge.month,
+#                 "created_at": challenge.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+#             }
+#             for challenge in challenges
+#         ]
+#         return Response({"challenges": challenges_data}, status=status.HTTP_200_OK)
+#     return Response(
+#         {"error": f"No challenges found for the current month ({current_month})."},
+#         status=status.HTTP_404_NOT_FOUND,
+#     )
 def get_challenges_for_current_month(request):
     current_month = datetime.now().month
     challenges = Challenges.objects.filter(month=current_month)
-    if challenges.exists():
-        challenges_data = [
-            {
-                "id": challenge.id,
-                "category": challenge.category,
-                "template": challenge.template,
-                "difficulty": challenge.difficulty,
-                "month": challenge.month,
-                "created_at": challenge.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            }
-            for challenge in challenges
-        ]
-        return Response({"challenges": challenges_data}, status=status.HTTP_200_OK)
-    return Response(
-        {"error": f"No challenges found for the current month ({current_month})."},
-        status=status.HTTP_404_NOT_FOUND,
-    )
+
+    if request.headers.get('Accept') == 'application/json':  # Check if it's an API request
+        if challenges.exists():
+            challenges_data = [
+                {
+                    "id": challenge.id,
+                    "category": challenge.category,
+                    "template": challenge.template,
+                    "difficulty": challenge.difficulty,
+                    "month": challenge.month,
+                    "created_at": challenge.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                for challenge in challenges
+            ]
+            return Response({"challenges": challenges_data}, status=status.HTTP_200_OK)
+        return Response(
+            {"error": f"No challenges found for the current month ({current_month})."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # If it's a regular web request, render the HTML template
+    return render(request, 'current_challenge.html', {'challenges': challenges})
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_challenges_by_month(request, month):
     try:
         month = int(month)
@@ -91,7 +121,7 @@ def get_challenges_by_month(request, month):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def create_challenge(request):
     try:
         data = request.data
@@ -144,3 +174,29 @@ def create_challenge(request):
             {"error": "An error occurred while creating the challenge.", "details": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def get_challenge_by_id(request, challenge_id):
+    print(request.headers.get('Authorization'))
+    """
+    Fetch details of a specific challenge by its ID.
+    """
+    try:
+        challenge = get_object_or_404(Challenges, id=challenge_id)
+        challenge_data = {
+            "id": challenge.id,
+            "category": challenge.category,
+            "template": challenge.template,
+            "difficulty": challenge.difficulty,
+            "month": challenge.month,
+            "created_at": challenge.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            # "description": challenge.description,  # Remove this line
+        }
+        return Response(challenge_data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"error": "An error occurred while fetching the challenge details.", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
