@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import UserAPI, logout, logout_all
 
@@ -15,4 +15,6 @@ urlpatterns = [
     path('login/', lambda request: render(request, 'login.html'), name='login'),
     path('dashboard/', lambda request: render(request, 'dashboard.html'), name='login'),
     path('profile/', lambda request: render(request, 'update_profile.html'), name='profile'),
+
+
 ]

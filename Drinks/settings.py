@@ -55,6 +55,14 @@ INSTALLED_APPS = [
 
 ]
 
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+    "x-csrftoken",
+    "accept",
+    "origin",
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -103,6 +111,18 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',
+#         'NAME': 'drinks_db',  # Change this to your MongoDB database name
+#         'CLIENT': {
+#             'host': 'mongodb://wasana:wasana@localhost:27017/',
+#
+#         }
+#
+#     }
+
 
 
 # Password validation

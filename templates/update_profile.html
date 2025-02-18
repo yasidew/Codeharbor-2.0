@@ -92,6 +92,7 @@
     <script>
         async function fetchUserDetails() {
             const accessToken = localStorage.getItem('accessToken');
+
             if (!accessToken) {
                 alert("You are not logged in!");
                 window.location.href = '/login'; // Redirect to login page
@@ -128,6 +129,7 @@
             event.preventDefault();
 
             const accessToken = localStorage.getItem('accessToken');
+            console.log("Access token : ", accessToken)
             if (!accessToken) {
                 alert("You are not logged in!");
                 window.location.href = '/login'; // Redirect to login page

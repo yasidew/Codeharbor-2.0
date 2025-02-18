@@ -1,3 +1,56 @@
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
+{#    <title>Current Month's Challenges</title>#}
+{#    <style>#}
+{#        body {#}
+{#            font-family: Arial, sans-serif;#}
+{#            background-color: #f4f4f4;#}
+{#            margin: 0;#}
+{#            padding: 20px;#}
+{#        }#}
+{#        .container {#}
+{#            max-width: 800px;#}
+{#            margin: auto;#}
+{#            background: white;#}
+{#            padding: 20px;#}
+{#            border-radius: 5px;#}
+{#            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);#}
+{#        }#}
+{#        h1 {#}
+{#            text-align: center;#}
+{#        }#}
+{#        .challenge {#}
+{#            border-bottom: 1px solid #ddd;#}
+{#            padding: 10px;#}
+{#        }#}
+{#        .challenge:last-child {#}
+{#            border-bottom: none;#}
+{#        }#}
+{#    </style>#}
+{#</head>#}
+{#<body>#}
+{#    <div class="container">#}
+{#        <h1>Current Month's Challenges</h1>#}
+{#        {% if challenges %}#}
+{#            {% for challenge in challenges %}#}
+{#                <div class="challenge">#}
+{#                    <h3>{{ challenge.category }}</h3>#}
+{#                    <p><strong>Difficulty:</strong> {{ challenge.difficulty }}</p>#}
+{#                    <p><strong>Template:</strong> {{ challenge.template }}</p>#}
+{#                    <p><strong>Month:</strong> {{ challenge.month }}</p>#}
+{#                    <p><strong>Created At:</strong> {{ challenge.created_at }}</p>#}
+{#                </div>#}
+{#            {% endfor %}#}
+{#        {% else %}#}
+{#            <p>No challenges available for this month.</p>#}
+{#        {% endif %}#}
+{#    </div>#}
+{#</body>#}
+{#</html>#}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,19 +87,80 @@
 <body>
     <div class="container">
         <h1>Current Month's Challenges</h1>
-        {% if challenges %}
-            {% for challenge in challenges %}
-                <div class="challenge">
-                    <h3>{{ challenge.category }}</h3>
-                    <p><strong>Difficulty:</strong> {{ challenge.difficulty }}</p>
-                    <p><strong>Template:</strong> {{ challenge.template }}</p>
-                    <p><strong>Month:</strong> {{ challenge.month }}</p>
-                    <p><strong>Created At:</strong> {{ challenge.created_at }}</p>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No challenges available for this month.</p>
-        {% endif %}
+        <div id="challenges-container">
+            <p>Loading challenges...</p>
+        </div>
     </div>
+
+    <script>
+        async function fetchChallengesForCurrentMonth() {
+            const accessToken = localStorage.getItem('accessToken'); // Get token from local storage
+
+            console.log("Access Token Sent:", accessToken); // ✅ Print token to console for debugging
+
+            if (!accessToken) {
+                alert("You are not logged in!");
+                window.location.href = '/login'; // Redirect to login page
+                return;
+            }
+
+            try {
+                const response = await fetch('/challenges/current/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,  // ✅ Ensure token is sent
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                console.log("Request Headers:", response.headers);  // ✅ Debugging headers
+
+                if (response.status === 401) {
+                    alert("Your session has expired. Please log in again.");
+                    localStorage.removeItem('accessToken');  // Remove expired token
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch challenges");
+                }
+
+                const data = await response.json();
+                console.log("Challenges:", data);
+                displayChallenges(data.challenges);
+            } catch (error) {
+                console.error("Error fetching challenges:", error);
+                document.getElementById("challenges-container").innerHTML = "<p>Error loading challenges.</p>";
+            }
+        }
+
+        function displayChallenges(challenges) {
+            const container = document.getElementById("challenges-container");
+            container.innerHTML = "";  // Clear loading text
+
+            if (!challenges || challenges.length === 0) {
+                container.innerHTML = "<p>No challenges available for this month.</p>";
+                return;
+            }
+
+            challenges.forEach(challenge => {
+                const challengeDiv = document.createElement("div");
+                challengeDiv.classList.add("challenge");
+                challengeDiv.innerHTML = `
+                    <h3>${challenge.category}</h3>
+                    <p><strong>Difficulty:</strong> ${challenge.difficulty}</p>
+                    <p><strong>Template:</strong> ${challenge.template}</p>
+                    <p><strong>Month:</strong> ${challenge.month}</p>
+                    <p><strong>Created At:</strong> ${challenge.created_at}</p>
+                `;
+                container.appendChild(challengeDiv);
+            });
+        }
+
+        // Fetch challenges on page load
+        document.addEventListener("DOMContentLoaded", fetchChallengesForCurrentMonth);
+    </script>
 </body>
 </html>

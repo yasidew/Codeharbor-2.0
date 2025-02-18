@@ -36,28 +36,8 @@ def get_all_challenges(request):
 
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-@permission_classes([AllowAny])
-# def get_challenges_for_current_month(request):
-#     current_month = datetime.now().month
-#     challenges = Challenges.objects.filter(month=current_month)
-#     if challenges.exists():
-#         challenges_data = [
-#             {
-#                 "id": challenge.id,
-#                 "category": challenge.category,
-#                 "template": challenge.template,
-#                 "difficulty": challenge.difficulty,
-#                 "month": challenge.month,
-#                 "created_at": challenge.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-#             }
-#             for challenge in challenges
-#         ]
-#         return Response({"challenges": challenges_data}, status=status.HTTP_200_OK)
-#     return Response(
-#         {"error": f"No challenges found for the current month ({current_month})."},
-#         status=status.HTTP_404_NOT_FOUND,
-#     )
+@permission_classes([IsAuthenticated])
+# @permission_classes([AllowAny])
 def get_challenges_for_current_month(request):
     current_month = datetime.now().month
     challenges = Challenges.objects.filter(month=current_month)
