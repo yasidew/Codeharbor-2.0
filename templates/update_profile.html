@@ -93,6 +93,8 @@
         async function fetchUserDetails() {
             const accessToken = localStorage.getItem('accessToken');
 
+            console.log("Update profile fetchUserDetails");
+
             if (!accessToken) {
                 alert("You are not logged in!");
                 window.location.href = '/login'; // Redirect to login page

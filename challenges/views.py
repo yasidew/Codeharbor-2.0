@@ -10,15 +10,15 @@ from datetime import datetime
 from django.shortcuts import render
 
 def challenges_page(request):
-    return render(request, 'all_monthly_challenges.html')
+    return render(request, 'current_challenge.html')
 
 def challenge_details_page(request):
     return render(request, 'selectedChallenge.html')
 
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+#@permission_classes([AllowAny])
 def get_all_challenges(request):
     challenges = Challenges.objects.all()
     challenges_data = [
@@ -37,7 +37,7 @@ def get_all_challenges(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-# @permission_classes([AllowAny])
+#@permission_classes([AllowAny])
 def get_challenges_for_current_month(request):
     current_month = datetime.now().month
     challenges = Challenges.objects.filter(month=current_month)
@@ -66,8 +66,8 @@ def get_challenges_for_current_month(request):
 
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+#@permission_classes([AllowAny])
 def get_challenges_by_month(request, month):
     try:
         month = int(month)

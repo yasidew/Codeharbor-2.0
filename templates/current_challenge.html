@@ -93,74 +93,65 @@
     </div>
 
     <script>
-        async function fetchChallengesForCurrentMonth() {
-            const accessToken = localStorage.getItem('accessToken'); // Get token from local storage
-
-            console.log("Access Token Sent:", accessToken); // ✅ Print token to console for debugging
-
+        async function fetchChallenges() {
+            const accessToken = localStorage.getItem('accessToken');
+console.log("Access token-" + accessToken);
             if (!accessToken) {
                 alert("You are not logged in!");
                 window.location.href = '/login'; // Redirect to login page
                 return;
             }
-
+            console.log(accessToken);
             try {
-                const response = await fetch('/challenges/current/', {
+                const response = await fetch('/challenges/current', {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${accessToken}`,  // ✅ Ensure token is sent
-                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                 });
 
-                console.log("Request Headers:", response.headers);  // ✅ Debugging headers
+                const challengesContainer = document.getElementById('challenges-container');
+                challengesContainer.innerHTML = '';
+                console.log(response);
 
-                if (response.status === 401) {
-                    alert("Your session has expired. Please log in again.");
-                    localStorage.removeItem('accessToken');  // Remove expired token
-                    window.location.href = '/login';
-                    return;
+                if (response.ok) {
+                    console.log("OK");
+                     const data = await response.json();
+                     console.log("Full API Response:", data); // ✅ Debugging
+                     const challenges = Array.isArray(data) ? data : data.challenges;
+
+                    if (!challenges || challenges.length === 0) {
+                        challengesContainer.innerHTML = '<p>No challenges available for this month.</p>';
+                        return;
+                    }
+
+                    challenges.forEach(challenge => {
+                        const challengeDiv = document.createElement('div');
+                        challengeDiv.classList.add('challenge');
+                        challengeDiv.innerHTML = `
+                            <h3>${challenge.category}</h3>
+                            <p><strong>Difficulty:</strong> ${challenge.difficulty}</p>
+                            <p><strong>Template:</strong> ${challenge.template}</p>
+                            <p><strong>Month:</strong> ${challenge.month}</p>
+                            <p><strong>Created At:</strong> ${challenge.created_at}</p>
+                        `;
+                        challengesContainer.appendChild(challengeDiv);
+                    });
+
+                } else {
+                    challengesContainer.innerHTML = '<p>Failed to load challenges.</p>';
                 }
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch challenges");
-                }
-
-                const data = await response.json();
-                console.log("Challenges:", data);
-                displayChallenges(data.challenges);
             } catch (error) {
-                console.error("Error fetching challenges:", error);
-                document.getElementById("challenges-container").innerHTML = "<p>Error loading challenges.</p>";
+
+                console.log("Error fetching challenges: "+ error);
+                document.getElementById('challenges-container').innerHTML = '<p>An error occurred. Please try again.</p>';
             }
-        }
-
-        function displayChallenges(challenges) {
-            const container = document.getElementById("challenges-container");
-            container.innerHTML = "";  // Clear loading text
-
-            if (!challenges || challenges.length === 0) {
-                container.innerHTML = "<p>No challenges available for this month.</p>";
-                return;
-            }
-
-            challenges.forEach(challenge => {
-                const challengeDiv = document.createElement("div");
-                challengeDiv.classList.add("challenge");
-                challengeDiv.innerHTML = `
-                    <h3>${challenge.category}</h3>
-                    <p><strong>Difficulty:</strong> ${challenge.difficulty}</p>
-                    <p><strong>Template:</strong> ${challenge.template}</p>
-                    <p><strong>Month:</strong> ${challenge.month}</p>
-                    <p><strong>Created At:</strong> ${challenge.created_at}</p>
-                `;
-                container.appendChild(challengeDiv);
-            });
         }
 
         // Fetch challenges on page load
-        document.addEventListener("DOMContentLoaded", fetchChallengesForCurrentMonth);
+        window.onload = fetchChallenges;
     </script>
 </body>
 </html>
