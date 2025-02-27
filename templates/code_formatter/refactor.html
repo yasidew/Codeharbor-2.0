@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
+
+        <!-- Code Input Section -->
+        <div class="card bg-dark p-4">
+            <label for="fileInput" class="text-white">Upload or Paste Code Below:</label>
+            <input type="file" name="file" id="fileInput" class="form-control mb-3">
+            <textarea id="codeEditor" name="code" class="form-control"></textarea>
+        </div>
+
+        <!-- Refactor Button -->
+        <div class="text-center mt-3">
+            <button id="refactor-btn" class="btn btn-info">Refactor Code</button>
+        </div>
+
+        <!-- Loading Bar -->
+        <div id="loading-bar" class="mt-3" style="display: none;">
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- Refactored Code Output -->
+        <div id="refactored-section" class="mt-5" style="display: none;">
+            <h3 class="text-center text-white">Refactored Code</h3>
+            <div class="card bg-dark p-3">
+                <textarea id="refactoredCodeEditor" class="form-control bg-secondary text-white" readonly></textarea>
+            </div>
+            <div class="text-center mt-3">
+                <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
+            </div>
+        </div>
+
+        <!-- Code Metrics -->
+        <div id="metrics-section" class="mt-5" style="display: none;">
+            <h3 class="text-center text-white">Code Metrics Visualization</h3>
+            <canvas id="metricsChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Include CodeMirror -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+
+<script>
+    // Initialize CodeMirror for Original Code
+    const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+        lineNumbers: true,
+        mode: "javascript",
+        theme: "material-darker",
+    });
+
+    // Initialize CodeMirror for Refactored Code
+    const refactoredCodeMirror = CodeMirror.fromTextArea(document.getElementById('refactoredCodeEditor'), {
+        lineNumbers: true,
+        mode: "javascript",
+        theme: "material-darker",
+        readOnly: true,
+    });
+
+    // Handle File Upload
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                codeMirrorEditor.setValue(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // Handle Refactor Button Click
+    document.getElementById('refactor-btn').addEventListener('click', async () => {
+        const code = codeMirrorEditor.getValue();
+        const loadingBar = document.getElementById('loading-bar');
+        const refactoredSection = document.getElementById('refactored-section');
+        const metricsSection = document.getElementById('metrics-section');
+
+        loadingBar.style.display = 'block';
+        refactoredSection.style.display = 'none';
+        metricsSection.style.display = 'none';
+
+        try {
+            const response = await fetch('/code-formatter/refactor-code/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ code }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                refactoredCodeMirror.setValue(data.refactored_code);
+
+                // Display sections on success
+                refactoredSection.style.display = 'block';
+                metricsSection.style.display = 'block';
+
+                // Display Toast for Success
+                showToast("Code refactoring successful!", "success");
+
+                // Update Chart with Metrics
+                generateChart(data.original_loc, data.refactored_loc, data.original_readability, data.refactored_readability);
+            } else {
+                showToast("Error in refactoring code!", "error");
+            }
+        } catch (error) {
+            showToast("An error occurred: " + error.message, "error");
+        } finally {
+            loadingBar.style.display = 'none';
+        }
+    });
+
+    // Download Refactored Code
+    document.getElementById('download-btn').addEventListener('click', () => {
+        const refactoredCode = refactoredCodeMirror.getValue();
+        const blob = new Blob([refactoredCode], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'refactored_code.java';
+        link.click();
+    });
+
+    // Generate Metrics Chart
+    function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
+        const ctx = document.getElementById('metricsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
+                datasets: [{
+                    label: 'Metrics Comparison',
+                    data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
+                    backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
+                    borderColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } },
+            },
+        });
+    }
+
+    // Show Toast Message
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerText = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = 0;
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+</script>
+
+<style>
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #000;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        z-index: 1000;
+        transition: opacity 0.3s ease-in-out;
+        opacity: 0.9;
+    }
+    .toast.success {
+        background: #28a745;
+    }
+    .toast.error {
+        background: #dc3545;
+    }
+</style>
+{% endblock %}
