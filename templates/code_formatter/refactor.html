@@ -1,40 +1,45 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 class="text-center mb-4">Code Refactoring Tool</h1>
-<div class="container">
-    <!-- Original Code Input -->
-    <div class="mb-3">
-        <label for="fileInput" class="form-label">Upload or Paste Code Below:</label>
-        <input type="file" name="file" id="fileInput" class="form-control mb-3">
-        <textarea id="codeEditor" name="code" class="form-control"></textarea>
-    </div>
+<div class="content">
+    <div class="container-fluid">
+        <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
 
-    <!-- Refactor Button -->
-    <div class="text-center">
-        <button id="refactor-btn" class="btn btn-success">Refactor Code</button>
-    </div>
-
-    <!-- Loading Bar -->
-    <div id="loading-bar" class="mt-3" style="display: none;">
-        <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%;"></div>
+        <!-- Code Input Section -->
+        <div class="card bg-dark p-4">
+            <label for="fileInput" class="text-white">Upload or Paste Code Below:</label>
+            <input type="file" name="file" id="fileInput" class="form-control mb-3">
+            <textarea id="codeEditor" name="code" class="form-control"></textarea>
         </div>
-    </div>
 
-    <!-- Refactored Code Output -->
-    <div id="refactored-section" class="mt-5" style="display: none;">
-        <h3 class="text-center">Refactored Code</h3>
-        <textarea id="refactoredCodeEditor" class="form-control" readonly></textarea>
+        <!-- Refactor Button -->
         <div class="text-center mt-3">
-            <button id="download-btn" class="btn btn-primary">Download Refactored Code</button>
+            <button id="refactor-btn" class="btn btn-info">Refactor Code</button>
         </div>
-    </div>
 
-    <!-- Code Metrics -->
-    <div id="metrics-section" class="mt-5" style="display: none;">
-        <h3 class="text-center">Code Metrics Visualization</h3>
-        <canvas id="metricsChart" width="400" height="200"></canvas>
+        <!-- Loading Bar -->
+        <div id="loading-bar" class="mt-3" style="display: none;">
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- Refactored Code Output -->
+        <div id="refactored-section" class="mt-5" style="display: none;">
+            <h3 class="text-center text-white">Refactored Code</h3>
+            <div class="card bg-dark p-3">
+                <textarea id="refactoredCodeEditor" class="form-control bg-secondary text-white" readonly></textarea>
+            </div>
+            <div class="text-center mt-3">
+                <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
+            </div>
+        </div>
+
+        <!-- Code Metrics -->
+        <div id="metrics-section" class="mt-5" style="display: none;">
+            <h3 class="text-center text-white">Code Metrics Visualization</h3>
+            <canvas id="metricsChart" width="400" height="200"></canvas>
+        </div>
     </div>
 </div>
 
@@ -47,14 +52,14 @@
     const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
         lineNumbers: true,
         mode: "javascript",
-        theme: "default",
+        theme: "material-darker",
     });
 
     // Initialize CodeMirror for Refactored Code
     const refactoredCodeMirror = CodeMirror.fromTextArea(document.getElementById('refactoredCodeEditor'), {
         lineNumbers: true,
         mode: "javascript",
-        theme: "default",
+        theme: "material-darker",
         readOnly: true,
     });
 
@@ -126,37 +131,25 @@
 
     // Generate Metrics Chart
     function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
-    const ctx = document.getElementById('metricsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
-            datasets: [{
-                label: 'Metrics Comparison',
-                data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.5)',  // Semi-transparent red
-                    'rgba(54, 162, 235, 0.5)',  // Semi-transparent blue
-                    'rgba(255, 206, 86, 0.5)',  // Semi-transparent yellow
-                    'rgba(75, 192, 192, 0.5)'   // Semi-transparent teal
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',    // Solid red border
-                    'rgba(54, 162, 235, 1)',    // Solid blue border
-                    'rgba(255, 206, 86, 1)',    // Solid yellow border
-                    'rgba(75, 192, 192, 1)'     // Solid teal border
-                ],
-                borderWidth: 1,
-            }],
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true },
+        const ctx = document.getElementById('metricsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
+                datasets: [{
+                    label: 'Metrics Comparison',
+                    data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
+                    backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
+                    borderColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
+                    borderWidth: 1,
+                }],
             },
-        },
-    });
-}
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true } },
+            },
+        });
+    }
 
     // Show Toast Message
     function showToast(message, type) {
