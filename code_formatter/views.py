@@ -1,9 +1,13 @@
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+
 from .complexity_calculator import calculate_loc, calculate_readability
 import openai
 import os
 import json
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Guideline
+from .forms import GuidelineForm
 
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -68,3 +72,53 @@ def refactor_code(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+# API Endpoint for AI to Fetch Guidelines
+def get_guidelines(request, company_name):
+    guidelines = Guideline.objects.filter(company_name=company_name).values('pattern', 'rule')
+    return JsonResponse({"guidelines": list(guidelines)})
+
+# def define_guidelines(request):
+#     if request.method == "POST":
+#         company_name = request.POST['company_name']
+#         pattern = request.POST['pattern']
+#         rule = request.POST['rule']
+#         Guideline.objects.create(company_name=company_name, pattern=pattern, rule=rule)
+#         return redirect('define_guidelines')
+#
+#     return render(request,  "code_formatter/define_guidelines.html")
+def define_guidelines(request):
+    if request.method == "POST":
+        form = GuidelineForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('define_guidelines')
+
+    guidelines = Guideline.objects.all()
+    return render(request, "code_formatter/define_guidelines.html", {"guidelines": guidelines})
+
+@csrf_exempt
+def edit_guideline(request, id):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            guideline = Guideline.objects.get(id=id)
+            guideline.company_name = data["company_name"]
+            guideline.pattern = data["pattern"]
+            guideline.rule = data["rule"]
+            guideline.save()
+
+            return JsonResponse({
+                "success": True,
+                "company_name": guideline.company_name,
+                "pattern": guideline.pattern,
+                "rule": guideline.rule,
+            })
+        except Guideline.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Guideline not found"})
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+def delete_guideline(request, guideline_id):
+    guideline = get_object_or_404(Guideline, id=guideline_id)
+    guideline.delete()
+    return redirect('define_guidelines')

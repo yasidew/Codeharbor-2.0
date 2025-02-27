@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+    <!-- Custom Sidebar -->
+    <div class="sidebar" data-color="black">
+        <div class="sidebar-wrapper">
+            <div class="logo">
+                <a href="#" class="simple-text logo-mini">
+                    <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
+                </a>
+                <a href="#" class="simple-text logo-normal">Code Harbor</a>
+            </div>
+            <ul class="nav">
+                <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
+                    <p>Refactor Code</p></a></li>
+                <li><a href="{% url 'define_guidelines' %}"><i class="bi bi-pencil"></i>
+                    <p>Define Guidelines</p></a></li>
+                <li><a href="#"><i class="bi bi-bar-chart"></i>
+                    <p>Analysis</p></a></li>
+                <li><a href="#"><i class="bi bi-gear"></i>
+                    <p>Settings</p></a></li>
+                <li><a href="#"><i class="bi bi-box-arrow-right"></i>
+                    <p>Logout</p></a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h2 class="text-white text-center">Define Guidelines</h2>
+        <form method="POST" action="{% url 'define_guidelines' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="text-white">Company Name:</label>
+                <input type="text" name="company_name" class="form-control mb-2" required>
+            </div>
+
+            <div class="form-group">
+                <label class="text-white">Pattern:</label>
+                <select name="pattern" class="form-control mb-2 custom-dropdown">
+                    <option value="Factory">Factory Pattern</option>
+                    <option value="Strategy">Strategy Pattern</option>
+                    <option value="Observer">Observer Pattern</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="text-white">Guideline:</label>
+                <textarea name="rule" class="form-control mb-2 resizable-textarea" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-info">Save Guideline</button>
+        </form>
+
+        <!-- Saved Guidelines Section -->
+        <h3 class="text-white text-center mt-4">Saved Guidelines</h3>
+        <div id="guidelines-container">
+            {% for guideline in guidelines %}
+                <div class="card bg-dark text-white p-3 mb-3">
+                    <div id="view-mode-{{ guideline.id }}">
+                        <strong>{{ guideline.company_name }}</strong>
+                        <p>Pattern: {{ guideline.pattern }}</p>
+                        <p>{{ guideline.rule }}</p>
+                        <button class="btn btn-warning btn-sm edit-btn" data-id="{{ guideline.id }}">Edit</button>
+                        <button class="btn btn-danger btn-sm delete-btn" data-id="{{ guideline.id }}">Delete</button>
+                    </div>
+
+                    <div id="edit-mode-{{ guideline.id }}" class="d-none">
+                        <input type="text" class="form-control mb-2" id="company-{{ guideline.id }}"
+                               value="{{ guideline.company_name }}">
+
+                        <select class="form-control mb-2" id="pattern-{{ guideline.id }}">
+                            <option value="Factory" {% if guideline.pattern == "Factory" %}selected{% endif %}>Factory
+                                Pattern
+                            </option>
+                            <option value="Strategy" {% if guideline.pattern == "Strategy" %}selected{% endif %}>
+                                Strategy Pattern
+                            </option>
+                            <option value="Observer" {% if guideline.pattern == "Observer" %}selected{% endif %}>
+                                Observer Pattern
+                            </option>
+                        </select>
+
+                        <textarea class="form-control mb-2" id="rule-{{ guideline.id }}">{{ guideline.rule }}</textarea>
+
+                        <button class="btn btn-success btn-sm save-btn" data-id="{{ guideline.id }}">Save</button>
+                        <button class="btn btn-secondary btn-sm cancel-btn" data-id="{{ guideline.id }}">Cancel</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Enable Edit Mode
+            document.querySelectorAll(".edit-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    document.getElementById(`view-mode-${id}`).classList.add("d-none");
+                    document.getElementById(`edit-mode-${id}`).classList.remove("d-none");
+                });
+            });
+
+            // Cancel Edit Mode
+            document.querySelectorAll(".cancel-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    document.getElementById(`view-mode-${id}`).classList.remove("d-none");
+                    document.getElementById(`edit-mode-${id}`).classList.add("d-none");
+                });
+            });
+
+            // Save Edited Guideline
+            document.querySelectorAll(".save-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    const company = document.getElementById(`company-${id}`).value;
+                    const pattern = document.getElementById(`pattern-${id}`).value;
+                    const rule = document.getElementById(`rule-${id}`).value;
+
+                    fetch(`/code-formatter/edit-guideline/${id}/`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}",
+                        },
+                        body: JSON.stringify({company_name: company, pattern: pattern, rule: rule}),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update the UI with the new values
+                                document.getElementById(`view-mode-${id}`).innerHTML = `
+                            <strong>${data.company_name}</strong>
+                            <p>Pattern: ${data.pattern}</p>
+                            <p>${data.rule}</p>
+                            <button class="btn btn-warning btn-sm edit-btn" data-id="${id}">Edit</button>
+                            <button class="btn btn-danger btn-sm delete-btn" data-id="${id}">Delete</button>
+                        `;
+                                document.getElementById(`view-mode-${id}`).classList.remove("d-none");
+                                document.getElementById(`edit-mode-${id}`).classList.add("d-none");
+                            } else {
+                                alert("Error updating guideline.");
+                            }
+                        });
+                });
+            });
+
+            // Delete Guideline
+            document.querySelectorAll(".delete-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    if (confirm("Are you sure you want to delete this guideline?")) {
+                        fetch(`/code-formatter/delete-guideline/${id}/`, {
+                            method: "POST",
+                            headers: {"X-CSRFToken": "{{ csrf_token }}"}
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    document.getElementById(`view-mode-${id}`).parentNode.remove();
+                                } else {
+                                    alert("Error deleting guideline.");
+                                }
+                            });
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+
+    <style>
+        .resizable-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .custom-dropdown {
+            appearance: none;
+            background-color: #222;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #666;
+        }
+
+        .custom-dropdown option {
+            background-color: #222;
+            color: white;
+        }
+
+        .card {
+            border-radius: 8px;
+        }
+    </style>
+{% endblock %}
