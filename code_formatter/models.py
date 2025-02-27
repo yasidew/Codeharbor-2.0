@@ -11,3 +11,15 @@ class Guideline(models.Model):
 
     def __str__(self):
         return f"{self.company_name} - {self.pattern}"
+
+class RefactoringHistory(models.Model):
+    original_code = models.TextField()
+    refactored_code = models.TextField()
+    original_complexity = models.FloatField()
+    refactored_complexity = models.FloatField()
+    original_readability = models.FloatField()
+    refactored_readability = models.FloatField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Refactoring Record {self.id} at {self.timestamp}"

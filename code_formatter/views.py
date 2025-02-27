@@ -1,6 +1,5 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
 from .complexity_calculator import calculate_loc, calculate_readability
 import openai
 import os
@@ -8,6 +7,8 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Guideline
 from .forms import GuidelineForm
+from .models import RefactoringHistory
+from .utils import analyze_code, refactor_code
 
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -122,3 +123,85 @@ def delete_guideline(request, guideline_id):
     guideline = get_object_or_404(Guideline, id=guideline_id)
     guideline.delete()
     return redirect('define_guidelines')
+
+
+@csrf_exempt
+def refactor_and_compare(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            original_code = data.get("code", "")
+
+            print("Received code:", original_code)  # Debugging log
+
+            # Analyze Original Code Complexity
+            original_complexity, original_readability = analyze_code(original_code)
+
+            # Refactor Code
+            refactored_code = refactor_code(original_code)
+
+            # Analyze Refactored Code Complexity
+            refactored_complexity, refactored_readability = analyze_code(refactored_code)
+
+            # Save to Database
+            history = RefactoringHistory.objects.create(
+                original_code=original_code,
+                refactored_code=refactored_code,
+                original_complexity=original_complexity,
+                refactored_complexity=refactored_complexity,
+                original_readability=original_readability,
+                refactored_readability=refactored_readability
+            )
+
+            print("Saved to database:", history.id)  # Debugging log
+
+            return JsonResponse({
+                "success": True,
+                "before_code": original_code,
+                "after_code": refactored_code,
+                "original_complexity": original_complexity,
+                "refactored_complexity": refactored_complexity,
+                "original_readability": original_readability,
+                "refactored_readability": refactored_readability,
+                "id": history.id
+            })
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+
+def refactor_code_view(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            original_code = data.get('code', '')
+
+            # Simulate AI-based refactoring (Replace this with actual AI call)
+            refactored_code = "Refactored: " + original_code  # Placeholder result
+            original_complexity = 78  # Replace with actual analysis
+            refactored_complexity = 92  # Replace with actual analysis
+            original_readability = 117.33  # Replace with actual analysis
+            refactored_readability = 116.73  # Replace with actual analysis
+
+            # Save to database
+            history = RefactoringHistory.objects.create(
+                original_code=original_code,
+                refactored_code=refactored_code,
+                original_complexity=original_complexity,
+                refactored_complexity=refactored_complexity,
+                original_readability=original_readability,
+                refactored_readability=refactored_readability,
+            )
+
+            return JsonResponse({
+                "refactored_code": refactored_code,
+                "original_loc": original_complexity,
+                "refactored_loc": refactored_complexity,
+                "original_readability": original_readability,
+                "refactored_readability": refactored_readability,
+                "id": history.id
+            })
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"error": "Invalid request"}, status=400)

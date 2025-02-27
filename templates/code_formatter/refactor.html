@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block sidebar %}
-    <!-- Custom Sidebar for Refactor Page -->
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
             <div class="logo">
@@ -39,8 +38,9 @@
         <div class="container">
             <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
 
-            <!-- Monaco Code Editor -->
+            <!-- Monaco Code Editor for Original Code -->
             <div class="card bg-dark p-4">
+                <h5 class="text-white">Original Code</h5>
                 <div id="monacoEditor" class="editor-container"></div>
             </div>
 
@@ -52,8 +52,15 @@
             <!-- Loading Bar -->
             <div id="loading-bar" class="mt-3" style="display: none;">
                 <div class="progress">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                         style="width: 100%;"></div>
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Before-After Code Diff View -->
+            <div id="diff-section" class="mt-5" style="display: none;">
+                <h3 class="text-center text-white">Before & After Code Comparison</h3>
+                <div class="card bg-dark p-3">
+                    <div id="codeDiffViewer" class="editor-container"></div>
                 </div>
             </div>
 
@@ -76,27 +83,22 @@
         </div>
     </div>
 
-    <!-- Include Monaco Editor and Chart.js -->
+    <!-- Include Monaco Editor, Diff Match Patch & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        let editor, refactoredEditor;
+        let editor, refactoredEditor, diffEditor;
 
         require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs'}});
+
         require(['vs/editor/editor.main'], function () {
             editor = monaco.editor.create(document.getElementById('monacoEditor'), {
                 value: "// Paste or upload your code here...",
                 language: "javascript",
                 theme: "vs-dark",
                 automaticLayout: true,
-                fontSize: 14,
-                scrollBeyondLastLine: false, // Prevents unnecessary scrolling
-                minimap: {enabled: false}, // Disables minimap for more space
-                wordWrap: "off", // Disables word wrapping
-                suggest: {
-                    snippetsPreventQuickSuggestions: false, // Ensures suggestions show properly
-                }
+                fontSize: 14
             });
 
             refactoredEditor = monaco.editor.create(document.getElementById('monacoRefactoredEditor'), {
@@ -106,6 +108,11 @@
                 readOnly: true,
                 automaticLayout: true,
                 fontSize: 14
+            });
+
+            diffEditor = monaco.editor.createDiffEditor(document.getElementById('codeDiffViewer'), {
+                theme: "vs-dark",
+                readOnly: true
             });
         });
 
@@ -127,46 +134,61 @@
 
         // Handle Refactor Button Click
         document.getElementById('refactor-btn').addEventListener('click', async () => {
-            const code = editor.getValue();
-            const loadingBar = document.getElementById('loading-bar');
-            const refactoredSection = document.getElementById('refactored-section');
-            const metricsSection = document.getElementById('metrics-section');
+    const code = editor.getValue();
+    console.log("Code sent to backend:", code);  // Debugging log
 
-            loadingBar.style.display = 'block';
-            refactoredSection.style.display = 'none';
-            metricsSection.style.display = 'none';
+    const loadingBar = document.getElementById('loading-bar');
+    const refactoredSection = document.getElementById('refactored-section');
+    const metricsSection = document.getElementById('metrics-section');
+    const diffSection = document.getElementById('diff-section');
 
-            try {
-                const response = await fetch('/code-formatter/refactor-code/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    body: JSON.stringify({code}),
-                });
+    loadingBar.style.display = 'block';
+    refactoredSection.style.display = 'none';
+    metricsSection.style.display = 'none';
+    diffSection.style.display = 'none';
 
-                if (response.ok) {
-                    const data = await response.json();
-                    refactoredEditor.setValue(data.refactored_code);
-
-                    // Display sections on success
-                    refactoredSection.style.display = 'block';
-                    metricsSection.style.display = 'block';
-
-                    // Generate Chart with Metrics
-                    generateChart(data.original_loc, data.refactored_loc, data.original_readability, data.refactored_readability);
-                } else {
-                    alert("Error in refactoring code!");
-                }
-            } catch (error) {
-                alert("An error occurred: " + error.message);
-            } finally {
-                loadingBar.style.display = 'none';
-            }
+    try {
+        const response = await fetch('/code-formatter/refactor-code/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({code}),
         });
 
-        // Generate Metrics Chart
+        console.log("Response status:", response.status);  // Debugging log
+
+        const data = await response.json();
+        console.log("Data received:", data);  // Debugging log
+
+        if (response.ok) {
+            refactoredEditor.setValue(data.refactored_code);
+
+            // Show Diff View
+            diffEditor.setModel({
+                original: monaco.editor.createModel(code, "javascript"),
+                modified: monaco.editor.createModel(data.refactored_code, "javascript")
+            });
+
+            // Display sections on success
+            refactoredSection.style.display = 'block';
+            metricsSection.style.display = 'block';
+            diffSection.style.display = 'block';
+
+            // Generate Chart with Metrics
+            generateChart(data.original_loc, data.refactored_loc, data.original_readability, data.refactored_readability);
+        } else {
+            alert("Error in refactoring code! Check console.");
+        }
+    } catch (error) {
+        alert("An error occurred: " + error.message);
+    } finally {
+        loadingBar.style.display = 'none';
+    }
+});
+
+
         function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
             const ctx = document.getElementById('metricsChart').getContext('2d');
             new Chart(ctx, {
@@ -177,13 +199,7 @@
                         label: 'Metrics Comparison',
                         data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
                         backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
-                        borderColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
-                        borderWidth: 1
                     }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {y: {beginAtZero: true}},
                 }
             });
         }
