@@ -1,15 +1,40 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block sidebar %}
+<!-- Custom Sidebar for Refactor Page -->
+<div class="sidebar" data-color="black">
+    <div class="sidebar-wrapper">
+        <div class="logo">
+            <a href="#" class="simple-text logo-mini">
+                <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
+            </a>
+            <a href="#" class="simple-text logo-normal">Code Harbor</a>
+        </div>
+        <ul class="nav">
+            <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i><p>Refactor Code</p></a></li>
+            <li>
+                <label for="fileInput" class="nav-link upload-file-btn">
+                    <i class="bi bi-upload"></i> <p>Upload Code</p>
+                    <input type="file" name="file" id="fileInput" class="d-none">
+                </label>
+            </li>
+            <li><a href="#"><i class="bi bi-bar-chart"></i><p>Analysis</p></a></li>
+            <li><a href="#"><i class="bi bi-gear"></i><p>Settings</p></a></li>
+            <li><a href="#"><i class="bi bi-box-arrow-right"></i><p>Logout</p></a></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="content">
-    <div class="container-fluid">
+<div class="content d-flex align-items-center justify-content-center min-vh-100">
+    <div class="container">
         <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
 
-        <!-- Code Input Section -->
+        <!-- Monaco Code Editor Container -->
         <div class="card bg-dark p-4">
-            <label for="fileInput" class="text-white">Upload or Paste Code Below:</label>
-            <input type="file" name="file" id="fileInput" class="form-control mb-3">
-            <textarea id="codeEditor" name="code" class="form-control"></textarea>
+            <div id="monacoEditor" class="editor-container"></div>
         </div>
 
         <!-- Refactor Button -->
@@ -28,7 +53,7 @@
         <div id="refactored-section" class="mt-5" style="display: none;">
             <h3 class="text-center text-white">Refactored Code</h3>
             <div class="card bg-dark p-3">
-                <textarea id="refactoredCodeEditor" class="form-control bg-secondary text-white" readonly></textarea>
+                <div id="monacoRefactoredEditor" class="editor-container"></div>
             </div>
             <div class="text-center mt-3">
                 <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
@@ -43,24 +68,30 @@
     </div>
 </div>
 
-<!-- Include CodeMirror -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+<!-- Include Monaco Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
 
 <script>
-    // Initialize CodeMirror for Original Code
-    const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
-        lineNumbers: true,
-        mode: "javascript",
-        theme: "material-darker",
-    });
+    let editor, refactoredEditor;
 
-    // Initialize CodeMirror for Refactored Code
-    const refactoredCodeMirror = CodeMirror.fromTextArea(document.getElementById('refactoredCodeEditor'), {
-        lineNumbers: true,
-        mode: "javascript",
-        theme: "material-darker",
-        readOnly: true,
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+    require(['vs/editor/editor.main'], function () {
+        editor = monaco.editor.create(document.getElementById('monacoEditor'), {
+            value: "// Paste or upload your code here...",
+            language: "javascript",
+            theme: "vs-dark",
+            automaticLayout: true,
+            fontSize: 14
+        });
+
+        refactoredEditor = monaco.editor.create(document.getElementById('monacoRefactoredEditor'), {
+            value: "",
+            language: "javascript",
+            theme: "vs-dark",
+            readOnly: true,
+            automaticLayout: true,
+            fontSize: 14
+        });
     });
 
     // Handle File Upload
@@ -69,7 +100,7 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                codeMirrorEditor.setValue(e.target.result);
+                editor.setValue(e.target.result);
             };
             reader.readAsText(file);
         }
@@ -77,7 +108,7 @@
 
     // Handle Refactor Button Click
     document.getElementById('refactor-btn').addEventListener('click', async () => {
-        const code = codeMirrorEditor.getValue();
+        const code = editor.getValue();
         const loadingBar = document.getElementById('loading-bar');
         const refactoredSection = document.getElementById('refactored-section');
         const metricsSection = document.getElementById('metrics-section');
@@ -98,7 +129,7 @@
 
             if (response.ok) {
                 const data = await response.json();
-                refactoredCodeMirror.setValue(data.refactored_code);
+                refactoredEditor.setValue(data.refactored_code);
 
                 // Display sections on success
                 refactoredSection.style.display = 'block';
@@ -121,67 +152,46 @@
 
     // Download Refactored Code
     document.getElementById('download-btn').addEventListener('click', () => {
-        const refactoredCode = refactoredCodeMirror.getValue();
+        const refactoredCode = refactoredEditor.getValue();
         const blob = new Blob([refactoredCode], { type: 'text/plain' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = 'refactored_code.java';
         link.click();
     });
-
-    // Generate Metrics Chart
-    function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
-        const ctx = document.getElementById('metricsChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
-                datasets: [{
-                    label: 'Metrics Comparison',
-                    data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
-                    backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
-                    borderColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
-                    borderWidth: 1,
-                }],
-            },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } },
-            },
-        });
-    }
-
-    // Show Toast Message
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerText = message;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = 0;
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
 </script>
 
 <style>
-    .toast {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #000;
-        color: #fff;
-        padding: 10px 15px;
+    /* Monaco Editor Container */
+    .editor-container {
+        width: 100%;
+        height: 400px;
         border-radius: 5px;
-        z-index: 1000;
-        transition: opacity 0.3s ease-in-out;
-        opacity: 0.9;
+        overflow: hidden;
     }
-    .toast.success {
-        background: #28a745;
+
+    /* Ensure sidebar is fixed */
+    .sidebar {
+        height: 100vh;
+        position: fixed;
     }
-    .toast.error {
-        background: #dc3545;
+
+    /* Style for Upload Button */
+    .upload-file-btn {
+        cursor: pointer;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+    }
+
+    .upload-file-btn input {
+        display: none;
+    }
+
+    /* Prevent horizontal scrolling */
+    html, body {
+        overflow-x: hidden;
     }
 </style>
+
 {% endblock %}
