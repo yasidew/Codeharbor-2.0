@@ -2,215 +2,212 @@
 {% load static %}
 
 {% block sidebar %}
-    <!-- Custom Sidebar for Refactor Page -->
-    <div class="sidebar" data-color="black">
-        <div class="sidebar-wrapper">
-            <div class="logo">
-                <a href="#" class="simple-text logo-mini">
-                    <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
-                </a>
-                <a href="#" class="simple-text logo-normal">Code Harbor</a>
-            </div>
-            <ul class="nav">
-                <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
-                    <p>Refactor Code</p></a></li>
-                <li><a href="#" class="upload-btn"><i class="bi bi-upload"></i>
-                    <p>Upload Code</p></a></li>
-                <input type="file" name="file" id="fileInput" class="d-none">
-                <li><a href="#"><i class="bi bi-bar-chart"></i>
-                    <p>Analysis</p></a></li>
-                <li><a href="#"><i class="bi bi-gear"></i>
-                    <p>Settings</p></a></li>
-                <li><a href="#"><i class="bi bi-box-arrow-right"></i>
-                    <p>Logout</p></a></li>
-            </ul>
+<!-- Custom Sidebar for Refactor Page -->
+<div class="sidebar" data-color="black">
+    <div class="sidebar-wrapper">
+        <div class="logo">
+            <a href="#" class="simple-text logo-mini">
+                <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
+            </a>
+            <a href="#" class="simple-text logo-normal">Code Harbor</a>
         </div>
+        <ul class="nav">
+            <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
+                <p>Refactor Code</p></a></li>
+            <li>
+                <a href="#" class="upload-btn"><i class="bi bi-upload"></i>
+                    <p>Upload Code</p>
+                </a>
+                <input type="file" name="file" id="fileInput" class="d-none">
+            </li>
+            <li><a href="#"><i class="bi bi-bar-chart"></i>
+                <p>Analysis</p></a></li>
+            <li><a href="#"><i class="bi bi-gear"></i>
+                <p>Settings</p></a></li>
+            <li><a href="#"><i class="bi bi-box-arrow-right"></i>
+                <p>Logout</p></a></li>
+        </ul>
     </div>
+</div>
 {% endblock %}
 
 {% block content %}
-    <div class="content d-flex align-items-center justify-content-center min-vh-100">
-        <div class="container">
-            <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
+<div class="content d-flex align-items-center justify-content-center min-vh-100">
+    <div class="container">
+        <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
 
-            <!-- Monaco Code Editor -->
-            <div class="card bg-dark p-4">
-                <div id="monacoEditor" class="editor-container"></div>
-            </div>
+        <!-- Monaco Code Editor -->
+        <div class="card bg-dark p-4">
+            <div id="monacoEditor" class="editor-container"></div>
+        </div>
 
-            <!-- Refactor Button -->
-            <div class="text-center mt-3">
-                <button id="refactor-btn" class="btn btn-info">Refactor Code</button>
-            </div>
+        <!-- Refactor Button -->
+        <div class="text-center mt-3">
+            <button id="refactor-btn" class="btn btn-info">Refactor Code</button>
+        </div>
 
-            <!-- Loading Bar -->
-            <div id="loading-bar" class="mt-3" style="display: none;">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                         style="width: 100%;"></div>
-                </div>
-            </div>
-
-            <!-- Refactored Code Output -->
-            <div id="refactored-section" class="mt-5" style="display: none;">
-                <h3 class="text-center text-white">Refactored Code</h3>
-                <div class="card bg-dark p-3">
-                    <div id="monacoRefactoredEditor" class="editor-container"></div>
-                </div>
-                <div class="text-center mt-3">
-                    <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
-                </div>
-            </div>
-
-            <!-- Code Metrics -->
-            <div id="metrics-section" class="mt-5" style="display: none;">
-                <h3 class="text-center text-white">Code Metrics Visualization</h3>
-                <canvas id="metricsChart" width="400" height="200"></canvas>
+        <!-- Loading Bar -->
+        <div id="loading-bar" class="mt-3" style="display: none;">
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                     style="width: 100%;"></div>
             </div>
         </div>
+
+        <!-- Refactored Code Output -->
+        <div id="refactored-section" class="mt-5" style="display: none;">
+            <h3 class="text-center text-white">Refactored Code</h3>
+            <div class="card bg-dark p-3">
+                <div id="monacoRefactoredEditor" class="editor-container"></div>
+            </div>
+            <div class="text-center mt-3">
+                <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
+            </div>
+        </div>
+
+        <!-- Code Metrics -->
+        <div id="metrics-section" class="mt-5" style="display: none;">
+            <h3 class="text-center text-white">Code Metrics Visualization</h3>
+            <canvas id="metricsChart" width="400" height="200"></canvas>
+        </div>
     </div>
+</div>
 
-    <!-- Include Monaco Editor and Chart.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Include Monaco Editor and Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script>
-        let editor, refactoredEditor;
+<script>
+    let editor, refactoredEditor;
 
-        require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs'}});
-        require(['vs/editor/editor.main'], function () {
-            editor = monaco.editor.create(document.getElementById('monacoEditor'), {
-                value: "// Paste or upload your code here...",
-                language: "javascript",
-                theme: "vs-dark",
-                automaticLayout: true,
-                fontSize: 14
-            });
-
-            refactoredEditor = monaco.editor.create(document.getElementById('monacoRefactoredEditor'), {
-                value: "",
-                language: "javascript",
-                theme: "vs-dark",
-                readOnly: true,
-                automaticLayout: true,
-                fontSize: 14
-            });
-        });
-
-        // Handle File Upload
-        document.querySelector('.upload-btn').addEventListener('click', () => {
-            document.getElementById('fileInput').click();
-        });
-
-        document.getElementById('fileInput').addEventListener('change', function (event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    editor.setValue(e.target.result);
-                };
-                reader.readAsText(file);
+    require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs'}});
+    require(['vs/editor/editor.main'], function () {
+        editor = monaco.editor.create(document.getElementById('monacoEditor'), {
+            value: "// Paste or upload your code here...",
+            language: "javascript",
+            theme: "vs-dark",
+            automaticLayout: true,
+            fontSize: 14,
+            scrollBeyondLastLine: false, // Prevents unnecessary scrolling
+            minimap: { enabled: false }, // Disables minimap for more space
+            wordWrap: "off", // Disables word wrapping
+            suggest: {
+                snippetsPreventQuickSuggestions: false, // Ensures suggestions show properly
             }
         });
 
-        // Handle Refactor Button Click
-        document.getElementById('refactor-btn').addEventListener('click', async () => {
-            const code = editor.getValue();
-            const loadingBar = document.getElementById('loading-bar');
-            const refactoredSection = document.getElementById('refactored-section');
-            const metricsSection = document.getElementById('metrics-section');
-
-            loadingBar.style.display = 'block';
-            refactoredSection.style.display = 'none';
-            metricsSection.style.display = 'none';
-
-            try {
-                const response = await fetch('/code-formatter/refactor-code/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    body: JSON.stringify({code}),
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    refactoredEditor.setValue(data.refactored_code);
-
-                    // Display sections on success
-                    refactoredSection.style.display = 'block';
-                    metricsSection.style.display = 'block';
-
-                    // Generate Chart with Metrics
-                    generateChart(data.original_loc, data.refactored_loc, data.original_readability, data.refactored_readability);
-                } else {
-                    alert("Error in refactoring code!");
-                }
-            } catch (error) {
-                alert("An error occurred: " + error.message);
-            } finally {
-                loadingBar.style.display = 'none';
-            }
+        refactoredEditor = monaco.editor.create(document.getElementById('monacoRefactoredEditor'), {
+            value: "",
+            language: "javascript",
+            theme: "vs-dark",
+            readOnly: true,
+            automaticLayout: true,
+            fontSize: 14
         });
+    });
 
-        // Generate Metrics Chart
-        function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
-            const ctx = document.getElementById('metricsChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
-                    datasets: [{
-                        label: 'Metrics Comparison',
-                        data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
-                        backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
-                        borderColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
-                        borderWidth: 1
-                    }]
+    // Handle File Upload
+    document.querySelector('.upload-btn').addEventListener('click', () => {
+        document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                editor.setValue(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // Handle Refactor Button Click
+    document.getElementById('refactor-btn').addEventListener('click', async () => {
+        const code = editor.getValue();
+        const loadingBar = document.getElementById('loading-bar');
+        const refactoredSection = document.getElementById('refactored-section');
+        const metricsSection = document.getElementById('metrics-section');
+
+        loadingBar.style.display = 'block';
+        refactoredSection.style.display = 'none';
+        metricsSection.style.display = 'none';
+
+        try {
+            const response = await fetch('/code-formatter/refactor-code/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
                 },
-                options: {
-                    responsive: true,
-                    scales: {y: {beginAtZero: true}},
-                }
+                body: JSON.stringify({code}),
             });
-        }
-    </script>
 
-    <style>
-        /* Monaco Editor Container */
-        .editor-container {
-            width: 100%;
-            height: 400px;
-            border-radius: 5px;
-            overflow: hidden;
-        }
+            if (response.ok) {
+                const data = await response.json();
+                refactoredEditor.setValue(data.refactored_code);
 
-        /* Ensure sidebar is fixed */
-        .sidebar {
-            height: 100vh;
-            position: fixed;
-        }
+                // Display sections on success
+                refactoredSection.style.display = 'block';
+                metricsSection.style.display = 'block';
 
-        /* Style Upload Button in Sidebar */
-        .upload-btn {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            padding: 10px 15px;
-            color: white;
+                // Generate Chart with Metrics
+                generateChart(data.original_loc, data.refactored_loc, data.original_readability, data.refactored_readability);
+            } else {
+                alert("Error in refactoring code!");
+            }
+        } catch (error) {
+            alert("An error occurred: " + error.message);
+        } finally {
+            loadingBar.style.display = 'none';
         }
+    });
 
-        /* Ensure Upload Code button matches others without the hover effect */
-        .upload-btn:hover {
-            background: none !important;
-            border-radius: 0 !important;
-        }
+    // Generate Metrics Chart
+    function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
+        const ctx = document.getElementById('metricsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
+                datasets: [{
+                    label: 'Metrics Comparison',
+                    data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
+                    backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
+                    borderColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {y: {beginAtZero: true}},
+            }
+        });
+    }
+</script>
 
-        /* Prevent horizontal scrolling */
-        html, body {
-            overflow-x: hidden;
-        }
-    </style>
+<style>
+    /* Monaco Editor Full Size */
+    .editor-container {
+        width: 100%;
+        height: calc(100vh - 200px); /* Adjust dynamically */
+        border-radius: 5px;
+        overflow: visible !important; /* Allow suggestions to expand freely */
+    }
+
+    /* Fix Sidebar Button Style */
+    .upload-btn {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        padding: 10px 15px;
+        color: white;
+    }
+
+    /* Prevent horizontal scrolling */
+    html, body {
+        overflow-x: hidden;
+    }
+</style>
 
 {% endblock %}
