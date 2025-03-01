@@ -38,12 +38,13 @@
             <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
 
             <!-- Toggle to Enable/Disable Guidelines -->
+            <!-- Toggle to Enable/Disable Guidelines -->
             <div class="text-center mb-4">
-                <label class="switch">
+                <label class="toggle-switch">
                     <input type="checkbox" id="guideline-toggle">
-                    <span class="slider round"></span>
+                    <span class="slider"></span>
                 </label>
-                <span class="text-white">Use Guidelines</span>
+                <span class="text-white ms-2">Use Guidelines</span>
             </div>
 
             <!-- Monaco Code Editor for Original Code -->
@@ -79,6 +80,13 @@
                 <div class="card bg-dark p-3">
                     <div id="monacoRefactoredEditor" class="editor-container"></div>
                 </div>
+
+                <!-- Changes Summary -->
+                <div id="changes-section" class="mt-4" style="display: none;">
+                    <h4 class="text-white">Changes Made:</h4>
+                    <ul id="changes-list" class="text-white"></ul>
+                </div>
+
                 <div class="text-center mt-3">
                     <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
                 </div>
@@ -131,13 +139,13 @@
 
             const loadingBar = document.getElementById('loading-bar');
             const refactoredSection = document.getElementById('refactored-section');
-            const diffSection = document.getElementById('diff-section');
-            const metricsSection = document.getElementById('metrics-section');
+            const changesSection = document.getElementById('changes-section');
+            const changesList = document.getElementById('changes-list');
 
             loadingBar.style.display = 'block';
             refactoredSection.style.display = 'none';
-            diffSection.style.display = 'none';
-            metricsSection.style.display = 'none';
+            changesSection.style.display = 'none';
+            changesList.innerHTML = '';  // Clear previous changes
 
             try {
                 const response = await fetch('/code-formatter/refactor-code/', {
@@ -152,18 +160,21 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    refactoredEditor.setValue(data.refactored_code);
+                    // Extract the code part and set it in the editor
+                    const extractedCode = extractCode(data.refactored_code);
+                    refactoredEditor.setValue(extractedCode);
 
-                    diffEditor.setModel({
-                        original: monaco.editor.createModel(code, "javascript"),
-                        modified: monaco.editor.createModel(data.refactored_code, "javascript")
-                    });
+                    // Display changes separately
+                    if (data.changes) {
+                        data.changes.forEach(change => {
+                            const li = document.createElement('li');
+                            li.textContent = change;
+                            changesList.appendChild(li);
+                        });
+                        changesSection.style.display = 'block';
+                    }
 
                     refactoredSection.style.display = 'block';
-                    diffSection.style.display = 'block';
-                    metricsSection.style.display = 'block';
-
-                    generateChart(data.original_loc, data.refactored_loc, data.original_readability, data.refactored_readability);
                 } else {
                     alert("Error in refactoring code!");
                 }
@@ -173,6 +184,13 @@
                 loadingBar.style.display = 'none';
             }
         });
+
+        // Function to extract only the code block
+        function extractCode(responseText) {
+            const codeRegex = /```java([\s\S]*?)```/;
+            const match = responseText.match(codeRegex);
+            return match ? match[1].trim() : responseText;
+        }
 
         // Handle File Upload
         document.querySelector('.upload-btn').addEventListener('click', () => {
@@ -235,5 +253,53 @@
         html, body {
             overflow-x: hidden;
         }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 25px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 25px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 17px;
+            width: 17px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(25px);
+        }
+
+
     </style>
 {% endblock %}
