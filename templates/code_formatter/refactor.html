@@ -210,6 +210,24 @@
             reader.readAsText(file);
         });
 
+        // Function to download the refactored code as a file
+        document.getElementById('download-btn').addEventListener('click', function () {
+            const refactoredCode = refactoredEditor.getValue(); // Get the text from the editor
+
+            if (!refactoredCode) {
+                alert("No refactored code available to download.");
+                return;
+            }
+
+            const blob = new Blob([refactoredCode], {type: 'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'refactored_code.java';  // Save as .java file
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
         function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
             const ctx = document.getElementById('metricsChart').getContext('2d');
             new Chart(ctx, {
