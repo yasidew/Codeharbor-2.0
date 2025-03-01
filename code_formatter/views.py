@@ -131,9 +131,12 @@ def edit_guideline(request, id):
     return JsonResponse({"success": False, "error": "Invalid request"})
 
 def delete_guideline(request, guideline_id):
-    guideline = get_object_or_404(Guideline, id=guideline_id)
-    guideline.delete()
-    return redirect('define_guidelines')
+    if request.method == "POST":
+        guideline = get_object_or_404(Guideline, id=guideline_id)
+        guideline.delete()
+        return JsonResponse({"success": True})  # ✅ Return a JSON response
+
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
 
 @csrf_exempt

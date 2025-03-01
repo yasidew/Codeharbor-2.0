@@ -138,6 +138,11 @@
             {% endfor %}
         </div>
 
+        <!-- Global Loading Spinner -->
+        <div id="loading-overlay">
+            <div class="loading-spinner"></div>
+        </div>
+
     </div>
 
     <script>
@@ -181,6 +186,21 @@
                 fetchAISuggestion(patternSelector.value);
             });
 
+            const loadingOverlay = document.getElementById("loading-overlay");
+
+            function showLoading() {
+                loadingOverlay.style.display = "flex"; // Show loading spinner
+            }
+
+            function hideLoading() {
+                loadingOverlay.style.display = "none"; // Hide spinner
+            }
+
+            // Show loading on form submission (Save)
+            document.querySelector("form").addEventListener("submit", function () {
+                showLoading();
+            });
+
             // Handle Edit Mode Toggle
             document.querySelectorAll(".edit-btn").forEach(btn => {
                 btn.addEventListener("click", function () {
@@ -200,18 +220,20 @@
             // Save Edits
             document.querySelectorAll(".save-btn").forEach(btn => {
                 btn.addEventListener("click", function () {
+                    showLoading();
+
                     const id = this.getAttribute("data-id");
                     const company = document.getElementById(`edit-company-${id}`).value;
                     const pattern = document.getElementById(`edit-pattern-${id}`).value;
                     const rule = document.getElementById(`edit-rule-${id}`).value;
-                    const logoInput = document.getElementById(`edit-logo-${id}`).files[0]; // Handle logo update
+                    const logoInput = document.getElementById(`edit-logo-${id}`).files[0];
 
                     const formData = new FormData();
                     formData.append("company_name", company);
                     formData.append("pattern", pattern);
                     formData.append("rule", rule);
                     if (logoInput) {
-                        formData.append("company_logo", logoInput);  // Append new logo if selected
+                        formData.append("company_logo", logoInput);
                     }
 
                     fetch(`/code-formatter/edit-guideline/${id}/`, {
@@ -221,11 +243,16 @@
                     })
                         .then(response => response.json())
                         .then(data => {
+                            hideLoading();
                             if (data.success) {
-                                location.reload(); // Reload page to reflect changes
+                                location.reload();
                             } else {
                                 alert("Error updating guideline.");
                             }
+                        })
+                        .catch(() => {
+                            hideLoading();
+                            alert("Something went wrong.");
                         });
                 });
             });
@@ -235,17 +262,24 @@
                 btn.addEventListener("click", function () {
                     const id = this.getAttribute("data-id");
                     if (confirm("Are you sure you want to delete this guideline?")) {
+                        showLoading();  // ✅ Show loading spinner
+
                         fetch(`/code-formatter/delete-guideline/${id}/`, {
                             method: "POST",
                             headers: {"X-CSRFToken": "{{ csrf_token }}"}
                         })
-                            .then(response => response.json())
+                            .then(response => response.json())  // ✅ Parse JSON response
                             .then(data => {
+                                hideLoading();  // ✅ Hide spinner after response
                                 if (data.success) {
-                                    document.getElementById(`guideline-${id}`).remove();
+                                    document.getElementById(`guideline-${id}`).remove();  // ✅ Remove without refresh
                                 } else {
                                     alert("Error deleting guideline.");
                                 }
+                            })
+                            .catch(() => {
+                                hideLoading();
+                                alert("Something went wrong.");  // ✅ Handle network issues
                             });
                     }
                 });
@@ -327,6 +361,39 @@
 
         .guideline-text li {
             margin-bottom: 5px;
+        }
+
+        /* Full-screen overlay */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Beautiful animated spinner */
+        .loading-spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #ffffff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 {% endblock %}
