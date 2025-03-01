@@ -9,6 +9,7 @@ from .models import Guideline
 from .forms import GuidelineForm
 from .models import RefactoringHistory
 from .utils import analyze_code, refactor_code
+from django.core.files.storage import FileSystemStorage
 
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -87,7 +88,7 @@ def get_guidelines(request, company_name):
 
 def define_guidelines(request):
     if request.method == "POST":
-        form = GuidelineForm(request.POST)
+        form = GuidelineForm(request.POST, request.FILES)  # Include FILES for image upload
         if form.is_valid():
             form.save()
             return redirect('define_guidelines')
