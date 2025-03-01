@@ -41,9 +41,13 @@
             <!-- Logo Upload -->
             <div class="form-group">
                 <label class="text-white">Upload Company Logo:</label>
-                <input type="file" name="company_logo" id="logo-input" accept="image/png, image/jpeg" class="form-control mb-3">
+                <input type="file" name="company_logo" id="logo-input" accept="image/png, image/jpeg"
+                       class="form-control mb-3">
                 <div class="preview-container">
-                    <img id="logo-preview" src="{% static 'images/gallery.png' %}" alt="Company Logo Preview" class="company-logo-preview">
+                    <img id="logo-preview"
+                         src="{% static 'images/gallery.png' %}"
+                         alt="Company Logo Preview"
+                         class="company-logo-preview">
                 </div>
             </div>
 
@@ -61,8 +65,11 @@
             <!-- AI Suggested Guideline -->
             <div class="form-group">
                 <label class="text-white">Guideline:</label>
-                <textarea id="guideline-text" name="rule" class="form-control mb-3 resizable-textarea" required></textarea>
-                <button type="button" id="regenerate-btn" class="btn btn-warning btn-sm mt-2" disabled>🔄 Regenerate Suggestion</button>
+                <textarea id="guideline-text" name="rule" class="form-control mb-3 resizable-textarea"
+                          required></textarea>
+                <button type="button" id="regenerate-btn" class="btn btn-warning btn-sm mt-2" disabled>🔄 Regenerate
+                    Suggestion
+                </button>
             </div>
 
             <button type="submit" class="btn btn-info btn-block">Save Guideline</button>
@@ -72,7 +79,7 @@
         <h3 class="text-white text-center mt-5">Saved Guidelines</h3>
         <div id="guidelines-container">
             {% for guideline in guidelines %}
-                <div class="card bg-dark text-white p-3 mb-3" id="guideline-{{ guideline.id }}">
+                <div class="card bg-dark text-white p-3 mb-3">
                     <div class="d-flex align-items-center">
                         {% if guideline.company_logo %}
                             <img src="{{ guideline.company_logo.url }}" alt="Company Logo" class="company-logo">
@@ -98,7 +105,8 @@
                                 {% endfor %}
                             </div>
                             <button class="btn btn-warning btn-sm edit-btn" data-id="{{ guideline.id }}">Edit</button>
-                            <button class="btn btn-danger btn-sm delete-btn" data-id="{{ guideline.id }}">Delete</button>
+                            <button class="btn btn-danger btn-sm delete-btn" data-id="{{ guideline.id }}">Delete
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -122,7 +130,7 @@
                             "Content-Type": "application/json",
                             "X-CSRFToken": "{{ csrf_token }}"
                         },
-                        body: JSON.stringify({ pattern })
+                        body: JSON.stringify({pattern})
                     });
 
                     if (response.ok) {
@@ -154,19 +162,20 @@
                     if (confirm("Are you sure you want to delete this guideline?")) {
                         fetch(`/code-formatter/delete-guideline/${id}/`, {
                             method: "POST",
-                            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+                            headers: {"X-CSRFToken": "{{ csrf_token }}"}
                         })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                document.getElementById(`guideline-${id}`).remove();
-                            } else {
-                                alert("Error deleting guideline.");
-                            }
-                        });
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    document.getElementById(`guideline-${id}`).remove();
+                                } else {
+                                    alert("Error deleting guideline.");
+                                }
+                            });
                     }
                 });
             });
+
 
             // Preview Uploaded Logo
             document.getElementById("logo-input").addEventListener("change", function (event) {
@@ -179,6 +188,7 @@
                     reader.readAsDataURL(file);
                 }
             });
+
         });
     </script>
 
@@ -191,6 +201,7 @@
             display: block;
             margin-top: 10px;
         }
+
         .resizable-textarea {
             min-height: 100px;
             resize: vertical;

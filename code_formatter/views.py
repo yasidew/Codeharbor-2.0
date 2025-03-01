@@ -88,9 +88,12 @@ def get_guidelines(request, company_name):
 
 def define_guidelines(request):
     if request.method == "POST":
-        form = GuidelineForm(request.POST, request.FILES)  # Include FILES for image upload
+        form = GuidelineForm(request.POST, request.FILES)  # Include request.FILES to handle file uploads
         if form.is_valid():
-            form.save()
+            guideline = form.save(commit=False)
+            if 'company_logo' in request.FILES:
+                guideline.company_logo = request.FILES['company_logo']
+            guideline.save()
             return redirect('define_guidelines')
 
     guidelines = Guideline.objects.all()

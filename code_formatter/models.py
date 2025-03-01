@@ -8,7 +8,7 @@ class Guideline(models.Model):
     pattern = models.CharField(max_length=50, choices=[('Factory', 'Factory'), ('Strategy', 'Strategy'), ('Observer', 'Observer')])
     rule = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    logo = models.ImageField(upload_to='company_logos/', null=True, blank=True)  # New Field
+    company_logo  = models.ImageField(upload_to='company_logos/', null=True, blank=True)  # New Field
 
     def __str__(self):
         return f"{self.company_name} - {self.pattern}"

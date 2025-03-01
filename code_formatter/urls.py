@@ -15,6 +15,4 @@ urlpatterns = [
     path("generate-guideline/", generate_guideline, name="generate_guideline"),
 ]
 
-# Add this at the end to serve media files in development mode
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
