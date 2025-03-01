@@ -13,6 +13,12 @@ from .utils import analyze_code, refactor_code
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+GUIDELINE_PROMPTS = {
+    "Factory": "What are the best practices for using the Factory Pattern in software design?",
+    "Strategy": "What are the best practices for implementing the Strategy Pattern in code?",
+    "Observer": "What are the best practices for using the Observer Pattern effectively?",
+}
+
 # Function to display the refactor page
 def refactor_view(request):
     return render(request, 'code_formatter/refactor.html')
@@ -79,15 +85,6 @@ def get_guidelines(request, company_name):
     guidelines = Guideline.objects.filter(company_name=company_name).values('pattern', 'rule')
     return JsonResponse({"guidelines": list(guidelines)})
 
-# def define_guidelines(request):
-#     if request.method == "POST":
-#         company_name = request.POST['company_name']
-#         pattern = request.POST['pattern']
-#         rule = request.POST['rule']
-#         Guideline.objects.create(company_name=company_name, pattern=pattern, rule=rule)
-#         return redirect('define_guidelines')
-#
-#     return render(request,  "code_formatter/define_guidelines.html")
 def define_guidelines(request):
     if request.method == "POST":
         form = GuidelineForm(request.POST)
@@ -204,4 +201,36 @@ def refactor_code_view(request):
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+# ✅ AI-Powered Guideline Generation
+@csrf_exempt
+def generate_guideline(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            pattern = data.get("pattern", "").strip()
+
+            if not pattern or pattern not in GUIDELINE_PROMPTS:
+                return JsonResponse({"error": "Invalid pattern selected"}, status=400)
+
+            prompt = GUIDELINE_PROMPTS[pattern]
+
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a professional software architect."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2
+            )
+
+            # ✅ Correct way to extract the response
+            guideline_text = response.choices[0].message.content.strip()
+
+            return JsonResponse({"suggestion": guideline_text})
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
     return JsonResponse({"error": "Invalid request"}, status=400)

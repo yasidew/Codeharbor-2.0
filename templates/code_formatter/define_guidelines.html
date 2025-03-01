@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block sidebar %}
-    <!-- Custom Sidebar -->
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
             <div class="logo">
@@ -32,6 +31,7 @@
         <h2 class="text-white text-center">Define Guidelines</h2>
         <form method="POST" action="{% url 'define_guidelines' %}">
             {% csrf_token %}
+
             <div class="form-group">
                 <label class="text-white">Company Name:</label>
                 <input type="text" name="company_name" class="form-control mb-2" required>
@@ -39,7 +39,8 @@
 
             <div class="form-group">
                 <label class="text-white">Pattern:</label>
-                <select name="pattern" class="form-control mb-2 custom-dropdown">
+                <select id="pattern-selector" name="pattern" class="form-control mb-2 custom-dropdown">
+                    <option value="" selected disabled>-- Select a Pattern --</option>
                     <option value="Factory">Factory Pattern</option>
                     <option value="Strategy">Strategy Pattern</option>
                     <option value="Observer">Observer Pattern</option>
@@ -48,7 +49,11 @@
 
             <div class="form-group">
                 <label class="text-white">Guideline:</label>
-                <textarea name="rule" class="form-control mb-2 resizable-textarea" required></textarea>
+                <textarea id="guideline-text" name="rule" class="form-control mb-2 resizable-textarea"
+                          required></textarea>
+                <button type="button" id="regenerate-btn" class="btn btn-warning btn-sm mt-2" disabled>🔄 Regenerate
+                    Suggestion
+                </button>
             </div>
 
             <button type="submit" class="btn btn-info">Save Guideline</button>
@@ -62,31 +67,26 @@
                     <div id="view-mode-{{ guideline.id }}">
                         <strong>{{ guideline.company_name }}</strong>
                         <p>Pattern: {{ guideline.pattern }}</p>
-                        <p>{{ guideline.rule }}</p>
+                        {#                        <p>{{ guideline.rule }}</p>#}
+                        <div>
+                            {% if guideline.rule|slice:":2" == "1." %}
+                                <ol>
+                                    {% for line in guideline.rule.splitlines %}
+                                        {% if line|length > 0 %}
+                                            <li>{{ line }}</li>
+                                        {% endif %}
+                                    {% endfor %}
+                                </ol>
+                            {% else %}
+                                {% for line in guideline.rule.splitlines %}
+                                    {% if line|length > 0 %}
+                                        <p>{{ line }}</p>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
                         <button class="btn btn-warning btn-sm edit-btn" data-id="{{ guideline.id }}">Edit</button>
                         <button class="btn btn-danger btn-sm delete-btn" data-id="{{ guideline.id }}">Delete</button>
-                    </div>
-
-                    <div id="edit-mode-{{ guideline.id }}" class="d-none">
-                        <input type="text" class="form-control mb-2" id="company-{{ guideline.id }}"
-                               value="{{ guideline.company_name }}">
-
-                        <select class="form-control mb-2" id="pattern-{{ guideline.id }}">
-                            <option value="Factory" {% if guideline.pattern == "Factory" %}selected{% endif %}>Factory
-                                Pattern
-                            </option>
-                            <option value="Strategy" {% if guideline.pattern == "Strategy" %}selected{% endif %}>
-                                Strategy Pattern
-                            </option>
-                            <option value="Observer" {% if guideline.pattern == "Observer" %}selected{% endif %}>
-                                Observer Pattern
-                            </option>
-                        </select>
-
-                        <textarea class="form-control mb-2" id="rule-{{ guideline.id }}">{{ guideline.rule }}</textarea>
-
-                        <button class="btn btn-success btn-sm save-btn" data-id="{{ guideline.id }}">Save</button>
-                        <button class="btn btn-secondary btn-sm cancel-btn" data-id="{{ guideline.id }}">Cancel</button>
                     </div>
                 </div>
             {% endfor %}
@@ -95,85 +95,51 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Enable Edit Mode
-            document.querySelectorAll(".edit-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    const id = this.getAttribute("data-id");
-                    document.getElementById(`view-mode-${id}`).classList.add("d-none");
-                    document.getElementById(`edit-mode-${id}`).classList.remove("d-none");
-                });
-            });
+            const patternSelector = document.getElementById("pattern-selector");
+            const guidelineText = document.getElementById("guideline-text");
+            const regenerateBtn = document.getElementById("regenerate-btn");
 
-            // Cancel Edit Mode
-            document.querySelectorAll(".cancel-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    const id = this.getAttribute("data-id");
-                    document.getElementById(`view-mode-${id}`).classList.remove("d-none");
-                    document.getElementById(`edit-mode-${id}`).classList.add("d-none");
-                });
-            });
-
-            // Save Edited Guideline
-            document.querySelectorAll(".save-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    const id = this.getAttribute("data-id");
-                    const company = document.getElementById(`company-${id}`).value;
-                    const pattern = document.getElementById(`pattern-${id}`).value;
-                    const rule = document.getElementById(`rule-${id}`).value;
-
-                    fetch(`/code-formatter/edit-guideline/${id}/`, {
+            async function fetchAISuggestion(pattern) {
+                guidelineText.value = "Fetching AI suggestion... 🔄";
+                try {
+                    const response = await fetch("/code-formatter/generate-guideline/", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            "X-CSRFToken": "{{ csrf_token }}",
+                            "X-CSRFToken": "{{ csrf_token }}"
                         },
-                        body: JSON.stringify({company_name: company, pattern: pattern, rule: rule}),
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Update the UI with the new values
-                                document.getElementById(`view-mode-${id}`).innerHTML = `
-                            <strong>${data.company_name}</strong>
-                            <p>Pattern: ${data.pattern}</p>
-                            <p>${data.rule}</p>
-                            <button class="btn btn-warning btn-sm edit-btn" data-id="${id}">Edit</button>
-                            <button class="btn btn-danger btn-sm delete-btn" data-id="${id}">Delete</button>
-                        `;
-                                document.getElementById(`view-mode-${id}`).classList.remove("d-none");
-                                document.getElementById(`edit-mode-${id}`).classList.add("d-none");
-                            } else {
-                                alert("Error updating guideline.");
-                            }
-                        });
-                });
+                        body: JSON.stringify({pattern})
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        guidelineText.value = data.suggestion || "AI could not generate a suggestion.";
+                        regenerateBtn.disabled = false; // Enable regenerate button
+                    } else {
+                        guidelineText.value = "Error fetching AI suggestion. Try again.";
+                        regenerateBtn.disabled = true;
+                    }
+                } catch (error) {
+                    guidelineText.value = "An error occurred.";
+                    regenerateBtn.disabled = true;
+                }
+            }
+
+            // Fetch AI suggestion when a pattern is selected
+            patternSelector.addEventListener("change", function () {
+                if (this.value) {
+                    fetchAISuggestion(this.value);
+                }
             });
 
-            // Delete Guideline
-            document.querySelectorAll(".delete-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    const id = this.getAttribute("data-id");
-                    if (confirm("Are you sure you want to delete this guideline?")) {
-                        fetch(`/code-formatter/delete-guideline/${id}/`, {
-                            method: "POST",
-                            headers: {"X-CSRFToken": "{{ csrf_token }}"}
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    document.getElementById(`view-mode-${id}`).parentNode.remove();
-                                } else {
-                                    alert("Error deleting guideline.");
-                                }
-                            });
-                    }
-                });
+            // Regenerate AI suggestion when button is clicked
+            regenerateBtn.addEventListener("click", function () {
+                if (patternSelector.value) {
+                    fetchAISuggestion(patternSelector.value);
+                }
             });
         });
     </script>
-
-
-
 
     <style>
         .resizable-textarea {
@@ -197,6 +163,20 @@
 
         .card {
             border-radius: 8px;
+        }
+
+        .card p {
+            white-space: pre-line; /* Preserves line breaks */
+            line-height: 1.6; /* Adds spacing between lines */
+            margin-bottom: 8px; /* Adds spacing between paragraphs */
+        }
+
+        .card ol {
+            padding-left: 20px; /* Indentation for ordered list */
+        }
+
+        .card li {
+            margin-bottom: 5px; /* Adds spacing between each list item */
         }
     </style>
 {% endblock %}

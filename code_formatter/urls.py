@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import define_guidelines, edit_guideline, delete_guideline, get_guidelines
+from .views import define_guidelines, edit_guideline, delete_guideline, get_guidelines, generate_guideline
 
 urlpatterns = [
     path('refactor/', views.refactor_view, name='refactor_view'),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('define-guidelines/', define_guidelines, name='define_guidelines'),
     path("edit-guideline/<int:id>/", edit_guideline, name="edit_guideline"),
     path("delete-guideline/<int:guideline_id>/", delete_guideline, name="delete_guideline"),
+    path("generate-guideline/", generate_guideline, name="generate_guideline"),
 ]
