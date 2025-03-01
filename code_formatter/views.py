@@ -7,7 +7,7 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Guideline
 from .forms import GuidelineForm
-from .models import RefactoringHistory
+from .models import CodeRefactoringRecord
 from .utils import analyze_code, refactor_code
 from django.core.files.storage import FileSystemStorage
 
@@ -37,11 +37,14 @@ def upload_code(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 # Function to handle code refactoring using OpenAI API
+@csrf_exempt
 def refactor_code(request):
+    """Handles code refactoring with optional guideline usage."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             code = data.get('code', '').strip()
+            use_guidelines = data.get('use_guidelines', False)  # Check if user enabled guidelines
 
             if not code:
                 return JsonResponse({'error': 'No code provided'}, status=400)
@@ -50,41 +53,63 @@ def refactor_code(request):
             original_loc = calculate_loc(code)
             original_readability = calculate_readability(code)
 
-            # ✅ FIXED: Correct OpenAI API Call
+            # Apply guidelines if enabled
+            if use_guidelines:
+                guidelines = Guideline.objects.all()
+                guideline_texts = [f"{g.pattern}: {g.rule}" for g in guidelines]
+                guidelines_prompt = "\n\n".join(guideline_texts)
+            else:
+                guidelines_prompt = ""
+
+            # AI Code Refactoring Request
+            prompt = f"Refactor the following code to improve structure, readability, and efficiency: \n\n{code}"
+
+            if guidelines_prompt:
+                prompt += f"\n\nFollow these guidelines while refactoring:\n{guidelines_prompt}"
+
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",  # ✅ Use "gpt-4-turbo" or "gpt-3.5-turbo"
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a professional code refactoring assistant."},
-                    {"role": "user", "content": f"Refactor the following code to improve structure, readability, and efficiency:\n\n{code}"}
+                    {"role": "user", "content": prompt}
                 ],
                 temperature=0.2
             )
 
-            # ✅ Extract the correct response format
-            refactored_code = response.choices[0].message.content
+            refactored_code = response.choices[0].message.content.strip()
 
             # Calculate LOC and Readability for the refactored code
             refactored_loc = calculate_loc(refactored_code)
             refactored_readability = calculate_readability(refactored_code)
+
+            # Save to DB
+            record = CodeRefactoringRecord.objects.create(
+                original_code=code,
+                refactored_code=refactored_code,
+                original_complexity=original_loc,
+                refactored_complexity=refactored_loc,
+                original_readability=original_readability,
+                refactored_readability=refactored_readability,
+            )
 
             return JsonResponse({
                 'refactored_code': refactored_code,
                 'original_loc': original_loc,
                 'refactored_loc': refactored_loc,
                 'original_readability': original_readability,
-                'refactored_readability': refactored_readability
+                'refactored_readability': refactored_readability,
+                'id': record.id
             })
 
         except Exception as e:
-            print("Error:", str(e))  # Debugging
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 # API Endpoint for AI to Fetch Guidelines
-def get_guidelines(request, company_name):
-    guidelines = Guideline.objects.filter(company_name=company_name).values('pattern', 'rule')
-    return JsonResponse({"guidelines": list(guidelines)})
+def get_guidelines(request):
+    guidelines = list(Guideline.objects.values('pattern', 'rule'))
+    return JsonResponse({'guidelines': guidelines})
 
 def define_guidelines(request):
     if request.method == "POST":
@@ -158,7 +183,7 @@ def refactor_and_compare(request):
             refactored_complexity, refactored_readability = analyze_code(refactored_code)
 
             # Save to Database
-            history = RefactoringHistory.objects.create(
+            history = CodeRefactoringRecord.objects.create(
                 original_code=original_code,
                 refactored_code=refactored_code,
                 original_complexity=original_complexity,
@@ -198,7 +223,7 @@ def refactor_code_view(request):
             refactored_readability = 116.73  # Replace with actual analysis
 
             # Save to database
-            history = RefactoringHistory.objects.create(
+            history = CodeRefactoringRecord.objects.create(
                 original_code=original_code,
                 refactored_code=refactored_code,
                 original_complexity=original_complexity,
