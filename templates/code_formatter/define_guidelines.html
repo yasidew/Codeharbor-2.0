@@ -67,7 +67,6 @@
                     <div id="view-mode-{{ guideline.id }}">
                         <strong>{{ guideline.company_name }}</strong>
                         <p>Pattern: {{ guideline.pattern }}</p>
-                        {#                        <p>{{ guideline.rule }}</p>#}
                         <div>
                             {% if guideline.rule|slice:":2" == "1." %}
                                 <ol>
