@@ -145,7 +145,7 @@
             loadingBar.style.display = 'block';
             refactoredSection.style.display = 'none';
             changesSection.style.display = 'none';
-            changesList.innerHTML = '';  // Clear previous changes
+            changesList.innerHTML = ''; // Clear previous changes
 
             try {
                 const response = await fetch('/code-formatter/refactor-code/', {
@@ -160,13 +160,11 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Extract the code part and set it in the editor
-                    const extractedCode = extractCode(data.refactored_code);
-                    refactoredEditor.setValue(extractedCode);
+                    refactoredEditor.setValue(data.refactored_code);
 
-                    // Display changes separately
-                    if (data.changes) {
-                        data.changes.forEach(change => {
+                    // Display "Changes Made" section
+                    if (data.changes_made.length > 0) {
+                        data.changes_made.forEach(change => {
                             const li = document.createElement('li');
                             li.textContent = change;
                             changesList.appendChild(li);
@@ -316,6 +314,41 @@
 
         input:checked + .slider:before {
             transform: translateX(25px);
+        }
+
+        /* Changes Made Section */
+        #changes-section {
+            background-color: #1c1c1e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        #changes-section h4 {
+            color: #ffce56;
+            margin-bottom: 10px;
+        }
+
+        #changes-list {
+            list-style-type: none;
+            padding-left: 15px;
+        }
+
+        #changes-list li {
+            color: #ffffff;
+            font-size: 14px;
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        #changes-list li::before {
+            content: "•";
+            color: #36a2eb;
+            font-size: 18px;
+            position: absolute;
+            left: 0;
+            top: 1px;
         }
 
 

@@ -10,6 +10,8 @@ from .forms import GuidelineForm
 from .models import CodeRefactoringRecord
 from .utils import analyze_code, refactor_code
 from django.core.files.storage import FileSystemStorage
+import re
+
 
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -62,10 +64,20 @@ def refactor_code(request):
                 guidelines_prompt = ""
 
             # AI Code Refactoring Request
-            prompt = f"Refactor the following code to improve structure, readability, and efficiency: \n\n{code}"
+            prompt = f"""
+            Refactor the following code to improve structure, readability, and efficiency. 
+            Ensure that you:
+            1. Improve maintainability and efficiency.
+            2. Follow best practices while keeping the functionality intact.
 
-            if guidelines_prompt:
-                prompt += f"\n\nFollow these guidelines while refactoring:\n{guidelines_prompt}"
+            ### Original Code:
+            {code}
+
+            ### Guidelines (if applicable):
+            {guidelines_prompt if guidelines_prompt else "No specific guidelines provided."}
+
+            After refactoring, clearly provide a "Changes Made" section listing the improvements in bullet points.
+            """
 
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -76,7 +88,19 @@ def refactor_code(request):
                 temperature=0.2
             )
 
-            refactored_code = response.choices[0].message.content.strip()
+            # ✅ Ensure response_text is properly extracted
+            response_text = str(response.choices[0].message.content).strip()
+
+            # ✅ Debugging log to check AI response
+            print("AI Response:", response_text)
+
+            # ✅ Extract the refactored code using regex
+            code_match = re.search(r"```java([\s\S]*?)```", response_text)
+            refactored_code = code_match.group(1).strip() if code_match else response_text  # Fallback to full response
+
+            # ✅ Extract "Changes Made" section
+            changes_match = re.search(r"Changes Made:\n([\s\S]*)", response_text)
+            changes_made = changes_match.group(1).strip().split("\n") if changes_match else []
 
             # Calculate LOC and Readability for the refactored code
             refactored_loc = calculate_loc(refactored_code)
@@ -94,6 +118,7 @@ def refactor_code(request):
 
             return JsonResponse({
                 'refactored_code': refactored_code,
+                'changes_made': changes_made,  # ✅ Return extracted changes
                 'original_loc': original_loc,
                 'refactored_loc': refactored_loc,
                 'original_readability': original_readability,
