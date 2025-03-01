@@ -79,7 +79,7 @@
         <h3 class="text-white text-center mt-5">Saved Guidelines</h3>
         <div id="guidelines-container">
             {% for guideline in guidelines %}
-                <div class="card bg-dark text-white p-3 mb-3">
+                <div class="card bg-dark text-white p-3 mb-3" id="guideline-{{ guideline.id }}">
                     <div class="d-flex align-items-center">
                         {% if guideline.company_logo %}
                             <img src="{{ guideline.company_logo.url }}" alt="Company Logo" class="company-logo">
@@ -109,9 +109,35 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Hidden Edit Form -->
+                    <div class="edit-form d-none" id="edit-form-{{ guideline.id }}">
+                        <input type="text" class="form-control mb-2" id="edit-company-{{ guideline.id }}"
+                               value="{{ guideline.company_name }}">
+                        <select class="form-control mb-2" id="edit-pattern-{{ guideline.id }}">
+                            <option value="Factory" {% if guideline.pattern == "Factory" %}selected{% endif %}>Factory
+                            </option>
+                            <option value="Strategy" {% if guideline.pattern == "Strategy" %}selected{% endif %}>
+                                Strategy
+                            </option>
+                            <option value="Observer" {% if guideline.pattern == "Observer" %}selected{% endif %}>
+                                Observer
+                            </option>
+                        </select>
+                        <textarea class="form-control mb-2"
+                                  id="edit-rule-{{ guideline.id }}">{{ guideline.rule }}</textarea>
+
+                        <!-- Upload New Logo -->
+                        <input type="file" id="edit-logo-{{ guideline.id }}" accept="image/png, image/jpeg"
+                               class="form-control mb-2">
+
+                        <button class="btn btn-success btn-sm save-btn" data-id="{{ guideline.id }}">Save</button>
+                        <button class="btn btn-secondary btn-sm cancel-btn" data-id="{{ guideline.id }}">Cancel</button>
+                    </div>
                 </div>
             {% endfor %}
         </div>
+
     </div>
 
     <script>
@@ -153,6 +179,55 @@
 
             regenerateBtn.addEventListener("click", function () {
                 fetchAISuggestion(patternSelector.value);
+            });
+
+            // Handle Edit Mode Toggle
+            document.querySelectorAll(".edit-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    document.getElementById(`guideline-${id}`).querySelector(".edit-form").classList.remove("d-none");
+                });
+            });
+
+            // Cancel Edit Mode
+            document.querySelectorAll(".cancel-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    document.getElementById(`guideline-${id}`).querySelector(".edit-form").classList.add("d-none");
+                });
+            });
+
+            // Save Edits
+            document.querySelectorAll(".save-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    const company = document.getElementById(`edit-company-${id}`).value;
+                    const pattern = document.getElementById(`edit-pattern-${id}`).value;
+                    const rule = document.getElementById(`edit-rule-${id}`).value;
+                    const logoInput = document.getElementById(`edit-logo-${id}`).files[0]; // Handle logo update
+
+                    const formData = new FormData();
+                    formData.append("company_name", company);
+                    formData.append("pattern", pattern);
+                    formData.append("rule", rule);
+                    if (logoInput) {
+                        formData.append("company_logo", logoInput);  // Append new logo if selected
+                    }
+
+                    fetch(`/code-formatter/edit-guideline/${id}/`, {
+                        method: "POST",
+                        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+                        body: formData,
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload(); // Reload page to reflect changes
+                            } else {
+                                alert("Error updating guideline.");
+                            }
+                        });
+                });
             });
 
             // Delete Guideline Instantly

@@ -103,11 +103,20 @@ def define_guidelines(request):
 def edit_guideline(request, id):
     if request.method == "POST":
         try:
-            data = json.loads(request.body)
-            guideline = Guideline.objects.get(id=id)
-            guideline.company_name = data["company_name"]
-            guideline.pattern = data["pattern"]
-            guideline.rule = data["rule"]
+            guideline = get_object_or_404(Guideline, id=id)
+
+            if "company_name" in request.POST:
+                guideline.company_name = request.POST["company_name"]
+
+            if "pattern" in request.POST:
+                guideline.pattern = request.POST["pattern"]
+
+            if "rule" in request.POST:
+                guideline.rule = request.POST["rule"]
+
+            if "company_logo" in request.FILES:  # Handle logo update
+                guideline.company_logo = request.FILES["company_logo"]
+
             guideline.save()
 
             return JsonResponse({
@@ -115,6 +124,7 @@ def edit_guideline(request, id):
                 "company_name": guideline.company_name,
                 "pattern": guideline.pattern,
                 "rule": guideline.rule,
+                "company_logo": guideline.company_logo.url if guideline.company_logo else None
             })
         except Guideline.DoesNotExist:
             return JsonResponse({"success": False, "error": "Guideline not found"})
