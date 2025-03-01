@@ -174,6 +174,24 @@
             }
         });
 
+        // Handle File Upload
+        document.querySelector('.upload-btn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return; // No file selected
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                editor.setValue(e.target.result); // Set file content in Monaco Editor
+            };
+            reader.readAsText(file);
+        });
+
         function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
             const ctx = document.getElementById('metricsChart').getContext('2d');
             new Chart(ctx, {
@@ -205,6 +223,12 @@
             text-decoration: none;
             padding: 10px 15px;
             color: white;
+        }
+
+        /* Ensure Upload Code button matches others without the hover effect */
+        .upload-btn:hover {
+            background: none !important;
+            border-radius: 0 !important;
         }
 
         /* Prevent horizontal scrolling */
