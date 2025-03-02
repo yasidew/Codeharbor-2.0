@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% block title %}Code Refacotring{% endblock %}
 {% block sidebar %}
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
@@ -30,6 +30,19 @@
                 </li>
                 <li><a href="#"><i class="bi bi-bar-chart"></i>
                     <p>Analysis</p></a></li>
+                <!-- ✅ Add Resources with a proper icon -->
+                <li>
+                    <a href="{% url 'add_resource' %}"><i class="bi bi-plus-square"></i>
+                        <p>Add Resources</p>
+                    </a>
+                </li>
+
+                <!-- ✅ View Resources with a proper icon -->
+                <li>
+                    <a href="{% url 'list_resources' %}"><i class="bi bi-book"></i>
+                        <p>View Resources</p>
+                    </a>
+                </li>
                 <li><a href="#"><i class="bi bi-gear"></i>
                     <p>Settings</p></a></li>
                 <li><a href="#"><i class="bi bi-box-arrow-right"></i>
@@ -94,6 +107,15 @@
                     <ul id="changes-list" class="text-white"></ul>
                 </div>
 
+                <!-- Design Pattern Used -->
+                <div id="design-pattern-text" class="text-center text-warning mt-3" style="display: none;"></div>
+
+                <!-- Suggested Resources -->
+                <div id="resources-section" class="mt-4" style="display: none;">
+                    <h4 class="text-white">Suggested Learning Resources</h4>
+                    <ul id="resources-list" class="text-white"></ul>
+                </div>
+
                 <div class="text-center mt-3">
                     <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
                 </div>
@@ -145,58 +167,78 @@
         });
 
         document.getElementById('refactor-btn').addEventListener('click', async () => {
-            const code = editor.getValue();
-            const useGuidelines = document.getElementById('guideline-toggle').checked;
+    const code = editor.getValue();
+    const useGuidelines = document.getElementById('guideline-toggle').checked;
 
-            const loadingBar = document.getElementById('loading-bar');
-            const refactoredSection = document.getElementById('refactored-section');
-            const changesSection = document.getElementById('changes-section');
-            const changesList = document.getElementById('changes-list');
+    const loadingBar = document.getElementById('loading-bar');
+    const refactoredSection = document.getElementById('refactored-section');
+    const changesSection = document.getElementById('changes-section');
+    const changesList = document.getElementById('changes-list');
+    const resourcesSection = document.getElementById('resources-section');
+    const resourcesList = document.getElementById('resources-list');
+    const designPatternText = document.getElementById('design-pattern-text');
 
-            loadingBar.style.display = 'block';
-            refactoredSection.style.display = 'none';
-            changesSection.style.display = 'none';
-            changesList.innerHTML = ''; // Clear previous changes
+    loadingBar.style.display = 'block';
+    refactoredSection.style.display = 'none';
+    changesSection.style.display = 'none';
+    resourcesSection.style.display = 'none';
+    changesList.innerHTML = ''; // Clear previous changes
+    resourcesList.innerHTML = ''; // Clear previous resources
 
-            try {
-                const response = await fetch('/code-formatter/refactor-code/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                    body: JSON.stringify({code, use_guidelines: useGuidelines}),
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    refactoredEditor.setValue(data.refactored_code);
-
-                    // Display "Changes Made" section
-                    if (data.changes_made.length > 0) {
-                        data.changes_made.forEach(change => {
-                            const li = document.createElement('li');
-                            li.textContent = change;
-                            changesList.appendChild(li);
-                        });
-                        changesSection.style.display = 'block';
-                    }
-
-                    refactoredSection.style.display = 'block';
-                } else {
-                    {#alert("Error in refactoring code!");#}
-                    showToast("❌Error in refactoring code!", "error");
-
-                }
-            } catch (error) {
-                {#alert("An error occurred: " + error.message);#}
-                showToast("❌An error occurred: " + error.message, "error");
-
-            } finally {
-                loadingBar.style.display = 'none';
-            }
+    try {
+        const response = await fetch('/code-formatter/refactor-code/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({code, use_guidelines: useGuidelines}),
         });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            refactoredEditor.setValue(data.refactored_code);
+            refactoredSection.style.display = 'block';
+
+            // Display "Changes Made" section
+            if (data.changes_made.length > 0) {
+                data.changes_made.forEach(change => {
+                    const li = document.createElement('li');
+                    li.textContent = change;
+                    changesList.appendChild(li);
+                });
+                changesSection.style.display = 'block';
+            }
+
+            // Display "Design Pattern Used" section
+            if (data.design_pattern) {
+                designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.design_pattern}`;
+                designPatternText.style.display = 'block';
+            } else {
+                designPatternText.style.display = 'none';
+            }
+
+            // Display Suggested Resources
+            if (data.resources.length > 0) {
+                data.resources.forEach(resource => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${resource.pattern_name}</strong> - <a href="${resource.link}" target="_blank" class="text-info">View Resource</a>`;
+                    resourcesList.appendChild(li);
+                });
+                resourcesSection.style.display = 'block';
+            }
+
+        } else {
+            showToast("❌ Error in refactoring code!", "error");
+        }
+    } catch (error) {
+        showToast("❌ An error occurred: " + error.message, "error");
+    } finally {
+        loadingBar.style.display = 'none';
+    }
+});
+
 
         // Function to extract only the code block
         function extractCode(responseText) {

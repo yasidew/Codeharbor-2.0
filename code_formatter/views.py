@@ -5,8 +5,8 @@ import openai
 import os
 import json
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Guideline
-from .forms import GuidelineForm
+from .models import Guideline, DesignPatternResource
+from .forms import GuidelineForm, DesignPatternResourceForm
 from .models import CodeRefactoringRecord
 from .utils import analyze_code, refactor_code
 from django.core.files.storage import FileSystemStorage
@@ -463,3 +463,21 @@ def get_github_token(request):
     """Returns the GitHub Access Token securely"""
     github_token = os.getenv("GITHUB_ACCESS_TOKEN")
     return JsonResponse({"token": github_token})
+
+
+def add_resource(request):
+    if request.method == "POST":
+        form = DesignPatternResourceForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('list_resources')  # Redirect to resource list after saving
+
+    else:
+        form = DesignPatternResourceForm()
+
+    return render(request, 'code_formatter/add_resource.html', {'form': form})
+
+
+def list_resources(request):
+    resources = DesignPatternResource.objects.all().order_by('-added_on')
+    return render(request, 'code_formatter/list_resources.html', {'resources': resources})

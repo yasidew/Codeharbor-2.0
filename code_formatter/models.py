@@ -24,3 +24,27 @@ class CodeRefactoringRecord(models.Model):
 
     def __str__(self):
         return f"Refactoring Record {self.id} at {self.timestamp}"
+
+
+
+class DesignPatternResource(models.Model):
+    DESIGN_PATTERNS = [
+        ('Factory Method', 'Factory Method'),
+        ('Singleton', 'Singleton'),
+        ('Observer', 'Observer'),
+        ('Decorator', 'Decorator'),
+        ('Strategy', 'Strategy'),
+        ('Adapter', 'Adapter'),
+        ('Builder', 'Builder'),
+        ('Prototype', 'Prototype'),
+        # Add more as needed
+    ]
+
+    pattern_name = models.CharField(max_length=100, choices=DESIGN_PATTERNS)
+    description = models.TextField()
+    link = models.URLField()
+    category = models.CharField(max_length=100, choices=[('Creational', 'Creational'), ('Structural', 'Structural'), ('Behavioral', 'Behavioral')])
+    added_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.pattern_name} ({self.category})"

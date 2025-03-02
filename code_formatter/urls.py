@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from .views import define_guidelines, edit_guideline, delete_guideline, get_guidelines, generate_guideline, \
-    github_import_modal, get_github_token
+    github_import_modal, get_github_token, add_resource, list_resources
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -16,6 +16,8 @@ urlpatterns = [
     path("generate-guideline/", generate_guideline, name="generate_guideline"),
     path('github-import-modal/', github_import_modal, name='github_import_modal'),
     path('get-github-token/', get_github_token, name='get_github_token'),
+    path('add-resource/', add_resource, name='add_resource'),
+    path('resources/', list_resources, name='list_resources'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
