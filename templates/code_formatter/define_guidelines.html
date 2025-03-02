@@ -247,12 +247,14 @@
                             if (data.success) {
                                 location.reload();
                             } else {
-                                alert("Error updating guideline.");
+                                {#alert("Error updating guideline.");#}
+                                showToast("❌ Error updating guideline.", "error");
                             }
                         })
                         .catch(() => {
                             hideLoading();
-                            alert("Something went wrong.");
+                            {#alert("Something went wrong.");#}
+                            showToast("❌ Something went wrong.", "error");
                         });
                 });
             });
@@ -274,12 +276,17 @@
                                 if (data.success) {
                                     document.getElementById(`guideline-${id}`).remove();  // ✅ Remove without refresh
                                 } else {
-                                    alert("Error deleting guideline.");
+                                    {#alert("Error deleting guideline.");#}
+                                showToast("❌ Error deleting guideline.", "error");
+
                                 }
                             })
                             .catch(() => {
                                 hideLoading();
-                                alert("Something went wrong.");  // ✅ Handle network issues
+                                {#alert("Something went wrong.");  // ✅ Handle network issues#}
+                                showToast("❌ Something went wrong.", "error");
+
+
                             });
                     }
                 });

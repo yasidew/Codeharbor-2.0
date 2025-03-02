@@ -185,10 +185,14 @@
 
                     refactoredSection.style.display = 'block';
                 } else {
-                    alert("Error in refactoring code!");
+                    {#alert("Error in refactoring code!");#}
+                    showToast("❌Error in refactoring code!", "error");
+
                 }
             } catch (error) {
-                alert("An error occurred: " + error.message);
+                {#alert("An error occurred: " + error.message);#}
+                showToast("❌An error occurred: " + error.message, "error");
+
             } finally {
                 loadingBar.style.display = 'none';
             }
@@ -224,7 +228,8 @@
             const refactoredCode = refactoredEditor.getValue(); // Get the text from the editor
 
             if (!refactoredCode) {
-                alert("No refactored code available to download.");
+                {#alert("No refactored code available to download.");#}
+                showToast("⚠️ Warning: No refactored code available to download.", "warning");
                 return;
             }
 
@@ -242,14 +247,18 @@
             const filePath = document.getElementById('file-path').value.trim();
 
             if (!repoUrl || !filePath) {
-                alert('Please enter both the GitHub repository URL and the file path.');
+                {#alert('Please enter both the GitHub repository URL and the file path.');#}
+                showToast("⚠️ Warning: Please enter both the GitHub repository URL and the file path.", "warning");
+
+
                 return;
             }
 
             // ✅ Improved regex to correctly extract owner and repo name
             const repoMatch = repoUrl.match(/github\.com\/([^/]+)\/([^/.]+)/);
             if (!repoMatch) {
-                alert('Invalid GitHub repository URL.');
+                {#alert('Invalid GitHub repository URL.');#}
+                showToast("❌Invalid GitHub repository URL.", "error");
                 return;
             }
 
@@ -265,7 +274,8 @@
             // Fetch GitHub Token
             const githubToken = await fetchGithubToken();
             if (!githubToken) {
-                alert("Error fetching GitHub token. Please check your backend.");
+                {#alert("Error fetching GitHub token. Please check your backend.");#}
+                showToast("❌Error fetching GitHub token. Please check your backend.", "error");
                 return;
             }
 
@@ -283,13 +293,16 @@
 
                 // Set the fetched code into Monaco Editor
                 editor.setValue(fileContent);
-                alert('Code successfully fetched from GitHub!');
+                {#alert('Code successfully fetched from GitHub!');#}
+                showToast("✅ Code successfully fetched from GitHub!", "success");
 
                 // Close the modal after success
                 closeModal();
 
             } catch (error) {
-                alert(`Error fetching file: ${error.message}`);
+                {#alert(`Error fetching file: ${error.message}`);#}
+                showToast(`Error fetching file: ${error.message}`, "error");
+
             }
         });
 
@@ -336,14 +349,16 @@
             const filePath = document.getElementById("file-path").value.trim();
 
             if (!repoUrl || !filePath) {
-                alert("Please enter both the GitHub repository URL and the file path.");
+                {#alert("Please enter both the GitHub repository URL and the file path.");#}
+                showToast("⚠️ Warning: Please enter both the GitHub repository URL and the file path.", "warning");
                 return;
             }
 
             // Extract user/repo from the URL
             const repoMatch = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
             if (!repoMatch) {
-                alert("Invalid GitHub repository URL.");
+                {#alert("Invalid GitHub repository URL.");#}
+                showToast("❌Invalid GitHub repository URL.", "error");
                 return;
             }
 
@@ -355,7 +370,8 @@
                 .then(data => {
                     const githubToken = data.token;
                     if (!githubToken) {
-                        alert("Error fetching GitHub token. Please check your backend.");
+                        {#alert("Error fetching GitHub token. Please check your backend.");#}
+                        showToast("❌Error fetching GitHub token. Please check your backend.", "error");
                         return;
                     }
 
@@ -373,7 +389,8 @@
                         .then(data => {
                             const fileContent = atob(data.content); // Decode Base64 content
                             editor.setValue(fileContent);
-                            alert("Code successfully fetched from GitHub!");
+                            {#alert("Code successfully fetched from GitHub!");#}
+                            showToast("Code successfully fetched from GitHub!", "success");
                             closeModal();
                         })
                         .catch(error => alert(`Error fetching file: ${error.message}`));

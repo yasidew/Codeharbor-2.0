@@ -102,12 +102,14 @@
 
             // ✅ Set the fetched code into Monaco Editor
             editor.setValue(fileContent);
-            alert('Code successfully fetched from GitHub!');
+            {#alert('Code successfully fetched from GitHub!');#}
+            showToast("✅ Code successfully fetched from GitHub!", "success");
 
             // ✅ Close the modal
             closeModal();
         } catch (error) {
-            alert(`Error fetching file: ${error.message}`);
+            {#alert(`Error fetching file: ${error.message}`);#}
+            showToast(`❌ Error fetching file: ${error.message}`, "error");
         }
     });
 
