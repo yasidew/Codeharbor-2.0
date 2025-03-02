@@ -1,0 +1,883 @@
+[
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Shape createShape();\n}}\n\npublic class CircleFactory extends {name} {{\n    @Override\n    public Shape createShape() {{\n        return new Circle();\n    }}\n}}\n\npublic class RectangleFactory extends {name} {{\n    @Override\n    public Shape createShape() {{\n        return new Rectangle();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamic creation of shapes based on runtime requirements",
+        "edge_cases": [
+            "Ensure factory produces only valid shapes",
+            "Handle incorrect inputs gracefully"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Efficiently uses polymorphism to extend behavior",
+        "real_world_usage": "Drawing applications where shapes need to be dynamically generated",
+        "testing_notes": "Test with different subclasses to verify object creation",
+        "comments": "This implementation adheres to the Open-Closed Principle",
+        "source": "Inspired by GUI frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Notification createNotification();\n}}\n\npublic class Email{name} extends {name} {{\n    @Override\n    public Notification createNotification() {{\n        return new EmailNotification();\n    }}\n}}\n\npublic class SMS{name} extends {name} {{\n    @Override\n    public Notification createNotification() {{\n        return new SMSNotification();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Generating different types of notifications",
+        "edge_cases": [
+            "Incorrect notification type",
+            "Large-scale notifications"
+        ],
+        "dependencies": [
+            "SMTP libraries for email notifications"
+        ],
+        "performance_notes": "Ensures loose coupling between object instantiation and client code",
+        "real_world_usage": "Used in notification services for e-commerce platforms",
+        "testing_notes": "Test with mock dependencies for SMS and email",
+        "comments": "Factory enables scalability by adding new notification types",
+        "source": "Inspired by notification systems in enterprise applications"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract DatabaseConnection createConnection();\n}}\n\npublic class MySQLConnectionFactory extends {name} {{\n    @Override\n    public DatabaseConnection createConnection() {{\n        return new MySQLConnection();\n    }}\n}}\n\npublic class PostgreSQLConnectionFactory extends {name} {{\n    @Override\n    public DatabaseConnection createConnection() {{\n        return new PostgreSQLConnection();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Abstracting database connection creation",
+        "edge_cases": [
+            "Connection pool exhaustion",
+            "Invalid connection strings"
+        ],
+        "dependencies": [
+            "JDBC drivers"
+        ],
+        "performance_notes": "Reduces boilerplate code and isolates database-specific logic",
+        "real_world_usage": "Used in ORM frameworks for database abstraction",
+        "testing_notes": "Simulate database failures to verify resilience",
+        "comments": "Facilitates switching between databases with minimal changes",
+        "source": "Inspired by database connection management systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Report createReport();\n}}\n\npublic class PDF{name} extends {name} {{\n    @Override\n    public Report createReport() {{\n        return new PDFReport();\n    }}\n}}\n\npublic class Excel{name} extends {name} {{\n    @Override\n    public Report createReport() {{\n        return new ExcelReport();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic generation of reports in different formats",
+        "edge_cases": [
+            "Large reports exceeding memory limits",
+            "Invalid format types"
+        ],
+        "dependencies": [
+            "PDF libraries, Excel APIs"
+        ],
+        "performance_notes": "Minimizes code duplication for report creation",
+        "real_world_usage": "Used in business intelligence and reporting tools",
+        "testing_notes": "Ensure compatibility with various data sources",
+        "comments": "Extending for a new report type is straightforward",
+        "source": "Inspired by reporting engines in financial systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Vehicle createVehicle();\n}}\n\npublic class CarFactory extends {name} {{\n    @Override\n    public Vehicle createVehicle() {{\n        return new Car();\n    }}\n}}\n\npublic class BikeFactory extends {name} {{\n    @Override\n    public Vehicle createVehicle() {{\n        return new Bike();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Creating vehicles based on user preferences or application requirements",
+        "edge_cases": [
+            "Invalid vehicle type",
+            "Multiple concurrent requests"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Efficiently decouples vehicle creation logic from client code",
+        "real_world_usage": "Used in ride-sharing applications to manage vehicle types",
+        "testing_notes": "Test with invalid inputs and verify correct object creation",
+        "comments": "Simplifies adding new vehicle types",
+        "source": "Inspired by vehicle management systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract PaymentGateway createGateway();\n}}\n\npublic class PayPalGatewayFactory extends {name} {{\n    @Override\n    public PaymentGateway createGateway() {{\n        return new PayPalGateway();\n    }}\n}}\n\npublic class StripeGatewayFactory extends {name} {{\n    @Override\n    public PaymentGateway createGateway() {{\n        return new StripeGateway();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Integrating multiple payment gateways in an e-commerce application",
+        "edge_cases": [
+            "Invalid payment amount",
+            "API rate limits"
+        ],
+        "dependencies": [
+            "API keys for payment gateways"
+        ],
+        "performance_notes": "Decouples payment processing logic for scalability",
+        "real_world_usage": "Used in e-commerce platforms for flexible payment options",
+        "testing_notes": "Simulate API failures and timeouts",
+        "comments": "Supports adding new payment gateways with minimal changes",
+        "source": "Inspired by payment integration frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract DocumentEditor createEditor();\n}}\n\npublic class WordEditorFactory extends {name} {{\n    @Override\n    public DocumentEditor createEditor() {{\n        return new WordEditor();\n    }}\n}}\n\npublic class SpreadsheetEditorFactory extends {name} {{\n    @Override\n    public DocumentEditor createEditor() {{\n        return new SpreadsheetEditor();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamically creating editors for different document types",
+        "edge_cases": [
+            "Unsupported document type",
+            "Large document handling"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Optimized for memory usage when loading large documents",
+        "real_world_usage": "Used in document management systems like Google Docs",
+        "testing_notes": "Verify document compatibility with editors",
+        "comments": "Follows Open-Closed Principle for adding new editors",
+        "source": "Inspired by office productivity tools"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Logger createLogger();\n}}\n\npublic class File{name} extends {name} {{\n    @Override\n    public Logger createLogger() {{\n        return new FileLogger();\n    }}\n}}\n\npublic class Console{name} extends {name} {{\n    @Override\n    public Logger createLogger() {{\n        return new ConsoleLogger();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Abstracting logging mechanisms for different environments",
+        "edge_cases": [
+            "Disk space issues for file logging",
+            "Console unavailable"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Minimizes latency by buffering log messages",
+        "real_world_usage": "Used in logging frameworks like SLF4J",
+        "testing_notes": "Ensure thread safety for concurrent logging",
+        "comments": "Easily extendable for new logging mechanisms",
+        "source": "Inspired by enterprise logging solutions"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Enemy createEnemy();\n}}\n\npublic class GoblinFactory extends {name} {{\n    @Override\n    public Enemy createEnemy() {{\n        return new Goblin();\n    }}\n}}\n\npublic class DragonFactory extends {name} {{\n    @Override\n    public Enemy createEnemy() {{\n        return new Dragon();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamically creating enemies for a game environment",
+        "edge_cases": [
+            "Invalid enemy types",
+            "Handling multiple enemy spawns"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Optimized for creating multiple enemies in real-time",
+        "real_world_usage": "Used in game development for enemy management",
+        "testing_notes": "Verify enemy behavior in different game scenarios",
+        "comments": "Supports easy addition of new enemy types",
+        "source": "Inspired by game development frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Transport createTransport();\n}}\n\npublic class ShipFactory extends {name} {{\n    @Override\n    public Transport createTransport() {{\n        return new Ship();\n    }}\n}}\n\npublic class TruckFactory extends {name} {{\n    @Override\n    public Transport createTransport() {{\n        return new Truck();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Creating different transport modes for logistics applications",
+        "edge_cases": [
+            "Invalid transport mode",
+            "High volume deliveries"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Decouples transport mode logic for scalability",
+        "real_world_usage": "Used in logistics and supply chain management systems",
+        "testing_notes": "Simulate different delivery scenarios for reliability",
+        "comments": "Supports Open-Closed Principle for adding new transport types",
+        "source": "Inspired by logistics optimization systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract OS createOS();\n}}\n\npublic class WindowsFactory extends {name} {{\n    @Override\n    public OS createOS() {{\n        return new WindowsOS();\n    }}\n}}\n\npublic class LinuxFactory extends {name} {{\n    @Override\n    public OS createOS() {{\n        return new LinuxOS();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamically configuring operating systems in virtual machines",
+        "edge_cases": [
+            "Unsupported OS type",
+            "Resource allocation failures"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Efficiently manages OS configurations",
+        "real_world_usage": "Used in cloud platforms for creating virtual machines",
+        "testing_notes": "Simulate multiple boot scenarios for robustness",
+        "comments": "Extensible for adding new operating systems",
+        "source": "Inspired by virtual machine management systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Parser createParser();\n}}\n\npublic class JSON{name} extends {name} {{\n    @Override\n    public Parser createParser() {{\n        return new JSONParser();\n    }}\n}}\n\npublic class XML{name} extends {name} {{\n    @Override\n    public Parser createParser() {{\n        return new XMLParser();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Creating parsers for different data formats",
+        "edge_cases": [
+            "Invalid data formats",
+            "Large data handling"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Optimized for fast parsing of structured data",
+        "real_world_usage": "Used in ETL (Extract, Transform, Load) pipelines",
+        "testing_notes": "Verify parser accuracy with edge cases",
+        "comments": "Simplifies adding new parsers for additional formats",
+        "source": "Inspired by data integration tools"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Authentication createAuthentication();\n}}\n\npublic class OAuthFactory extends {name} {{\n    @Override\n    public Authentication createAuthentication() {{\n        return new OAuthAuthentication();\n    }}\n}}\n\npublic class LDAPFactory extends {name} {{\n    @Override\n    public Authentication createAuthentication() {{\n        return new LDAPAuthentication();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Abstracting authentication mechanisms for secure applications",
+        "edge_cases": [
+            "Invalid credentials",
+            "High load on authentication server"
+        ],
+        "dependencies": [
+            "OAuth libraries, LDAP servers"
+        ],
+        "performance_notes": "Minimizes latency for user authentication",
+        "real_world_usage": "Used in identity management systems",
+        "testing_notes": "Simulate invalid and expired credentials",
+        "comments": "Extends easily to support new authentication methods",
+        "source": "Inspired by enterprise security frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract AnalyticsEngine createEngine();\n}}\n\npublic class BatchAnalyticsFactory extends {name} {{\n    @Override\n    public AnalyticsEngine createEngine() {{\n        return new BatchAnalyticsEngine();\n    }}\n}}\n\npublic class StreamAnalyticsFactory extends {name} {{\n    @Override\n    public AnalyticsEngine createEngine() {{\n        return new StreamAnalyticsEngine();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Configuring analytics engines for different use cases",
+        "edge_cases": [
+            "High data volume",
+            "Real-time data ingestion issues"
+        ],
+        "dependencies": [
+            "Batch processing frameworks",
+            "Stream processing APIs"
+        ],
+        "performance_notes": "Optimized for both batch and stream data analysis",
+        "real_world_usage": "Used in big data analytics platforms",
+        "testing_notes": "Test with varied data sets and streaming rates",
+        "comments": "Facilitates switching between analytics engines seamlessly",
+        "source": "Inspired by big data frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Logger createLogger();\n}}\n\npublic class File{name} extends {name} {{\n    @Override\n    public Logger createLogger() {{\n        return new FileLogger();\n    }}\n}}\n\npublic class Console{name} extends {name} {{\n    @Override\n    public Logger createLogger() {{\n        return new ConsoleLogger();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Abstracting logging mechanisms for different environments",
+        "edge_cases": [
+            "File system errors",
+            "Console unavailable in headless mode"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Minimizes overhead by deferring log destination selection",
+        "real_world_usage": "Used in logging frameworks for configurable outputs",
+        "testing_notes": "Ensure log messages are correctly routed to destinations",
+        "comments": "Easily extendable for cloud-based logging solutions",
+        "source": "Inspired by enterprise logging libraries"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract GameCharacter createCharacter();\n}}\n\npublic class WarriorFactory extends {name} {{\n    @Override\n    public GameCharacter createCharacter() {{\n        return new Warrior();\n    }}\n}}\n\npublic class MageFactory extends {name} {{\n    @Override\n    public GameCharacter createCharacter() {{\n        return new Mage();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Creating different character types in a role-playing game",
+        "edge_cases": [
+            "Invalid character type",
+            "Unsupported abilities"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Efficiently manages character instantiation",
+        "real_world_usage": "Used in game engines to dynamically generate characters",
+        "testing_notes": "Verify character abilities align with their types",
+        "comments": "Supports adding new character types without major code changes",
+        "source": "Inspired by game development frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract PaymentProcessor createProcessor();\n}}\n\npublic class CreditCardProcessorFactory extends {name} {{\n    @Override\n    public PaymentProcessor createProcessor() {{\n        return new CreditCardProcessor();\n    }}\n}}\n\npublic class PayPalProcessorFactory extends {name} {{\n    @Override\n    public PaymentProcessor createProcessor() {{\n        return new PayPalProcessor();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Handling different payment methods in an e-commerce system",
+        "edge_cases": [
+            "Payment gateway failures",
+            "Invalid payment details"
+        ],
+        "dependencies": [
+            "Payment gateways"
+        ],
+        "performance_notes": "Reduces coupling between client code and payment processors",
+        "real_world_usage": "Used in e-commerce platforms for flexible payment handling",
+        "testing_notes": "Simulate failures in payment gateways for robustness",
+        "comments": "Enables easy integration of new payment methods",
+        "source": "Inspired by payment processing systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract AIModel createModel();\n}}\n\npublic class NeuralNetworkModelFactory extends {name} {{\n    @Override\n    public AIModel createModel() {{\n        return new NeuralNetworkModel();\n    }}\n}}\n\npublic class DecisionTreeModelFactory extends {name} {{\n    @Override\n    public AIModel createModel() {{\n        return new DecisionTreeModel();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic creation of AI models for machine learning tasks",
+        "edge_cases": [
+            "Insufficient training data",
+            "Unsupported model types"
+        ],
+        "dependencies": [
+            "Machine learning libraries"
+        ],
+        "performance_notes": "Optimized for dynamic model selection",
+        "real_world_usage": "Used in automated machine learning platforms",
+        "testing_notes": "Ensure models train correctly with different datasets",
+        "comments": "Simplifies switching between AI models in production",
+        "source": "Inspired by AI experimentation platforms"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract UIElement createElement();\n}}\n\npublic class ButtonFactory extends {name} {{\n    @Override\n    public UIElement createElement() {{\n        return new Button();\n    }}\n}}\n\npublic class TextBoxFactory extends {name} {{\n    @Override\n    public UIElement createElement() {{\n        return new TextBox();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Generating UI elements dynamically based on requirements",
+        "edge_cases": [
+            "Unsupported element types",
+            "Cross-browser compatibility"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Optimized for rendering diverse UI elements",
+        "real_world_usage": "Used in front-end frameworks for component creation",
+        "testing_notes": "Ensure compatibility with different screen resolutions",
+        "comments": "Facilitates adding new UI components easily",
+        "source": "Inspired by front-end UI frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Vehicle createVehicle();\n}}\n\npublic class CarFactory extends {name} {{\n    @Override\n    public Vehicle createVehicle() {{\n        return new Car();\n    }}\n}}\n\npublic class BikeFactory extends {name} {{\n    @Override\n    public Vehicle createVehicle() {{\n        return new Bike();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Creating different types of vehicles dynamically",
+        "edge_cases": [
+            "Unsupported vehicle types",
+            "Factory misconfiguration"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Facilitates extensibility for new vehicle types",
+        "real_world_usage": "Used in vehicle rental systems for generating vehicles on-demand",
+        "testing_notes": "Verify specific vehicle behavior after creation",
+        "comments": "Adheres to the Single Responsibility Principle",
+        "source": "Inspired by vehicle management systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Animal createAnimal();\n}}\n\npublic class DogFactory extends {name} {{\n    @Override\n    public Animal createAnimal() {{\n        return new Dog();\n    }}\n}}\n\npublic class CatFactory extends {name} {{\n    @Override\n    public Animal createAnimal() {{\n        return new Cat();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamically generating animals in a simulation",
+        "edge_cases": [
+            "Invalid animal types",
+            "Incorrect factory implementation"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Optimized for creating diverse animal types",
+        "real_world_usage": "Used in virtual pet simulators",
+        "testing_notes": "Test various sound behaviors for different animals",
+        "comments": "Supports adding new animals with minimal changes",
+        "source": "Inspired by animal behavior simulators"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Parser createParser();\n}}\n\npublic class JSON{name} extends {name} {{\n    @Override\n    public Parser createParser() {{\n        return new JSONParser();\n    }}\n}}\n\npublic class XML{name} extends {name} {{\n    @Override\n    public Parser createParser() {{\n        return new XMLParser();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Abstracting the parsing logic for different formats",
+        "edge_cases": [
+            "Malformed data",
+            "Unsupported formats"
+        ],
+        "dependencies": [
+            "JSON and XML libraries"
+        ],
+        "performance_notes": "Avoids hardcoding parsing logic in the client",
+        "real_world_usage": "Used in ETL pipelines to process diverse data formats",
+        "testing_notes": "Ensure parsers handle large datasets efficiently",
+        "comments": "Easily extendable for new data formats",
+        "source": "Inspired by data transformation tools"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract CloudStorage createStorage();\n}}\n\npublic class S3StorageFactory extends {name} {{\n    @Override\n    public CloudStorage createStorage() {{\n        return new S3Storage();\n    }}\n}}\n\npublic class Google{name} extends {name} {{\n    @Override\n    public CloudStorage createStorage() {{\n        return new GoogleCloudStorage();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Managing cloud storage providers dynamically",
+        "edge_cases": [
+            "Storage service unavailability",
+            "Authentication failures"
+        ],
+        "dependencies": [
+            "Cloud SDKs"
+        ],
+        "performance_notes": "Ensures decoupling from specific cloud storage APIs",
+        "real_world_usage": "Used in cloud-based file management systems",
+        "testing_notes": "Test with different storage providers for interoperability",
+        "comments": "Facilitates seamless integration of multiple cloud services",
+        "source": "Inspired by cloud storage management tools"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Food createFood();\n}}\n\npublic class PizzaFactory extends {name} {{\n    @Override\n    public Food createFood() {{\n        return new Pizza();\n    }}\n}}\n\npublic class BurgerFactory extends {name} {{\n    @Override\n    public Food createFood() {{\n        return new Burger();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Generating food items dynamically for a food delivery system",
+        "edge_cases": [
+            "Unavailable food ingredients",
+            "Invalid food types"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Supports scaling up with additional food items",
+        "real_world_usage": "Used in food delivery and restaurant management systems",
+        "testing_notes": "Ensure food objects behave as expected when cooked",
+        "comments": "Promotes scalability for new food types",
+        "source": "Inspired by food ordering applications"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract AIModel createModel();\n}}\n\npublic class NeuralNetworkFactory extends {name} {{\n    @Override\n    public AIModel createModel() {{\n        return new NeuralNetwork();\n    }}\n}}\n\npublic class DecisionTreeFactory extends {name} {{\n    @Override\n    public AIModel createModel() {{\n        return new DecisionTree();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamically creating AI models for different use cases",
+        "edge_cases": [
+            "Large datasets causing memory overflows",
+            "Invalid hyperparameters"
+        ],
+        "dependencies": [
+            "Machine learning libraries"
+        ],
+        "performance_notes": "Factory isolates model creation logic from clients",
+        "real_world_usage": "Used in ML pipelines for deploying diverse models",
+        "testing_notes": "Test with varying dataset sizes and hyperparameters",
+        "comments": "Facilitates extensibility for new model types",
+        "source": "Inspired by machine learning frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract PaymentGateway createGateway();\n}}\n\npublic class PayPalFactory extends {name} {{\n    @Override\n    public PaymentGateway createGateway() {{\n        return new PayPalGateway();\n    }}\n}}\n\npublic class StripeFactory extends {name} {{\n    @Override\n    public PaymentGateway createGateway() {{\n        return new StripeGateway();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic selection of payment gateways",
+        "edge_cases": [
+            "Invalid payment credentials",
+            "Gateway unavailability"
+        ],
+        "dependencies": [
+            "Gateway SDKs for PayPal and Stripe"
+        ],
+        "performance_notes": "Ensures scalability for adding new gateways",
+        "real_world_usage": "Used in e-commerce platforms for seamless payment processing",
+        "testing_notes": "Simulate failures for resilience testing",
+        "comments": "Adheres to the Open-Closed Principle",
+        "source": "Inspired by payment systems in online stores"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract CloudService createService();\n}}\n\npublic class ComputeEngineFactory extends {name} {{\n    @Override\n    public CloudService createService() {{\n        return new ComputeEngine();\n    }}\n}}\n\npublic class KubernetesEngineFactory extends {name} {{\n    @Override\n    public CloudService createService() {{\n        return new KubernetesEngine();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic provisioning of cloud services",
+        "edge_cases": [
+            "Resource quota exceeded",
+            "Provisioning errors"
+        ],
+        "dependencies": [
+            "Cloud provider APIs"
+        ],
+        "performance_notes": "Abstracts complex API calls for client simplicity",
+        "real_world_usage": "Used in cloud automation tools for service provisioning",
+        "testing_notes": "Verify provisioning under different resource constraints",
+        "comments": "Enhances extensibility for new cloud services",
+        "source": "Inspired by cloud management platforms"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract EncryptionAlgorithm createAlgorithm();\n}}\n\npublic class AESFactory extends {name} {{\n    @Override\n    public EncryptionAlgorithm createAlgorithm() {{\n        return new AESAlgorithm();\n    }}\n}}\n\npublic class RSAFactory extends {name} {{\n    @Override\n    public EncryptionAlgorithm createAlgorithm() {{\n        return new RSAAlgorithm();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Abstracting encryption algorithms for secure data transfer",
+        "edge_cases": [
+            "Unsupported algorithms",
+            "Key management issues"
+        ],
+        "dependencies": [
+            "Cryptographic libraries"
+        ],
+        "performance_notes": "Improves modularity and testability of cryptographic operations",
+        "real_world_usage": "Used in secure communication protocols",
+        "testing_notes": "Test with large datasets and invalid keys",
+        "comments": "Facilitates adding new algorithms seamlessly",
+        "source": "Inspired by cryptographic frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Plugin createPlugin();\n}}\n\npublic class Authentication{name} extends {name} {{\n    @Override\n    public Plugin createPlugin() {{\n        return new AuthenticationPlugin();\n    }}\n}}\n\npublic class Logging{name} extends {name} {{\n    @Override\n    public Plugin createPlugin() {{\n        return new LoggingPlugin();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic loading of plugins in an extensible system",
+        "edge_cases": [
+            "Plugin dependencies missing",
+            "Incompatible plugin versions"
+        ],
+        "dependencies": [
+            "Plugin frameworks"
+        ],
+        "performance_notes": "Simplifies plugin lifecycle management",
+        "real_world_usage": "Used in IDEs and application frameworks for plugin architecture",
+        "testing_notes": "Test with diverse plugin configurations",
+        "comments": "Promotes loose coupling and flexibility",
+        "source": "Inspired by plugin-based architectures in software frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract GameCharacter createCharacter();\n}}\n\npublic class WarriorFactory extends {name} {{\n    @Override\n    public GameCharacter createCharacter() {{\n        return new Warrior();\n    }}\n}}\n\npublic class MageFactory extends {name} {{\n    @Override\n    public GameCharacter createCharacter() {{\n        return new Mage();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Creating dynamic characters for a role-playing game",
+        "edge_cases": [
+            "Unsupported character types",
+            "Invalid abilities"
+        ],
+        "dependencies": [
+            "Game engine libraries"
+        ],
+        "performance_notes": "Simplifies character generation logic",
+        "real_world_usage": "Used in game development frameworks",
+        "testing_notes": "Verify attack and defense behavior for each character",
+        "comments": "Highly extensible for new character types",
+        "source": "Inspired by RPG game engines"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract DataExporter createExporter();\n}}\n\npublic class JSONExporterFactory extends {name} {{\n    @Override\n    public DataExporter createExporter() {{\n        return new JSONExporter();\n    }}\n}}\n\npublic class XMLExporterFactory extends {name} {{\n    @Override\n    public DataExporter createExporter() {{\n        return new XMLExporter();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamic data export in different formats",
+        "edge_cases": [
+            "Unsupported formats",
+            "Large datasets causing memory issues"
+        ],
+        "dependencies": [
+            "Serialization libraries"
+        ],
+        "performance_notes": "Abstracts export logic for cleaner client code",
+        "real_world_usage": "Used in data migration tools",
+        "testing_notes": "Test with datasets of varying sizes and types",
+        "comments": "Facilitates adding new export formats",
+        "source": "Inspired by data processing pipelines"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Transport createTransport();\n}}\n\npublic class TruckFactory extends {name} {{\n    @Override\n    public Transport createTransport() {{\n        return new Truck();\n    }}\n}}\n\npublic class ShipFactory extends {name} {{\n    @Override\n    public Transport createTransport() {{\n        return new Ship();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamic selection of transport modes",
+        "edge_cases": [
+            "Invalid transport type",
+            "Unavailable resources"
+        ],
+        "dependencies": [
+            "Logistics system APIs"
+        ],
+        "performance_notes": "Facilitates modularity for transport types",
+        "real_world_usage": "Used in supply chain management systems",
+        "testing_notes": "Simulate deliveries under various scenarios",
+        "comments": "Enables scalability for new transport methods",
+        "source": "Inspired by logistics and delivery systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Validator createValidator();\n}}\n\npublic class Email{name} extends {name} {{\n    @Override\n    public Validator createValidator() {{\n        return new EmailValidator();\n    }}\n}}\n\npublic class Phone{name} extends {name} {{\n    @Override\n    public Validator createValidator() {{\n        return new PhoneValidator();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic creation of validators for different data types",
+        "edge_cases": [
+            "Invalid regex patterns",
+            "Empty input strings"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Reduces duplication of validation logic",
+        "real_world_usage": "Used in form validation libraries",
+        "testing_notes": "Test with valid and invalid inputs",
+        "comments": "Ensures extensibility for new validation types",
+        "source": "Inspired by validation frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Theme createTheme();\n}}\n\npublic class Light{name} extends {name} {{\n    @Override\n    public Theme createTheme() {{\n        return new LightTheme();\n    }}\n}}\n\npublic class Dark{name} extends {name} {{\n    @Override\n    public Theme createTheme() {{\n        return new DarkTheme();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamic application of UI themes",
+        "edge_cases": [
+            "Unsupported themes",
+            "Inconsistent color palettes"
+        ],
+        "dependencies": [
+            "UI framework libraries"
+        ],
+        "performance_notes": "Improves modularity of theme application logic",
+        "real_world_usage": "Used in UI frameworks for theme management",
+        "testing_notes": "Ensure themes work across all UI components",
+        "comments": "Easily extensible for new themes",
+        "source": "Inspired by modern UI design systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract PaymentProcessor createProcessor();\n}}\n\npublic class CreditCardProcessorFactory extends {name} {{\n    @Override\n    public PaymentProcessor createProcessor() {{\n        return new CreditCardProcessor();\n    }}\n}}\n\npublic class PayPalProcessorFactory extends {name} {{\n    @Override\n    public PaymentProcessor createProcessor() {{\n        return new PayPalProcessor();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamic payment processing based on user preference",
+        "edge_cases": [
+            "Invalid payment methods",
+            "Payment gateway failures"
+        ],
+        "dependencies": [
+            "Payment gateway SDKs"
+        ],
+        "performance_notes": "Ensures scalability with new payment methods",
+        "real_world_usage": "Used in e-commerce platforms for payment flexibility",
+        "testing_notes": "Simulate payments for various processors",
+        "comments": "Facilitates integration with new payment gateways",
+        "source": "Inspired by online payment systems"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract NotificationChannel createChannel();\n}}\n\npublic class SlackChannelFactory extends {name} {{\n    @Override\n    public NotificationChannel createChannel() {{\n        return new SlackChannel();\n    }}\n}}\n\npublic class EmailChannelFactory extends {name} {{\n    @Override\n    public NotificationChannel createChannel() {{\n        return new EmailChannel();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Dynamic creation of notification channels",
+        "edge_cases": [
+            "Channel unavailability",
+            "Invalid message format"
+        ],
+        "dependencies": [
+            "Messaging platform APIs"
+        ],
+        "performance_notes": "Separates notification logic from channel specifics",
+        "real_world_usage": "Used in alerting systems for incident management",
+        "testing_notes": "Test with real-world APIs for message delivery",
+        "comments": "Easily extensible for new notification channels",
+        "source": "Inspired by communication and alerting tools"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract ReportExporter createExporter();\n}}\n\npublic class PDFExporterFactory extends {name} {{\n    @Override\n    public ReportExporter createExporter() {{\n        return new PDFExporter();\n    }}\n}}\n\npublic class ExcelExporterFactory extends {name} {{\n    @Override\n    public ReportExporter createExporter() {{\n        return new ExcelExporter();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Exporting reports in various formats",
+        "edge_cases": [
+            "Large report sizes",
+            "Unsupported formats"
+        ],
+        "dependencies": [
+            "Libraries for PDF and Excel generation"
+        ],
+        "performance_notes": "Reduces code duplication for report export",
+        "real_world_usage": "Used in business reporting and analytics tools",
+        "testing_notes": "Validate exported files with sample data",
+        "comments": "Facilitates easy addition of new formats",
+        "source": "Inspired by enterprise reporting solutions"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Vehicle createVehicle();\n}}\n\npublic class CarFactory extends {name} {{\n    @Override\n    public Vehicle createVehicle() {{\n        return new Car();\n    }}\n}}\n\npublic class BikeFactory extends {name} {{\n    @Override\n    public Vehicle createVehicle() {{\n        return new Bike();\n    }}\n}}",
+        "complexity": "Basic",
+        "language": "Java",
+        "context": "Dynamic vehicle creation for a transportation app",
+        "edge_cases": [
+            "Unavailable vehicles",
+            "Unrecognized vehicle types"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Simplifies addition of new vehicle types",
+        "real_world_usage": "Used in ride-hailing and vehicle rental services",
+        "testing_notes": "Simulate vehicle creation with varying conditions",
+        "comments": "Follows Open-Closed Principle",
+        "source": "Inspired by transportation and logistics platforms"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract AuthenticationProvider createProvider();\n}}\n\npublic class Google{name} extends {name} {{\n    @Override\n    public AuthenticationProvider createProvider() {{\n        return new GoogleAuthenticationProvider();\n    }}\n}}\n\npublic class Facebook{name} extends {name} {{\n    @Override\n    public AuthenticationProvider createProvider() {{\n        return new FacebookAuthenticationProvider();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic authentication for various platforms",
+        "edge_cases": [
+            "Platform unavailability",
+            "Invalid credentials"
+        ],
+        "dependencies": [
+            "OAuth libraries"
+        ],
+        "performance_notes": "Encapsulates authentication logic for various platforms",
+        "real_world_usage": "Used in social login systems",
+        "testing_notes": "Test with mock authentication servers",
+        "comments": "Ensures scalability for new authentication providers",
+        "source": "Inspired by social media integration frameworks"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract CloudStorage createStorage();\n}}\n\npublic class AWSStorageFactory extends {name} {{\n    @Override\n    public CloudStorage createStorage() {{\n        return new AWSStorage();\n    }}\n}}\n\npublic class Google{name} extends {name} {{\n    @Override\n    public CloudStorage createStorage() {{\n        return new GoogleCloudStorage();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic selection of cloud storage providers",
+        "edge_cases": [
+            "Service outage",
+            "Invalid credentials"
+        ],
+        "dependencies": [
+            "AWS SDK, Google Cloud SDK"
+        ],
+        "performance_notes": "Reduces dependency on specific cloud provider implementations",
+        "real_world_usage": "Used in multi-cloud storage systems",
+        "testing_notes": "Test with varying network latencies",
+        "comments": "Facilitates easy integration with new cloud providers",
+        "source": "Inspired by cloud-based backup services"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract NotificationScheduler createScheduler();\n}}\n\npublic class Email{name} extends {name} {{\n    @Override\n    public NotificationScheduler createScheduler() {{\n        return new EmailNotificationScheduler();\n    }}\n}}\n\npublic class Push{name} extends {name} {{\n    @Override\n    public NotificationScheduler createScheduler() {{\n        return new PushNotificationScheduler();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Scheduling notifications dynamically based on user preferences",
+        "edge_cases": [
+            "Overlapping notifications",
+            "Incorrect time format"
+        ],
+        "dependencies": [
+            "Scheduler libraries"
+        ],
+        "performance_notes": "Allows users to configure notifications with minimal delay",
+        "real_world_usage": "Used in reminder and alerting systems",
+        "testing_notes": "Verify scheduling accuracy with multiple time zones",
+        "comments": "Highly customizable for new notification channels",
+        "source": "Inspired by calendar and task management apps"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract DataParser createParser();\n}}\n\npublic class JSONParserFactory extends {name} {{\n    @Override\n    public DataParser createParser() {{\n        return new JSONParser();\n    }}\n}}\n\npublic class XMLParserFactory extends {name} {{\n    @Override\n    public DataParser createParser() {{\n        return new XMLParser();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Parsing data dynamically based on format",
+        "edge_cases": [
+            "Malformed data",
+            "Unsupported formats"
+        ],
+        "dependencies": [
+            "Jackson library for JSON, JAXB for XML"
+        ],
+        "performance_notes": "Reduces dependency on specific parsers",
+        "real_world_usage": "Used in data ingestion pipelines",
+        "testing_notes": "Validate parsing accuracy with large datasets",
+        "comments": "Facilitates future addition of new parsers",
+        "source": "Inspired by ETL pipelines"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract Chatbot createChatbot();\n}}\n\npublic class CustomerSupportBotFactory extends {name} {{\n    @Override\n    public Chatbot createChatbot() {{\n        return new CustomerSupportBot();\n    }}\n}}\n\npublic class FAQBotFactory extends {name} {{\n    @Override\n    public Chatbot createChatbot() {{\n        return new FAQBot();\n    }}\n}}",
+        "complexity": "Advanced",
+        "language": "Java",
+        "context": "Dynamic chatbot creation for different scenarios",
+        "edge_cases": [
+            "Ambiguous user input",
+            "Outdated knowledge base"
+        ],
+        "dependencies": [
+            "NLP libraries"
+        ],
+        "performance_notes": "Minimizes response time by leveraging specific bot logic",
+        "real_world_usage": "Used in customer service platforms",
+        "testing_notes": "Simulate user inputs to test bot accuracy",
+        "comments": "Enables modular chatbot logic",
+        "source": "Inspired by customer service automation"
+    },
+    {
+        "type": "FactoryMethod",
+        "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
+        "output_template": "public abstract class {name} {{\n    public abstract GameCharacter createCharacter();\n}}\n\npublic class WarriorFactory extends {name} {{\n    @Override\n    public GameCharacter createCharacter() {{\n        return new Warrior();\n    }}\n}}\n\npublic class MageFactory extends {name} {{\n    @Override\n    public GameCharacter createCharacter() {{\n        return new Mage();\n    }}\n}}",
+        "complexity": "Intermediate",
+        "language": "Java",
+        "context": "Creating game characters dynamically based on player choice",
+        "edge_cases": [
+            "Invalid character type",
+            "Skill mismatch"
+        ],
+        "dependencies": [
+            "None"
+        ],
+        "performance_notes": "Reduces coupling between game logic and character types",
+        "real_world_usage": "Used in MMORPG games",
+        "testing_notes": "Test with various character combinations",
+        "comments": "Allows easy addition of new character types",
+        "source": "Inspired by game development frameworks"
+    }
+]

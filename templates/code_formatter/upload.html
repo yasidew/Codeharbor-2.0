@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-center mb-4">Upload Code File</h1>
+<div class="card shadow">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" action="/code-formatter/upload/">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="fileInput" class="form-label">Choose Your File:</label>
+                <input type="file" name="file" id="fileInput" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Upload and Format</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

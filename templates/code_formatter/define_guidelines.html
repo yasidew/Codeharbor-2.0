@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Define Guidelines{% endblock %}
+{% block sidebar %}
+    <div class="sidebar" data-color="black">
+        <div class="sidebar-wrapper">
+            <div class="logo">
+                <a href="#" class="simple-text logo-mini">
+                    <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
+                </a>
+                <a href="#" class="simple-text logo-normal">Code Harbor</a>
+            </div>
+            <ul class="nav">
+                <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
+                    <p>Refactor Code</p></a></li>
+                <li><a href="{% url 'define_guidelines' %}"><i class="bi bi-pencil"></i>
+                    <p>Define Guidelines</p></a></li>
+                <li><a href="#"><i class="bi bi-bar-chart"></i>
+                    <p>Analysis</p></a></li>
+                <li><a href="#"><i class="bi bi-gear"></i>
+                    <p>Settings</p></a></li>
+                <li><a href="#"><i class="bi bi-box-arrow-right"></i>
+                    <p>Logout</p></a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h2 class="text-white text-center mb-4">Define Guidelines</h2>
+        <form method="POST" action="{% url 'define_guidelines' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Company Name -->
+            <div class="form-group">
+                <label class="text-white">Company Name:</label>
+                <input type="text" name="company_name" class="form-control mb-3" required>
+            </div>
+
+            <!-- Logo Upload -->
+            <div class="form-group">
+                <label class="text-white">Upload Company Logo:</label>
+                <input type="file" name="company_logo" id="logo-input" accept="image/png, image/jpeg"
+                       class="form-control mb-3">
+                <div class="preview-container">
+                    <img id="logo-preview"
+                         src="{% static 'images/gallery.png' %}"
+                         alt="Company Logo Preview"
+                         class="company-logo-preview">
+                </div>
+            </div>
+
+            <!-- Pattern Selection -->
+            <div class="form-group">
+                <label class="text-white">Pattern:</label>
+                <select id="pattern-selector" name="pattern" class="form-control mb-3 custom-dropdown">
+                    <option value="" selected disabled>-- Select a Pattern --</option>
+                    <option value="Factory">🏭 Factory Pattern</option>
+                    <option value="Strategy">🔀 Strategy Pattern</option>
+                    <option value="Observer">📡 Observer Pattern</option>
+                </select>
+            </div>
+
+            <!-- AI Suggested Guideline -->
+            <div class="form-group">
+                <label class="text-white">Guideline:</label>
+                <textarea id="guideline-text" name="rule" class="form-control mb-3 resizable-textarea"
+                          required></textarea>
+                <button type="button" id="regenerate-btn" class="btn btn-warning btn-sm mt-2" disabled>🔄 Regenerate
+                    Suggestion
+                </button>
+            </div>
+
+            <button type="submit" class="btn btn-info btn-block">Save Guideline</button>
+        </form>
+
+        <!-- Saved Guidelines Section -->
+        <h3 class="text-white text-center mt-5">Saved Guidelines</h3>
+        <div id="guidelines-container">
+            {% for guideline in guidelines %}
+                <div class="card bg-dark text-white p-3 mb-3" id="guideline-{{ guideline.id }}">
+                    <div class="d-flex align-items-center">
+                        {% if guideline.company_logo %}
+                            <img src="{{ guideline.company_logo.url }}" alt="Company Logo" class="company-logo">
+                        {% else %}
+                            <img src="{% static 'images/gallery.png' %}" alt="Default Logo" class="company-logo">
+                        {% endif %}
+                        <div class="guideline-content">
+                            <strong>{{ guideline.company_name }}</strong>
+                            <p>
+                                {% if guideline.pattern == "Factory" %}
+                                    🏭 <span class="pattern-tag">Factory Pattern</span>
+                                {% elif guideline.pattern == "Strategy" %}
+                                    🔀 <span class="pattern-tag">Strategy Pattern</span>
+                                {% else %}
+                                    📡 <span class="pattern-tag">Observer Pattern</span>
+                                {% endif %}
+                            </p>
+                            <div class="guideline-text">
+                                {% for line in guideline.rule.splitlines %}
+                                    {% if line|length > 0 %}
+                                        <p>{{ line }}</p>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <button class="btn btn-warning btn-sm edit-btn" data-id="{{ guideline.id }}">Edit</button>
+                            <button class="btn btn-danger btn-sm delete-btn" data-id="{{ guideline.id }}">Delete
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden Edit Form -->
+                    <div class="edit-form d-none" id="edit-form-{{ guideline.id }}">
+                        <input type="text" class="form-control mb-2" id="edit-company-{{ guideline.id }}"
+                               value="{{ guideline.company_name }}">
+                        <select class="form-control mb-2" id="edit-pattern-{{ guideline.id }}">
+                            <option value="Factory" {% if guideline.pattern == "Factory" %}selected{% endif %}>Factory
+                            </option>
+                            <option value="Strategy" {% if guideline.pattern == "Strategy" %}selected{% endif %}>
+                                Strategy
+                            </option>
+                            <option value="Observer" {% if guideline.pattern == "Observer" %}selected{% endif %}>
+                                Observer
+                            </option>
+                        </select>
+                        <textarea class="form-control mb-2"
+                                  id="edit-rule-{{ guideline.id }}">{{ guideline.rule }}</textarea>
+
+                        <!-- Upload New Logo -->
+                        <input type="file" id="edit-logo-{{ guideline.id }}" accept="image/png, image/jpeg"
+                               class="form-control mb-2">
+
+                        <button class="btn btn-success btn-sm save-btn" data-id="{{ guideline.id }}">Save</button>
+                        <button class="btn btn-secondary btn-sm cancel-btn" data-id="{{ guideline.id }}">Cancel</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Global Loading Spinner -->
+        <div id="loading-overlay">
+            <div class="loading-spinner"></div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Handle AI Suggestion
+            const patternSelector = document.getElementById("pattern-selector");
+            const guidelineText = document.getElementById("guideline-text");
+            const regenerateBtn = document.getElementById("regenerate-btn");
+
+            async function fetchAISuggestion(pattern) {
+                guidelineText.value = "Fetching AI suggestion... 🔄";
+                try {
+                    const response = await fetch("/code-formatter/generate-guideline/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({pattern})
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        guidelineText.value = data.suggestion || "AI could not generate a suggestion.";
+                        regenerateBtn.disabled = false;
+                    } else {
+                        guidelineText.value = "Error fetching AI suggestion.";
+                        regenerateBtn.disabled = true;
+                    }
+                } catch (error) {
+                    guidelineText.value = "An error occurred.";
+                    regenerateBtn.disabled = true;
+                }
+            }
+
+            patternSelector.addEventListener("change", function () {
+                fetchAISuggestion(this.value);
+            });
+
+            regenerateBtn.addEventListener("click", function () {
+                fetchAISuggestion(patternSelector.value);
+            });
+
+            const loadingOverlay = document.getElementById("loading-overlay");
+
+            function showLoading() {
+                loadingOverlay.style.display = "flex"; // Show loading spinner
+            }
+
+            function hideLoading() {
+                loadingOverlay.style.display = "none"; // Hide spinner
+            }
+
+            // Show loading on form submission (Save)
+            document.querySelector("form").addEventListener("submit", function () {
+                showLoading();
+            });
+
+            // Handle Edit Mode Toggle
+            document.querySelectorAll(".edit-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    document.getElementById(`guideline-${id}`).querySelector(".edit-form").classList.remove("d-none");
+                });
+            });
+
+            // Cancel Edit Mode
+            document.querySelectorAll(".cancel-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    document.getElementById(`guideline-${id}`).querySelector(".edit-form").classList.add("d-none");
+                });
+            });
+
+            // Save Edits
+            document.querySelectorAll(".save-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    showLoading();
+
+                    const id = this.getAttribute("data-id");
+                    const company = document.getElementById(`edit-company-${id}`).value;
+                    const pattern = document.getElementById(`edit-pattern-${id}`).value;
+                    const rule = document.getElementById(`edit-rule-${id}`).value;
+                    const logoInput = document.getElementById(`edit-logo-${id}`).files[0];
+
+                    const formData = new FormData();
+                    formData.append("company_name", company);
+                    formData.append("pattern", pattern);
+                    formData.append("rule", rule);
+                    if (logoInput) {
+                        formData.append("company_logo", logoInput);
+                    }
+
+                    fetch(`/code-formatter/edit-guideline/${id}/`, {
+                        method: "POST",
+                        headers: {"X-CSRFToken": "{{ csrf_token }}"},
+                        body: formData,
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            hideLoading();
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                {#alert("Error updating guideline.");#}
+                                showToast("❌ Error updating guideline.", "error");
+                            }
+                        })
+                        .catch(() => {
+                            hideLoading();
+                            {#alert("Something went wrong.");#}
+                            showToast("❌ Something went wrong.", "error");
+                        });
+                });
+            });
+
+            // Delete Guideline Instantly
+            document.querySelectorAll(".delete-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    if (confirm("Are you sure you want to delete this guideline?")) {
+                        showLoading();  // ✅ Show loading spinner
+
+                        fetch(`/code-formatter/delete-guideline/${id}/`, {
+                            method: "POST",
+                            headers: {"X-CSRFToken": "{{ csrf_token }}"}
+                        })
+                            .then(response => response.json())  // ✅ Parse JSON response
+                            .then(data => {
+                                hideLoading();  // ✅ Hide spinner after response
+                                if (data.success) {
+                                    document.getElementById(`guideline-${id}`).remove();  // ✅ Remove without refresh
+                                } else {
+                                    {#alert("Error deleting guideline.");#}
+                                showToast("❌ Error deleting guideline.", "error");
+
+                                }
+                            })
+                            .catch(() => {
+                                hideLoading();
+                                {#alert("Something went wrong.");  // ✅ Handle network issues#}
+                                showToast("❌ Something went wrong.", "error");
+
+
+                            });
+                    }
+                });
+            });
+
+
+            // Preview Uploaded Logo
+            document.getElementById("logo-input").addEventListener("change", function (event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        document.getElementById("logo-preview").src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+        });
+    </script>
+
+    <style>
+        .company-logo-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .resizable-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .custom-dropdown {
+            appearance: none;
+            background-color: #222;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #666;
+        }
+
+        .custom-dropdown option {
+            background-color: #222;
+            color: white;
+        }
+
+        .company-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .guideline-content {
+            flex-grow: 1;
+        }
+
+        .pattern-tag {
+            display: inline-block;
+            background-color: #444;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .guideline-text p {
+            white-space: pre-line;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .guideline-text ol {
+            padding-left: 20px;
+        }
+
+        .guideline-text li {
+            margin-bottom: 5px;
+        }
+
+        /* Full-screen overlay */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Beautiful animated spinner */
+        .loading-spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #ffffff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+{% endblock %}

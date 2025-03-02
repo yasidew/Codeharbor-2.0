@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Java Files</title>
+</head>
+<body>
+<h1>Upload Java Files</h1>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="files">Select Java Files:</label>
+    <input type="file" name="files" id="files" multiple><br><br>
+    <button type="submit">Analyze Files</button>
+</form>
+
+{% if recommendations %}
+    <h2>Analysis Recommendations</h2>
+    <ul>
+        {% for recommendation in recommendations %}
+            <li>{{ recommendation }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+</body>
+</html>

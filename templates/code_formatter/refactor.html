@@ -1,0 +1,574 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Code Refacotring{% endblock %}
+{% block sidebar %}
+    <div class="sidebar" data-color="black">
+        <div class="sidebar-wrapper">
+            <div class="logo">
+                <a href="#" class="simple-text logo-mini">
+                    <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
+                </a>
+                <a href="#" class="simple-text logo-normal">Code Harbor</a>
+            </div>
+            <ul class="nav">
+                <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
+                    <p>Refactor Code</p></a></li>
+                <li>
+                    <a href="#" class="upload-btn"><i class="bi bi-upload"></i>
+                        <p>Upload Code</p>
+                    </a>
+                    <input type="file" name="file" id="fileInput" class="d-none">
+                </li>
+                <li><a href="{% url 'define_guidelines' %}"><i class="bi bi-pencil"></i>
+                    <p>Define Guidelines</p></a></li>
+                <!-- ✅ Import Code from GitHub Trigger -->
+                <li>
+                    <a href="{% url 'github_import_modal' %}" onclick="loadModal(); return false;">
+                        <i class="bi bi-github"></i>
+                        <p>Import from GitHub</p>
+                    </a>
+                </li>
+                <li><a href="#"><i class="bi bi-bar-chart"></i>
+                    <p>Analysis</p></a></li>
+                <!-- ✅ Add Resources with a proper icon -->
+                <li>
+                    <a href="{% url 'add_resource' %}"><i class="bi bi-plus-square"></i>
+                        <p>Add Resources</p>
+                    </a>
+                </li>
+
+                <!-- ✅ View Resources with a proper icon -->
+                <li>
+                    <a href="{% url 'list_resources' %}"><i class="bi bi-book"></i>
+                        <p>View Resources</p>
+                    </a>
+                </li>
+                <li><a href="#"><i class="bi bi-gear"></i>
+                    <p>Settings</p></a></li>
+                <li><a href="#"><i class="bi bi-box-arrow-right"></i>
+                    <p>Logout</p></a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="content d-flex align-items-center justify-content-center min-vh-100">
+        <div class="container">
+            <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
+
+            <!-- Toggle to Enable/Disable Guidelines -->
+            <!-- Toggle to Enable/Disable Guidelines -->
+            <div class="text-center mb-4">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="guideline-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="text-white ms-2">Use Guidelines</span>
+            </div>
+
+            <!-- Monaco Code Editor for Original Code -->
+            <div class="card bg-dark p-4">
+                <h5 class="text-white">Original Code</h5>
+                <div id="monacoEditor" class="editor-container"></div>
+            </div>
+
+            <!-- Refactor Button -->
+            <div class="text-center mt-3">
+                <button id="refactor-btn" class="btn btn-info">Refactor Code</button>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loading-bar" class="mt-3 text-center" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Processing...</span>
+                </div>
+                <p class="text-white mt-2">Refactoring your code...</p>
+            </div>
+
+            <!-- Before-After Code Diff View -->
+            <div id="diff-section" class="mt-5" style="display: none;">
+                <h3 class="text-center text-white">Before & After Code Comparison</h3>
+                <div class="card bg-dark p-3">
+                    <div id="codeDiffViewer" class="editor-container"></div>
+                </div>
+            </div>
+
+            <!-- Refactored Code Output -->
+            <div id="refactored-section" class="mt-5" style="display: none;">
+                <h3 class="text-center text-white">Refactored Code</h3>
+                <div class="card bg-dark p-3">
+                    <div id="monacoRefactoredEditor" class="editor-container"></div>
+                </div>
+
+                <!-- Changes Summary -->
+                <div id="changes-section" class="mt-4" style="display: none;">
+                    <h4 class="text-white">Changes Made:</h4>
+                    <ul id="changes-list" class="text-white"></ul>
+                </div>
+
+                <!-- Design Pattern Used -->
+                <div id="design-pattern-text" class="text-center text-warning mt-3" style="display: none;"></div>
+
+                <!-- Suggested Resources -->
+                <div id="resources-section" class="mt-4" style="display: none;">
+                    <h4 class="text-white">Suggested Learning Resources</h4>
+                    <ul id="resources-list" class="text-white"></ul>
+                </div>
+
+                <div class="text-center mt-3">
+                    <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
+                </div>
+            </div>
+
+            <!-- Code Metrics -->
+            <div id="metrics-section" class="mt-5" style="display: none;">
+                <h3 class="text-center text-white">Code Metrics Visualization</h3>
+                <canvas id="metricsChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ GitHub Import Modal (Added at the Bottom of Content) -->
+    <!-- Container to Load Modal -->
+    <div id="modal-container"></div>
+
+    <!-- Include Monaco Editor & Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let editor, refactoredEditor, diffEditor;
+
+        require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs'}});
+
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('monacoEditor'), {
+                value: "// Paste or upload your code here...",
+                language: "javascript",
+                theme: "vs-dark",
+                automaticLayout: true,
+                fontSize: 14
+            });
+
+            refactoredEditor = monaco.editor.create(document.getElementById('monacoRefactoredEditor'), {
+                value: "",
+                language: "javascript",
+                theme: "vs-dark",
+                readOnly: true,
+                automaticLayout: true,
+                fontSize: 14
+            });
+
+            diffEditor = monaco.editor.createDiffEditor(document.getElementById('codeDiffViewer'), {
+                theme: "vs-dark",
+                readOnly: true
+            });
+        });
+
+        document.getElementById('refactor-btn').addEventListener('click', async () => {
+    const code = editor.getValue();
+    const useGuidelines = document.getElementById('guideline-toggle').checked;
+
+    const loadingBar = document.getElementById('loading-bar');
+    const refactoredSection = document.getElementById('refactored-section');
+    const changesSection = document.getElementById('changes-section');
+    const changesList = document.getElementById('changes-list');
+    const resourcesSection = document.getElementById('resources-section');
+    const resourcesList = document.getElementById('resources-list');
+    const designPatternText = document.getElementById('design-pattern-text');
+
+    loadingBar.style.display = 'block';
+    refactoredSection.style.display = 'none';
+    changesSection.style.display = 'none';
+    resourcesSection.style.display = 'none';
+    changesList.innerHTML = ''; // Clear previous changes
+    resourcesList.innerHTML = ''; // Clear previous resources
+
+    try {
+        const response = await fetch('/code-formatter/refactor-code/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({code, use_guidelines: useGuidelines}),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            refactoredEditor.setValue(data.refactored_code);
+            refactoredSection.style.display = 'block';
+
+            // Display "Changes Made" section
+            if (data.changes_made.length > 0) {
+                data.changes_made.forEach(change => {
+                    const li = document.createElement('li');
+                    li.textContent = change;
+                    changesList.appendChild(li);
+                });
+                changesSection.style.display = 'block';
+            }
+
+            // Display "Design Pattern Used" section
+            if (data.design_pattern) {
+                designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.design_pattern}`;
+                designPatternText.style.display = 'block';
+            } else {
+                designPatternText.style.display = 'none';
+            }
+
+            // Display Suggested Resources
+            if (data.resources.length > 0) {
+                data.resources.forEach(resource => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${resource.pattern_name}</strong> - <a href="${resource.link}" target="_blank" class="text-info">View Resource</a>`;
+                    resourcesList.appendChild(li);
+                });
+                resourcesSection.style.display = 'block';
+            }
+
+        } else {
+            showToast("❌ Error in refactoring code!", "error");
+        }
+    } catch (error) {
+        showToast("❌ An error occurred: " + error.message, "error");
+    } finally {
+        loadingBar.style.display = 'none';
+    }
+});
+
+
+        // Function to extract only the code block
+        function extractCode(responseText) {
+            const codeRegex = /```java([\s\S]*?)```/;
+            const match = responseText.match(codeRegex);
+            return match ? match[1].trim() : responseText;
+        }
+
+        // Handle File Upload
+        document.querySelector('.upload-btn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return; // No file selected
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                editor.setValue(e.target.result); // Set file content in Monaco Editor
+            };
+            reader.readAsText(file);
+        });
+
+        // Function to download the refactored code as a file
+        document.getElementById('download-btn').addEventListener('click', function () {
+            const refactoredCode = refactoredEditor.getValue(); // Get the text from the editor
+
+            if (!refactoredCode) {
+                {#alert("No refactored code available to download.");#}
+                showToast("⚠️ Warning: No refactored code available to download.", "warning");
+                return;
+            }
+
+            const blob = new Blob([refactoredCode], {type: 'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'refactored_code.java';  // Save as .java file
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        document.getElementById('fetch-github-btn').addEventListener('click', async () => {
+            const repoUrl = document.getElementById('repo-url').value.trim();
+            const filePath = document.getElementById('file-path').value.trim();
+
+            if (!repoUrl || !filePath) {
+                {#alert('Please enter both the GitHub repository URL and the file path.');#}
+                showToast("⚠️ Warning: Please enter both the GitHub repository URL and the file path.", "warning");
+
+
+                return;
+            }
+
+            // ✅ Improved regex to correctly extract owner and repo name
+            const repoMatch = repoUrl.match(/github\.com\/([^/]+)\/([^/.]+)/);
+            if (!repoMatch) {
+                {#alert('Invalid GitHub repository URL.');#}
+                showToast("❌Invalid GitHub repository URL.", "error");
+                return;
+            }
+
+            const owner = repoMatch[1];
+            let repo = repoMatch[2];
+
+            // ✅ Ensure .git is removed from repo name
+            repo = repo.replace(/\.git$/, "");
+
+            // ✅ Correct API URL format
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+            // Fetch GitHub Token
+            const githubToken = await fetchGithubToken();
+            if (!githubToken) {
+                {#alert("Error fetching GitHub token. Please check your backend.");#}
+                showToast("❌Error fetching GitHub token. Please check your backend.", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    headers: {'Authorization': `token ${githubToken}`}
+                });
+
+                if (!response.ok) {
+                    throw new Error(`GitHub API Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const fileContent = atob(data.content);  // Decode Base64 content
+
+                // Set the fetched code into Monaco Editor
+                editor.setValue(fileContent);
+                {#alert('Code successfully fetched from GitHub!');#}
+                showToast("✅ Code successfully fetched from GitHub!", "success");
+
+                // Close the modal after success
+                closeModal();
+
+            } catch (error) {
+                {#alert(`Error fetching file: ${error.message}`);#}
+                showToast(`Error fetching file: ${error.message}`, "error");
+
+            }
+        });
+
+
+        function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
+            const ctx = document.getElementById('metricsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Original LOC', 'Refactored LOC', 'Original Readability', 'Refactored Readability'],
+                    datasets: [{
+                        label: 'Metrics Comparison',
+                        data: [originalLOC, refactoredLOC, originalReadability, refactoredReadability],
+                        backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0'],
+                    }]
+                }
+            });
+        }
+
+        function loadModal() {
+            fetch("{% url 'github_import_modal' %}")  // Django URL for modal
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById("modal-container").innerHTML = html;
+                    setTimeout(() => {
+                        showModal();
+                        attachFetchEvent();  // Attach event listener after modal loads
+                    }, 100);
+                })
+                .catch(error => console.error("Error loading modal:", error));
+        }
+
+        function attachFetchEvent() {
+            const fetchButton = document.getElementById("fetch-github-btn");
+            if (fetchButton) {
+                fetchButton.addEventListener("click", fetchGithubFile);
+            } else {
+                console.error("Fetch GitHub button not found!");
+            }
+        }
+
+        function fetchGithubFile() {
+            const repoUrl = document.getElementById("repo-url").value.trim();
+            const filePath = document.getElementById("file-path").value.trim();
+
+            if (!repoUrl || !filePath) {
+                {#alert("Please enter both the GitHub repository URL and the file path.");#}
+                showToast("⚠️ Warning: Please enter both the GitHub repository URL and the file path.", "warning");
+                return;
+            }
+
+            // Extract user/repo from the URL
+            const repoMatch = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+            if (!repoMatch) {
+                {#alert("Invalid GitHub repository URL.");#}
+                showToast("❌Invalid GitHub repository URL.", "error");
+                return;
+            }
+
+            const owner = repoMatch[1];
+            const repo = repoMatch[2];
+
+            fetch("{% url 'get_github_token' %}")
+                .then(response => response.json())
+                .then(data => {
+                    const githubToken = data.token;
+                    if (!githubToken) {
+                        {#alert("Error fetching GitHub token. Please check your backend.");#}
+                        showToast("❌Error fetching GitHub token. Please check your backend.", "error");
+                        return;
+                    }
+
+                    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+                    fetch(apiUrl, {
+                        headers: {Authorization: `token ${githubToken}`},
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`GitHub API Error: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const fileContent = atob(data.content); // Decode Base64 content
+                            editor.setValue(fileContent);
+                            {#alert("Code successfully fetched from GitHub!");#}
+                            showToast("Code successfully fetched from GitHub!", "success");
+                            closeModal();
+                        })
+                        .catch(error => alert(`Error fetching file: ${error.message}`));
+                })
+                .catch(error => console.error("Error fetching GitHub token:", error));
+        }
+
+
+        function showModal() {
+            const modal = document.getElementById("githubImportModal");
+            if (modal) {
+                modal.style.display = "flex";
+            } else {
+                console.error("Modal element not found!");
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById("githubImportModal");
+            if (modal) {
+                modal.style.display = "none";
+            } else {
+                console.error("Modal element not found!");
+            }
+        }
+    </script>
+    <style>
+        /* Monaco Editor Full Size */
+        .editor-container {
+            width: 100%;
+            height: calc(100vh - 200px); /* Adjust dynamically */
+            border-radius: 5px;
+            overflow: visible !important; /* Allow suggestions to expand freely */
+        }
+
+        /* Fix Sidebar Button Style */
+        .upload-btn {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            padding: 10px 15px;
+            color: white;
+        }
+
+        /* Ensure Upload Code button matches others without the hover effect */
+        .upload-btn:hover {
+            background: none !important;
+            border-radius: 0 !important;
+        }
+
+        /* Prevent horizontal scrolling */
+        html, body {
+            overflow-x: hidden;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 25px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 25px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 17px;
+            width: 17px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(25px);
+        }
+
+        /* Changes Made Section */
+        #changes-section {
+            background-color: #1c1c1e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        #changes-section h4 {
+            color: #ffce56;
+            margin-bottom: 10px;
+        }
+
+        #changes-list {
+            list-style-type: none;
+            padding-left: 15px;
+        }
+
+        #changes-list li {
+            color: #ffffff;
+            font-size: 14px;
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        #changes-list li::before {
+            content: "•";
+            color: #36a2eb;
+            font-size: 18px;
+            position: absolute;
+            left: 0;
+            top: 1px;
+        }
+
+
+    </style>
+{% endblock %}

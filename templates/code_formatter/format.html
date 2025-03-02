@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-center mb-4">Paste Your Code</h1>
+<div class="card shadow">
+    <div class="card-body">
+        <form method="post" action="/code-formatter/format/">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="codeInput" class="form-label">Paste Code Below:</label>
+                <textarea name="code" id="codeInput" class="form-control" rows="10" placeholder="Enter your code here..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Format Code</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

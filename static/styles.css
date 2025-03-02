@@ -1,0 +1,107 @@
+/* Smooth transition for animations */
+body {
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+header, footer {
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Logo Styling */
+.logo-styling {
+    height: 50px;
+    margin-right: 15px;
+    border: 2px solid white;
+    border-radius: 50%;
+    padding: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo-styling:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Light Mode */
+.light-mode {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.light-mode header {
+    background-color: #007bff;
+}
+
+.light-mode footer {
+    background-color: #343a40;
+}
+
+/* Dark Mode */
+.dark-mode {
+    background-color: #212529;
+    color: #f8f9fa;
+}
+
+.dark-mode header {
+    background-color: #343a40;
+}
+
+.dark-mode footer {
+    background-color: #000;
+}
+
+.dark-mode .btn-outline-dark {
+    border-color: #f8f9fa;
+    color: #f8f9fa;
+}
+
+/* Center the Header */
+header h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    flex-grow: 1;
+    text-align: center;
+}
+
+header p {
+    font-size: 1rem;
+}
+
+/* Toggle Wrapper Styles */
+.toggle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.toggle {
+    width: 60px;
+    height: 30px;
+    background-color: #f0f0f0;
+    border-radius: 50px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.toggle .circle {
+    width: 25px;
+    height: 25px;
+    background-color: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 2.5px;
+    left: 2.5px;
+    transition: left 0.3s ease;
+}
+
+.toggle.dark {
+    background-color: #333;
+}
+
+.toggle.dark .circle {
+    left: 32.5px;
+    background-color: #1e90ff;
+}

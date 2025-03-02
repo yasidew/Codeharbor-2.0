@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Defect Detection</title>
+</head>
+<body>
+<h1>Detect Defects in Code</h1>
+<form method="POST" action="">
+    {% csrf_token %}
+    <textarea name="code_snippet" rows="10" cols="80" placeholder="Paste your code snippet here..."></textarea><br>
+    <button type="submit">Detect Defects</button>
+</form>
+</body>
+</html>
