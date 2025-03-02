@@ -1,0 +1,123 @@
+<div id="githubImportModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>Import Code from GitHub</h3>
+
+        <label for="repo-url">GitHub Repository URL:</label>
+        <input type="text" id="repo-url" class="form-control mb-2" placeholder="e.g., https://github.com/user/repo">
+
+        <label for="file-path">File Path:</label>
+        <input type="text" id="file-path" class="form-control mb-2" placeholder="e.g., src/main.java">
+
+        <button id="fetch-github-btn" class="btn btn-primary">Fetch Code</button>
+    </div>
+</div>
+
+<style>
+    /* Custom Modal Styling */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .custom-modal-content {
+        background-color: #222;
+        padding: 20px;
+        border-radius: 8px;
+        width: 400px;
+        text-align: center;
+        color: white;
+    }
+
+    .close-btn {
+        color: white;
+        float: right;
+        font-size: 28px;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    async function fetchGithubToken() {
+        try {
+            const response = await fetch("/get-github-token/");
+            const data = await response.json();
+            return data.token; // Get the token from Django API
+        } catch (error) {
+            console.error("Error fetching GitHub token:", error);
+            return null;
+        }
+    }
+
+    document.getElementById('fetch-github-btn').addEventListener('click', async () => {
+        const repoUrl = document.getElementById('repo-url').value.trim();
+        let filePath = document.getElementById('file-path').value.trim();
+
+        if (!repoUrl || !filePath) {
+            alert('Please enter both the GitHub repository URL and the file path.');
+            return;
+        }
+
+        // Extract user and repo from URL
+        const repoMatch = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+        if (!repoMatch) {
+            alert('Invalid GitHub repository URL.');
+            return;
+        }
+
+        const owner = repoMatch[1];
+        const repo = repoMatch[2].replace(".git", "");  // Remove `.git` extension if present
+
+        // ✅ Fix file path issue: Remove `blob/master/`
+        filePath = filePath.replace("blob/master/", "");
+
+        // ✅ Fetch GitHub token
+        const githubToken = await fetchGithubToken();
+        if (!githubToken) {
+            alert("Error fetching GitHub token. Please check your backend.");
+            return;
+        }
+
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+        try {
+            const response = await fetch(apiUrl, {
+                headers: {'Authorization': `token ${githubToken}`}
+            });
+
+            if (!response.ok) {
+                throw new Error(`GitHub API Error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            const fileContent = atob(data.content);  // Decode Base64 content
+
+            // ✅ Set the fetched code into Monaco Editor
+            editor.setValue(fileContent);
+            {#alert('Code successfully fetched from GitHub!');#}
+            showToast("✅ Code successfully fetched from GitHub!", "success");
+
+            // ✅ Close the modal
+            closeModal();
+        } catch (error) {
+            {#alert(`Error fetching file: ${error.message}`);#}
+            showToast(`❌ Error fetching file: ${error.message}`, "error");
+        }
+    });
+
+    function closeModal() {
+        document.getElementById("githubImportModal").style.display = "none";
+    }
+
+    function showModal() {
+        document.getElementById("githubImportModal").style.display = "flex";
+    }
+</script>

@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>{% block title %}Code Harbor Home{% endblock %}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -17,11 +18,16 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
 <body class="dark-mode">
-    <div class="wrapper">
-        <!-- Sidebar (Dynamic based on Page) -->
-        {% block sidebar %}
+<div class="wrapper">
+    <!-- Sidebar (Dynamic based on Page) -->
+    {% block sidebar %}
         <div class="sidebar" data-color="black">
             <div class="sidebar-wrapper">
                 <div class="logo">
@@ -31,61 +37,94 @@
                     <a href="#" class="simple-text logo-normal">Code Harbor</a>
                 </div>
                 <ul class="nav">
-                    <li><a href="#"><i class="bi bi-gear"></i><p>Settings</p></a></li>
-                    <li><a href="#"><i class="bi bi-box-arrow-right"></i><p>Logout</p></a></li>
+                    <li><a href="#"><i class="bi bi-gear"></i>
+                        <p>Settings</p></a></li>
+                    <li><a href="#"><i class="bi bi-box-arrow-right"></i>
+                        <p>Logout</p></a></li>
                 </ul>
             </div>
         </div>
-        {% endblock %}
+    {% endblock %}
 
-        <!-- Main Panel -->
-        <div class="main-panel">
-            <!-- Navbar -->
-            <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute">
-                <div class="container-fluid">
-                    <div class="navbar-wrapper">
-                        <a class="navbar-brand" href="#">
-                            <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="40">
-                        </a>
-                    </div>
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation">
-                        <span class="navbar-toggler-bar"></span>
-                        <span class="navbar-toggler-bar"></span>
-                        <span class="navbar-toggler-bar"></span>
-                    </button>
-                    <div class="collapse navbar-collapse justify-content-end" id="navigation">
-                        <ul class="navbar-nav">
-                            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-person-circle"></i> Profile</a></li>
-                        </ul>
-                    </div>
+    <!-- Main Panel -->
+    <div class="main-panel">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute">
+            <div class="container-fluid">
+                <div class="navbar-wrapper">
+                    <a class="navbar-brand" href="#">
+                        <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="40">
+                    </a>
                 </div>
-            </nav>
-
-            <!-- Main Content -->
-            <div class="content">
-                <div class="container-fluid">
-                    {% block content %}
-                    {% endblock %}
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation">
+                    <span class="navbar-toggler-bar"></span>
+                    <span class="navbar-toggler-bar"></span>
+                    <span class="navbar-toggler-bar"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="navigation">
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-person-circle"></i>
+                            Profile</a></li>
+                    </ul>
                 </div>
             </div>
+        </nav>
 
-            <!-- Footer -->
-            <footer class="footer">
-                <div class="container-fluid">
-                    <nav class="float-left">
-                        <ul>
-                            <li><a href="#">Code Harbor</a></li>
-                        </ul>
-                    </nav>
-                    <div class="copyright text-right">
-                        &copy; <script>document.write(new Date().getFullYear())</script>, Code Harbor.
-                    </div>
-                </div>
-            </footer>
+        <!-- Main Content -->
+        <div class="content">
+            <div class="container-fluid">
+                {% block content %}
+                {% endblock %}
+            </div>
         </div>
-    </div>
 
-    <!-- Core JS Files -->
-    <script src="{% static 'js/black-dashboard.min.js' %}"></script>
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container-fluid">
+                <nav class="float-left">
+                    <ul>
+                        <li><a href="#">Code Harbor</a></li>
+                    </ul>
+                </nav>
+                <div class="copyright text-right">
+                    &copy;
+                    <script>document.write(new Date().getFullYear())</script>
+                    , Code Harbor.
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- Core JS Files -->
+<script src="{% static 'js/black-dashboard.min.js' %}"></script>
+<script>
+    function showToast(message, type = "success") {
+        let backgroundColor;
+
+        switch (type) {
+            case "success":
+                backgroundColor = "linear-gradient(to right, #4CAF50, #2E7D32)"; // Green ✅
+                break;
+            case "error":
+                backgroundColor = "linear-gradient(to right, #FF5733, #C70039)"; // Red ❌
+                break;
+            case "warning":
+                backgroundColor = "linear-gradient(to right, #FFA500, #FF8C00)"; // Orange ⚠️
+                break;
+            default:
+                backgroundColor = "linear-gradient(to right, #333, #555)"; // Default Grey
+        }
+
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",  // "top" or "bottom"
+            position: "right", // "left", "center", or "right"
+            backgroundColor: backgroundColor,
+            close: true,
+        }).showToast();
+    }
+</script>
 </body>
 </html>
