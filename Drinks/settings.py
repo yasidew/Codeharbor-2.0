@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'user',
     'accessibility_checker',
-
+    'games',
 ]
 
 CORS_ALLOW_HEADERS = [

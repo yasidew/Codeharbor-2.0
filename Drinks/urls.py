@@ -16,6 +16,7 @@ urlpatterns = [
     path('challenges/', include('challenges.urls')),
     path('', include("user.urls")),
     path('checker/', include('accessibility_checker.urls')),
+    path('games/', include('games.urls')),
 
 
     path('drinks/<int:id>', views.drink_detail),
