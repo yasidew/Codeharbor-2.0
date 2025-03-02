@@ -21,6 +21,13 @@
                 </li>
                 <li><a href="{% url 'define_guidelines' %}"><i class="bi bi-pencil"></i>
                     <p>Define Guidelines</p></a></li>
+                <!-- ✅ Import Code from GitHub Trigger -->
+                <li>
+                    <a href="{% url 'github_import_modal' %}" onclick="loadModal(); return false;">
+                        <i class="bi bi-github"></i>
+                        <p>Import from GitHub</p>
+                    </a>
+                </li>
                 <li><a href="#"><i class="bi bi-bar-chart"></i>
                     <p>Analysis</p></a></li>
                 <li><a href="#"><i class="bi bi-gear"></i>
@@ -99,6 +106,10 @@
             </div>
         </div>
     </div>
+
+    <!-- ✅ GitHub Import Modal (Added at the Bottom of Content) -->
+    <!-- Container to Load Modal -->
+    <div id="modal-container"></div>
 
     <!-- Include Monaco Editor & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
@@ -226,6 +237,63 @@
             document.body.removeChild(a);
         });
 
+        document.getElementById('fetch-github-btn').addEventListener('click', async () => {
+            const repoUrl = document.getElementById('repo-url').value.trim();
+            const filePath = document.getElementById('file-path').value.trim();
+
+            if (!repoUrl || !filePath) {
+                alert('Please enter both the GitHub repository URL and the file path.');
+                return;
+            }
+
+            // ✅ Improved regex to correctly extract owner and repo name
+            const repoMatch = repoUrl.match(/github\.com\/([^/]+)\/([^/.]+)/);
+            if (!repoMatch) {
+                alert('Invalid GitHub repository URL.');
+                return;
+            }
+
+            const owner = repoMatch[1];
+            let repo = repoMatch[2];
+
+            // ✅ Ensure .git is removed from repo name
+            repo = repo.replace(/\.git$/, "");
+
+            // ✅ Correct API URL format
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+            // Fetch GitHub Token
+            const githubToken = await fetchGithubToken();
+            if (!githubToken) {
+                alert("Error fetching GitHub token. Please check your backend.");
+                return;
+            }
+
+            try {
+                const response = await fetch(apiUrl, {
+                    headers: {'Authorization': `token ${githubToken}`}
+                });
+
+                if (!response.ok) {
+                    throw new Error(`GitHub API Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const fileContent = atob(data.content);  // Decode Base64 content
+
+                // Set the fetched code into Monaco Editor
+                editor.setValue(fileContent);
+                alert('Code successfully fetched from GitHub!');
+
+                // Close the modal after success
+                closeModal();
+
+            } catch (error) {
+                alert(`Error fetching file: ${error.message}`);
+            }
+        });
+
+
         function generateChart(originalLOC, refactoredLOC, originalReadability, refactoredReadability) {
             const ctx = document.getElementById('metricsChart').getContext('2d');
             new Chart(ctx, {
@@ -239,6 +307,97 @@
                     }]
                 }
             });
+        }
+
+        function loadModal() {
+            fetch("{% url 'github_import_modal' %}")  // Django URL for modal
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById("modal-container").innerHTML = html;
+                    setTimeout(() => {
+                        showModal();
+                        attachFetchEvent();  // Attach event listener after modal loads
+                    }, 100);
+                })
+                .catch(error => console.error("Error loading modal:", error));
+        }
+
+        function attachFetchEvent() {
+            const fetchButton = document.getElementById("fetch-github-btn");
+            if (fetchButton) {
+                fetchButton.addEventListener("click", fetchGithubFile);
+            } else {
+                console.error("Fetch GitHub button not found!");
+            }
+        }
+
+        function fetchGithubFile() {
+            const repoUrl = document.getElementById("repo-url").value.trim();
+            const filePath = document.getElementById("file-path").value.trim();
+
+            if (!repoUrl || !filePath) {
+                alert("Please enter both the GitHub repository URL and the file path.");
+                return;
+            }
+
+            // Extract user/repo from the URL
+            const repoMatch = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
+            if (!repoMatch) {
+                alert("Invalid GitHub repository URL.");
+                return;
+            }
+
+            const owner = repoMatch[1];
+            const repo = repoMatch[2];
+
+            fetch("{% url 'get_github_token' %}")
+                .then(response => response.json())
+                .then(data => {
+                    const githubToken = data.token;
+                    if (!githubToken) {
+                        alert("Error fetching GitHub token. Please check your backend.");
+                        return;
+                    }
+
+                    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+                    fetch(apiUrl, {
+                        headers: {Authorization: `token ${githubToken}`},
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`GitHub API Error: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const fileContent = atob(data.content); // Decode Base64 content
+                            editor.setValue(fileContent);
+                            alert("Code successfully fetched from GitHub!");
+                            closeModal();
+                        })
+                        .catch(error => alert(`Error fetching file: ${error.message}`));
+                })
+                .catch(error => console.error("Error fetching GitHub token:", error));
+        }
+
+
+        function showModal() {
+            const modal = document.getElementById("githubImportModal");
+            if (modal) {
+                modal.style.display = "flex";
+            } else {
+                console.error("Modal element not found!");
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById("githubImportModal");
+            if (modal) {
+                modal.style.display = "none";
+            } else {
+                console.error("Modal element not found!");
+            }
         }
     </script>
     <style>
