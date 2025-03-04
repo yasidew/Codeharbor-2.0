@@ -99,11 +99,12 @@ DATABASES = {
         'PORT': '5432',
         'OPTIONS': {
             'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
-        }
+        },
+        'TEST': {
+            'MIRROR': 'default'  # Use the same database but with a different schema
+        },
     }
 }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
