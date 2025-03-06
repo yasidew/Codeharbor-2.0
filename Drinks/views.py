@@ -1,7 +1,6 @@
 import json
 import os
-import torch
-import logging
+from datetime import datetime
 
 import pandas as pd
 from django.conf import settings
@@ -11,14 +10,13 @@ from matplotlib import pyplot as plt
 from scipy.stats import pearsonr, spearmanr
 import seaborn as sns
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
-
-import analysis
 from Drinks.models import Drink
 from analysis.code_analyzer import CodeAnalyzer
 from analysis.java_code_analyser import JavaCodeAnalyzer
 from analysis.javascript_code_analyser import JavaScriptCodeAnalyzer
 from analysis.php_code_analyser import PHPCodeAnalyzer
 from analysis.python_code_analyser import PythonCodeAnalyzer
+from code_analysis.models import CodeSnippet, Project
 from .serializers import DrinkSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -26,64 +24,82 @@ from rest_framework import status
 from .complexity_calculator import calculate_code_complexity_multiple_files, ai_recommend_refactoring, \
     calculate_code_complexity_by_method
 from .complexity_calculator import calculate_code_complexity_line_by_line
-from .complexity_calculator_csharp import calculate_code_complexity_line_by_line_csharp
-from django.shortcuts import render
+from .metrics import analyze_code_complexity, load_guidelines, count_lines_of_code, count_functions_and_length, \
+    count_duplicate_code_percentage, calculate_comment_density, calculate_readability_score, calculate_complexity_score, \
+    categorize_value
+
 from prettytable import PrettyTable
 import statsmodels.api as sm
 from transformers import T5ForConditionalGeneration, AutoTokenizer
 from rest_framework.decorators import api_view
+import concurrent.futures
+from functools import lru_cache
+from dotenv import load_dotenv
+import openai
+import base64
+from django.http import JsonResponse
 from django.shortcuts import render
+import json
+import requests
+from openai import OpenAI
+import os
 import torch
+import ast
+from transformers import AutoTokenizer, T5ForConditionalGeneration
+from dotenv import load_dotenv
+from django.shortcuts import render
+from rest_framework.decorators import api_view
 
 
-# @api_view(['GET', 'POST'])
-# def python_code_analysis(request):
-#     if request.method == 'POST':
-#         recommendations = {}
-#
-#
-#         # Handle pasted code
-#         code = request.POST.get('code', '').strip()
-#         if code:
-#             try:
-#                 analyzer = PythonCodeAnalyzer(code)
-#                 recommendations = analyzer.generate_recommendations()
-#             except Exception as e:
-#                 return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
-#
-#         # Handle uploaded files
-#         files = request.FILES.getlist('files')
-#         if files:
-#             file_results = {}
-#             for file in files:
-#                 try:
-#                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
-#                     analyzer = PythonCodeAnalyzer(content)
-#                     file_results[file.name] = analyzer.generate_recommendations()
-#                 except Exception as e:
-#                     file_results[file.name] = f"Error analyzing file: {str(e)}"
-#             recommendations['files'] = file_results
-#
-#         # Group recommendations by line
-#         grouped_recommendations = {}
-#         if isinstance(recommendations, list):  # For pasted code
-#             for rec in recommendations:
-#                 line = rec.get('line', 'unknown')
-#                 grouped_recommendations.setdefault(line, []).append({
-#                     'rule': rec.get('rule'),
-#                     'message': rec.get('message'),
-#                 })
-#         elif isinstance(recommendations, dict):  # For files
-#             grouped_recommendations = recommendations
-#
-#         # return JsonResponse({'recommendations': grouped_recommendations})
-#         return render(request, 'python_code_analysis.html', {'recommendations': grouped_recommendations})
-#     return render(request, 'python_code_analysis.html')
+from .utils import calculate_loc, calculate_readability, extract_code_from_github
+
+load_dotenv()
+# OpenAI API Client
+# client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Initialize model and tokenizer once
+MODEL_PATH = "./models/custom_seq2seq_model"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Global instances for reuse
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH).to(device)
+model.eval()
+
+# Optimize PyTorch performance
+torch.backends.cudnn.benchmark = True
+torch.backends.cuda.matmul.allow_tf32 = True
+
+
+
+
+
+def home(request):
+    return render(request, 'home.html')
+
+
+def refactor_view(request):
+    # Your view logic here
+    return render(request, 'refactor.html')
+
+
+def upload_code(request):
+    return render(request, 'upload_code.html')
+
+
+def refactor_code(request):
+    return render(request, 'refactor_code.html')
+
 
 @api_view(['GET', 'POST'])
 def python_code_analysis(request):
-    recommendations = {}
-    code = ""  # Initialize code to maintain state
+    recommendations = {"files": {}, "pasted_code": {}}  # Initialize as a dictionary
+    summary = {
+        "total_vulnerabilities": 0,
+        "categories": {},
+        "files_analyzed": 0,
+    }
+    code = ""
 
     if request.method == 'POST':
         # Handle pasted code
@@ -91,196 +107,154 @@ def python_code_analysis(request):
         if code:
             try:
                 analyzer = PythonCodeAnalyzer(code)
-                recommendations = analyzer.generate_recommendations()
+                pasted_results = analyzer.generate_recommendations()
+                grouped = group_recommendations_by_line(pasted_results)
+                recommendations["pasted_code"] = {
+                    "code": code,
+                    "results": grouped,
+                }
+                # Update summary
+                for recs in grouped.values():
+                    for rec in recs:
+                        summary["total_vulnerabilities"] += 1
+                        summary["categories"].setdefault(rec["rule"], 0)
+                        summary["categories"][rec["rule"]] += 1
             except Exception as e:
-                recommendations = [{'error': f"Error analyzing pasted code: {str(e)}"}]
+                recommendations["pasted_code"] = {
+                    "error": f"Error analyzing pasted code: {str(e)}"
+                }
 
         # Handle uploaded files
         files = request.FILES.getlist('files')
+        summary["files_analyzed"] = len(files)
         if files:
-            file_results = {}
             for file in files:
                 try:
                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
                     analyzer = PythonCodeAnalyzer(content)
-                    file_results[file.name] = analyzer.generate_recommendations()
+                    file_results = analyzer.generate_recommendations()
+                    grouped = group_recommendations_by_line(file_results)
+                    recommendations["files"][file.name] = {
+                        "content": content,
+                        "results": grouped,
+                    }
+                    # Update summary
+                    for recs in grouped.values():
+                        for rec in recs:
+                            summary["total_vulnerabilities"] += 1
+                            summary["categories"].setdefault(rec["rule"], 0)
+                            summary["categories"][rec["rule"]] += 1
                 except Exception as e:
-                    file_results[file.name] = [{'error': f"Error analyzing file: {str(e)}"}]
-            recommendations['files'] = file_results
-
-        # Group recommendations by line or filename
-        grouped_recommendations = {}
-        if isinstance(recommendations, list):  # For pasted code
-            for rec in recommendations:
-                line = rec.get('line', 'unknown')
-                grouped_recommendations.setdefault(line, []).append({
-                    'rule': rec.get('rule'),
-                    'message': rec.get('message'),
-                })
-        elif isinstance(recommendations, dict):  # For files
-            grouped_recommendations = recommendations
+                    recommendations["files"][file.name] = {
+                        "error": f"Error analyzing file: {str(e)}"
+                    }
 
         return render(
             request,
             'python_code_analysis.html',
-            {'recommendations': grouped_recommendations, 'code': code}
+            {'recommendations': recommendations, 'summary': summary, 'code': code}
         )
 
     return render(request, 'python_code_analysis.html', {'code': code})
 
 
-
-
-# @api_view(['GET', 'POST'])
-# def java_code_analysis(request):
-#     if request.method == 'POST':
-#         recommendations = {}
-#
-#         # Handle pasted code
-#         code = request.POST.get('code', '').strip()
-#         if code:
-#             try:
-#                 analyzer = JavaCodeAnalyzer(code)
-#                 recommendations = analyzer.generate_recommendations()
-#             except Exception as e:
-#                 return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
-#
-#         # Handle uploaded files
-#         files = request.FILES.getlist('files')
-#         if files:
-#             file_results = {}
-#             for file in files:
-#                 try:
-#                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
-#                     analyzer = JavaCodeAnalyzer(content)
-#                     file_results[file.name] = analyzer.generate_recommendations()
-#                 except Exception as e:
-#                     file_results[file.name] = f"Error analyzing file: {str(e)}"
-#             recommendations['files'] = file_results
-#
-#         # Group recommendations by line
-#         grouped_recommendations = {}
-#         if isinstance(recommendations, list):  # For pasted code
-#             for rec in recommendations:
-#                 line = rec.get('line', 'unknown')
-#                 grouped_recommendations.setdefault(line, []).append({
-#                     'rule': rec.get('rule'),
-#                     'message': rec.get('message'),
-#                 })
-#         elif isinstance(recommendations, dict):  # For files
-#             grouped_recommendations = recommendations
-#
-#         # return JsonResponse({'recommendations': grouped_recommendations})
-#         return render(request, 'java_code_analysis.html', {'recommendations': grouped_recommendations})
-#     return render(request, 'java_code_analysis.html')
+def group_recommendations_by_line(recommendations):
+    """
+    Group recommendations by line number.
+    """
+    grouped = {}
+    for rec in recommendations:
+        line = rec.get("line", "unknown")
+        grouped.setdefault(line, []).append({
+            "rule": rec.get("rule"),
+            "message": rec.get("message"),
+        })
+    return grouped
 
 
 @api_view(['GET', 'POST'])
 def java_code_analysis(request):
-    recommendations = {}
+    recommendations = {"files": {}, "pasted_code": {}}  # Initialize as a dictionary
+    summary = {
+        "total_vulnerabilities": 0,
+        "categories": {},
+        "files_analyzed": 0,
+    }
     code = ""
 
     if request.method == 'POST':
         # Handle pasted code
-        code = request.POST.get('code', '').strip()  # Keep the submitted code
+        code = request.POST.get('code', '').strip()
         if code:
             try:
                 analyzer = JavaCodeAnalyzer(code)
-                recommendations = analyzer.generate_recommendations()
+                pasted_results = analyzer.generate_recommendations()
+                # Organize recommendations by line
+                recommendations["pasted_code"] = {}
+                for rec in pasted_results:
+                    line = rec.get('line', 'unknown')
+                    recommendations["pasted_code"].setdefault(line, []).append({
+                        'rule': rec.get('rule'),
+                        'message': rec.get('message'),
+                    })
+                # Update summary
+                for rec in pasted_results:
+                    summary["total_vulnerabilities"] += 1
+                    rule = rec.get('rule')
+                    if rule:
+                        summary["categories"].setdefault(rule, 0)
+                        summary["categories"][rule] += 1
             except Exception as e:
-                recommendations = [{'error': f"Error analyzing pasted code: {str(e)}"}]
+                recommendations["pasted_code"] = {
+                    "error": f"Error analyzing pasted code: {str(e)}"
+                }
 
         # Handle uploaded files
         files = request.FILES.getlist('files')
+        summary["files_analyzed"] = len(files)
         if files:
-            file_results = {}
             for file in files:
                 try:
                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
                     analyzer = JavaCodeAnalyzer(content)
-                    file_results[file.name] = analyzer.generate_recommendations()
+                    file_results = analyzer.generate_recommendations()
+                    recommendations["files"][file.name] = {}
+                    for rec in file_results:
+                        line = rec.get('line', 'unknown')
+                        recommendations["files"][file.name].setdefault(line, []).append({
+                            'rule': rec.get('rule'),
+                            'message': rec.get('message'),
+                        })
+                    # Update summary
+                    for rec in file_results:
+                        summary["total_vulnerabilities"] += 1
+                        rule = rec.get('rule')
+                        if rule:
+                            summary["categories"].setdefault(rule, 0)
+                            summary["categories"][rule] += 1
                 except Exception as e:
-                    file_results[file.name] = [{'error': f"Error analyzing file: {str(e)}"}]
-            recommendations['files'] = file_results
-
-        # Group recommendations
-        grouped_recommendations = {}
-        if isinstance(recommendations, list):  # For pasted code
-            for rec in recommendations:
-                line = rec.get('line', 'unknown')
-                grouped_recommendations.setdefault(line, []).append({
-                    'rule': rec.get('rule'),
-                    'message': rec.get('message'),
-                })
-        elif isinstance(recommendations, dict):  # For files
-            for filename, recs in recommendations['files'].items():
-                grouped_recommendations[filename] = []
-                for rec in recs:
-                    grouped_recommendations[filename].append({
-                        'rule': rec.get('rule'),
-                        'message': rec.get('message'),
-                        'line': rec.get('line', 'unknown'),
-                    })
+                    recommendations["files"][file.name] = {
+                        "error": f"Error analyzing file {file.name}: {str(e)}"
+                    }
 
         return render(
             request,
             'java_code_analysis.html',
-            {'recommendations': grouped_recommendations, 'code': code}
+            {'recommendations': recommendations, 'summary': summary, 'code': code}
         )
 
     return render(request, 'java_code_analysis.html', {'code': code})
 
 
-
-
-
-# @api_view(['GET', 'POST'])
-# def js_code_analyser(request):
-#     if request.method == 'POST':
-#         recommendations = {}
-#
-#         # Handle pasted code
-#         code = request.POST.get('code', '').strip()
-#         if code:
-#             try:
-#                 analyzer = JavaScriptCodeAnalyzer(code)
-#                 recommendations = analyzer.generate_recommendations()
-#             except Exception as e:
-#                 return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
-#
-#         # Handle uploaded files
-#         files = request.FILES.getlist('files')
-#         if files:
-#             file_results = {}
-#             for file in files:
-#                 try:
-#                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
-#                     analyzer = JavaScriptCodeAnalyzer(content)
-#                     file_results[file.name] = analyzer.generate_recommendations()
-#                 except Exception as e:
-#                     file_results[file.name] = f"Error analyzing file: {str(e)}"
-#             recommendations['files'] = file_results
-#
-#         # Group recommendations by line
-#         grouped_recommendations = {}
-#         if isinstance(recommendations, list):  # For pasted code
-#             for rec in recommendations:
-#                 line = rec.get('line', 'unknown')
-#                 grouped_recommendations.setdefault(line, []).append({
-#                     'rule': rec.get('rule'),
-#                     'message': rec.get('message'),
-#                 })
-#         elif isinstance(recommendations, dict):  # For files
-#             grouped_recommendations = recommendations
-#
-#         return JsonResponse({'recommendations': grouped_recommendations})
-#
-#     return render(request, 'js_code_analyser.html')
-
 @api_view(['GET', 'POST'])
 def js_code_analyser(request):
-    recommendations = {}
-    code = ""  # Initialize code to maintain state
+    recommendations = {"files": {}, "pasted_code": {}}  # Initialize recommendations
+    summary = {
+        "total_vulnerabilities": 0,
+        "categories": {},
+        "files_analyzed": 0,
+    }
+    code = ""
 
     if request.method == 'POST':
         # Handle pasted code
@@ -288,85 +262,111 @@ def js_code_analyser(request):
         if code:
             try:
                 analyzer = JavaScriptCodeAnalyzer(code)
-                recommendations = analyzer.generate_recommendations()
+                pasted_results = analyzer.generate_recommendations()
+                recommendations["pasted_code"] = {}
+                for rec in pasted_results:
+                    line = rec.get('line', 'unknown')
+                    recommendations["pasted_code"].setdefault(line, []).append({
+                        'rule': rec.get('rule'),
+                        'message': rec.get('message'),
+                    })
+                # Update summary
+                for rec in pasted_results:
+                    summary["total_vulnerabilities"] += 1
+                    rule = rec.get('rule')
+                    if rule:
+                        summary["categories"].setdefault(rule, 0)
+                        summary["categories"][rule] += 1
             except Exception as e:
-                recommendations = [{'error': f"Error analyzing pasted code: {str(e)}"}]
+                recommendations["pasted_code"] = {
+                    "error": f"Error analyzing pasted code: {str(e)}"
+                }
 
         # Handle uploaded files
         files = request.FILES.getlist('files')
+        summary["files_analyzed"] = len(files)
         if files:
-            file_results = {}
             for file in files:
                 try:
                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
                     analyzer = JavaScriptCodeAnalyzer(content)
-                    file_results[file.name] = analyzer.generate_recommendations()
+                    file_results = analyzer.generate_recommendations()
+                    recommendations["files"][file.name] = {}
+                    for rec in file_results:
+                        line = rec.get('line', 'unknown')
+                        recommendations["files"][file.name].setdefault(line, []).append({
+                            'rule': rec.get('rule'),
+                            'message': rec.get('message'),
+                        })
+                    # Update summary
+                    for rec in file_results:
+                        summary["total_vulnerabilities"] += 1
+                        rule = rec.get('rule')
+                        if rule:
+                            summary["categories"].setdefault(rule, 0)
+                            summary["categories"][rule] += 1
                 except Exception as e:
-                    file_results[file.name] = [{'error': f"Error analyzing file: {str(e)}"}]
-            recommendations['files'] = file_results
-
-        # Group recommendations by line or filename
-        grouped_recommendations = {}
-        if isinstance(recommendations, list):  # For pasted code
-            for rec in recommendations:
-                line = rec.get('line', 'unknown')
-                grouped_recommendations.setdefault(line, []).append({
-                    'rule': rec.get('rule'),
-                    'message': rec.get('message'),
-                })
-        elif isinstance(recommendations, dict):  # For files
-            grouped_recommendations = recommendations
+                    recommendations["files"][file.name] = {
+                        "error": f"Error analyzing file {file.name}: {str(e)}"
+                    }
 
         return render(
             request,
             'js_code_analyser.html',
-            {'recommendations': grouped_recommendations, 'code': code}
+            {'recommendations': recommendations, 'summary': summary, 'code': code}
         )
 
     return render(request, 'js_code_analyser.html', {'code': code})
 
+
 @api_view(['GET', 'POST'])
 def php_code_analyser(request):
-    if request.method == 'POST':
-        recommendations = {}
+    recommendations = {"pasted_code": {}, "files": {}}
+    code = ""
 
+    if request.method == 'POST':
         # Handle pasted code
         code = request.POST.get('code', '').strip()
         if code:
             try:
                 analyzer = PHPCodeAnalyzer(code)
-                recommendations = analyzer.generate_recommendations()
+                pasted_results = analyzer.generate_recommendations()
+                for rec in pasted_results:
+                    line = rec.get('line', 'unknown')
+                    recommendations["pasted_code"].setdefault(line, []).append({
+                        'rule': rec.get('rule'),
+                        'message': rec.get('message'),
+                    })
             except Exception as e:
-                return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
+                recommendations["pasted_code"]["error"] = f"Error analyzing pasted code: {str(e)}"
 
         # Handle uploaded files
         files = request.FILES.getlist('files')
         if files:
-            file_results = {}
             for file in files:
                 try:
                     content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
                     analyzer = PHPCodeAnalyzer(content)
-                    file_results[file.name] = analyzer.generate_recommendations()
+                    file_results = analyzer.generate_recommendations()
+                    recommendations["files"][file.name] = {}
+                    for rec in file_results:
+                        line = rec.get('line', 'unknown')
+                        recommendations["files"][file.name].setdefault(line, []).append({
+                            'rule': rec.get('rule'),
+                            'message': rec.get('message'),
+                        })
                 except Exception as e:
-                    file_results[file.name] = f"Error analyzing file: {str(e)}"
-            recommendations['files'] = file_results
+                    recommendations["files"][file.name] = {
+                        "error": f"Error analyzing file {file.name}: {str(e)}"
+                    }
 
-        # Group recommendations by line
-        grouped_recommendations = {}
-        if isinstance(recommendations, list):  # For pasted code
-            for rec in recommendations:
-                line = rec.get('line', 'unknown')
-                grouped_recommendations.setdefault(line, []).append({
-                    'rule': rec.get('rule'),
-                    'message': rec.get('message'),
-                })
-        elif isinstance(recommendations, dict):  # For files
-            grouped_recommendations = recommendations
+        return render(
+            request,
+            'php_code_analyser.html',
+            {'recommendations': recommendations, 'code': code}
+        )
 
-        return JsonResponse({'recommendations': grouped_recommendations})
-
-    return render(request, 'php_code_analyser.html')
+    return render(request, 'php_code_analyser.html', {'code': code})
 
 
 def normalize_and_validate_indentation(code_snippet):
@@ -451,6 +451,7 @@ def split_code_snippets(code_snippet):
             # Extract source code for each node
             if hasattr(ast, "get_source_segment"):
                 snippet = ast.get_source_segment(normalized_code, node)
+                print(f"Snippet: {snippet}")
             else:
                 # Fallback: Use line numbers if available
                 start_line = getattr(node, "lineno", None)
@@ -471,103 +472,531 @@ def split_code_snippets(code_snippet):
         return []  # Return an empty list if parsing fails
 
 
+
+@lru_cache(maxsize=1000)
+def cached_prediction(snippet):
+    """Generate a suggestion with caching for repeated snippets."""
+    inputs = tokenizer(snippet, truncation=True, padding="max_length", max_length=512, return_tensors="pt")
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    with torch.no_grad():
+        output = model.generate(inputs["input_ids"], max_length=256, num_beams=5, early_stopping=True)
+    return tokenizer.decode(output[0], skip_special_tokens=True)
+
+
+def process_snippets_multithreaded(snippets):
+    """Parallel processing of code snippets."""
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        return list(executor.map(cached_prediction, snippets))
+
+
+
+
+# Ensure API Key is loaded
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Ensure API Key is loaded
+GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+try:
+    response = client.models.list()
+    print("✅ API Key is working. Available models:", response)
+except Exception as e:
+    print("❌ Invalid API Key or Quota Issue:", str(e))
+
+
+
+
+def fetch_github_files(repo_url):
+    """
+    Fetches code files from a GitHub repository (supports both public & private).
+    """
+    try:
+        # Extract repo details and branch
+        repo_parts = repo_url.replace("https://github.com/", "").split("/")
+        repo_owner, repo_name = repo_parts[0], repo_parts[1]
+        branch = repo_parts[3] if len(repo_parts) > 3 and repo_parts[2] == "tree" else "main"
+
+        # Fetch file list from the branch
+        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/git/trees/{branch}?recursive=1"
+        headers = {"Authorization": f"token {GITHUB_ACCESS_TOKEN}"}
+
+        response = requests.get(api_url, headers=headers)
+        if response.status_code != 200:
+            return None, f"Failed to fetch repository: {response.json().get('message', 'Unknown error')}"
+
+        files = response.json().get("tree", [])
+        code_files = []
+        allowed_extensions = {".py", ".js", ".java", ".cpp", ".cs", ".php"}
+
+        for file in files:
+            if file["type"] == "blob" and any(file["path"].endswith(ext) for ext in allowed_extensions):
+                file_api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file['path']}?ref={branch}"
+                file_response = requests.get(file_api_url, headers=headers)
+
+                if file_response.status_code == 200:
+                    file_content = file_response.json().get("content", "")
+                    decoded_content = base64.b64decode(file_content).decode("utf-8")  # Decode base64 content
+
+                    code_files.append({"name": file["path"], "code": decoded_content})
+
+        return code_files, None
+
+    except Exception as e:
+        return None, f"Error fetching GitHub repository: {str(e)}"
+
+
+
+def ai_code_analysis(snippet):
+    """
+    Uses OpenAI's GPT-4o to analyze a given code snippet and provide structured suggestions.
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",  # Use "gpt-4o" for better results/ gpt-3.5-turbo
+            messages=[
+                {"role": "system",
+                 "content": "You are an expert AI code reviewer. Follow this structure:\n"
+                            "Issue Identified: Describe the issue concisely.\n"
+                            "Why It's a Problem: Explain the consequences very shortly.\n"
+                            "Recommended Fix: Provide a solution."},
+                {"role": "user",
+                 "content": f"Analyze the following Python code and provide structured feedback:\n{snippet}"}
+            ],
+            max_tokens=300,
+            temperature=0.2  # Control randomness
+        )
+
+        # Extract AI response
+        ai_response = response.choices[0].message.content
+
+        # Format the response for HTML
+        formatted_response = ai_response.replace("Issue Identified:", "<b>Issue Identified:</b>") \
+            .replace("Why It's a Problem:", "<b>Why It's a Problem:</b>") \
+            .replace("Recommended Fix:", "<b>Recommended Fix:</b>")
+
+        return formatted_response  # ✅ Now formatted for HTML rendering
+    except Exception as e:
+        return f"Error generating AI analysis: {str(e)}"
+
+
+
+def analyze_code_complexity(code):
+    """Analyze code complexity using various metrics."""
+    print("🔍 Entering analyze_code_complexity function...")  # ✅ Debug: Check if function is called
+    guidelines = load_guidelines()
+
+    loc, eloc = count_lines_of_code(code)
+    print(f"📊 Lines of Code: {loc}, Effective LOC: {eloc}")  # ✅ Debug: Log LOC values
+
+    num_functions, avg_function_length = count_functions_and_length(code)
+    print(f"📊 Functions: {num_functions}, Avg Length: {avg_function_length}")  # ✅ Debug
+
+    duplicate_percentage = count_duplicate_code_percentage(code)
+    comment_density = calculate_comment_density(code)
+    readability_score = calculate_readability_score(code)
+    complexity_score = calculate_complexity_score(loc, num_functions, duplicate_percentage)
+
+    result = {
+        "lines_of_code": loc,
+        "effective_lines_of_code": eloc,
+        "num_functions": num_functions,
+        "avg_function_length": avg_function_length,
+        "duplicate_code_percentage": duplicate_percentage,
+        "comment_density": comment_density,
+        "readability_score": readability_score,
+        "complexity_score": complexity_score,
+        "rating": {
+            "lines_of_code": categorize_value(loc, guidelines["lines_of_code"]),
+            "comment_density": categorize_value(comment_density, guidelines["code_density"]),
+            "function_length": categorize_value(avg_function_length, guidelines["function_length"]),
+            "duplicate_code": categorize_value(duplicate_percentage, guidelines["duplicate_code"]),
+            "num_functions": categorize_value(num_functions, guidelines["num_functions"]),
+            "complexity_score": categorize_value(complexity_score, guidelines["complexity_score"]),
+        }
+    }
+
+    print(f"✅ Complexity Analysis Output: {result}")  # ✅ Debug: Print output
+    return result
+
+
+
 @api_view(['GET', 'POST'])
 def analyze_code_view(request):
     """
-    Analyze the given code snippet(s) for vulnerabilities using the trained model.
+    Handles code analysis: Takes input, processes it, stores results in PostgreSQL, and retrieves past analysis if available.
     """
     suggestions = []
+    summary = {
+        "total_snippets": 0,
+        "total_suggestions": 0,
+        "total_lines": 0,
+        "categories": {},
+        "severity": {"Critical": 0, "Medium": 0, "Low": 0},
+        "complexity_metrics": {},
+    }
     code_snippet = ""
 
     if request.method == 'POST':
-        # Get the code snippet(s) from the form
+        # ✅ Handle GitHub repository submission
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            github_repo_url = data.get("github_url", "").strip()
+
+            if github_repo_url:
+                files, error = fetch_github_files(github_repo_url)
+                if error:
+                    return JsonResponse({"error": error})
+
+                if files:
+                    return JsonResponse({"files": files})  # ✅ Return fetched GitHub files
+
+        # ✅ Handle normal code submission
         code_snippet = request.POST.get('code', '').strip()
-        print("=== Received Code ===")
-        print(code_snippet)
+        project_name = request.POST.get('project_name', '').strip()
+
+        # ✅ Auto-generate project name if none is provided
+        if not project_name:
+            project_name = f"Project_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+        # ✅ Check if project already exists, else create it
+        project, _ = Project.objects.get_or_create(name=project_name)
 
         if not code_snippet:
-            message = "No code provided for analysis."
-            print(f"ERROR: {message}")
-            suggestions.append({"code": "", "suggestion": message})
-        else:
-            try:
-                # Normalize and split code into individual snippets
+            return render(request, 'analyze_code.html', {
+                "code": "", "suggestions": [], "summary": summary,
+                "error": "No code provided for analysis."
+            })
+
+        try:
+            print(f"📥 Received Code Snippet: {code_snippet[:100]}...")  # ✅ DEBUG: Verify input
+            snippets = split_code_snippets(code_snippet)
+            summary["total_snippets"] = len(snippets)
+            summary["total_lines"] = code_snippet.count('\n') + 1
+
+            for line_num, snippet in enumerate(snippets, start=1):
+                # ✅ **Check if this snippet has already been analyzed**
+                # existing_snippet = CodeSnippet.objects.filter(snippet=snippet, project=project).first()
+                existing_snippet = CodeSnippet.objects.filter(snippet=snippet).first()
+
+
+                if existing_snippet:
+                    print(f"✅ Retrieving previously analyzed result for snippet ")
+                    suggestions.append({
+                        "code": existing_snippet.snippet,
+                        "suggestion": existing_snippet.model_suggestion,
+                        "category": categorize_suggestion(existing_snippet.model_suggestion),
+                        "severity": determine_severity(existing_snippet.model_suggestion),
+                        "line": line_num
+                    })
+                    # print(f"🚀 No previous analysis found. Running AI analysis ")
+                    continue
+
                 try:
-                    print("\n=== Normalizing and Splitting Code ===")
-                    snippets = split_code_snippets(code_snippet)
-                    print(f"Extracted {len(snippets)} snippet(s):")
-                    for i, snippet in enumerate(snippets, 1):
-                        print(f"Snippet {i}:\n{snippet}\n")
-                except Exception as parse_error:
-                    error_message = f"Error during code parsing: {str(parse_error)}. Check for syntax or indentation issues."
-                    print(f"ERROR: {error_message}")
-                    suggestions.append({"code": "", "suggestion": error_message})
-                    snippets = []
+                    # ✅ **Perform AI-based T5 Model Analysis**
+                    inputs = tokenizer(
+                        snippet, truncation=True, padding="max_length", max_length=512, return_tensors="pt"
+                    )
+                    inputs = {key: value.to(device) for key, value in inputs.items()}
+                    model.eval()
 
-                if not snippets:
-                    message = "No valid code snippets were extracted. Ensure the code is properly formatted."
-                    print(f"WARNING: {message}")
-                    suggestions.append({"code": "", "suggestion": message})
-                else:
-                    # Load model and tokenizer
-                    print("\n=== Loading Model and Tokenizer ===")
-                    model_path = "./models/custom_seq2seq_model"  # Adjust path if needed
-                    tokenizer = AutoTokenizer.from_pretrained(model_path)
-                    model = T5ForConditionalGeneration.from_pretrained(model_path)
-                    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                    model.to(device)
-                    print("Model and tokenizer loaded successfully.")
+                    with torch.no_grad():
+                        outputs = model.generate(
+                            inputs["input_ids"], max_length=256, num_beams=5, early_stopping=True
+                        )
+                        t5_suggestion = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-                    # Process each snippet
-                    for snippet in snippets:
-                        try:
-                            print(f"\n=== Processing Snippet ===\n{snippet}")
-                            # Tokenize the individual snippet
-                            inputs = tokenizer(
-                                snippet,
-                                truncation=True,
-                                padding="max_length",
-                                max_length=512,
-                                return_tensors="pt"
-                            )
-                            inputs = {key: value.to(device) for key, value in inputs.items()}
-                            print(f"Tokenized Inputs: {inputs}")
+                    # ✅ **Generate AI-based GPT analysis**
+                    gpt_suggestion = ai_code_analysis(snippet)
 
-                            # Generate suggestion for the snippet
-                            model.eval()
-                            with torch.no_grad():
-                                outputs = model.generate(
-                                    inputs["input_ids"],
-                                    max_length=256,
-                                    num_beams=5,
-                                    early_stopping=True
-                                )
-                                print(f"Raw Model Output: {outputs}")
+                    # ✅ **Combine AI-generated suggestions**
+                    final_suggestion = f"Suggestion:\n{t5_suggestion}\n\nDetailed Analysis:\n{gpt_suggestion}"
 
-                                # Decode the suggestion
-                                suggestion = tokenizer.decode(outputs[0], skip_special_tokens=True)
-                                print(f"Suggestion: {suggestion}")
+                    # ✅ **Categorize and determine severity**
+                    category = categorize_suggestion(final_suggestion)
+                    severity = determine_severity(final_suggestion)
 
-                            # Append the result as a dictionary
-                            suggestions.append({"code": snippet, "suggestion": suggestion})
-                        except Exception as snippet_error:
-                            error_message = f"Error processing snippet: {str(snippet_error)}"
-                            print(f"ERROR: {error_message}")
-                            suggestions.append({"code": snippet, "suggestion": error_message})
-            except Exception as e:
-                error_message = f"Error analyzing the code: {str(e)}"
-                print(f"ERROR: {error_message}")
-                suggestions.append({"code": "", "suggestion": error_message})
+                    # ✅ **Update summary**
+                    summary["total_suggestions"] += 1
+                    summary["categories"].setdefault(category, 0)
+                    summary["categories"][category] += 1
+                    summary["severity"][severity] += 1
 
-    print("\n=== Final Suggestions ===")
-    for i, suggestion in enumerate(suggestions, 1):
-        print(f"Suggestion {i}: {suggestion}")
+                    # ✅ **Store the snippet analysis in PostgreSQL**
+                    CodeSnippet.objects.create(
+                        project=project,
+                        snippet=snippet,
+                        ai_suggestion=gpt_suggestion,
+                        model_suggestion=t5_suggestion,
+                    )
+
+                    # ✅ **Store the suggestion in results**
+                    suggestions.append({
+                        "code": snippet,
+                        "category": category,
+                        "suggestion": final_suggestion,
+                        "severity": severity,
+                        "line": line_num
+                    })
+
+                except Exception as snippet_error:
+                    suggestions.append({
+                        "code": snippet,
+                        "suggestion": f"Error: {str(snippet_error)}",
+                        "severity": "Low",
+                        "line": line_num
+                    })
+
+            # ✅ **Perform Complexity Analysis**
+            print("🔍 Performing Complexity Analysis...")  # ✅ DEBUG LOG
+            summary["complexity_metrics"] = analyze_code_complexity(code_snippet)
+            print(f"✅ Complexity Results: {summary['complexity_metrics']}")  # ✅ DEBUG OUTPUT
+
+        except Exception as e:
+            suggestions.append({
+                "code": "",
+                "suggestion": f"Error analyzing code: {str(e)}",
+                "severity": "Critical",
+                "line": 0
+            })
 
     return render(
         request,
         'analyze_code.html',
-        {'code': code_snippet, 'suggestions': suggestions}
+        {'code': code_snippet, 'suggestions': suggestions, 'summary': summary}
     )
+
+
+
+
+
+
+
+
+
+def categorize_suggestion(suggestion):
+    """Categorize a suggestion based on its content using meaningful categories."""
+    suggestion_lower = suggestion.lower()
+
+    # Security-related issues
+    if any(term in suggestion_lower for term in [
+        "sql injection", "command injection", "hardcoded secret",
+        "authentication", "authorization", "xss", "csrf", "security",
+        "data exposure", "encryption", "password hashing", "secret key"
+    ]):
+        return "Security Vulnerabilities"
+
+    # Performance-related improvements
+    elif any(term in suggestion_lower for term in [
+        "optimize", "performance", "efficiency", "redundant code",
+        "slow database query", "memory leak", "loop optimization",
+        "batch processing", "unnecessary computation"
+    ]):
+        return "Performance Enhancements"
+
+    # Code Quality & Maintainability
+    elif any(term in suggestion_lower for term in [
+        "refactor", "code quality", "readability", "maintainability",
+        "magic numbers", "naming conventions", "global variables",
+        "long function", "long class", "duplicate code", "function too complex",
+        "dead code", "improve clarity"
+    ]):
+        return "Code Readability & Maintainability"
+
+    # Resource & Memory Management Issues
+    elif any(term in suggestion_lower for term in [
+        "resource leak", "memory management", "insecure file handling",
+        "open file without closing", "socket not closed",
+        "unclosed connection", "improper resource release"
+    ]):
+        return "Resource & Memory Management"
+
+    # Exception Handling Issues
+    elif any(term in suggestion_lower for term in [
+        "empty exception handling", "broad exception handling",
+        "unhandled exception", "try except pass", "error handling",
+        "catch generic exception", "silent failure"
+    ]):
+        return "Exception Handling Issues"
+
+    # Deprecated & Compatibility Issues
+    elif any(term in suggestion_lower for term in [
+        "deprecated function", "deprecated library", "legacy code",
+        "backward compatibility", "unsupported method",
+        "modern alternatives"
+    ]):
+        return "Deprecated & Compatibility Issues"
+
+    # Object-Oriented Programming (OOP) Best Practices
+    elif any(term in suggestion_lower for term in [
+        "inheritance misuse", "misuse of polymorphism", "encapsulation violation",
+        "tight coupling", "improper abstraction", "large class",
+        "single responsibility principle violation"
+    ]):
+        return "Object-Oriented Design Issues"
+
+    # API & Cloud Security Issues
+    elif any(term in suggestion_lower for term in [
+        "exposed api key", "weak api authentication",
+        "rate limiting missing", "caching missing", "api security",
+        "insecure endpoint", "unvalidated input"
+    ]):
+        return "API & Cloud Security Issues"
+
+    # Business Logic Vulnerabilities
+    elif any(term in suggestion_lower for term in [
+        "flawed business logic", "logic flaw", "invalid transaction",
+        "unauthorized access", "insufficient validation", "race condition"
+    ]):
+        return "Business Logic Vulnerabilities"
+
+    # Compliance & Standard Violations
+    elif any(term in suggestion_lower for term in [
+        "violates coding standards", "non-compliant", "does not follow",
+        "missing documentation", "inconsistent style", "linting issues",
+        "coding standard violation"
+    ]):
+        return "Compliance & Standard Violations"
+
+    # API Design Issues
+    elif any(term in suggestion_lower for term in [
+        "bad api design", "poor rest implementation", "missing status codes",
+        "improper json response", "error response missing", "misuse of http verbs"
+    ]):
+        return "API Design & Best Practices"
+
+    # Multithreading & Concurrency Issues
+    elif any(term in suggestion_lower for term in [
+        "race condition", "deadlock", "thread safety", "improper synchronization",
+        "mutex missing", "concurrent modification"
+    ]):
+        return "Multithreading & Concurrency Issues"
+
+    return "General Issues"
+
+
+def determine_severity(suggestion):
+    """Determine the severity level of a suggestion."""
+    suggestion_lower = suggestion.lower()
+
+    # Critical Severity
+    if any(term in suggestion_lower for term in [
+        "sql injection", "command injection", "hardcoded secret", "secret key",
+        "weak cryptography", "directory traversal", "resource leak"
+    ]):
+        return "Critical"
+
+    # Medium Severity
+    if any(term in suggestion_lower for term in [
+        "should fix", "deep nesting", "global variables",
+        "deprecated libraries", "variable shadowing", "magic numbers",
+        "unreachable code", "empty exception handling"
+    ]):
+        return "Medium"
+
+    # Low Severity
+    if any(term in suggestion_lower for term in [
+        "consistent naming", "consistent return types",
+        "unused imports", "excessive comments", "consistent whitespace"
+    ]):
+        return "Low"
+
+    # Default to Low if no matches
+    return "Low"
+
+
+# def split_code_snippets(code_snippet):
+#     """
+#     Split the input code snippet into individual Python functions or top-level blocks.
+#     """
+#     try:
+#         # Parse the input code into an Abstract Syntax Tree (AST)
+#         tree = ast.parse(code_snippet)
+#         snippets = []
+#
+#         for node in tree.body:  # Iterate over top-level statements
+#             # Get the source code for each node
+#             snippet = ast.unparse(node) if hasattr(ast, 'unparse') else ast.dump(node)
+#             snippets.append(snippet)
+#
+#         return snippets
+#     except Exception as e:
+#         print(f"Error parsing code snippets: {e}")
+#         return []  # Return an empty list if parsing fails
+#
+#
+#
+# @api_view(['GET', 'POST'])
+# def analyze_code_view(request):
+#     """
+#     Analyze the given code snippet(s) for vulnerabilities using the trained model.
+#     """
+#     suggestions = []
+#     code_snippet = ""
+#
+#     if request.method == 'POST':
+#         # Get the code snippet(s) from the form
+#         code_snippet = request.POST.get('code', '').strip()
+#         if not code_snippet:
+#             suggestions.append({"code": "", "suggestion": "Please provide valid code snippet(s)."})
+#         else:
+#             try:
+#                 # Debug: Log the received code snippet(s)
+#                 print(f"Received code snippet(s):\n{code_snippet}")
+#
+#                 # Split code into individual snippets
+#                 snippets = split_code_snippets(code_snippet)
+#                 if not snippets:
+#                     suggestions.append({"code": "", "suggestion": "Error: Unable to parse code snippets."})
+#                 else:
+#                     # Debug: Log parsed snippets
+#                     print("Parsed code snippets:", snippets)
+#
+#                     # Load the trained model and tokenizer
+#                     model_path = "./models/custom_seq2seq_model"  # Adjust path if needed
+#                     tokenizer = AutoTokenizer.from_pretrained(model_path)
+#                     model = T5ForConditionalGeneration.from_pretrained(model_path)
+#                     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#                     model.to(device)
+#
+#                     # Process each snippet separately
+#                     for snippet in snippets:
+#                         # Tokenize the individual snippet
+#                         inputs = tokenizer(
+#                             snippet,
+#                             truncation=True,
+#                             padding="max_length",
+#                             max_length=512,
+#                             return_tensors="pt"
+#                         )
+#                         inputs = {key: value.to(device) for key, value in inputs.items()}
+#
+#                         # Generate suggestion for the snippet
+#                         model.eval()
+#                         with torch.no_grad():
+#                             outputs = model.generate(
+#                                 inputs["input_ids"],
+#                                 max_length=256,  # Increased max_length for longer outputs
+#                                 num_beams=5,     # Using beam search for better suggestions
+#                                 early_stopping=True
+#                             )
+#
+#                             # Decode the suggestion
+#                             suggestion = tokenizer.decode(outputs[0], skip_special_tokens=True)
+#
+#                         # Append the result as a dictionary
+#                         suggestions.append({"code": snippet, "suggestion": suggestion})
+#
+#             except Exception as e:
+#                 # Handle errors during model inference
+#                 suggestions.append({"code": "", "suggestion": f"Error analyzing the code: {str(e)}"})
+#
+#     return render(
+#         request,
+#         'analyze_code.html',
+#         {'code': code_snippet, 'suggestions': suggestions}
+#     )
 
 
 def detect_defects_view(request):
@@ -596,7 +1025,6 @@ def detect_defects_view(request):
     return render(request, "detect_defects.html")
 
 
-
 # @api_view(['GET', 'POST'])
 # def java_code_analysis(request):
 #     if request.method == 'POST':
@@ -613,7 +1041,6 @@ def detect_defects_view(request):
 #             return JsonResponse({'error': str(e)}, status=500)
 #
 #     return render(request, 'java_code_analysis.html')
-
 
 
 # @api_view(['GET', 'POST'])
@@ -671,7 +1098,8 @@ def drink_list(request, format=None):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-@api_view(['GET', 'PUT' ,'DELETE'])
+
+@api_view(['GET', 'PUT', 'DELETE'])
 def drink_detail(request, id, format=None):
     Drink.objects.get(pk=id)
 
@@ -713,15 +1141,16 @@ def calculate_complexity_line_by_line(request):
             return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Call your function to calculate complexity
-        result= calculate_code_complexity_line_by_line(code)
+        result = calculate_code_complexity_line_by_line(code)
         complexity = result['line_complexities']
         cbo = result['cbo']
 
         # Render the result in the template
-        return render(request, 'complexityA_table.html', {'complexities': complexity, 'cbo':cbo})
+        return render(request, 'complexityA_table.html', {'complexities': complexity, 'cbo': cbo})
 
     # If GET request, just show the form
     return render(request, 'complexityA_form.html')
+
 
 def get_thresholds():
     thresholds_file = os.path.join(settings.BASE_DIR, 'media', 'thresholds.json')
@@ -733,7 +1162,7 @@ def get_thresholds():
     return {'threshold_low': 10, 'threshold_medium': 20}
 
 
-@api_view(['GET','POST'])
+@api_view(['GET', 'POST'])
 def calculate_complexity_multiple_java_files(request):
     if request.method == 'POST':
         # Expecting multiple Java files in the request
@@ -784,7 +1213,7 @@ def calculate_complexity_multiple_java_files(request):
 
             # Categorize each method based on total complexity
             categorized_methods = []
-            for method_name,method_data in method_complexities.items():
+            for method_name, method_data in method_complexities.items():
                 if isinstance(method_data, dict):
                     total_complexity = method_data.get('total_complexity', 0)
 
@@ -803,7 +1232,6 @@ def calculate_complexity_multiple_java_files(request):
                     categorized_methods.append(categorized_method)
                 else:
                     print(f"Unexpected format in method_data: {method_data}")
-
 
             complexities.append({
                 'filename': filename,
@@ -842,6 +1270,7 @@ def calculate_complexity_line_by_line_csharp(request):
 
     # If GET request, just show the form
     return render(request, 'complexityB_form.html')
+
 
 @api_view(['GET', 'POST'])
 def calculate_complexity_multiple_csharp_files(request):
@@ -894,7 +1323,6 @@ def calculate_complexity_multiple_csharp_files(request):
                         line_data.get('try_catch_weight', 0), line_data.get('thread_weight', 0), total_complexity
                     ])
 
-
             complexities.append({
                 'filename': filename,
                 'complexity_data': complexity_data,
@@ -906,7 +1334,6 @@ def calculate_complexity_multiple_csharp_files(request):
         return render(request, 'complexityC_table.html', {'complexities': complexities})
 
     return render(request, 'complexityC_form.html')
-
 
 
 # @api_view(['GET', 'POST'])
