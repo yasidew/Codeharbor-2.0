@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'code_analysis'
 ]
 
 MIDDLEWARE = [
@@ -89,19 +90,37 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 #     }
 # }
 
+
+
 DATABASES = {
-    'default': {
+    'default': {  # Primary database (SQLite)
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'postgres_main': {  # Main PostgreSQL database
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',  # Keep this as 'postgres' (Main DB)
+        'NAME': 'postgres',  # Default PostgreSQL database name
         'USER': 'postgres',
-        'PASSWORD': 'root',
+        'PASSWORD': 'root',  # Update based on actual credentials
         'HOST': 'localhost',
         'PORT': '5432',
         'OPTIONS': {
             'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
         }
+    },
+    'code_analysis': {  # Main PostgreSQL DB for Code Analysis
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'code_analysis_db',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',  # Update based on actual credentials
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
+# Database router to manage queries between databases
+DATABASE_ROUTERS = ['Drinks.routers.CodeAnalysisRouter']
+
 
 
 
@@ -151,6 +170,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB max upload size
+

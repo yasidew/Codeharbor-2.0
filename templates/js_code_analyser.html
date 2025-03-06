@@ -3,7 +3,7 @@
 {#<head>#}
 {#    <meta charset="UTF-8">#}
 {#    <meta name="viewport" content="width=device-width, initial-scale=1.0">#}
-{#    <title>Java Code Analysis</title>#}
+{#    <title>JavaScript Code Analysis</title>#}
 {#    <style>#}
 {#        body {#}
 {#            font-family: Arial, sans-serif;#}
@@ -102,19 +102,19 @@
 {#</head>#}
 {#<body>#}
 {#<div class="container">#}
-{#    <h1>Java Code Analysis</h1>#}
+{#    <h1>JavaScript Code Analysis</h1>#}
 {#    <form method="POST" enctype="multipart/form-data">#}
 {#        {% csrf_token %}#}
-{#        <label for="code">Paste Java Code:</label>#}
+{#        <label for="code">Paste JavaScript Code:</label>#}
 {#        <textarea#}
 {#                name="code"#}
 {#                id="code"#}
 {#                rows="10"#}
-{#                placeholder="Paste your Java code here (e.g., class definitions, methods, or scripts)."#}
+{#                placeholder="Paste your JavaScript code here (e.g., function definitions, loops, or scripts)."#}
 {#        >{{ code }}</textarea>#}
 {##}
-{#        <label for="files">Or Upload Java Files:</label>#}
-{#        <input type="file" name="files" id="files" multiple accept=".java">#}
+{#        <label for="files">Or Upload JavaScript Files:</label>#}
+{#        <input type="file" name="files" id="files" multiple accept=".js">#}
 {##}
 {#        <button type="submit">Analyze Code</button>#}
 {#    </form>#}
@@ -123,27 +123,15 @@
 {#        <div class="recommendations">#}
 {#            <h2>Analysis Recommendations</h2>#}
 {#            <ul>#}
-{#                {% for key, recs in recommendations.items %}#}
-{#                    {% if key == 'unknown' %}#}
-{#                        <li><strong>Line Unknown:</strong>#}
-{#                            <ul>#}
-{#                                {% for rec in recs %}#}
-{#                                    <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>#}
-{#                                {% endfor %}#}
-{#                            </ul>#}
-{#                        </li>#}
-{#                    {% else %}#}
-{#                        <li><strong>File: {{ key }}</strong>#}
-{#                            <ul>#}
-{#                                {% for rec in recs %}#}
-{#                                    <li>#}
-{#                                        <strong>Line {{ rec.line }}:</strong>#}
-{#                                        <strong>{{ rec.rule }}:</strong> {{ rec.message }}#}
-{#                                    </li>#}
-{#                                {% endfor %}#}
-{#                            </ul>#}
-{#                        </li>#}
-{#                    {% endif %}#}
+{#                {% for line, recs in recommendations.items %}#}
+{#                    <li>#}
+{#                        <strong>Line {{ line }}</strong>#}
+{#                        <ul>#}
+{#                            {% for rec in recs %}#}
+{#                                <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>#}
+{#                            {% endfor %}#}
+{#                        </ul>#}
+{#                    </li>#}
 {#                {% endfor %}#}
 {#            </ul>#}
 {#        </div>#}
@@ -153,20 +141,19 @@
 {#</html>#}
 
 
-
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1 class="text-center mb-4">Java Code Analyzer</h1>
+    <h1 class="text-center mb-4">JavaScript Code Analyzer</h1>
     <div class="container">
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
-                <label for="fileInput" class="form-label">Upload Java File(s):</label>
+                <label for="fileInput" class="form-label">Upload JavaScript File(s):</label>
                 <input type="file" name="files" id="fileInput" class="form-control mb-3" multiple>
             </div>
             <div class="mb-3">
-                <label for="codeEditor" class="form-label">Paste Java Code Below:</label>
+                <label for="codeEditor" class="form-label">Paste JavaScript Code Below:</label>
                 <textarea id="codeEditor" name="code" class="form-control" rows="10">{{ code }}</textarea>
             </div>
             <div class="text-center">
@@ -213,13 +200,13 @@
 
     <!-- Include CodeMirror -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
 
     <script>
         // Initialize CodeMirror
         const codeMirrorEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
             lineNumbers: true,
-            mode: "text/x-java", // Set mode for Java
+            mode: "javascript", // JavaScript syntax highlighting
             theme: "default"
         });
 
