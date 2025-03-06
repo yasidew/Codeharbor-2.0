@@ -11,10 +11,17 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()  # Load variables from .env
+
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+if not OPENAI_API_KEY:
+    raise ValueError("Missing OpenAI API Key! Check your .env file.")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -27,12 +34,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
     'rest_framework',
     'Drinks',
+    'code_formatter',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -73,25 +80,48 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Drinks.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
+
 DATABASES = {
-    'default': {
+    'default': {  # Primary database (SQLite)
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'code_analysis': {  # Secondary DB for code analysis
+    'postgres_main': {  # Main PostgreSQL database
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'code_analysis_db',  # Change as needed
+        'NAME': 'postgres',  # Default PostgreSQL database name
         'USER': 'postgres',
-        'PASSWORD': 'admin',
-        'HOST': 'localhost',  # Use the correct DB host
-        'PORT': '5432',  # Default PostgreSQL port
+        'PASSWORD': 'root',  # Update based on actual credentials
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
+        }
+    },
+    'code_analysis': {  # Main PostgreSQL DB for Code Analysis
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'code_analysis_db',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',  # Update based on actual credentials
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
+# Database router to manage queries between databases
 DATABASE_ROUTERS = ['Drinks.routers.CodeAnalysisRouter']
+
+
 
 
 # Password validation
@@ -112,7 +142,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -123,7 +152,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -141,3 +169,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB max upload size
+

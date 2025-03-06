@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content">
+    <div class="container-fluid text-center">
+        <h2 class="text-white">Welcome to <span class="text-info">Code Harbor</span></h2>
+        <p class="text-muted">Your all-in-one code analysis, refactoring, and defect detection tool.</p>
+
+        <!-- Animated Tiles -->
+        <div class="row mt-5">
+            <!-- Refactor Code Tile -->
+            <div class="col-md-4">
+                <a href="{% url 'refactor_view' %}" class="tile">
+                    <div class="card tile-card bg-gradient-primary text-white shadow-lg animated-tile">
+                        <div class="card-body">
+                            <i class="bi bi-code-slash display-4"></i>
+                            <h4 class="mt-3">Refactor Code</h4>
+                            <p>Enhance readability and maintainability with AI-powered refactoring.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Upload Code Tile -->
+            <div class="col-md-4">
+                <a href="{% url 'upload_code' %}" class="tile">
+                    <div class="card tile-card bg-gradient-success text-white shadow-lg animated-tile">
+                        <div class="card-body">
+                            <i class="bi bi-upload display-4"></i>
+                            <h4 class="mt-3">Upload Code</h4>
+                            <p>Analyze uploaded files for complexity, defects, and more.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Code Analysis Tile -->
+            <div class="col-md-4">
+                <a href="#" class="tile">
+                    <div class="card tile-card bg-gradient-warning text-white shadow-lg animated-tile">
+                        <div class="card-body">
+                            <i class="bi bi-bar-chart display-4"></i>
+                            <h4 class="mt-3">Code Analysis</h4>
+                            <p>View detailed reports on code quality and maintainability.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <!-- Code Complexity Tile -->
+            <div class="col-md-4">
+                <a href="#" class="tile">
+                    <div class="card tile-card bg-gradient-danger text-white shadow-lg animated-tile">
+                        <div class="card-body">
+                            <i class="bi bi-graph-up display-4"></i>
+                            <h4 class="mt-3">Code Complexity</h4>
+                            <p>Analyze cyclomatic complexity and maintainability scores.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Accessibility & Gamification Tile -->
+            <div class="col-md-4">
+                <a href="#" class="tile">
+                    <div class="card tile-card bg-gradient-info text-white shadow-lg animated-tile">
+                        <div class="card-body">
+                            <i class="bi bi-award display-4"></i>
+                            <h4 class="mt-3">Accessibility & Gamification</h4>
+                            <p>Improve code accessibility and compete in gamified challenges.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Placeholder Tile (For Future Feature) -->
+            <div class="col-md-4">
+                <a href="#" class="tile">
+                    <div class="card tile-card bg-gradient-secondary text-white shadow-lg animated-tile">
+                        <div class="card-body">
+                            <i class="bi bi-gear display-4"></i>
+                            <h4 class="mt-3">Settings</h4>
+                            <p>Customize your Code Harbor experience.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Animated CTA Button -->
+        <div class="mt-5">
+            <a href="{% url 'refactor_view' %}" class="btn btn-lg btn-info shadow-lg pulse-animation">
+                <i class="bi bi-lightbulb"></i> Get Started with AI Refactoring
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Equal Tile Size */
+    .tile-card {
+        min-height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    /* Tile Hover Effects */
+    .tile {
+        text-decoration: none;
+    }
+    .animated-tile {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s;
+    }
+    .animated-tile:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Glowing Button Animation */
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 10px rgba(0, 123, 255, 0.7); }
+        50% { box-shadow: 0 0 20px rgba(0, 123, 255, 0.9); }
+        100% { box-shadow: 0 0 10px rgba(0, 123, 255, 0.7); }
+    }
+</style>
+
+{% endblock %}

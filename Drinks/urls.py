@@ -27,6 +27,7 @@ urlpatterns = [
 
                   path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
 
+
                   path('js_code_analyser/', views.js_code_analyser, name='js_code_analyser'),
 
                   path('php_code_analyser/', views.php_code_analyser, name='php_code_analyser'),
@@ -35,6 +36,18 @@ urlpatterns = [
 
                   path('analyze-code/', views.analyze_code_view, name='analyze_code'),
 
+                  path("detect-defects/", views.detect_defects_view, name="detect_defects"),
+
+                  # Include code_formatter URLs
+                  path('code-formatter/', include('code_formatter.urls')),
+
+                  # path("api/detect-defects/", model.detect_defects, name="api_detect_defects"),
+
+                  # path('upload/python/', views.upload_python_files, name='upload_python_files'),
+
+
+                  # path('upload/java/', views.upload_java_files, name='upload_java_files'),
+
 
                   path('refactor/', views.refactor_view, name='refactor_view'),
                   path('upload-code/', views.upload_code, name='upload_code'),
@@ -42,6 +55,7 @@ urlpatterns = [
 
 
                   path('', views.home, name='home')  #Root URL
+
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns = format_suffix_patterns(urlpatterns)
