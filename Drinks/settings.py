@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'code_analysis'
 ]
 
 MIDDLEWARE = [
@@ -80,8 +81,17 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'code_analysis': {  # Secondary DB for code analysis
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'code_analysis_db',  # Change as needed
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',  # Use the correct DB host
+        'PORT': '5432',  # Default PostgreSQL port
     }
 }
+DATABASE_ROUTERS = ['Drinks.routers.CodeAnalysisRouter']
 
 
 # Password validation
