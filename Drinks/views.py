@@ -24,6 +24,9 @@ from prettytable import PrettyTable
 import statsmodels.api as sm
 from challenges.models import Challenges
 
+def home(request):
+    return render(request, 'home.html')
+
 @api_view(['GET', 'POST'])
 def drink_list(request, format=None):
     if request.method == 'GET':
@@ -68,6 +71,7 @@ def drink_detail(request, id, format=None):
 #
 #         complexity = calculate_code_complexity_line_by_line(code)
 #         return Response(complexity, status=status.HTTP_200_OK)
+
 
 
 @api_view(['GET', 'POST'])
