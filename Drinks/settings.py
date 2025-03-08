@@ -11,7 +11,21 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+
 from datetime import timedelta
+
+from dotenv import load_dotenv
+
+load_dotenv()  # Load variables from .env
+
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+if not OPENAI_API_KEY:
+    raise ValueError("Missing OpenAI API Key! Check your .env file.")
+
+
+
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,6 +45,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 
@@ -42,6 +57,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 INSTALLED_APPS = [
     'rest_framework',
     'Drinks',
+	'code_formatter',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -109,6 +125,15 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+		#'ENGINE': 'django.db.backends.postgresql',
+        #'NAME': 'postgres',  # Keep this as 'postgres' (Main DB)
+        #'USER': 'postgres',
+        #'PASSWORD': 'root',
+        #'HOST': 'localhost',
+        #'PORT': '5432',
+        #'OPTIONS': {
+        #   'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
+        #}
     }
 }
 
@@ -122,6 +147,7 @@ DATABASES = {
 #         }
 #
 #     }
+
 
 
 
@@ -182,6 +208,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB max upload size
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -199,5 +229,4 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER': timedelta(days=1),
     'SLIDING_TOKEN_LIFETIME_LATE_USER': timedelta(days=30),
 }
-
 

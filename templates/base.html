@@ -41,10 +41,7 @@
                         <p>Settings</p></a></li>
                     <li><a href="http://127.0.0.1:8000/api/logout"><i class="bi bi-box-arrow-right"></i>
                         <p>Logout</p></a></li>
-
-
                 </ul>
-                <button class="action-btn" id="logoutButton">Logout</button>
             </div>
         </div>
     {% endblock %}
@@ -102,21 +99,6 @@
 <!-- Core JS Files -->
 <script src="{% static 'js/black-dashboard.min.js' %}"></script>
 <script>
-
-    function logoutUser() {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            alert("You have logged out.");
-            window.location.href = '/login'; // Redirect to login page
-        }
-
-        // Logout functionality
-        document.getElementById('logoutButton').addEventListener('click', logoutUser);
-
-    document.getElementById('logoutLink').addEventListener('click', logoutUser);
-
-
-
     function showToast(message, type = "success") {
         let backgroundColor;
 
@@ -146,5 +128,3 @@
 </script>
 </body>
 </html>
-
-

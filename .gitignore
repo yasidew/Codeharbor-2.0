@@ -55,3 +55,11 @@ debug.log
 *.orig
 *.lock
 coverage/
+
+
+#Yeran
+code-refactoring/singleton_model/model.safetensors
+code-refactoring/factory_method_model/model.safetensors
+code-refactoring/singleton_model/model.safetensors
+code-refactoring/factory_method_model
+code-refactoring/results

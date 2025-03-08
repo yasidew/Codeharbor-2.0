@@ -1,5 +1,6 @@
 import json
 import os
+import torch
 
 import pandas as pd
 from datetime import datetime
@@ -10,7 +11,13 @@ from django.http import JsonResponse, HttpResponse
 from matplotlib import pyplot as plt
 from scipy.stats import pearsonr, spearmanr
 import seaborn as sns
+from transformers import RobertaTokenizer, RobertaForSequenceClassification
+
+import analysis
 from Drinks.models import Drink
+from analysis.code_analyzer import CodeAnalyzer
+from analysis.java_code_analyser import JavaCodeAnalyzer
+from analysis.python_code_analyser import PythonCodeAnalyzer
 from .serializers import DrinkSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -26,6 +33,217 @@ from challenges.models import Challenges
 
 def home(request):
     return render(request, 'home.html')
+
+
+
+# @api_view(['GET', 'POST'])
+# def python_code_analysis(request):
+#     if request.method == 'POST':
+#         try:
+#             code = request.POST.get('code', '')
+#             if not code:
+#                 return JsonResponse({'error': 'No code provided'}, status=400)
+#
+#             analyser = PythonCodeAnalyzer(code)
+#             recommendations = analyser.generate_recommendations()
+#
+#             # Group recommendations by line number for better readability
+#             grouped_recommendations = {}
+#             for rec in recommendations:
+#                 line = rec.get('line', 'unknown')
+#                 grouped_recommendations.setdefault(line, []).append({
+#                     'rule': rec.get('rule'),
+#                     'message': rec.get('message'),
+#                 })
+#
+#             return JsonResponse({'recommendations': grouped_recommendations})
+#
+#         except Exception as e:
+#             # Log the exception message
+#             print(f"Exception: {e}")
+#             return JsonResponse({'error': str(e)}, status=500)
+#
+#     return render(request, 'python_code_analysis.html')
+def home(request):
+    return render(request, 'home.html')
+
+@api_view(['GET', 'POST'])
+def python_code_analysis(request):
+    if request.method == 'POST':
+        recommendations = {}
+
+        # Handle pasted code
+        code = request.POST.get('code', '').strip()
+        if code:
+            try:
+                analyzer = PythonCodeAnalyzer(code)
+                recommendations = analyzer.generate_recommendations()
+            except Exception as e:
+                return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
+
+        # Handle uploaded files
+        files = request.FILES.getlist('files')
+        if files:
+            file_results = {}
+            for file in files:
+                try:
+                    content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+                    analyzer = PythonCodeAnalyzer(content)
+                    file_results[file.name] = analyzer.generate_recommendations()
+                except Exception as e:
+                    file_results[file.name] = f"Error analyzing file: {str(e)}"
+            recommendations['files'] = file_results
+
+        # Group recommendations by line
+        grouped_recommendations = {}
+        if isinstance(recommendations, list):  # For pasted code
+            for rec in recommendations:
+                line = rec.get('line', 'unknown')
+                grouped_recommendations.setdefault(line, []).append({
+                    'rule': rec.get('rule'),
+                    'message': rec.get('message'),
+                })
+        elif isinstance(recommendations, dict):  # For files
+            grouped_recommendations = recommendations
+
+        return JsonResponse({'recommendations': grouped_recommendations})
+
+    return render(request, 'python_code_analysis.html')
+
+
+
+@api_view(['GET', 'POST'])
+def java_code_analysis(request):
+    if request.method == 'POST':
+        recommendations = {}
+
+        # Handle pasted code
+        code = request.POST.get('code', '').strip()
+        if code:
+            try:
+                analyzer = JavaCodeAnalyzer(code)
+                recommendations = analyzer.generate_recommendations()
+            except Exception as e:
+                return JsonResponse({'error': f"Error analyzing pasted code: {str(e)}"}, status=500)
+
+        # Handle uploaded files
+        files = request.FILES.getlist('files')
+        if files:
+            file_results = {}
+            for file in files:
+                try:
+                    content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+                    analyzer = JavaCodeAnalyzer(content)
+                    file_results[file.name] = analyzer.generate_recommendations()
+                except Exception as e:
+                    file_results[file.name] = f"Error analyzing file: {str(e)}"
+            recommendations['files'] = file_results
+
+        # Group recommendations by line
+        grouped_recommendations = {}
+        if isinstance(recommendations, list):  # For pasted code
+            for rec in recommendations:
+                line = rec.get('line', 'unknown')
+                grouped_recommendations.setdefault(line, []).append({
+                    'rule': rec.get('rule'),
+                    'message': rec.get('message'),
+                })
+        elif isinstance(recommendations, dict):  # For files
+            grouped_recommendations = recommendations
+
+        return JsonResponse({'recommendations': grouped_recommendations})
+
+    return render(request, 'java_code_analysis.html')
+
+
+def detect_defects_view(request):
+    model_path = "./models/defect_detection_model"
+    model = RobertaForSequenceClassification.from_pretrained(model_path)
+    tokenizer = RobertaTokenizer.from_pretrained(model_path)
+
+    if request.method == "POST":
+        try:
+            # Handle pasted code
+            code_snippet = request.POST.get("code_snippet", "").strip()
+            if not code_snippet:
+                return JsonResponse({"error": "No code snippet provided."}, status=400)
+
+            inputs = tokenizer(
+                code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512
+            )
+            outputs = model(**inputs)
+            prediction = torch.argmax(outputs.logits).item()
+
+            return JsonResponse({"defect_detected": bool(prediction)})
+
+        except Exception as e:
+            return JsonResponse({"error": f"Detection failed: {str(e)}"}, status=500)
+
+    return render(request, "detect_defects.html")
+
+
+
+# @api_view(['GET', 'POST'])
+# def java_code_analysis(request):
+#     if request.method == 'POST':
+#         try:
+#             code = request.POST.get('code', '')
+#             if not code:
+#                 return JsonResponse({'error': 'No code provided'}, status=400)
+#
+#             analyser = JavaCodeAnalyzer(code)
+#             recommendations = analyser.generate_recommendations()
+#             return JsonResponse({'recommendations': recommendations})
+#
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+#
+#     return render(request, 'java_code_analysis.html')
+
+
+
+# @api_view(['GET', 'POST'])
+# def upload_python_files(request):
+#     if request.method == 'POST':
+#         files = request.FILES.getlist('files')
+#         if not files:
+#             return JsonResponse({'error': 'No files uploaded'}, status=400)
+#
+#         results = {}
+#         for file in files:
+#             try:
+#                 content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+#                 analyzer = PythonCodeAnalyzer(content)
+#                 recommendations = analyzer.generate_recommendations()
+#                 results[file.name] = recommendations
+#             except Exception as e:
+#                 results[file.name] = f"Error analyzing file: {str(e)}"
+#
+#         return JsonResponse({'results': results})
+#
+#     return render(request, 'upload_python.html')
+
+
+# @api_view(['GET', 'POST'])
+# def upload_java_files(request):
+#     if request.method == 'POST':
+#         files = request.FILES.getlist('files')
+#         if not files:
+#             return JsonResponse({'error': 'No files uploaded'}, status=400)
+#
+#         results = {}
+#         for file in files:
+#             try:
+#                 content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
+#                 analyzer = JavaCodeAnalyzer(content)
+#                 recommendations = analyzer.generate_recommendations()
+#                 results[file.name] = recommendations
+#             except Exception as e:
+#                 results[file.name] = f"Error analyzing file: {str(e)}"
+#
+#         return JsonResponse({'results': results})
+#
+#     return render(request, 'upload_java.html')
 
 @api_view(['GET', 'POST'])
 def drink_list(request, format=None):

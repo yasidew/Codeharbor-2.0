@@ -1,0 +1,37 @@
+[
+  {
+    "type": "ClusteredSingleton",
+    "input": "public class ClusteredSingleton {\n\n    public ClusteredSingleton() {}\n\n}",
+    "output": "import java.util.concurrent.locks.Lock;\nimport java.util.concurrent.locks.ReentrantLock;\n\npublic class ClusteredSingleton {\n\n    private static volatile ClusteredSingleton instance;\n    private static final Lock lock = new ReentrantLock();\n\n    private ClusteredSingleton() {}\n\n    public static ClusteredSingleton getInstance() {\n        if (instance == null) {\n            lock.lock();\n            try {\n                if (instance == null) {\n                    instance = new ClusteredSingleton();\n                    // Simulate cluster-wide initialization\n                    System.out.println(\"Cluster-wide Singleton instance created\");\n                }\n            } finally {\n                lock.unlock();\n            }\n        }\n        return instance;\n    }\n\n}"
+  },
+  {
+    "type": "SingletonWithSelfDestruct",
+    "input": "public class SingletonWithSelfDestruct {\n\n    public SingletonWithSelfDestruct() {}\n\n}",
+    "output": "import java.util.Timer;\nimport java.util.TimerTask;\n\npublic class SingletonWithSelfDestruct {\n\n    private static SingletonWithSelfDestruct instance;\n    private static final Timer timer = new Timer();\n\n    private SingletonWithSelfDestruct() {}\n\n    public static SingletonWithSelfDestruct getInstance() {\n        if (instance == null) {\n            instance = new SingletonWithSelfDestruct();\n            scheduleDestruction();\n        }\n        return instance;\n    }\n\n    private static void scheduleDestruction() {\n        timer.schedule(new TimerTask() {\n            @Override\n            public void run() {\n                instance = null;\n                System.out.println(\"Singleton instance destroyed due to inactivity\");\n            }\n        }, 60000); // Self-destruct after 1 minute\n    }\n\n}"
+  },
+  {
+    "type": "SingletonWithStateRecovery",
+    "input": "public class SingletonWithStateRecovery {\n\n    public SingletonWithStateRecovery() {}\n\n}",
+    "output": "import java.io.*;\n\npublic class SingletonWithStateRecovery {\n\n    private static SingletonWithStateRecovery instance;\n    private String state;\n\n    private SingletonWithStateRecovery() {\n        // Recover state from file\n        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(\"singleton_state.dat\"))) {\n            state = (String) ois.readObject();\n        } catch (Exception e) {\n            state = \"Default State\";\n        }\n    }\n\n    public static SingletonWithStateRecovery getInstance() {\n        if (instance == null) {\n            instance = new SingletonWithStateRecovery();\n        }\n        return instance;\n    }\n\n    public String getState() {\n        return state;\n    }\n\n    public void setState(String state) {\n        this.state = state;\n        // Persist state to file\n        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(\"singleton_state.dat\"))) {\n            oos.writeObject(state);\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n\n}"
+  },
+  {
+    "type": "SingletonWithVersioning",
+    "input": "public class SingletonWithVersioning {\n\n    public SingletonWithVersioning() {}\n\n}",
+    "output": "import java.util.HashMap;\nimport java.util.Map;\n\npublic class SingletonWithVersioning {\n\n    private static final Map<String, SingletonWithVersioning> instances = new HashMap<>();\n\n    private SingletonWithVersioning(String version) {\n        System.out.println(\"Version \" + version + \" initialized\");\n    }\n\n    public static SingletonWithVersioning getInstance(String version) {\n        return instances.computeIfAbsent(version, v -> new SingletonWithVersioning(v));\n    }\n\n}"
+  },
+  {
+    "type": "SingletonWithTimeoutLock",
+    "input": "public class SingletonWithTimeoutLock {\n\n    public SingletonWithTimeoutLock() {}\n\n}",
+    "output": "import java.util.concurrent.locks.ReentrantLock;\nimport java.util.concurrent.TimeUnit;\n\npublic class SingletonWithTimeoutLock {\n\n    private static SingletonWithTimeoutLock instance;\n    private static final ReentrantLock lock = new ReentrantLock();\n\n    private SingletonWithTimeoutLock() {}\n\n    public static SingletonWithTimeoutLock getInstance() throws InterruptedException {\n        if (lock.tryLock(5, TimeUnit.SECONDS)) { // Timeout lock for 5 seconds\n            try {\n                if (instance == null) {\n                    instance = new SingletonWithTimeoutLock();\n                }\n            } finally {\n                lock.unlock();\n            }\n        } else {\n            throw new IllegalStateException(\"Could not acquire lock within the timeout\");\n        }\n        return instance;\n    }\n\n}"
+  },
+  {
+    "type": "SingletonForTesting",
+    "input": "public class SingletonForTesting {\n\n    public SingletonForTesting() {}\n\n}",
+    "output": "public class SingletonForTesting {\n\n    private static SingletonForTesting instance;\n\n    private SingletonForTesting() {}\n\n    public static SingletonForTesting getInstance() {\n        if (instance == null) {\n            instance = new SingletonForTesting();\n        }\n        return instance;\n    }\n\n    public static void resetInstance() {\n        instance = null;\n    }\n\n}"
+  },
+  {
+    "type": "SingletonWithRateLimiter",
+    "input": "public class SingletonWithRateLimiter {\n\n    public SingletonWithRateLimiter() {}\n\n}",
+    "output": "import java.util.concurrent.Semaphore;\n\npublic class SingletonWithRateLimiter {\n\n    private static SingletonWithRateLimiter instance;\n    private static final Semaphore semaphore = new Semaphore(3); // Allow 3 concurrent accesses\n\n    private SingletonWithRateLimiter() {}\n\n    public static SingletonWithRateLimiter getInstance() {\n        if (instance == null) {\n            synchronized (SingletonWithRateLimiter.class) {\n                if (instance == null) {\n                    instance = new SingletonWithRateLimiter();\n                }\n            }\n        }\n        return instance;\n    }\n\n    public void performAction() throws InterruptedException {\n        semaphore.acquire();\n        try {\n            System.out.println(\"Performing rate-limited action\");\n        } finally {\n            semaphore.release();\n        }\n    }\n\n}"
+  }
+]
