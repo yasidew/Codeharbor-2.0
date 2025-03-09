@@ -545,6 +545,16 @@ class JavaScriptCodeAnalyzer:
             self._check_unreachable_code,
             self._check_variable_shadowing,
             self._check_naming_conventions,
+            self._check_mutable_defaults,
+            self._check_unencrypted_communication,
+            self._check_dangerous_functions,
+            self._check_dead_code,
+            self._check_duplicate_code,
+            self._check_excessive_classes_or_functions,
+            self._check_dependency_inversion,
+            self._check_inefficient_complexity,
+            self._check_yagni_violation,
+            self._check_hardcoded_file_paths,
         ]
 
         # Run each check
@@ -1014,6 +1024,177 @@ class JavaScriptCodeAnalyzer:
                             "line": line,
                         }
                     )
+
+
+    def _check_mutable_defaults(self, tree):
+        """Check for mutable default arguments in functions."""
+        for node in self._walk(tree):
+            if node.type == "FunctionDeclaration":
+                for param in node.params:
+                    if hasattr(param, "type") and param.type == "AssignmentPattern":
+                        if param.right.type in ["ArrayExpression", "ObjectExpression"]:
+                            line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                            self.recommendations.append(
+                                {
+                                    "rule": "Mutable Default Argument",
+                                    "message": "Avoid using mutable default arguments like arrays or objects.",
+                                    "line": line,
+                                }
+                            )
+
+    def _check_unencrypted_communication(self, tree):
+        """Check for unencrypted communication such as HTTP."""
+        for node in self._walk(tree):
+            if node.type == "Literal" and isinstance(node.value, str):
+                if node.value.startswith("http://"):
+                    line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                    self.recommendations.append(
+                        {
+                            "rule": "Unencrypted Communication",
+                            "message": "Detected unencrypted HTTP communication. Use HTTPS instead.",
+                            "line": line,
+                        }
+                    )
+
+    def _check_dangerous_functions(self, tree):
+        """Check for usage of dangerous functions like eval."""
+        dangerous_functions = {"eval", "Function", "setTimeout", "setInterval"}
+        for node in self._walk(tree):
+            if node.type == "CallExpression" and hasattr(node.callee, "name"):
+                if node.callee.name in dangerous_functions:
+                    line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                    self.recommendations.append(
+                        {
+                            "rule": "Dangerous Function Usage",
+                            "message": f"Usage of dangerous function '{node.callee.name}'. Avoid if possible.",
+                            "line": line,
+                        }
+                    )
+
+    def _check_dead_code(self, tree):
+        """Check for dead code in the script."""
+        has_return_or_throw = False
+        for node in self._walk(tree):
+            if node.type in ["ReturnStatement", "ThrowStatement"]:
+                has_return_or_throw = True
+            elif has_return_or_throw:
+                line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                self.recommendations.append(
+                    {
+                        "rule": "Dead Code",
+                        "message": "Detected dead code after a return or throw statement.",
+                        "line": line,
+                    }
+                )
+                has_return_or_throw = False  # Reset for next block
+
+    def _check_duplicate_code(self, tree):
+        """Check for duplicate code blocks."""
+        code_snippets = {}
+        for node in self._walk(tree):
+            if hasattr(node, "loc"):
+                snippet = self.code[node.loc.start.offset:node.loc.end.offset].strip()
+                if snippet in code_snippets:
+                    line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                    self.recommendations.append(
+                        {
+                            "rule": "Duplicate Code",
+                            "message": f"Duplicate code detected. Original at line {code_snippets[snippet]}",
+                            "line": line,
+                        }
+                    )
+                else:
+                    code_snippets[snippet] = getattr(node.loc, 'start', {}).get('line', 'unknown')
+
+    def _check_excessive_classes_or_functions(self, tree):
+        """Check for excessive classes or functions in a single file."""
+        class_count = 0
+        function_count = 0
+        for node in self._walk(tree):
+            if node.type == "ClassDeclaration":
+                class_count += 1
+            elif node.type == "FunctionDeclaration":
+                function_count += 1
+
+        if class_count > 5:
+            self.recommendations.append(
+                {
+                    "rule": "Excessive Classes",
+                    "message": f"File contains {class_count} classes. Consider splitting into separate files.",
+                }
+            )
+        if function_count > 15:
+            self.recommendations.append(
+                {
+                    "rule": "Excessive Functions",
+                    "message": f"File contains {function_count} functions. Consider splitting into separate files.",
+                }
+            )
+
+    def _check_dependency_inversion(self, tree):
+        """Check for dependency inversion violations."""
+        for node in self._walk(tree):
+            if node.type == "ImportDeclaration":
+                if "utils" in node.source.value.lower() or "helpers" in node.source.value.lower():
+                    line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                    self.recommendations.append(
+                        {
+                            "rule": "Dependency Inversion Violation",
+                            "message": "Consider inverting dependencies to avoid tight coupling to utility files.",
+                            "line": line,
+                        }
+                    )
+
+    def _check_inefficient_complexity(self, tree):
+        """Check for inefficient complexity like nested loops."""
+        def count_nested_loops(node, depth=0):
+            if node.type in ["ForStatement", "WhileStatement"]:
+                depth += 1
+            max_depth = depth
+            for child in getattr(node, "body", []) or []:
+                max_depth = max(max_depth, count_nested_loops(child, depth))
+            return max_depth
+
+        for node in self._walk(tree):
+            if node.type in ["ForStatement", "WhileStatement"]:
+                depth = count_nested_loops(node)
+                if depth > 3:
+                    line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                    self.recommendations.append(
+                        {
+                            "rule": "Inefficient Complexity",
+                            "message": f"Nesting depth of {depth} exceeds the recommended limit of 3.",
+                            "line": line,
+                        }
+                    )
+
+    def _check_yagni_violation(self, tree):
+        """Check for YAGNI (You Aren't Gonna Need It) violations."""
+        for node in self._walk(tree):
+            if node.type == "FunctionDeclaration" and len(node.body.body) == 0:
+                line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                self.recommendations.append(
+                    {
+                        "rule": "YAGNI Violation",
+                        "message": f"Function '{node.id.name}' is defined but not used.",
+                        "line": line,
+                    }
+                )
+
+    def _check_hardcoded_file_paths(self, tree):
+        """Check for hardcoded file paths."""
+        for node in self._walk(tree):
+            if node.type == "Literal" and isinstance(node.value, str):
+                if re.match(r"^(?:[a-zA-Z]:)?[\\/]", node.value):
+                    line = getattr(node.loc, 'start', {}).get('line', 'unknown')
+                    self.recommendations.append(
+                        {
+                            "rule": "Hardcoded File Path",
+                            "message": f"Hardcoded file path '{node.value}' detected. Use configuration or environment variables.",
+                            "line": line,
+                        }
+                    )
+
 
 
     # def _walk(self, node):
