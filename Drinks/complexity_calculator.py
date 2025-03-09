@@ -816,21 +816,22 @@ def calculate_compound_condition_weight(line):
 def calculate_try_catch_weight(java_code):
     """
     Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
-    - Increment nesting level for try.
-    - Assign weights line by line for catch and finally based on nesting level.
+    - Tracks nesting levels for `try`, `catch`, and `finally`.
+    - Assigns weights based on the actual try nesting level.
+    - Returns both nesting details and line-weight mappings.
     """
-    # Remove comments from the Java code
+    # Remove comments from Java code
     java_code = remove_comments(java_code)
     lines = java_code.splitlines()
 
     # State variables
-    current_nesting = 0
-    nesting_levels = []
-    line_weights = {}
+    try_stack = []  # Stack to track try nesting levels
+    nesting_levels = []  # Stores (line_number, line_content, nesting_level, assigned_weight)
+    line_weights = {}  # Stores {line_number: weight}
 
     control_regex = re.compile(r'\b(try|catch|finally)\b')
 
-    # Weights for catch based on nesting levels
+    # Weights for `catch` blocks based on nesting levels
     catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
     finally_weight = 1
 
@@ -838,34 +839,36 @@ def calculate_try_catch_weight(java_code):
         stripped_line = line.strip()
 
         if not stripped_line:
-            # Skip empty lines
-            nesting_levels.append((line_no, stripped_line, current_nesting, 0))
+            # Track empty lines with zero weight
+            nesting_levels.append((line_no, stripped_line, len(try_stack), 0))
             continue
 
-        # Check for try, catch, or finally
+        # Check if the line contains try, catch, or finally
         control_match = control_regex.search(stripped_line)
         if control_match:
             control_type = control_match.group()
 
             if control_type == 'try':
-                # Increment nesting level for try
-                current_nesting += 1
+                # Push a new try nesting level
+                try_stack.append(len(try_stack) + 1)
 
             elif control_type == 'catch':
-                # Assign weight for catch based on current nesting level
-                weight = catch_weights.get(current_nesting, 1)  # Use nesting level to determine weight
-                line_weights[line_no] = weight
+                # Assign weight for catch based on the last try nesting level
+                if try_stack:
+                    weight = catch_weights.get(try_stack[-1], 1)
+                    line_weights[line_no] = weight
 
             elif control_type == 'finally':
                 # Assign fixed weight for finally
                 line_weights[line_no] = finally_weight
 
-        # Append the current line and its weight
-        nesting_levels.append((line_no, stripped_line, current_nesting, line_weights.get(line_no, 0)))
+        # Store nesting level details
+        nesting_levels.append((line_no, stripped_line, len(try_stack), line_weights.get(line_no, 0)))
 
-        # Adjust nesting level for closing braces
-        if stripped_line.endswith('}') and 'catch' not in stripped_line:
-            current_nesting = max(0, current_nesting - 1)
+        # Adjust nesting level for closing braces '}'
+        if stripped_line.endswith('}'):
+            if try_stack:
+                try_stack.pop()  # Remove last try nesting level
 
     return nesting_levels, line_weights
 

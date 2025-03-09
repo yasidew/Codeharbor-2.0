@@ -284,9 +284,10 @@ class CBOMetrics1:
             "Setter Injections": self.setter_injections,
             "Direct Object Instantiations": self.direct_instantiations,
             "Static Method Calls": self.static_method_calls,
-            "Static Variable Usages": self.static_variable_usages,
+            "Static Variable Usages": self.static_variable_usages
         }
         return report
+
 
 def extract_cbo_features1(java_code):
     """
@@ -304,7 +305,7 @@ def extract_cbo_features1(java_code):
         "static_variable_usage": len(report["Static Variable Usages"]),
         "interface_implementations": len(report["Interface Implementations"]),
         "constructor_injections": len(report["Constructor Injections"]),
-        "setter_injections": len(report["Setter Injections"]),
+        "setter_injections": len(report["Setter Injections"])
         # "global_variable_references": len(report["Global Variable References"])
     }
 

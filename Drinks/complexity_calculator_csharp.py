@@ -811,7 +811,7 @@ def calculate_try_catch_weight(java_code):
     control_regex = re.compile(r'\b(try|catch|finally)\b')
 
     # Weights for `catch` based on nesting levels
-    catch_weights = {0: 1, 1: 1, 2: 2, 3: 3, 4: 4}
+    catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
     finally_weight = 1
 
     for line_no, line in enumerate(lines, start=1):
@@ -833,7 +833,7 @@ def calculate_try_catch_weight(java_code):
 
             elif control_type == 'catch':
                 # Assign weight for `catch` based on nesting level
-                weight = catch_weights.get(current_nesting, 5)
+                weight = catch_weights.get(current_nesting, 1)
                 line_weights[line_no] = weight
 
             elif control_type == 'finally':
@@ -1638,22 +1638,12 @@ def ai_recommend_refactoring(new_data):
 
     return recommendations
 
-
-# Updated method signature regex for C#
-# method_signature_regex_csharp = (
-#     r'\b(?:public|private|protected|internal)?\s*'     # Optional access modifier
-#     r'(?:static\s+|sealed\s+|virtual\s+|override\s+|async\s+)*'  # Optional keywords
-#     r'(?:[\w<>\[\]]+\s+)+'                             # Return type (ensures it's not a constructor)
-#     r'(?!set)(\w+)\s*\([^)]*\)\s*'                     # Method name not starting with "set" + parameter list
-#     r'\{'                                              # Opening brace
-# )
-
 method_signature_regex_csharp = (
-    r'\b(?:public|private|protected|internal)?\s*'
-    r'(?:static\s+|sealed\s+|virtual\s+|override\s+|async\s+)*'  # Optional keywords
-    r'(?:void|[\w<>\[\]]+)\s+'  # Return type (void or any type like int, string, etc.)
+    r'\b(?:public|private|protected|internal)?\s*'   # Access modifier (optional)
+    r'(?:static\s+|sealed\s+|virtual\s+|override\s+|async\s+)*'  # Optional modifiers
+    r'(?:void|[\w<>\[\]]+)\s+'  # Return type (void, int, etc.)
     r'(?!set|get)(\w+)\s*\([^)]*\)\s*'  # Exclude property setters/getters
-    r'\{'  # Opening brace
+    r'(\s*\{)?'  # Allow optional space before opening `{`
 )
 
 # Keywords to exclude so that control structures, etc., aren't misidentified as methods.
@@ -1917,6 +1907,9 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         lines = content.splitlines()
         complexity_data = []
 
+        # CBO feature extraction
+        cbo_report = calculate_cbo_csharp(lines)
+
         # (Optional) Process C# files for some other step
         process_csharp_files(json_file, output_csv1)
 
@@ -1979,20 +1972,29 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         line_weights, total_control_complexity = calculate_control_structure_complexity(lines)
 
         # Run a C#-specific CBO analysis
-        cbo_analyzer = CBOMetricsCSharp(content)
-        cbo_report = cbo_analyzer.calculate_cbo()
-        print("uyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", cbo_report)
+        # cbo_analyzer = CBOMetricsCSharp(content)
+        # cbo_report = cbo_analyzer.calculate_cbo()
+        # print("uyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", cbo_report)
 
         # For example, track lines that have certain patterns
-        cbo_constructor_lines = {extract_line_number(info): info for info in cbo_report["Constructor Injections"]}
-        cbo_setter_lines = {extract_line_number(info): info for info in cbo_report["Setter Injections"]}
-        cbo_instantiation_lines = {extract_line_number(info): info for info in
-                                   cbo_report["Direct Object Instantiations"]}
-        cbo_static_calls = {extract_line_number(info): info for info in cbo_report["Static Method Calls"]}
-        cbo_static_vars = {extract_line_number(info): info for info in cbo_report["Static Variable Usages"]}
-        cbo_dependency_assignment_lines = {
-            extract_line_number(info): info for info in cbo_report["Dependency Assignments"]
-        }
+        # cbo_constructor_lines = {extract_line_number(info): info for info in cbo_report["Constructor Injections"]}
+        # cbo_setter_lines = {extract_line_number(info): info for info in cbo_report["Setter Injections"]}
+        # cbo_instantiation_lines = {extract_line_number(info): info for info in
+        #                            cbo_report["Direct Object Instantiations"]}
+        # cbo_static_calls = {extract_line_number(info): info for info in cbo_report["Static Method Calls"]}
+        # cbo_static_vars = {extract_line_number(info): info for info in cbo_report["Static Variable Usages"]}
+        # cbo_dependency_assignment_lines = {
+        #     extract_line_number(info): info for info in cbo_report["Dependency Assignments"]
+        # }
+
+        cbo_instantiation_lines = {info["line"]: info for info in cbo_report.get("Direct Object Instantiations", []) if
+                                   isinstance(info, dict)}
+        cbo_static_calls = {info["line"]: info for info in cbo_report.get("Static Method Calls", []) if
+                            isinstance(info, dict)}
+        cbo_static_vars = {info["line"]: info for info in cbo_report.get("Static Variable Usages", []) if
+                           isinstance(info, dict)}
+        cbo_dependency_assignment_lines = {info["line"]: info for info in cbo_report.get("Injection Initiations", []) if
+                                           isinstance(info, dict)}
 
         # 4) Process each line (Option A)
         for line_number, line in enumerate(lines, start=1):
