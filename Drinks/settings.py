@@ -77,6 +77,7 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "accept",
     "origin",
+    'code_analysis'
 ]
 
 MIDDLEWARE = [
@@ -122,31 +123,42 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default': {  # Primary database (SQLite)
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-		#'ENGINE': 'django.db.backends.postgresql',
-        #'NAME': 'postgres',  # Keep this as 'postgres' (Main DB)
-        #'USER': 'postgres',
-        #'PASSWORD': 'root',
-        #'HOST': 'localhost',
-        #'PORT': '5432',
-        #'OPTIONS': {
-        #   'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
-        #}
+    },
+    'postgres_main': {  # Main PostgreSQL database
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',  # Default PostgreSQL database name
+        'USER': 'postgres',
+        'PASSWORD': 'root',  # Update based on actual credentials
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
+
+        },
+        'TEST': {
+            'MIRROR': 'default'  # Use the same database but with a different schema
+        },
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'djongo',
-#         'NAME': 'drinks_db',  # Change this to your MongoDB database name
-#         'CLIENT': {
-#             'host': 'mongodb://wasana:wasana@localhost:27017/',
-#
-#         }
-#
-#     }
+        }
+    },
+    'code_analysis': {  # Main PostgreSQL DB for Code Analysis
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'code_analysis_db',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',  # Update based on actual credentials
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
+# Database router to manage queries between databases
+DATABASE_ROUTERS = ['Drinks.routers.CodeAnalysisRouter']
+
 
 
 
@@ -208,9 +220,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB max upload size
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
