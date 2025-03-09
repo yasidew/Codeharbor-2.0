@@ -75,3 +75,4 @@ code-refactoring/results
 node_modules
 code-refactoring/singleton_model
 
+.venv

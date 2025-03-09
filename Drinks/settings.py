@@ -123,44 +123,18 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {  # Primary database (SQLite)
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
-    'postgres_main': {  # Main PostgreSQL database
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',  # Default PostgreSQL database name
+        'NAME': 'code_complexity_db',  # Keep this as 'postgres' (Main DB)
         'USER': 'postgres',
-        'PASSWORD': 'root',  # Update based on actual credentials
+        'PASSWORD': '12345',
         'HOST': 'localhost',
         'PORT': '5432',
-        'OPTIONS': {
-            'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
-
-        },
-        'TEST': {
-            'MIRROR': 'default'  # Use the same database but with a different schema
-        },
+        # 'OPTIONS': {
+        #     'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
+        # }
     }
 }
-
-        }
-    },
-    'code_analysis': {  # Main PostgreSQL DB for Code Analysis
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'code_analysis_db',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',  # Update based on actual credentials
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
-
-# Database router to manage queries between databases
-DATABASE_ROUTERS = ['Drinks.routers.CodeAnalysisRouter']
-
-
-
 
 
 # Password validation

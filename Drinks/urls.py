@@ -60,10 +60,9 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
          name='calculate_complexity_line_by_line_csharp'),
 
     path('calculate-complexity-excel/', views.calculate_complexity, name='calculate_complexity-excel'),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    path('calculate-complexity-excel/', views.calculate_complexity, name='calculate_complexity-excel'),
 
-                  path('python_code_analysis/', views.python_code_analysis, name='python_code_analysis'),
+                  path('guidelines/', views.guidelines_view, name='guidelines'),
+path('python_code_analysis/', views.python_code_analysis, name='python_code_analysis'),
 
                   path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
 
@@ -82,6 +81,6 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
 
 
                   path('', views.home, name='home')  #Root URL
-              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns = format_suffix_patterns(urlpatterns)

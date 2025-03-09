@@ -1,3 +1,4 @@
+
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import json
 from datasets import Dataset
@@ -46,3 +47,4 @@ for i, (pred, ref) in enumerate(zip(predictions, references)):
 # Save predictions to a file (optional)
 with open("test_predictions.json", "w") as pred_file:
     json.dump({"predictions": predictions, "references": references}, pred_file, indent=4)
+
