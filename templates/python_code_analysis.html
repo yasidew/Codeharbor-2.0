@@ -2,6 +2,22 @@
 
 {% block content %}
     <h1 class="text-center mb-4">Python Code Analyzer</h1>
+
+    <!-- Menu Section -->
+    <nav class="mb-4">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link btn btn-outline-primary" href="{% url 'java_code_analysis' %}">Java Code Analyzer</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link btn btn-outline-primary" href="{% url 'js_code_analyser' %}">JavaScript Code Analyzer</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link btn btn-outline-primary" href="{% url 'analyze_code' %}">AI Code Analyzer</a>
+            </li>
+        </ul>
+    </nav>
+
     <div class="container">
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
@@ -22,30 +38,50 @@
             {% if recommendations %}
                 <div class="recommendations">
                     <h2>Analysis Recommendations</h2>
-                    <div class="recommendation-container">
+                    <!-- Scrollable recommendation container -->
+                    <div class="recommendation-container scrollable-container">
                         <ul>
-                            {% for key, recs in recommendations.items %}
-                                {% if key == 'unknown' %}
-                                    <li><strong>Line Unknown:</strong>
-                                        <ul>
-                                            {% for rec in recs %}
-                                                <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>
-                                            {% endfor %}
-                                        </ul>
+                            <!-- Display recommendations for pasted code -->
+                            {% if recommendations.pasted_code %}
+                                <li><strong>Pasted Code:</strong>
+                                    <ul>
+                                        {% for line, recs in recommendations.pasted_code.results.items %}
+                                            <li>
+                                                <strong>Line {{ line }}:</strong>
+                                                <ul>
+                                                    {% for rec in recs %}
+                                                        <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% endif %}
+
+                            <!-- Display recommendations for files -->
+                            {% if recommendations.files %}
+                                {% for file_name, file_data in recommendations.files.items %}
+                                    <li><strong>File: {{ file_name }}</strong>
+                                        {% if file_data.error %}
+                                            <p>Error: {{ file_data.error }}</p>
+                                        {% else %}
+                                            <ul>
+                                                {% for line, recs in file_data.results.items %}
+                                                    <li>
+                                                        <strong>Line {{ line }}:</strong>
+                                                        <ul>
+                                                            {% for rec in recs %}
+                                                                <li><strong>{{ rec.rule }}:</strong> {{ rec.message }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
                                     </li>
-                                {% else %}
-                                    <li><strong>File: {{ key }}</strong>
-                                        <ul>
-                                            {% for rec in recs %}
-                                                <li>
-                                                    <strong>Line {{ rec.line }}:</strong>
-                                                    <strong>{{ rec.rule }}:</strong> {{ rec.message }}
-                                                </li>
-                                            {% endfor %}
-                                        </ul>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
+                                {% endfor %}
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
@@ -53,7 +89,81 @@
                 <p>No recommendations available. Paste or upload code to analyze.</p>
             {% endif %}
         </div>
+
     </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="summary-panel p-3 shadow-sm rounded">
+                    <h3 class="text-center">Summary Report</h3>
+                    <p><strong>Total Vulnerabilities:</strong> {{ summary.total_vulnerabilities }}</p>
+                    <p><strong>Files Analyzed:</strong> {{ summary.files_analyzed }}</p>
+                    <h4>Categories</h4>
+                    <ul class="list-group">
+                        {% for category, count in summary.categories.items %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ category }}
+                                <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container p-3 shadow-sm rounded">
+                    <canvas id="vulnerabilityChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('vulnerabilityChart').getContext('2d');
+        const chartData = {
+            labels: Object.keys({{ summary.categories|safe }}),
+            datasets: [{
+                label: 'Vulnerabilities by Category',
+                data: Object.values({{ summary.categories|safe }}),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+    <style>
+        .summary-panel, .chart-container {
+            background-color: var(--container-bg-color);
+        }
+    </style>
 
     <!-- Include CodeMirror -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
@@ -116,6 +226,12 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
+        .scrollable-container {
+            max-height: 400px; /* Set a fixed height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            border: 1px solid var(--border-color);
+        }
+
         ul {
             list-style: none;
             padding-left: 0;
@@ -131,6 +247,7 @@
         }
     </style>
 {% endblock %}
+
 
 
 
