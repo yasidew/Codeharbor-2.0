@@ -239,7 +239,6 @@ class CBOMetrics1:
                         "weight": 2
                     })
 
-        # --- Interface Implementations (Weight = 1) ---
         for _, node in self.tree.filter(javalang.tree.ClassDeclaration):
             if node.implements:
                 for implemented_interface in node.implements:
