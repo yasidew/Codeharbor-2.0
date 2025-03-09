@@ -106,6 +106,14 @@ DATABASES = {
         'PORT': '5432',
         'OPTIONS': {
             'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
+
+        },
+        'TEST': {
+            'MIRROR': 'default'  # Use the same database but with a different schema
+        },
+    }
+}
+
         }
     },
     'code_analysis': {  # Main PostgreSQL DB for Code Analysis
@@ -120,6 +128,7 @@ DATABASES = {
 
 # Database router to manage queries between databases
 DATABASE_ROUTERS = ['Drinks.routers.CodeAnalysisRouter']
+
 
 
 
@@ -172,4 +181,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB max upload size
-
