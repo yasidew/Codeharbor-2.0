@@ -118,3 +118,111 @@
 {#    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>#}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+
+
+<style>
+    /* 📌 Card Styling */
+    .card {
+        background-color: #1a1f3b !important; /* Deep navy blue */
+        color: white !important;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px rgba(0, 123, 255, 0.2);
+    }
+
+    /* 📌 Card Header */
+    .card-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 10px 10px 0 0;
+        padding: 12px;
+    }
+
+    /* 📌 List Group Items */
+    .list-group-item {
+        background-color: #232a45 !important;
+        color: white !important;
+        border: none;
+        font-size: 16px;
+        padding: 12px 15px;
+    }
+
+    /* 🎨 Enhance Badges */
+    .badge {
+        font-size: 12px;
+        font-weight: bold;
+        padding: 6px 10px;
+        border-radius: 6px;
+    }
+
+    /* 🟢 Green for Low */
+    .badge.bg-secondary {
+        background-color: #28a745 !important; /* Green */
+        color: white;
+    }
+
+    /* 🟠 Yellow for Medium */
+    .badge.bg-warning {
+        background-color: #ffc107 !important; /* Yellow */
+        color: black;
+    }
+
+    /* 🔴 Red for High */
+    .badge.bg-danger {
+        background-color: #dc3545 !important; /* Red */
+        color: white;
+    }
+
+    /* 📊 Progress Bar Styling */
+    .progress {
+        height: 25px;
+        border-radius: 8px;
+        background-color: #374166;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    /* ✅ Progress Bar Labels */
+    .progress-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 🟢 Success for Low Complexity */
+    .progress-bar.bg-success {
+        background: linear-gradient(135deg, #28a745, #218838) !important;
+    }
+
+    /* 🟠 Warning for Medium Complexity */
+    .progress-bar.bg-warning {
+        background: linear-gradient(135deg, #ffc107, #d39e00) !important;
+        color: black;
+    }
+
+    /* 🔴 Danger for High Complexity */
+    .progress-bar.bg-danger {
+        background: linear-gradient(135deg, #dc3545, #bd2130) !important;
+    }
+
+    /* 🔵 Readability Score */
+    .progress-bar.bg-info {
+        background: linear-gradient(135deg, #17a2b8, #117a8b) !important;
+    }
+
+    /* 📌 Readability of Labels Above Progress Bars */
+    .progress + label {
+        font-size: 14px;
+        font-weight: bold;
+        color: white;
+        margin-top: 8px;
+        display: block;
+        text-align: center;
+    }
+
+</style>
