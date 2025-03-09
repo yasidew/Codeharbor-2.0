@@ -16,7 +16,7 @@ from sklearn.cluster import KMeans
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 
 import analysis
-from Drinks.models import Drink
+from Drinks.models import Drink, JavaFile
 from analysis.code_analyzer import CodeAnalyzer
 from analysis.java_code_analyser import JavaCodeAnalyzer
 from analysis.python_code_analyser import PythonCodeAnalyzer
@@ -347,6 +347,7 @@ def calculate_complexity_multiple_java_files(request):
 
             mp_cbo_table = PrettyTable()
             mp_cbo_table.field_names = ["Filename", "CBO", "MPC"]
+            saved_files = []
 
             # Process complexity results
             for filename, file_data in result.items():
@@ -357,6 +358,12 @@ def calculate_complexity_multiple_java_files(request):
                 pie_chart_path = file_data.get('pie_chart_path', '')
                 total_wcc = file_data.get('total_wcc', 0)
                 bar_charts = file_data.get('bar_charts', {})
+
+                java_file, created = JavaFile.objects.update_or_create(
+                    filename=filename,
+                    defaults={'total_wcc': file_data.get('total_wcc', 0)}
+                )
+                saved_files.append({'filename': filename, 'total_wcc': java_file.total_wcc})
 
                 for line_data in complexity_data:
                     if len(line_data) == 12:
@@ -414,6 +421,7 @@ def calculate_complexity_multiple_java_files(request):
             # Render template for web-based UI
             return render(request, 'complexity_table.html',
                           {'complexities': complexities, 'cbo_predictions': cbo_summary})
+
 
         except JavaSyntaxError as e:
             return Response({

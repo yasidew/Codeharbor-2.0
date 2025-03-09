@@ -92,14 +92,14 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',  # Keep this as 'postgres' (Main DB)
+        'NAME': 'code_complexity_db',  # Keep this as 'postgres' (Main DB)
         'USER': 'postgres',
         'PASSWORD': '12345',
         'HOST': 'localhost',
         'PORT': '5432',
-        'OPTIONS': {
-            'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
-        }
+        # 'OPTIONS': {
+        #     'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
+        # }
     }
 }
 
