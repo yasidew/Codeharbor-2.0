@@ -50,24 +50,70 @@ def count_duplicate_code_percentage(code):
     duplicates = [item for item, count in Counter(lines).items() if count > 1 and item.strip()]
     return (len(duplicates) / len(lines)) * 100 if lines else 0
 
-def calculate_comment_density(code):
-    """Compute comment density (code-to-comment ratio)."""
-    lines = code.split("\n")
-    comment_lines = sum(1 for line in lines if line.strip().startswith("#"))
-    code_lines = sum(1 for line in lines if line.strip() and not line.strip().startswith("#"))
+# def calculate_comment_density(code):
+#     """Compute comment density (code-to-comment ratio)."""
+#     lines = code.split("\n")
+#     comment_lines = sum(1 for line in lines if line.strip().startswith("#"))
+#     code_lines = sum(1 for line in lines if line.strip() and not line.strip().startswith("#"))
+#
+#     return code_lines / comment_lines if comment_lines > 0 else 0
+#
+# def calculate_readability_score(code):
+#     """Estimate the readability of the code's comments."""
+#     comments = "\n".join([line.strip() for line in code.split("\n") if line.strip().startswith("#")])
+#     if not comments:
+#         return 0
+#     try:
+#         r = Readability(comments)
+#         return r.flesch_kincaid().score
+#     except:
+#         return 0
 
-    return code_lines / comment_lines if comment_lines > 0 else 0
+def calculate_comment_density(code):
+    """Compute comment density (code-to-comment ratio) for multiple languages."""
+    lines = code.split("\n")
+
+    # Recognizing both Python (`#`) and JavaScript/Java/C (`//`) single-line comments
+    single_line_comment_patterns = ("#", "//")
+
+    # Detect multi-line comments for JavaScript/Java/C (`/* ... */`)
+    multi_line_comment_pattern = r"/\*[\s\S]*?\*/"
+
+    # Count single-line comments
+    single_line_comment_lines = sum(1 for line in lines if line.strip().startswith(single_line_comment_patterns))
+
+    # Count multi-line comments using regex
+    multi_line_comments = re.findall(multi_line_comment_pattern, code, re.MULTILINE)
+    multi_line_comment_lines = sum(comment.count("\n") + 1 for comment in multi_line_comments)
+
+    # Total comment lines
+    total_comment_lines = single_line_comment_lines + multi_line_comment_lines
+
+    # Count code lines (excluding blank lines and comments)
+    code_lines = sum(1 for line in lines if line.strip() and not line.strip().startswith(single_line_comment_patterns))
+
+    return total_comment_lines / code_lines if code_lines > 0 else 0  # Prevent division by zero
 
 def calculate_readability_score(code):
     """Estimate the readability of the code's comments."""
-    comments = "\n".join([line.strip() for line in code.split("\n") if line.strip().startswith("#")])
+    # Extract all single-line comments
+    comment_lines = [line.strip() for line in code.split("\n") if line.strip().startswith(("#", "//"))]
+
+    # Extract multi-line comments
+    multi_line_comments = re.findall(r"/\*[\s\S]*?\*/", code, re.MULTILINE)
+
+    # Combine all comments
+    comments = "\n".join(comment_lines + multi_line_comments)
+
     if not comments:
         return 0
+
     try:
         r = Readability(comments)
         return r.flesch_kincaid().score
-    except:
-        return 0
+    except Exception:
+        return 0  # Return 0 if there's an issue calculating readability
+
 
 def calculate_complexity_score(loc, functions, duplication):
     """Calculate a simple composite complexity score."""
