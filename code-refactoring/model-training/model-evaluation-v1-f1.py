@@ -8,7 +8,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_dir)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
 # Step 2: Load the test data
-with open("processed_factory_method_data.json", "r") as file:
+with open("dataset/processed_factory_method_data.json", "r") as file:
     data_splits = json.load(file)
 
 test_inputs = data_splits["test"]["input"]
