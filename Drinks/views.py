@@ -472,7 +472,46 @@ def split_code_snippets(code_snippet):
         return []  # Return an empty list if parsing fails
 
 
-
+# def split_code_snippets(code, language="python"):
+#     """
+#     Splits code into logical blocks for analysis.
+#
+#     - Uses AST-based parsing for Python.
+#     - Uses regex-based parsing for other languages (Java, JS, C++, etc.).
+#     """
+#
+#     if language.lower() == "python":
+#         try:
+#             tree = ast.parse(code)
+#             snippets = []
+#
+#             for node in tree.body:
+#                 # Extract source code for each node
+#                 snippet = ast.get_source_segment(code, node) if hasattr(ast, "get_source_segment") else ast.unparse(node)
+#                 snippets.append(snippet)
+#
+#             return snippets
+#         except SyntaxError:
+#             print("Syntax error while parsing Python code.")
+#             return []
+#
+#     # Generic Regex-based splitting for other languages
+#     snippet_list = []
+#     buffer = []
+#     block_starts = re.compile(r"^\s*(def |class |if |elif |else:|try:|except |for |while |public |private |function |var )")
+#
+#     for line in code.split("\n"):
+#         if block_starts.match(line) and buffer:
+#             snippet_list.append("\n".join(buffer))
+#             buffer = []
+#
+#         buffer.append(line)
+#
+#     if buffer:
+#         snippet_list.append("\n".join(buffer))
+#
+#     return snippet_list
+#############################################
 @lru_cache(maxsize=1000)
 def cached_prediction(snippet):
     """Generate a suggestion with caching for repeated snippets."""
@@ -505,6 +544,36 @@ try:
 except Exception as e:
     print("❌ Invalid API Key or Quota Issue:", str(e))
 
+
+
+# def fetch_github_files(repo_url):
+#     """
+#     Fetches code files from a GitHub repository.
+#     """
+#     try:
+#         repo_owner, repo_name = repo_url.replace("https://github.com/", "").split("/")[:2]
+#         api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents"
+#
+#         headers = {"Authorization": f"token {GITHUB_ACCESS_TOKEN}"}
+#         response = requests.get(api_url, headers=headers)
+#
+#         if response.status_code != 200:
+#             return None, f"Failed to fetch repository: {response.json().get('message', 'Unknown error')}"
+#
+#         files = response.json()
+#         code_files = []
+#
+#         allowed_extensions = {".py", ".js", ".java", ".cpp", ".cs", ".php"}
+#         for file in files:
+#             if any(file["name"].endswith(ext) for ext in allowed_extensions):
+#                 file_response = requests.get(file["download_url"], headers=headers)
+#                 if file_response.status_code == 200:
+#                     code_files.append({"name": file["name"], "code": file_response.text})
+#
+#         return code_files, None
+#
+#     except Exception as e:
+#         return None, f"Error fetching GitHub repository: {str(e)}"
 
 
 
@@ -621,6 +690,78 @@ def analyze_code_complexity(code):
     return result
 
 
+def ai_generate_guideline(summary):
+    """
+    Uses OpenAI to generate a final coding guideline for the developer based on the summary report.
+    This includes best practices, security recommendations, maintainability tips, and efficiency improvements.
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",  # Upgrade for better contextual understanding
+            messages=[
+                {"role": "system",
+                 "content": "You are an expert AI code reviewer. Based on the analysis summary, provide a concise final"
+                            "guideline for the developer to follow. Keep it within 3-5 bullet points focusing on:\n"
+                            "Use this format:\n\n"
+                            "🚀 **Final Coding Guideline** 🚀\n\n"
+                            "1️⃣ **Security Improvements:**\n"
+                            "2️⃣ **Code Readability & Maintainability:**\n"
+                            "3️⃣ **Performance Optimization:**\n"
+                            "4️⃣  **Reference Links / Guidelines:**\n"
+                 },
+                {"role": "user",
+                 "content": f"Here is the code analysis summary:\n{summary}\n\nGenerate a detailed final guideline for the developer to improve the overall code quality."}
+            ],
+            max_tokens=300,  # Increase token limit to provide detailed output
+            temperature=0.2  # Keep responses structured and predictable
+        )
+
+        # Extract AI response
+        guideline_response = response.choices[0].message.content
+
+        # Format for HTML rendering
+        formatted_guideline = guideline_response.replace("🚀 **Final Coding Guideline** 🚀", "<h3>🚀 Final Coding Guideline 🚀</h3>") \
+            .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
+            .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
+            .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \
+            .replace("4️⃣ **Reference Links / Guidelines:**", "</ul><h4>📚 Reference Guideline</h4><ul>")
+
+        return formatted_guideline  # ✅ Now formatted for better HTML display
+    except Exception as e:
+        return f"Error generating final guideline: {str(e)}"
+
+# def ai_generate_guideline(summary):
+#     """
+#     Uses OpenAI to generate a final coding guideline for the developer based on the summary report.
+#     """
+#     try:
+#         response = client.chat.completions.create(
+#             model="gpt-3.5-turbo",  # Upgrade to "gpt-4o" for better results
+#             messages=[
+#                 {"role": "system",
+#                  "content": "You are an expert AI coding assistant. Based on the analysis summary, provide a final "
+#                             "guideline for the developer to follow. Focus on best practices, security, maintainability, "
+#                             "and efficiency. Ensure the guideline is actionable and concise."},
+#                 {"role": "user",
+#                  "content": f"Given this analysis summary:\n{summary}\n\nProvide a final coding guideline to improve the overall code quality."}
+#             ],
+#             max_tokens=200,
+#             temperature=0.3  # Keep it concise and structured
+#         )
+#
+#         # Extract AI response
+#         guideline_response = response.choices[0].message.content
+#
+#         # Format for HTML rendering
+#         formatted_guideline = guideline_response.replace("Best Practice:", "<b>Best Practice:</b>") \
+#             .replace("Security Tip:", "<b>Security Tip:</b>") \
+#             .replace("Performance Tip:", "<b>Performance Tip:</b>") \
+#             .replace("Maintainability Tip:", "<b>Maintainability Tip:</b>")
+#
+#         return formatted_guideline  # ✅ Now formatted for HTML rendering
+#     except Exception as e:
+#         return f"Error generating final guideline: {str(e)}"
+
 
 @api_view(['GET', 'POST'])
 def analyze_code_view(request):
@@ -637,6 +778,7 @@ def analyze_code_view(request):
         "complexity_metrics": {},
     }
     code_snippet = ""
+    final_guideline = ""
 
     if request.method == 'POST':
         # ✅ Handle GitHub repository submission
@@ -659,13 +801,14 @@ def analyze_code_view(request):
         # ✅ Auto-generate project name if none is provided
         if not project_name:
             project_name = f"Project_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            print(f"🆕 Auto-generated project name: {project_name}")
 
         # ✅ Check if project already exists, else create it
         project, _ = Project.objects.get_or_create(name=project_name)
 
         if not code_snippet:
             return render(request, 'analyze_code.html', {
-                "code": "", "suggestions": [], "summary": summary,
+                "code": "", "suggestions": [], "summary": summary, "final_guideline": "",
                 "error": "No code provided for analysis."
             })
 
@@ -677,23 +820,32 @@ def analyze_code_view(request):
 
             for line_num, snippet in enumerate(snippets, start=1):
                 # ✅ **Check if this snippet has already been analyzed**
-                # existing_snippet = CodeSnippet.objects.filter(snippet=snippet, project=project).first()
                 existing_snippet = CodeSnippet.objects.filter(snippet=snippet).first()
 
-
                 if existing_snippet:
-                    print(f"✅ Retrieving previously analyzed result for snippet ")
+                    print(f"✅ Found existing analysis for snippet: {snippet[:50]}...")
+
+                    # ✅ **Ensure categories & severity are updated from DB suggestions**
+                    category = categorize_suggestion(existing_snippet.model_suggestion)
+                    severity = determine_severity(existing_snippet.model_suggestion)
+
+                    summary["total_suggestions"] += 1
+                    summary["categories"].setdefault(category, 0)
+                    summary["categories"][category] += 1
+                    summary["severity"][severity] += 1
+
                     suggestions.append({
                         "code": existing_snippet.snippet,
                         "suggestion": existing_snippet.model_suggestion,
-                        "category": categorize_suggestion(existing_snippet.model_suggestion),
-                        "severity": determine_severity(existing_snippet.model_suggestion),
+                        "category": category,
+                        "severity": severity,
                         "line": line_num
                     })
-                    # print(f"🚀 No previous analysis found. Running AI analysis ")
-                    continue
+                    continue  # Skip AI & Model processing for existing snippets
 
                 try:
+                    print(f"🚀 No previous analysis found. Running AI and Model analysis for snippet {line_num}")
+
                     # ✅ **Perform AI-based T5 Model Analysis**
                     inputs = tokenizer(
                         snippet, truncation=True, padding="max_length", max_length=512, return_tensors="pt"
@@ -731,6 +883,8 @@ def analyze_code_view(request):
                         model_suggestion=t5_suggestion,
                     )
 
+                    print(f"📌 Stored analysis for new snippet {line_num} in DB.")
+
                     # ✅ **Store the suggestion in results**
                     suggestions.append({
                         "code": snippet,
@@ -741,6 +895,7 @@ def analyze_code_view(request):
                     })
 
                 except Exception as snippet_error:
+                    print(f"❌ Error analyzing snippet {line_num}: {str(snippet_error)}")
                     suggestions.append({
                         "code": snippet,
                         "suggestion": f"Error: {str(snippet_error)}",
@@ -749,11 +904,15 @@ def analyze_code_view(request):
                     })
 
             # ✅ **Perform Complexity Analysis**
-            print("🔍 Performing Complexity Analysis...")  # ✅ DEBUG LOG
+            print("🔍 Performing Complexity Analysis...")
             summary["complexity_metrics"] = analyze_code_complexity(code_snippet)
-            print(f"✅ Complexity Results: {summary['complexity_metrics']}")  # ✅ DEBUG OUTPUT
+            print(f"✅ Complexity Results: {summary['complexity_metrics']}")
+
+            # ✅ **Generate Developer Guideline**
+            final_guideline = ai_generate_guideline(summary)
 
         except Exception as e:
+            print(f"❌ Critical Error in analysis: {str(e)}")
             suggestions.append({
                 "code": "",
                 "suggestion": f"Error analyzing code: {str(e)}",
@@ -764,7 +923,7 @@ def analyze_code_view(request):
     return render(
         request,
         'analyze_code.html',
-        {'code': code_snippet, 'suggestions': suggestions, 'summary': summary}
+        {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
     )
 
 
@@ -772,6 +931,124 @@ def analyze_code_view(request):
 
 
 
+
+
+
+
+# @api_view(['GET', 'POST'])
+# def analyze_code_view(request):
+#     suggestions = []
+#     summary = {
+#         "total_snippets": 0,
+#         "total_suggestions": 0,
+#         "total_lines": 0,
+#         "categories": {},
+#         "severity": {"Critical": 0, "Medium": 0, "Low": 0},
+#         "complexity_metrics": {}  # ✅ Ensure complexity metrics are initialized
+#     }
+#     code_snippet = ""
+#
+#     if request.method == 'POST':
+#         # ✅ Handle GitHub repository submission
+#         if request.content_type == 'application/json':
+#             data = json.loads(request.body)
+#             github_repo_url = data.get("github_url", "").strip()
+#
+#             if github_repo_url:
+#                 files, error = fetch_github_files(github_repo_url)
+#                 if error:
+#                     return JsonResponse({"error": error})
+#
+#                 if files:
+#                     return JsonResponse({"files": files})  # ✅ Return fetched GitHub files
+#
+#         # ✅ Handle normal code submission
+#         code_snippet = request.POST.get('code', '').strip()
+#         if not code_snippet:
+#             return render(request, 'analyze_code.html', {
+#                 "code": "", "suggestions": [], "summary": summary,
+#                 "error": "No code provided for analysis."
+#             })
+#
+#         try:
+#             print(f"📥 Received Code Snippet: {code_snippet[:100]}...")  # ✅ DEBUG: Verify input
+#             snippets = split_code_snippets(code_snippet)
+#             summary["total_snippets"] = len(snippets)
+#             summary["total_lines"] = code_snippet.count('\n') + 1
+#
+#             for line_num, snippet in enumerate(snippets, start=1):
+#                 try:
+#                     # ✅ **Perform AI-based T5 Model Analysis**
+#                     inputs = tokenizer(
+#                         snippet,
+#                         truncation=True,
+#                         padding="max_length",
+#                         max_length=512,
+#                         return_tensors="pt"
+#                     )
+#                     inputs = {key: value.to(device) for key, value in inputs.items()}
+#                     model.eval()
+#
+#                     with torch.no_grad():
+#                         outputs = model.generate(
+#                             inputs["input_ids"],
+#                             max_length=256,
+#                             num_beams=5,
+#                             early_stopping=True
+#                         )
+#                         t5_suggestion = tokenizer.decode(outputs[0], skip_special_tokens=True)
+#
+#                     # ✅ **Generate AI-based GPT analysis**
+#                     gpt_suggestion = ai_code_analysis(snippet)
+#
+#                     # ✅ **Combine AI-generated suggestions**
+#                     final_suggestion = f"Suggestion:\n{t5_suggestion}\n\nDetailed Analysis:\n{gpt_suggestion}"
+#
+#                     # ✅ **Categorize and determine severity**
+#                     category = categorize_suggestion(final_suggestion)
+#                     severity = determine_severity(final_suggestion)
+#
+#                     # ✅ **Update summary**
+#                     summary["total_suggestions"] += 1
+#                     summary["categories"].setdefault(category, 0)
+#                     summary["categories"][category] += 1
+#                     summary["severity"][severity] += 1
+#
+#                     # ✅ **Store the suggestion in results**
+#                     suggestions.append({
+#                         "code": snippet,
+#                         "category": category,
+#                         "suggestion": final_suggestion,
+#                         "severity": severity,
+#                         "line": line_num
+#                     })
+#
+#                 except Exception as snippet_error:
+#                     suggestions.append({
+#                         "code": snippet,
+#                         "suggestion": f"Error: {str(snippet_error)}",
+#                         "severity": "Low",
+#                         "line": line_num
+#                     })
+#
+#             # ✅ **Perform Complexity Analysis**
+#             print("🔍 Performing Complexity Analysis...")  # ✅ DEBUG LOG
+#             summary["complexity_metrics"] = analyze_code_complexity(code_snippet)
+#             print(f"✅ Complexity Results: {summary['complexity_metrics']}")  # ✅ DEBUG OUTPUT
+#
+#         except Exception as e:
+#             suggestions.append({
+#                 "code": "",
+#                 "suggestion": f"Error analyzing code: {str(e)}",
+#                 "severity": "Critical",
+#                 "line": 0
+#             })
+#
+#     return render(
+#         request,
+#         'analyze_code.html',
+#         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary}
+#     )
 
 
 
