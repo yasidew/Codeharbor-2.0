@@ -2,6 +2,9 @@ import javalang
 import pandas as pd
 import json
 import re
+from pygments.token import Token
+from pygments.lexers import CSharpLexer
+from pygments import lex
 
 
 JAVA_STANDARD_CLASSES = {
@@ -446,6 +449,151 @@ def extract_cbo_features_csharp(csharp_code):
     return cbo_features
 
 
+def calculate_cbo_csharp1(lines):
+    """
+    Calculates Coupling Between Objects (CBO) in C# code using Pygments tokenization.
+    Now includes interface implementation detection.
+
+    Parameters:
+        - lines (list of str): List of lines in C# code.
+
+    Returns:
+        - dict: A structured report with CBO details and assigned complexity weights.
+    """
+
+    dependencies = set()
+    constructor_injections = {}
+    setter_injections = {}
+    direct_instantiations = []
+    static_method_calls = []
+    static_variable_usages = []
+    injection_initiations = []  # Track assignment inside constructor
+    interface_implementations = []  # Track implemented interfaces
+
+    primitive_types = {"byte", "short", "int", "long", "float", "double", "bool", "char"}
+    built_in_classes = {'Console', 'String', 'int', 'float', 'double', 'bool', 'char', 'byte', 'short', 'long',
+                        'Math', 'Object', 'Thread', 'Runtime', 'Optional', 'Task', 'Action', 'Func', 'Exception',
+                        'SystemException', 'InvalidOperationException', 'ArgumentException',
+                        'NullReferenceException', 'IndexOutOfRangeException', 'DivideByZeroException',
+                        'FormatException', 'OverflowException', 'StackOverflowException', 'OutOfMemoryException',
+                        'IOException', 'FileNotFoundException', 'UnauthorizedAccessException', 'TimeoutException', 'File', 'List', 'ArrayList'}
+
+    direct_instantiation_pattern = re.compile(r"\bnew\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
+    static_variable_pattern = re.compile(r"\b([A-Z][A-Za-z0-9_]*)\s*\.\s*[A-Za-z_][A-Za-z0-9_]*\s*=")
+    static_method_pattern = re.compile(r"\b([A-Z][A-Za-z0-9_]*)\s*\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\(")
+
+    interface_pattern = re.compile(r"class\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([A-Za-z_,\s]+)")  # Interface detection
+
+    for line_number, line in enumerate(lines, start=1):
+        stripped_line = line.strip()
+        tokens = list(lex(stripped_line, CSharpLexer()))
+
+        if not stripped_line:
+            continue
+
+        # ✅ Detect Interface Implementations (Weight = 1)
+        match = interface_pattern.search(stripped_line)
+        if match:
+            class_name = match.group(1)
+            interfaces = match.group(2).split(",")
+
+            for interface in interfaces:
+                interface = interface.strip()
+                if interface and interface not in primitive_types and interface not in built_in_classes:
+                    dependencies.add(interface)
+                    interface_implementations.append({
+                        "class": class_name,
+                        "interface": interface,
+                        "line": line_number,
+                        "weight": 1
+                    })
+
+        # ✅ Constructor Injection (Weight = 1)
+        if any(tok[0] == Token.Keyword and tok[1] == "public" for tok in
+               tokens) and "(" in stripped_line and ")" in stripped_line:
+            class_name = stripped_line.split("(")[0].split()[-1]
+            if class_name not in primitive_types and class_name not in built_in_classes:
+                dependencies.add(class_name)
+                constructor_injections[class_name] = {
+                    "line": line_number,
+                    "weight": 1
+                }
+
+        # ✅ Detect Injection Initiation inside constructor (e.g., `_paymentProcessor = paymentProcessor;`)
+        elif "=" in stripped_line and any(tok[0] == Token.Name for tok in tokens):
+            parts = stripped_line.split("=")
+            left_side = parts[0].strip()
+            right_side = parts[1].strip()
+            if left_side.startswith("_") and right_side:
+                injection_initiations.append({
+                    "line": line_number,
+                    "assignment": stripped_line,
+                    "weight": 1
+                })
+
+        # ✅ Setter Injection (Weight = 1)
+        elif stripped_line.startswith("public void set"):
+            parts = stripped_line.split(" ")
+            if len(parts) > 2:
+                param_type = parts[-1].replace("(", "").replace(")", "")
+                if param_type not in primitive_types and param_type not in built_in_classes:
+                    dependencies.add(param_type)
+                    setter_injections[param_type] = {
+                        "line": line_number,
+                        "weight": 1
+                    }
+
+        # ✅ Direct Object Instantiation (Weight = 3)
+        match = direct_instantiation_pattern.search(stripped_line)
+        if match:
+            class_name = match.group(1)
+            if class_name not in primitive_types and class_name not in built_in_classes:
+                dependencies.add(class_name)
+                direct_instantiations.append({
+                    "line": line_number,
+                    "instantiation": f"new {class_name}()",
+                    "weight": 3
+                })
+
+        # ✅ Static Method Calls (Weight = 1)
+        match = static_method_pattern.search(stripped_line)
+        if match:
+            class_name = match.group(1)
+            if class_name not in primitive_types and class_name not in built_in_classes:
+                dependencies.add(class_name)
+                static_method_calls.append({
+                    "line": line_number,
+                    "method_call": stripped_line,
+                    "weight": 1
+                })
+
+        # ✅ Static Variable Usages (Weight = 1)
+        match = static_variable_pattern.search(stripped_line)
+        if match:
+            class_name = match.group(1)
+            if class_name not in primitive_types and class_name not in built_in_classes:
+                dependencies.add(class_name)
+                static_variable_usages.append({
+                    "line": line_number,
+                    "variable_usage": stripped_line,
+                    "weight": 1
+                })
+
+    cbo_value = len(dependencies)
+
+    return {
+        "CBO Score": cbo_value,
+        "Interface Implementations": interface_implementations,
+        "Constructor Injections": constructor_injections,
+        "Setter Injections": setter_injections,
+        "Direct Object Instantiations": direct_instantiations,
+        "Static Method Calls": static_method_calls,
+        "Static Variable Usages": static_variable_usages,
+        "Injection Initiations": injection_initiations
+    }
+
+
+
 def process_csharp_files(json_file, output_csv):
     """
     Reads C# code examples from a JSON file, extracts CBO features,
@@ -499,6 +647,77 @@ def process_csharp_files(json_file, output_csv):
     # Compute dynamic CBO threshold (75th percentile)
     cbo_sum = df.iloc[:, 2:].sum(axis=1)  # Sum of all CBO features per file
     dynamic_threshold = cbo_sum.quantile(0.75)  # 75th percentile
+
+    # Assign CBO label dynamically
+    df["cbo_label"] = cbo_sum.apply(lambda x: 1 if x > dynamic_threshold else 0)
+
+    # Save updated CSV
+    df.to_csv(output_csv, index=False)
+
+    print(f"✅ CSV file '{output_csv}' generated successfully with dynamic threshold: {dynamic_threshold}")
+
+
+def process_csharp_files1(json_file, output_csv):
+    """
+    Reads C# code examples from a JSON file, extracts CBO features using calculate_cbo_csharp1,
+    and writes them to a CSV file with dynamically assigned CBO labels.
+
+    - Uses "Injection Initiations" instead of constructor/setter injection.
+    - Computes dynamic CBO threshold (90th percentile) for labeling.
+    """
+    try:
+        with open(json_file, 'r', encoding='utf-8') as file:
+            csharp_data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"❌ Error: Unable to read JSON file '{json_file}'. Reason: {e}")
+        return
+
+    csv_data = []
+
+    for entry in csharp_data:
+        file_name = entry.get("file_name", "unknown_file")
+        csharp_code = entry.get("csharp_code", None)
+
+        if csharp_code is None:
+            print(f"⚠️ Warning: 'csharp_code' not found in entry {entry}. Skipping...")
+            continue  # Skip this entry
+
+        # Extract CBO features using calculate_cbo_csharp1
+        cbo_features = calculate_cbo_csharp1(csharp_code.split('\n'))
+
+        WEIGHT_INTERFACE = 0.5
+
+        # Ensure numeric values
+        direct_instantiations = len(cbo_features.get("Direct Object Instantiations", []))
+        static_method_calls = len(cbo_features.get("Static Method Calls", []))
+        static_variable_usage = len(cbo_features.get("Static Variable Usages", []))
+        interface_implementations = len(cbo_features.get("Interface Implementations", [])) * WEIGHT_INTERFACE
+        injection_initiations = len(cbo_features.get("Injection Initiations", [])) * WEIGHT_INTERFACE
+
+        # Collect all CBO factor values
+        cbo_values = [
+            direct_instantiations,
+            static_method_calls,
+            static_variable_usage,
+            interface_implementations,
+            injection_initiations,
+        ]
+
+        # Store extracted values
+        csv_data.append([
+            file_name,
+            *cbo_values  # Unpacking feature values
+        ])
+
+    # Convert data to Pandas DataFrame
+    df = pd.DataFrame(csv_data, columns=[
+        "file_name", "direct_instantiations", "static_method_calls",
+        "static_variable_usage", "interface_implementations", "injection_initiations"
+    ])
+
+    # Compute dynamic CBO threshold (90th percentile)
+    cbo_sum = df.iloc[:, 1:].sum(axis=1)  # Sum of all CBO features per file
+    dynamic_threshold = cbo_sum.quantile(0.90)  # 90th percentile
 
     # Assign CBO label dynamically
     df["cbo_label"] = cbo_sum.apply(lambda x: 1 if x > dynamic_threshold else 0)

@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 
@@ -16,7 +17,8 @@ from pygments.lexers import CSharpLexer
 from pygments.token import Token
 from pygments import lex
 
-from Drinks.process_java_file_cbo import process_csharp_files
+from Drinks.complexity_calculator import model_output
+from Drinks.process_java_file_cbo import process_csharp_files, process_csharp_files1, calculate_cbo_csharp1
 
 
 def calculate_cbo_csharp(lines):
@@ -421,9 +423,8 @@ class CBOMetricsCSharp:
 
 
 # Load dataset
-dataset = pd.read_csv("media/c#_code_features.csv")
+dataset = pd.read_csv("media/Updated_Dataset_with_CBO_Labeling.csv")
 
-# Drop non-numeric columns
 dataset = dataset.drop(columns=["file_name"], errors="ignore")
 
 # Ensure dataset contains labels
@@ -437,23 +438,33 @@ y = dataset["cbo_label"]
 # Handle missing values
 X.fillna(0, inplace=True)
 
+# Check class distribution
+value_counts = y.value_counts()
+
+# Ensure each class has at least two samples
+if value_counts.min() < 2:
+    print("⚠️ Warning: Some classes have fewer than two samples. Adjusting strategy.")
+    stratify_param = None  # Disable stratification
+else:
+    stratify_param = y  # Keep stratification if valid
+
 # Split into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=stratify_param)
 
 # Train the Random Forest model
 rf_model = RandomForestClassifier(n_estimators=200, random_state=42, max_depth=10, class_weight="balanced")
 rf_model.fit(X_train, y_train)
 
 # Save trained model
-joblib.dump(rf_model, "random_forest_cbo_model.pkl")
+joblib.dump(rf_model, "random_forest_csharp_cbo_model.pkl")
 
 # Evaluate model
 y_pred = rf_model.predict(X_test)
-print(classification_report(y_test, y_pred))
-print("✅ Model saved as 'random_forest_cbo_model.pkl'")
+print("✅✅✅✅hhhhhhhhhhhhhhh", classification_report(y_test, y_pred))
+print("✅ Model saved as 'random_forest_csharp_cbo_model.pkl'")
 
 # Load the trained model
-rf_model = joblib.load("random_forest_cbo_model.pkl")
+rf_model = joblib.load("random_forest_csharp_cbo_model.pkl")
 
 # Global dictionary for tracking inheritance depth
 inheritance_depth = {}
@@ -1884,7 +1895,110 @@ def extract_line_number(entry):
 
 
 json_file = "media/c#_code_dataset.json"
-output_csv1 = "media/c#_cbo_features_output.csv"
+output_csv1 = "media/cshar_cbo_features_output.csv"
+
+def load_existing_csharp_dataset():
+    """
+    Loads existing C# dataset from JSON file. If file does not exist, creates an empty list.
+    """
+    if os.path.exists(json_file):
+        with open(json_file, 'r', encoding='utf-8') as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                return []  # Return empty list if JSON file is corrupted
+    return []
+
+
+def save_csharp_dataset(csharp_data):
+    """
+    Saves the updated C# dataset back to the JSON file.
+    """
+    with open(json_file, 'w', encoding='utf-8') as file:
+        json.dump(csharp_data, file, indent=4)
+
+
+def add_csharp_code(file_name, csharp_code):
+    """
+    Adds new C# code to the dataset and retrains the model.
+    """
+    csharp_data = load_existing_csharp_dataset()
+
+    # **Check for duplicates**
+    for entry in csharp_data:
+        if entry["csharp_code"].strip() == csharp_code.strip():
+            print(f"⚠️ Duplicate C# code detected for {file_name}. Skipping...")
+            return
+
+    # **Append new C# code to dataset**
+    csharp_data.append({"file_name": file_name, "csharp_code": csharp_code})
+    save_csharp_dataset(csharp_data)
+
+    print(f"✅ New C# code added: {file_name}")
+    process_csharp_files1(json_file, output_csv1)
+
+# 🚀 **Predict CBO & Provide Recommendations**
+def get_csharp_code_recommendations(csharp_code, model_path):
+    """
+    Predicts CBO complexity and provides recommendations for C# code.
+    Ensures feature names match the trained model.
+    """
+
+    # Load trained model
+    model = joblib.load(model_path)
+
+    # Extract CBO features
+    features = calculate_cbo_csharp1(csharp_code)
+
+    print("✅ Extracted Features:", features)
+
+    # **Expected features based on training data**
+    expected_features = [
+        "direct_instantiations",
+        "static_method_calls",
+        "static_variable_usage",
+        "interface_implementations",
+        "injection_initiations",
+    ]
+
+    # **Correct Mapping of Extracted Features**
+    cleaned_features = {
+        "direct_instantiations": len(features.get("Direct Object Instantiations", [])),
+        "static_method_calls": len(features.get("Static Method Calls", [])),
+        "static_variable_usage": len(features.get("Static Variable Usages", [])),
+        "interface_implementations": len(features.get("Interface Implementations", [])) * 0.5,
+        "injection_initiations": len(features.get("Injection Initiations", [])) * 0.5,
+    }
+
+    print("✅ Processed Features:", cleaned_features)
+
+    # Convert to DataFrame
+    feature_df = pd.DataFrame([cleaned_features])
+
+    # **Check if feature names match before prediction**
+    if list(feature_df.columns) != expected_features:
+        raise ValueError(f"Feature mismatch: Expected {expected_features}, but got {list(feature_df.columns)}")
+
+    # **Predict Complexity**
+    prediction = model.predict(feature_df)[0]
+
+    # **Generate Recommendations**
+    recommendations = []
+    if cleaned_features["direct_instantiations"] > 3:
+        recommendations.append("⚠️ Too many direct object instantiations. Use dependency injection instead.")
+    if cleaned_features["static_method_calls"] > 3:
+        recommendations.append("⚠️ Reduce static method calls to improve testability and flexibility.")
+    if cleaned_features["static_variable_usage"] > 3:
+        recommendations.append("⚠️ Minimize static variable usage to prevent global state issues.")
+    if cleaned_features["injection_initiations"] > 2:
+        recommendations.append("⚠️ Too many dependency injection assignments. Consider simplifying your design.")
+    if cleaned_features["interface_implementations"] > 2:
+        recommendations.append("⚠️ Avoid God Interfaces (interfaces with too many responsibilities).")
+
+    return {
+        "prediction": "High CBO (Issue)" if prediction == 1 else "Low CBO (Good)",
+        "recommendations": recommendations
+    }
 
 
 def calculate_code_complexity_multiple_files_csharp(file_contents):
@@ -1901,6 +2015,7 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
 
     # 2) Iterate through each file
     for filename, content in file_contents.items():
+        # add_csharp_code(filename, content)
         class_name = filename.split('.')[0]
 
         # Preprocessing
@@ -1911,39 +2026,49 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         cbo_report = calculate_cbo_csharp(lines)
 
         # (Optional) Process C# files for some other step
-        process_csharp_files(json_file, output_csv1)
+        # process_csharp_files1(json_file, output_csv1)
+        #
+        # # CBO feature extraction & classification
+        # new_cbo_features = extract_csharp_class_dependencies(content)
+        # print("new_cbo_features>>>>>>>>>>>>>>>>>>>>>>>>", new_cbo_features)
+        # X_new = pd.DataFrame([new_cbo_features])[X.columns]
+        # prediction = rf_model.predict(X_new)[0]
+        #
+        # # Generate recommendations
+        # recommendations = []
+        # if X_new["class_dependencies"][0] > 5:
+        #     recommendations.append(
+        #         "⚠️ Reduce class dependencies by using interfaces instead of direct implementations.")
+        # if X_new["direct_instantiations"][0] > 3:
+        #     recommendations.append("⚠️ Too many direct object instantiations. Use dependency injection instead.")
+        # if X_new["static_method_calls"][0] > 3:
+        #     recommendations.append("⚠️ Reduce static method calls to improve testability and flexibility.")
+        # if X_new["static_variable_usage"][0] > 2:
+        #     recommendations.append("⚠️ Minimize static variable usage to prevent global state issues.")
+        # if X_new["setter_injections"][0] > 1:
+        #     recommendations.append("⚠️ Too many setter injections detected. Prefer constructor injection.")
+        # if X_new["interface_implementations"][0] > 2:
+        #     recommendations.append("⚠️ Avoid God Interfaces.(interfaces with too many responsibilities)")
+        # if X_new["global_variable_references"][0] > 2:
+        #     recommendations.append(
+        #         "⚠️ Avoid using global variables. Use dependency injection or encapsulation instead to prevent hidden dependencies."
+        #     )
+        #
+        # # Store the result for this file in results3
+        # results3[filename] = {
+        #     "prediction": "High CBO (Issue)" if prediction == 1 else "Low CBO (Good)",
+        #     "recommendations": recommendations
+        # }
 
-        # CBO feature extraction & classification
-        new_cbo_features = extract_csharp_class_dependencies(content)
-        print("new_cbo_features>>>>>>>>>>>>>>>>>>>>>>>>", new_cbo_features)
-        X_new = pd.DataFrame([new_cbo_features])[X.columns]
-        prediction = rf_model.predict(X_new)[0]
+        print("model output>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", model_output)
+        model_based_recommendations = get_csharp_code_recommendations(lines, 'random_forest_c#_cbo_model.pkl')
 
-        # Generate recommendations
-        recommendations = []
-        if X_new["class_dependencies"][0] > 5:
-            recommendations.append(
-                "⚠️ Reduce class dependencies by using interfaces instead of direct implementations.")
-        if X_new["direct_instantiations"][0] > 3:
-            recommendations.append("⚠️ Too many direct object instantiations. Use dependency injection instead.")
-        if X_new["static_method_calls"][0] > 3:
-            recommendations.append("⚠️ Reduce static method calls to improve testability and flexibility.")
-        if X_new["static_variable_usage"][0] > 2:
-            recommendations.append("⚠️ Minimize static variable usage to prevent global state issues.")
-        if X_new["setter_injections"][0] > 1:
-            recommendations.append("⚠️ Too many setter injections detected. Prefer constructor injection.")
-        if X_new["interface_implementations"][0] > 2:
-            recommendations.append("⚠️ Avoid God Interfaces.(interfaces with too many responsibilities)")
-        if X_new["global_variable_references"][0] > 2:
-            recommendations.append(
-                "⚠️ Avoid using global variables. Use dependency injection or encapsulation instead to prevent hidden dependencies."
-            )
-
-        # Store the result for this file in results3
         results3[filename] = {
-            "prediction": "High CBO (Issue)" if prediction == 1 else "Low CBO (Good)",
-            "recommendations": recommendations
+            "prediction": model_based_recommendations.get("prediction", "Unknown"),
+            "recommendations": model_based_recommendations.get("recommendations", [])
         }
+
+        print("result222222222222222222222222222", results3)
 
         # 3) Retrieve any existing line-based data
         cbo_line_data = result1.get(filename, [])

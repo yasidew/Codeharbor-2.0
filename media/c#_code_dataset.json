@@ -1,258 +1,74 @@
 [
     {
-        "file_name": "Example1.cs",
-        "csharp_code": "public class Example1 {\n    public Example1() {\n        Connection connection = new Connection();\n    }\n\n    public void ExecuteTask() {\n        Task task = new Task();\n        task.Run();\n    }\n}"
+        "file_name": "Test.cs",
+        "csharp_code": "using System;\r\nusing System.Threading;\r\nusing System.Threading.Tasks;\r\n\r\nclass Program\r\n{\r\n    static void Main(string[] args){\r\n        Console.WriteLine(\"Starting program...\");\r\n\r\n        for (int i = 1; i <= 2; i++){\r\n            Console.WriteLine($\"Outer loop iteration: {i}\");\r\n            try {\r\n                for (int j = 1; j <= 2; j++) {\r\n                    Console.WriteLine($\"Inner loop iteration: {j}\");\r\n                        try {\r\n                            for (int k = 1; k <= 2; k++) {\r\n                                if ((k % 2 == 0 && i % 2 == 1) || (j + k > 2)){\r\n                                    if (k == 2 && j == 2) {\r\n                                        throw new InvalidOperationException(\"Simulated exception at deep nesting.\");\r\n                                    }\r\n                                }\r\n                            }\r\n                        }catch (Exception ex){\r\n                            Console.WriteLine($\"level exception caught: {ex.Message}\");\r\n                        }\r\n                }\r\n            } catch (Exception ex){\r\n                Console.WriteLine($\"Outer-level exception caught: {ex.Message}\");\r\n            }\r\n        }\r\n\r\n        Console.WriteLine(\"Program completed.\");\r\n    }\r\n}\r\n"
     },
     {
-        "file_name": "Example2.cs",
-        "csharp_code": "public class Example2 {\n    private Service service;\n\n    public Example2(Service service) {\n        this.service = service;\n    }\n\n    public void ProcessData() {\n        DataProcessor processor = new DataProcessor();\n        processor.Process();\n    }\n}"
+        "file_name": "ExampleClass.cs",
+        "csharp_code": "public class ExampleClass\r\n    {\r\n        // Field declarations (for dependency injection)\r\n        private Repository repository;\r\n        private Service service;\r\n\r\n        // Constructor Injection (DI)\r\n        public ExampleClass(Repository repository){\r\n            this.repository = repository; // Assignment in constructor\r\n        }\r\n\r\n        // Setter Injection (DI)\r\n        public void setService(Service service){\r\n            this.service = service; // Assignment in setter\r\n        }\r\n\r\n        public void PerformAction(){\r\n            // Direct Object Instantiation\r\n            Helper helper = new Helper();\r\n            Thread t1 = new Thread();\r\n\r\n            // Static Method Call (should be detected with weight 2)\r\n            string result = Utility.process();\r\n\r\n            // Static Variable Usage (should be detected with weight 1)\r\n            int val = Utility.Value;\r\n\r\n            // Using a built-in class method (Console is excluded)\r\n            Console.WriteLine(result + \" \" + val);\r\n        }\r\n    }"
     },
     {
-        "file_name": "Example3.cs",
-        "csharp_code": "public class Example3 {\n    private static Database dbInstance;\n\n    public Example3() {\n        dbInstance = Database.GetInstance();\n    }\n\n    public void FetchData() {\n        dbInstance.Query(\"SELECT * FROM users\");\n    }\n}"
+        "file_name": "ExampleClass.cs",
+        "csharp_code": "public class ExampleClass\r\n    {\r\n        // Field declarations (for dependency injection)\r\n        private Repository _repository;\r\n        private Service _service;\r\n\r\n        // Constructor Injection (DI)\r\n        public ExampleClass(Repository repository){\r\n            _repository = repository; // Assignment in constructor\r\n        }\r\n\r\n        // Setter Injection (DI)\r\n        public void setService(Service service){\r\n            _service = service; // Assignment in setter\r\n        }\r\n\r\n        public void PerformAction(){\r\n            // Direct Object Instantiation\r\n            Helper helper = new Helper();\r\n            Thread t1 = new Thread();\r\n\r\n            // Static Method Call (should be detected with weight 2)\r\n            string result = Utility.process();\r\n\r\n            // Static Variable Usage (should be detected with weight 1)\r\n            int val = Utility.Value;\r\n\r\n            // Using a built-in class method (Console is excluded)\r\n            Console.WriteLine(result + \" \" + val);\r\n        }\r\n    }"
     },
     {
-        "file_name": "Example4.cs",
-        "csharp_code": "using System;\nusing System.Collections.Generic;\nusing System.IO;\n\npublic class Example4 {\n    public void LogMessage() {\n        var logger = Logger.GetLogger(typeof(Example4).Name);\n        logger.Info(\"Logging message\");\n    }\n}"
+        "file_name": "OrderService.cs",
+        "csharp_code": "public class OrderService\r\n    {\r\n        private readonly IPaymentProcessor _paymentProcessor;\r\n        private readonly ILogger _logger;\r\n        private DatabaseService _databaseService; // Direct instantiation (bad)\r\n        private EmailService _emailService; // Direct instantiation (bad)\r\n        \r\n        public OrderService(IPaymentProcessor paymentProcessor, ILogger logger)\r\n        {\r\n            _paymentProcessor = paymentProcessor;  // Constructor Injection (coupling)\r\n            _logger = logger;  // Constructor Injection (coupling)\r\n            _databaseService = new DatabaseService();  // Direct Instantiation (High Coupling)\r\n            _emailService = new EmailService();  // Direct Instantiation (High Coupling)\r\n        }\r\n\r\n        public void ProcessOrder(int orderId, double amount)\r\n        {\r\n            // Static method calls (coupling)\r\n            string orderDetails = OrderHelper.GetOrderDetails(orderId);\r\n            \r\n            _paymentProcessor.ProcessPayment(amount); // Interface implementation (coupling)\r\n            _logger.Log(\"Payment processed for order ID: \" + orderId);\r\n            \r\n            _databaseService.SaveOrder(orderId, amount); // Direct method calls (tight coupling)\r\n            _emailService.SendEmail(\"Order Confirmation\", \"Your order is confirmed.\");\r\n            \r\n            Console.WriteLine(\"Order processed successfully.\");\r\n        }\r\n    }"
     },
     {
-        "file_name": "Example5.cs",
-        "csharp_code": "using System;\n\npublic class Example5 {\n    public void CalculateSum(int a, int b) {\n        Console.WriteLine(\"Sum: \" + (a + b));\n    }\n}"
+        "file_name": "OrderService.cs",
+        "csharp_code": "public class OrderService\r\n    {\r\n        private readonly IPaymentProcessor _paymentProcessor;\r\n        private readonly ILogger _logger;\r\n        private DatabaseService databaseService; // Direct instantiation (bad)\r\n        private EmailService emailService; // Direct instantiation (bad)\r\n        \r\n        public OrderService(IPaymentProcessor paymentProcessor, ILogger logger)\r\n        {\r\n            _paymentProcessor = paymentProcessor;  // Constructor Injection (coupling)\r\n            _logger = logger;  // Constructor Injection (coupling)\r\n            databaseService = new DatabaseService();  // Direct Instantiation (High Coupling)\r\n            emailService = new EmailService();  // Direct Instantiation (High Coupling)\r\n        }\r\n\r\n        public void ProcessOrder(int orderId, double amount)\r\n        {\r\n            // Static method calls (coupling)\r\n            string orderDetails = OrderHelper.GetOrderDetails(orderId);\r\n            \r\n            _paymentProcessor.ProcessPayment(amount); // Interface implementation (coupling)\r\n            _logger.Log(\"Payment processed for order ID: \" + orderId);\r\n            \r\n            databaseService.SaveOrder(orderId, amount); // Direct method calls (tight coupling)\r\n            emailService.SendEmail(\"Order Confirmation\", \"Your order is confirmed.\");\r\n            \r\n            Console.WriteLine(\"Order processed successfully.\");\r\n        }\r\n    }"
     },
     {
-        "file_name": "Example6.cs",
-        "csharp_code": "using System;\n\npublic class Example6 {\n    private static readonly int MAX_RETRIES = 3;\n\n    public void RetryOperation() {\n        for (int i = 0; i < MAX_RETRIES; i++) {\n            Console.WriteLine(\"Retrying operation \" + i);\n        }\n    }\n}"
+        "file_name": "MyMiddleware.cs",
+        "csharp_code": "public class MyMiddleware\r\n{\r\n    private readonly RequestDelegate _next;\r\n    private readonly ILogger _logger;\r\n\r\n    private readonly IOperationSingleton _singletonOperation;\r\n\r\n    public MyMiddleware(RequestDelegate next, ILogger<MyMiddleware> logger,\r\n        IOperationSingleton singletonOperation)\r\n    {\r\n        _logger = logger;\r\n        _singletonOperation = singletonOperation;\r\n        _next = next;\r\n    }\r\n\r\n    public async Task InvokeAsync(HttpContext context,\r\n        IOperationTransient transientOperation, IOperationScoped scopedOperation)\r\n    {\r\n        _logger.LogInformation(\"Transient: \" + transientOperation.OperationId);\r\n        _logger.LogInformation(\"Scoped: \" + scopedOperation.OperationId);\r\n        _logger.LogInformation(\"Singleton: \" + _singletonOperation.OperationId);\r\n\r\n        await _next(context);\r\n    }\r\n}\r\n"
     },
     {
-        "file_name": "Example7.cs",
-        "csharp_code": "using System;\nusing System.Threading;\n\npublic class Example7 {\n    public void StartThread() {\n        Thread thread = new Thread(() => Console.WriteLine(\"Thread is running\"));\n        thread.Start();\n    }\n}"
+        "file_name": "OrderManager.cs",
+        "csharp_code": "public class OrderManager\r\n{\r\n    private readonly IPaymentProcessor _paymentProcessor;\r\n    private readonly ILogger _logger;\r\n    private CustomerService customerService;  // Direct Instantiation (Bad)\r\n    private ShippingService shippingService;  // Direct Instantiation (Bad)\r\n    private DatabaseService databaseService;  // Direct Instantiation (Bad)\r\n    private EmailService emailService;  // Direct Instantiation (Bad)\r\n\r\n    public OrderManager(IPaymentProcessor paymentProcessor, ILogger logger)\r\n    {\r\n        _paymentProcessor = paymentProcessor;  // Constructor Injection (Coupling)\r\n        _logger = logger;  // Constructor Injection (Coupling)\r\n\r\n        // Direct Instantiations (High Coupling)\r\n        customerService = new CustomerService();\r\n        shippingService = new ShippingService();\r\n        databaseService = new DatabaseService();\r\n        emailService = new EmailService();\r\n    }\r\n\r\n    public void ProcessOrder(int orderId, double amount)\r\n    {\r\n        // Static method call (High Coupling)\r\n        string customerDetails = OrderHelper.GetCustomerDetails(orderId);\r\n\r\n        customerService.ValidateCustomer(orderId);  // Direct method call (Tight Coupling)\r\n        _paymentProcessor.ProcessPayment(amount);  // Interface Implementation (Coupling)\r\n        _logger.Log($\"Payment processed for order ID: {orderId}\");\r\n\r\n        databaseService.SaveOrder(orderId, amount);  // Direct method calls (Tight Coupling)\r\n        shippingService.ScheduleDelivery(orderId);  // Direct method calls (Tight Coupling)\r\n        emailService.SendEmail(\"Order Confirmation\", \"Your order has been processed successfully.\");\r\n\r\n        Console.WriteLine(\"Order processing completed.\");\r\n    }\r\n}"
     },
     {
-        "file_name": "Example8.cs",
-        "csharp_code": "using System;\n\npublic class Example8 {\n    public static void PrintMessage() {\n        Console.WriteLine(\"Hello, World!\");\n    }\n}"
+        "file_name": "OrderServiceee.cs",
+        "csharp_code": "public class OrderService\r\n{\r\n    private PaymentProcessor paymentProcessor;\r\n    private InvoiceService invoiceService;\r\n    private NotificationService notificationService;\r\n\r\n    public OrderService()\r\n    {\r\n        paymentProcessor = new PaymentProcessor(); // Direct dependency\r\n        invoiceService = new InvoiceService();     // Direct dependency\r\n        notificationService = new NotificationService(); // Direct dependency\r\n    }\r\n\r\n    public void PlaceOrder(Customer customer, Product product)\r\n    {\r\n        Console.WriteLine($\"Placing order for {customer.Name} - {product.Name}\");\r\n        paymentProcessor.ProcessPayment(customer, product.Price);\r\n        invoiceService.GenerateInvoice(customer, product);\r\n        notificationService.SendOrderConfirmation(customer);\r\n    }\r\n}"
     },
     {
-        "file_name": "Example9.cs",
-        "csharp_code": "using System;\nusing System.IO;\n\npublic class Example9 {\n    public void ReadFile(string filename) {\n        using (StreamReader reader = new StreamReader(filename)) {\n            string line;\n            while ((line = reader.ReadLine()) != null) {\n                Console.WriteLine(line);\n            }\n        }\n    }\n}"
+        "file_name": "OrderServicerrrr.cs",
+        "csharp_code": "public class OrderService : IPaymentProcessor, ILogger\r\n    {\r\n        private readonly IPaymentProcessor _paymentProcessor; // Constructor Injection\r\n        private ILogger _logger; // Setter Injection\r\n        private static string logPath = \"log.txt\"; // Static Variable Usage\r\n\r\n        public OrderService(IPaymentProcessor paymentProcessor)\r\n        {\r\n            _paymentProcessor = paymentProcessor;\r\n        }\r\n\r\n        public void SetLogger(ILogger logger)\r\n        {\r\n            _logger = logger;\r\n        }\r\n\r\n        public void ProcessPayment()\r\n        {\r\n            _paymentProcessor.ProcessPayment();\r\n        }\r\n\r\n        public void Log(string message)\r\n        {\r\n            File.WriteAllText(logPath, message); // Static method usage\r\n        }\r\n\r\n        public void CreateInvoice()\r\n        {\r\n            Invoice invoice = new Invoice(); // Direct Object Instantiation\r\n            invoice.Generate();\r\n        }\r\n    }"
     },
     {
-        "file_name": "Example10.cs",
-        "csharp_code": "using System;\n\npublic class Example10 {\n    public int Factorial(int n) {\n        return (n <= 1) ? 1 : n * Factorial(n - 1);\n    }\n}"
+        "file_name": "UserServiceee.cs",
+        "csharp_code": "public class UserService : IDatabaseService\r\n    {\r\n        private readonly IDatabaseService _databaseService; // Constructor Injection\r\n        private IEmailService _emailService; // Setter Injection\r\n        private static HttpClient httpClient = new HttpClient(); // Static Variable Usage\r\n\r\n        public UserService(IDatabaseService databaseService)\r\n        {\r\n            _databaseService = databaseService;\r\n        }\r\n\r\n        public void SetEmailService(IEmailService emailService)\r\n        {\r\n            _emailService = emailService;\r\n        }\r\n\r\n        public void SaveData(string data)\r\n        {\r\n            _databaseService.SaveData(data);\r\n        }\r\n\r\n        public void NotifyUser(string email, string message)\r\n        {\r\n            _emailService?.SendEmail(email, message);\r\n        }\r\n\r\n        public void FetchDataFromAPI()\r\n        {\r\n            var response = httpClient.GetStringAsync(\"https://api.example.com/data\").Result; // Static Method Call\r\n            Console.WriteLine(\"Fetched data: \" + response);\r\n        }\r\n\r\n        public void ProcessUser()\r\n        {\r\n            Logger logger = new Logger(); // Direct Object Instantiation\r\n            logger.LogMessage(\"User processed successfully.\");\r\n        }\r\n    }\r\n"
     },
     {
-        "file_name": "Example11.cs",
-        "csharp_code": "using System;\n\npublic class Example11 {\n    private ILogger logger;\n\n    public Example11(ILogger logger) {\n        this.logger = logger;\n    }\n\n    public void LogMessage(string message) {\n        logger.Log(message);\n    }\n}"
+        "file_name": "UserManager.cs",
+        "csharp_code": "public class UserManager\r\n    {\r\n        private readonly IAuthService _authService; // Constructor Injection\r\n        private readonly IDatabaseService _databaseService; // Constructor Injection\r\n        private ILoggerService _logger; // Setter Injection\r\n        private static HttpClient _httpClient = new HttpClient(); // Static Variable Usage\r\n\r\n        public UserManager(IAuthService authService, IDatabaseService databaseService)\r\n        {\r\n            _authService = authService;\r\n            _databaseService = databaseService;\r\n        }\r\n\r\n        public void SetLogger(ILoggerService logger)\r\n        {\r\n            _logger = logger;\r\n        }\r\n\r\n        public bool Login(string username, string password)\r\n        {\r\n            bool isAuthenticated = _authService.Authenticate(username, password);\r\n            if (isAuthenticated)\r\n            {\r\n                _logger?.Log($\"User {username} logged in successfully.\");\r\n                _databaseService.SaveUser(username);\r\n            }\r\n            return isAuthenticated;\r\n        }\r\n\r\n        public void FetchRemoteData()\r\n        {\r\n            var response = _httpClient.GetStringAsync(\"https://example.com/api/data\").Result; // Static Method Call\r\n            Console.WriteLine(\"Fetched Data: \" + response);\r\n        }\r\n\r\n        public void GenerateReport()\r\n        {\r\n            ReportGenerator report = new ReportGenerator(); // Direct Object Instantiation\r\n            report.Generate();\r\n        }\r\n    }\r\n"
     },
     {
-        "file_name": "Example12.cs",
-        "csharp_code": "public class Example12 {\n    private Repository repository;\n\n    public Example12(Repository repository) {\n        this.repository = repository;\n    }\n\n    public void SaveData(string data) {\n        repository.Save(data);\n    }\n}"
+        "file_name": "UserManager.cs",
+        "csharp_code": "public class UserManager\r\n    {\r\n        private readonly IAuthService _authService; // Constructor Injection\r\n        private readonly IDatabaseService _databaseService; // Constructor Injection\r\n        private ILoggerService _logger; // Setter Injection\r\n        private static HttpClient _httpClient = new HttpClient(); // Static Variable Usage\r\n\r\n        public UserManager(IAuthService authService, IDatabaseService databaseService)\r\n        {\r\n            _authService = authService;\r\n            _databaseService = databaseService;\r\n        }\r\n\r\n        public void SetLogger(ILoggerService logger)\r\n        {\r\n            _logger = logger;\r\n        }\r\n\r\n        public bool Login(string username, string password)\r\n        {\r\n            bool isAuthenticated = _authService.Authenticate(username, password);\r\n            if (isAuthenticated)\r\n            {\r\n                _logger?.Log($\"User {username} logged in successfully.\");\r\n                _databaseService.SaveUser(username);\r\n            }\r\n            return isAuthenticated;\r\n        }\r\n\r\n        public void FetchRemoteData()\r\n        {\r\n            var response = _httpClient.GetStringAsync(\"https://example.com/api/data\").Result; // Static Method Call\r\n            Console.WriteLine(\"Fetched Data: \" + response);\r\n        }\r\n\r\n        public void GenerateReport()\r\n        {\r\n            ReportGenerator report = new ReportGenerator(); // Direct Object Instantiation\r\n            Cat c1 = new Cat()\r\n            Dog d1 = new Dog()\r\n            report.Generate();\r\n        }\r\n    }\r\n"
     },
     {
-        "file_name": "Example13.cs",
-        "csharp_code": "public class Example13 {\n    private static Cache cache = new Cache();\n\n    public void GetData(string key) {\n        var data = cache.Get(key);\n    }\n}"
+        "file_name": "PaymentProcessor.cs",
+        "csharp_code": "public class PaymentProcessor\r\n{\r\n    public bool ProcessPayment(double amount)\r\n    {\r\n        if (amount <= 0)\r\n        {\r\n            throw new ArgumentException(\"Amount must be greater than zero.\");\r\n        }\r\n        Console.WriteLine($\"Processing payment of ${amount}\");\r\n        return true;\r\n    }\r\n}"
     },
     {
-        "file_name": "Example14.cs",
-        "csharp_code": "public class Example14 {\n    private IService service;\n\n    public void SetService(IService service) {\n        this.service = service;\n    }\n\n    public void Execute() {\n        service.Run();\n    }\n}"
+        "file_name": "FileLogger.cs",
+        "csharp_code": "using System;\r\nusing System.IO;\r\n\r\npublic class FileLogger\r\n{\r\n    private readonly string _filePath;\r\n\r\n    public FileLogger(string filePath)\r\n    {\r\n        _filePath = filePath;\r\n    }\r\n\r\n    public void Log(string message)\r\n    {\r\n        File.AppendAllText(_filePath, DateTime.Now + \": \" + message + \"\\n\");\r\n        Console.WriteLine(\"Log written to file.\");\r\n    }\r\n}"
     },
     {
-        "file_name": "Example15.cs",
-        "csharp_code": "using System;\n\npublic class Example15 {\n    public void CalculateArea(double radius) {\n        double area = Math.PI * radius * radius;\n        Console.WriteLine(\"Area: \" + area);\n    }\n}"
+        "file_name": "EmailService.cs",
+        "csharp_code": "using System;\r\n\r\npublic class EmailService\r\n{\r\n    public void SendEmail(string recipient, string subject, string body)\r\n    {\r\n        if (string.IsNullOrEmpty(recipient))\r\n        {\r\n            throw new ArgumentException(\"Recipient email cannot be empty.\");\r\n        }\r\n        Console.WriteLine($\"Sending email to {recipient}: {subject}\\n{body}\");\r\n    }\r\n}"
     },
     {
-        "file_name": "Example16.cs",
-        "csharp_code": "public class Example16 {\n    public void ProcessData() {\n        Processor processor = new Processor();\n        processor.Process();\n    }\n}"
+        "file_name": "OrderProcessor.cs",
+        "csharp_code": "public class OrderProcessor\r\n{\r\n    private readonly PaymentProcessor _paymentProcessor;\r\n    private readonly EmailService _emailService;\r\n\r\n    public OrderProcessor(PaymentProcessor paymentProcessor, EmailService emailService)\r\n    {\r\n        _paymentProcessor = paymentProcessor;\r\n        _emailService = emailService;\r\n    }\r\n\r\n    public void ProcessOrder(int orderId, double amount, string customerEmail)\r\n    {\r\n        bool paymentSuccess = _paymentProcessor.ProcessPayment(amount);\r\n        if (paymentSuccess)\r\n        {\r\n            _emailService.SendEmail(customerEmail, \"Order Confirmation\", \"Your order has been processed successfully.\");\r\n            Console.WriteLine(\"Order processed successfully.\");\r\n        }\r\n    }\r\n}"
     },
     {
-        "file_name": "Example17.cs",
-        "csharp_code": "public class Example17 {\n    public void StartTransaction() {\n        Database db = Database.Instance;\n        db.BeginTransaction();\n    }\n}"
+        "file_name": "UserManager.cs",
+        "csharp_code": "public class UserManager\r\n{\r\n    private readonly List<string> _users = new List<string>();\r\n\r\n    public void AddUser(string username)\r\n    {\r\n        if (string.IsNullOrEmpty(username))\r\n        {\r\n            throw new ArgumentException(\"Username cannot be empty.\");\r\n        }\r\n        _users.Add(username);\r\n        Console.WriteLine($\"User {username} added successfully.\");\r\n    }\r\n\r\n    public void ListUsers()\r\n    {\r\n        Console.WriteLine(\"Registered Users:\");\r\n        foreach (var user in _users)\r\n        {\r\n            Console.WriteLine(user);\r\n        }\r\n    }\r\n}"
     },
     {
-        "file_name": "Example18.cs",
-        "csharp_code": "public class Example18 {\n    public void SaveOrder(Order order) {\n        OrderRepository repository = new OrderRepository();\n        repository.Save(order);\n    }\n}"
-    },
-    {
-        "file_name": "Example19.cs",
-        "csharp_code": "public class Example19 {\n    private PaymentGateway gateway;\n\n    public Example19(PaymentGateway gateway) {\n        this.gateway = gateway;\n    }\n\n    public void ProcessPayment(double amount) {\n        gateway.Pay(amount);\n    }\n}"
-    },
-    {
-        "file_name": "Example20.cs",
-        "csharp_code": "public class Example20 {\n    private IEmailService emailService;\n\n    public Example20(IEmailService emailService) {\n        this.emailService = emailService;\n    }\n\n    public void SendEmail(string recipient, string message) {\n        emailService.Send(recipient, message);\n    }\n}"
-    },
-    {
-        "file_name": "Example21.cs",
-        "csharp_code": "public class Example21 {\n    public void FetchUsers() {\n        UserService userService = new UserService();\n        var users = userService.GetUsers();\n    }\n}"
-    },
-    {
-        "file_name": "Example22.cs",
-        "csharp_code": "public class Example22 {\n    private Configuration config;\n\n    public Example22(Configuration config) {\n        this.config = config;\n    }\n\n    public void LoadSettings() {\n        config.Load();\n    }\n}"
-    },
-    {
-        "file_name": "Example23.cs",
-        "csharp_code": "public class Example23 {\n    public void GenerateReport() {\n        ReportGenerator generator = new ReportGenerator();\n        generator.Create();\n    }\n}"
-    },
-    {
-        "file_name": "Example24.cs",
-        "csharp_code": "public class Example24 {\n    private static Logger logger = Logger.Instance;\n\n    public void LogAction(string action) {\n        logger.Log(action);\n    }\n}"
-    },
-    {
-        "file_name": "Example25.cs",
-        "csharp_code": "public class Example25 {\n    public void StoreData(string data) {\n        Storage storage = new Storage();\n        storage.Save(data);\n    }\n}"
-    },
-    {
-        "file_name": "Example26.cs",
-        "csharp_code": "public class Example26 {\n    private readonly CacheManager cacheManager;\n\n    public Example26(CacheManager cacheManager) {\n        this.cacheManager = cacheManager;\n    }\n\n    public void CacheData(string key, string value) {\n        cacheManager.Store(key, value);\n    }\n}"
-    },
-    {
-        "file_name": "Example27.cs",
-        "csharp_code": "public class Example27 {\n    private APIClient client;\n\n    public Example27(APIClient client) {\n        this.client = client;\n    }\n\n    public void FetchAPIData() {\n        var data = client.GetData();\n    }\n}"
-    },
-    {
-        "file_name": "Example28.cs",
-        "csharp_code": "public class Example28 {\n    public void SendSMS(string number, string text) {\n        SMSService smsService = new SMSService();\n        smsService.Send(number, text);\n    }\n}"
-    },
-    {
-        "file_name": "Example29.cs",
-        "csharp_code": "public class Example29 {\n    private DataParser parser;\n\n    public Example29(DataParser parser) {\n        this.parser = parser;\n    }\n\n    public void ParseData(string rawData) {\n        parser.Parse(rawData);\n    }\n}"
-    },
-    {
-        "file_name": "Example30.cs",
-        "csharp_code": "public class Example30 {\n    private static ConnectionPool pool = ConnectionPool.Instance;\n\n    public void GetConnection() {\n        var conn = pool.GetConnection();\n    }\n}"
-    },
-    {
-        "file_name": "Example31.cs",
-        "csharp_code": "public class Example31 {\n    private Logger logger;\n\n    public Example31(Logger logger) {\n        this.logger = logger;\n    }\n\n    public void WriteLog(string logMessage) {\n        logger.Log(logMessage);\n    }\n}"
-    },
-    {
-        "file_name": "Example32.cs",
-        "csharp_code": "public class Example32 {\n    public void HandleUserInput() {\n        UserInputHandler handler = new UserInputHandler();\n        handler.ProcessInput();\n    }\n}"
-    },
-    {
-        "file_name": "Example33.cs",
-        "csharp_code": "public class Example33 {\n    private OrderProcessor processor;\n\n    public Example33(OrderProcessor processor) {\n        this.processor = processor;\n    }\n\n    public void ProcessOrder(Order order) {\n        processor.Process(order);\n    }\n}"
-    },
-    {
-        "file_name": "Example34.cs",
-        "csharp_code": "public class Example34 {\n    public void EncryptData(string data) {\n        EncryptionService encryptionService = new EncryptionService();\n        encryptionService.Encrypt(data);\n    }\n}"
-    },
-    {
-        "file_name": "Example35.cs",
-        "csharp_code": "public class Example35 {\n    private SessionManager sessionManager;\n\n    public Example35(SessionManager sessionManager) {\n        this.sessionManager = sessionManager;\n    }\n\n    public void StartSession() {\n        sessionManager.Start();\n    }\n}"
-    },
-    {
-        "file_name": "Example36.cs",
-        "csharp_code": "public class Example36 {\n    public void CompressFile(string filePath) {\n        FileCompressor compressor = new FileCompressor();\n        compressor.Compress(filePath);\n    }\n}"
-    },
-    {
-        "file_name": "Example37.cs",
-        "csharp_code": "public class Example37 {\n    private EmailService emailService;\n\n    public Example37(EmailService emailService) {\n        this.emailService = emailService;\n    }\n\n    public void SendNotification(string email, string message) {\n        emailService.Send(email, message);\n    }\n}"
-    },
-    {
-        "file_name": "Example38.cs",
-        "csharp_code": "public class Example38 {\n    private Database database;\n    public Example38(Database database) {\n        this.database = database;\n    }\n    public void QueryData() {\n        database.ExecuteQuery(\"SELECT * FROM Products\");\n    }\n}"
-    },
-    {
-        "file_name": "Example39.cs",
-        "csharp_code": "public class Example39 {\n    private Service service;\n    public void SetService(Service service) {\n        this.service = service;\n    }\n    public void ExecuteService() {\n        service.Run();\n    }\n}"
-    },
-    {
-        "file_name": "Example40.cs",
-        "csharp_code": "public class Example40 {\n    private static Logger logger = Logger.Instance;\n    public void LogAction(string action) {\n        logger.Log(action);\n    }\n}"
-    },
-    {
-        "file_name": "Example41.cs",
-        "csharp_code": "public class Example41 {\n    public void ProcessPayment() {\n        PaymentProcessor paymentProcessor = new PaymentProcessor();\n        paymentProcessor.Pay(100);\n    }\n}"
-    },
-    {
-        "file_name": "Example42.cs",
-        "csharp_code": "public interface IService {\n    void Execute();\n}\npublic class Example42 {\n    private IService service;\n    public Example42(IService service) {\n        this.service = service;\n    }\n    public void RunService() {\n        service.Execute();\n    }\n}"
-    },
-    {
-        "file_name": "Example43.cs",
-        "csharp_code": "public class Example43 {\n    public static void PrintWelcomeMessage() {\n        Console.WriteLine(\"Welcome to our system!\");\n    }\n}"
-    },
-    {
-        "file_name": "Example44.cs",
-        "csharp_code": "public class Example44 {\n    private Cache cache;\n    public Example44(Cache cache) {\n        this.cache = cache;\n    }\n    public void RetrieveData(string key) {\n        var data = cache.Get(key);\n    }\n}"
-    },
-    {
-        "file_name": "Example45.cs",
-        "csharp_code": "public class Example45 {\n    public void StartTransaction() {\n        Transaction transaction = new Transaction();\n        transaction.Commit();\n    }\n}"
-    },
-    {
-        "file_name": "Example46.cs",
-        "csharp_code": "public class Example46 {\n    private INotifier notifier;\n    public Example46(INotifier notifier) {\n        this.notifier = notifier;\n    }\n    public void NotifyUser(string message) {\n        notifier.SendNotification(message);\n    }\n}"
-    },
-    {
-        "file_name": "Example47.cs",
-        "csharp_code": "public class Example47 {\n    public static int ComputeSum(int a, int b) {\n        return a + b;\n    }\n}"
-    },
-    {
-        "file_name": "Example48.cs",
-        "csharp_code": "public class Example48 {\n    private Logger logger;\n    public Example48(Logger logger) {\n        this.logger = logger;\n    }\n    public void LogError(string errorMessage) {\n        logger.Log(errorMessage);\n    }\n}"
-    },
-    {
-        "file_name": "Example49.cs",
-        "csharp_code": "public class Example49 {\n    public void OpenFile() {\n        FileManager fileManager = new FileManager();\n        fileManager.Open(\"document.txt\");\n    }\n}"
-    },
-    {
-        "file_name": "Example50.cs",
-        "csharp_code": "public class Example50 {\n    private Configuration configuration;\n    public Example50(Configuration configuration) {\n        this.configuration = configuration;\n    }\n    public void LoadSettings() {\n        configuration.Load();\n    }\n}"
-    },
-    {
-        "file_name": "Example51.cs",
-        "csharp_code": "public class Example51 {\n    private static ConfigManager configManager = ConfigManager.Instance;\n    public void RetrieveConfig(string key) {\n        var value = configManager.GetValue(key);\n    }\n}"
-    },
-    {
-        "file_name": "Example52.cs",
-        "csharp_code": "public class Example52 {\n    public void SaveUserData() {\n        Database database = new Database();\n        database.Insert(\"User Data\");\n    }\n}"
-    },
-    {
-        "file_name": "Example53.cs",
-        "csharp_code": "public class Example53 {\n    private EmailService emailService;\n    public Example53(EmailService emailService) {\n        this.emailService = emailService;\n    }\n    public void SendEmail(string recipient, string message) {\n        emailService.Send(recipient, message);\n    }\n}"
-    },
-    {
-        "file_name": "Example54.cs",
-        "csharp_code": "public class Example54 {\n    public void GenerateReport() {\n        ReportGenerator reportGenerator = new ReportGenerator();\n        reportGenerator.CreateReport();\n    }\n}"
-    },
-    {
-        "file_name": "Example55.cs",
-        "csharp_code": "public class Example55 {\n    private ILoggingService loggingService;\n    public Example55(ILoggingService loggingService) {\n        this.loggingService = loggingService;\n    }\n    public void LogActivity(string activity) {\n        loggingService.Log(activity);\n    }\n}"
-    },
-    {
-        "file_name": "Example56.cs",
-        "csharp_code": "public class Example56 {\n    private static readonly string API_KEY = \"ABCD1234\";\n    public void Authenticate() {\n        Console.WriteLine(\"Authenticating using API Key: \" + API_KEY);\n    }\n}"
-    },
-    {
-        "file_name": "Example57.cs",
-        "csharp_code": "public class Example57 {\n    private ReportGenerator reportGenerator;\n    public Example57(ReportGenerator reportGenerator) {\n        this.reportGenerator = reportGenerator;\n    }\n    public void GenerateYearlyReport() {\n        reportGenerator.Create();\n    }\n}"
-    },
-    {
-        "file_name": "Example58.cs",
-        "csharp_code": "public class Example58 {\n    public void ParseFile() {\n        FileParser parser = new FileParser();\n        parser.Parse(\"file.txt\");\n    }\n}"
-    },
-    {
-        "file_name": "Example59.cs",
-        "csharp_code": "public class Example59 {\n    private static SessionManager sessionManager = SessionManager.Instance;\n    public void StartNewSession() {\n        sessionManager.Initialize();\n    }\n}"
-    },
-    {
-        "file_name": "Example60.cs",
-        "csharp_code": "public class Example60 {\n    private ICache cache;\n    public Example60(ICache cache) {\n        this.cache = cache;\n    }\n    public void StoreData(string key, string value) {\n        cache.Store(key, value);\n    }\n}"
-    },
-    {
-        "file_name": "Example61.cs",
-        "csharp_code": "public class Example61 {\n    public void CompressLogFiles() {\n        FileCompressor compressor = new FileCompressor();\n        compressor.Compress(\"logs.txt\");\n    }\n}"
-    },
-    {
-        "file_name": "Example62.cs",
-        "csharp_code": "public class Example62 {\n    private NotificationService notificationService;\n    public Example62(NotificationService notificationService) {\n        this.notificationService = notificationService;\n    }\n    public void NotifyUsers(string message) {\n        notificationService.Send(message);\n    }\n}"
-    },
-    {
-        "file_name": "Example63.cs",
-        "csharp_code": "public class Example63 {\n    public void ProcessRequest() {\n        RequestHandler handler = new RequestHandler();\n        handler.Handle();\n    }\n}"
-    },
-    {
-        "file_name": "Example64.cs",
-        "csharp_code": "public class Example64 {\n    private APIClient apiClient;\n    public Example64(APIClient apiClient) {\n        this.apiClient = apiClient;\n    }\n    public void FetchAPIResponse() {\n        var response = apiClient.GetResponse();\n    }\n}"
+        "file_name": "ExceptionHandlingExample.cs",
+        "csharp_code": "using System;\r\n\r\nclass ExceptionHandlingExample\r\n{\r\n    public void ProcessData()\r\n    {\r\n        try\r\n        {\r\n            Console.WriteLine(\"Processing data...\");\r\n            int result = 10 / 0; // This will cause a DivideByZeroException\r\n        }\r\n        catch (DivideByZeroException ex)\r\n        {\r\n            Console.WriteLine(\"Error: Division by zero.\");\r\n        }\r\n        finally\r\n        {\r\n            Console.WriteLine(\"Cleaning up resources.\");\r\n        }\r\n    }\r\n\r\n    public void NestedTryCatch()\r\n    {\r\n        try {\r\n            Console.WriteLine(\"Outer try block\");\r\n\r\n            try\r\n            {\r\n                try\r\n            {\r\n                Console.WriteLine(\"Inner try block\");\r\n                throw new Exception(\"Inner exception\");\r\n            }\r\n            catch (Exception ex)\r\n            {\r\n                Console.WriteLine(\"Caught inner exception: \" + ex.Message);\r\n            }\r\n            }\r\n            catch (Exception ex)\r\n            {\r\n                Console.WriteLine(\"Caught inner exception: \" + ex.Message);\r\n            }\r\n        }\r\n        catch (Exception ex)\r\n        {\r\n            Console.WriteLine(\"Caught outer exception: \" + ex.Message);\r\n        }\r\n        finally\r\n        {\r\n            Console.WriteLine(\"Final cleanup\");\r\n        }\r\n    }\r\n}\r\n"
     }
 ]
