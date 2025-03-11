@@ -79,6 +79,19 @@ torch.backends.cudnn.benchmark = True
 torch.backends.cuda.matmul.allow_tf32 = True
 
 
+FLASK_API_URL = "http://127.0.0.1:5000/predict"
+
+def call_flask_model(snippet):
+    """Calls Flask API and gets prediction from T5 model."""
+    try:
+        response = requests.post(FLASK_API_URL, json={"snippet": snippet}, timeout=15)
+        if response.status_code == 200:
+            return response.json().get("generated_text", "❌ No response from model")
+        else:
+            return f"❌ Flask API Error: {response.status_code} - {response.text}"
+    except requests.exceptions.RequestException as e:
+        return f"❌ Flask API Request Failed: {str(e)}"
+
 
 def home(request):
     return render(request, 'home.html')
@@ -853,17 +866,19 @@ def analyze_code_view(request):
                     print(f"🚀 No previous analysis found. Running AI and Model analysis for snippet {line_num}")
 
                     # ✅ **Perform AI-based T5 Model Analysis**
-                    inputs = tokenizer(
-                        snippet, truncation=True, padding="max_length", max_length=512, return_tensors="pt"
-                    )
-                    inputs = {key: value.to(device) for key, value in inputs.items()}
-                    model.eval()
+                    # inputs = tokenizer(
+                    #     snippet, truncation=True, padding="max_length", max_length=512, return_tensors="pt"
+                    # )
+                    # inputs = {key: value.to(device) for key, value in inputs.items()}
+                    # model.eval()
 
-                    with torch.no_grad():
-                        outputs = model.generate(
-                            inputs["input_ids"], max_length=256, num_beams=5, early_stopping=True
-                        )
-                        t5_suggestion = tokenizer.decode(outputs[0], skip_special_tokens=True)
+                    # with torch.no_grad():
+                    #     outputs = model.generate(
+                    #         inputs["input_ids"], max_length=256, num_beams=5, early_stopping=True
+                    #     )
+                    #     t5_suggestion = tokenizer.decode(outputs[0], skip_special_tokens=True)
+                    print(f"🚀 Calling Flask model for snippet {line_num}...")
+                    t5_suggestion = call_flask_model(snippet)  # Calls Flask API
 
                     # ✅ **Generate AI-based GPT analysis**
                     gpt_suggestion = ai_code_analysis(snippet)
