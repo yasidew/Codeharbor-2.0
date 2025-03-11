@@ -16,7 +16,7 @@ from sklearn.cluster import KMeans
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 
 import analysis
-from Drinks.models import Drink, JavaFile
+from Drinks.models import Drink, MethodComplexity, JavaFile, CSharpFile, CSharpMethodComplexity
 from analysis.code_analyzer import CodeAnalyzer
 from analysis.java_code_analyser import JavaCodeAnalyzer
 from analysis.python_code_analyser import PythonCodeAnalyzer
@@ -347,7 +347,7 @@ def calculate_complexity_multiple_java_files(request):
 
             mp_cbo_table = PrettyTable()
             mp_cbo_table.field_names = ["Filename", "CBO", "MPC"]
-            saved_files = []
+            # saved_files = []
 
             # Process complexity results
             for filename, file_data in result.items():
@@ -359,11 +359,15 @@ def calculate_complexity_multiple_java_files(request):
                 total_wcc = file_data.get('total_wcc', 0)
                 bar_charts = file_data.get('bar_charts', {})
 
-                java_file, created = JavaFile.objects.update_or_create(
-                    filename=filename,
-                    defaults={'total_wcc': file_data.get('total_wcc', 0)}
-                )
-                saved_files.append({'filename': filename, 'total_wcc': java_file.total_wcc})
+                # java_file, created = JavaFile.objects.update_or_create(
+                #     filename=filename,
+                #     defaults={'total_wcc': file_data.get('total_wcc', 0)}
+                # )
+                # saved_files.append({'filename': filename, 'total_wcc': java_file.total_wcc})
+
+                java_code = file_contents.get(filename, "")
+
+                save_complexity_to_db(filename, java_code, total_wcc, method_complexities)
 
                 for line_data in complexity_data:
                     if len(line_data) == 12:
@@ -434,9 +438,70 @@ def calculate_complexity_multiple_java_files(request):
                 'error': 'An unexpected error occurred.',
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    complexities = JavaFile.objects.prefetch_related("methods").all()
+
+    # Structure data for rendering in the template
+    complexity_data = []
+    for java_file in complexities:
+        file_data = {
+            "filename": java_file.filename,
+            "total_wcc": java_file.total_wcc,
+            "method_complexities": [
+                {
+                    "method_name": method.method_name,
+                    "total_complexity": method.total_complexity,
+                    "size": method.size,
+                    "control_structure_complexity": method.control_structure_complexity,
+                    "nesting_weight": method.nesting_weight,
+                    "inheritance_weight": method.inheritance_weight,
+                    "compound_condition_weight": method.compound_condition_weight,
+                    "try_catch_weight": method.try_catch_weight,
+                    "thread_weight": method.thread_weight,
+                    "cbo_weight": method.cbo_weight,
+                    "category": method.category,
+                }
+                for method in java_file.methods.all()
+            ],
+        }
+        complexity_data.append(file_data)
 
     # Render form for GET requests
-    return render(request, 'complexity_form.html')
+    return render(request, 'complexity_form.html', {"complexities": complexity_data})
+
+
+def save_complexity_to_db(filename, java_code, total_wcc, method_complexities):
+    try:
+        # Create or update JavaFile entry
+        java_file, created = JavaFile.objects.update_or_create(
+            filename=filename,
+            defaults={'java_code': java_code, 'total_wcc': total_wcc}
+        )
+
+        # Remove old method complexities (if updating)
+        if not created:
+            java_file.methods.all().delete()
+
+        # Store new method complexities
+        for method_name, method_data in method_complexities.items():
+            MethodComplexity.objects.create(
+                java_file=java_file,
+                method_name=method_name,
+                total_complexity=method_data.get('total_complexity', 0),
+                category=method_data.get('category', 'Low'),
+
+                # Store additional complexity metrics
+                size=method_data.get('size', 0),
+                control_structure_complexity=method_data.get('control_structure_complexity', 0),
+                nesting_weight=method_data.get('nesting_level', 0),
+                inheritance_weight=method_data.get('inheritance_level', 0),
+                compound_condition_weight=method_data.get('compound_condition_weight', 0),
+                try_catch_weight=method_data.get('try_catch_weight', 0),
+                thread_weight=method_data.get('thread_weight', 0),
+                cbo_weight=method_data.get('cbo_weights', 0),
+            )
+
+    except Exception as e:
+        print(f"Error saving complexity data for {filename}: {e}")
 
 
 @api_view(['GET', 'POST'])
@@ -508,6 +573,8 @@ def calculate_complexity_multiple_csharp_files(request):
             total_wcc = file_data['total_wcc']
             bar_charts = file_data.get('bar_charts', {})
 
+            save_complexity_to_db_csharp(filename, file_contents[filename], total_wcc, method_complexities)
+
             print("method_complexities.....]]]]]]]]]]{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{", method_complexities)
 
             for line_data in complexity_data:
@@ -572,9 +639,71 @@ def calculate_complexity_multiple_csharp_files(request):
         # Instead of returning a JSON response, render the template and pass complexities
         return render(request, 'complexityC_table.html', {'complexities': complexities, 'cbo_predictions': cbo_summary})
 
-    # If GET request, just show the form
-    return render(request, 'complexityC_form.html')
+    csharp_files = CSharpFile.objects.all()
+    complexities = []
 
+    for file in csharp_files:
+        methods = CSharpMethodComplexity.objects.filter(csharp_file=file)
+        method_list = []
+        for method in methods:
+            method_list.append({
+                'method_name': method.method_name,
+                'total_complexity': method.total_complexity,
+                'size': method.size,
+                'control_structure_complexity': method.control_structure_complexity,
+                'nesting_weight': method.nesting_weight,
+                'inheritance_weight': method.inheritance_weight,
+                'compound_condition_weight': method.compound_condition_weight,
+                'try_catch_weight': method.try_catch_weight,
+                'thread_weight': method.thread_weight,
+                'cbo_weight': method.cbo_weight,
+                'category': method.category,
+            })
+
+        complexities.append({
+            'filename': file.filename,
+            'total_wcc': file.total_wcc,
+            'method_complexities': method_list
+        })
+
+        print("complexities>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",complexities)
+
+    # If GET request, just show the form
+    return render(request, 'complexityC_form.html', {'complexities': complexities})
+
+def save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_complexities):
+    """Save C# complexity results to the database while preventing duplicate method names."""
+    try:
+        # Update or create the CSharpFile record
+        csharp_file, created = CSharpFile.objects.update_or_create(
+            filename=filename,
+            defaults={'csharp_code': csharp_code, 'total_wcc': total_wcc}
+        )
+
+        # Delete old methods before inserting new ones (to avoid duplicates)
+        CSharpMethodComplexity.objects.filter(csharp_file=csharp_file).delete()
+
+        for method_name, method_data in method_complexities.items():
+            if isinstance(method_data, dict):
+                # Ensure valid data before saving
+                CSharpMethodComplexity.objects.update_or_create(
+                    csharp_file=csharp_file,
+                    method_name=method_name,  # Ensures uniqueness per file
+                    defaults={
+                        'total_complexity': method_data.get('total_complexity', 0),
+                        'size': method_data.get('size', 0),
+                        'control_structure_complexity': method_data.get('control_structure_complexity', 0),
+                        'nesting_weight': method_data.get('nesting_level', 0),
+                        'inheritance_weight': method_data.get('inheritance_level', 0),
+                        'compound_condition_weight': method_data.get('compound_condition_weight', 0),
+                        'try_catch_weight': method_data.get('try_catch_weight', 0),
+                        'thread_weight': method_data.get('thread_weight', 0),
+                        'cbo_weight': method_data.get('cbo_weights', 0),
+                        'category': method_data.get('category', 'Low'),
+                    }
+                )
+    except Exception as e:
+        print(f"Error saving complexity data for {filename}: {e}")
 
 @api_view(['GET', 'POST'])
 def calculate_complexity(request):
@@ -1025,7 +1154,7 @@ class CarTight {
             "description": "Logical operators increase complexity.",
             "table": [
                 {"structure": "Simple condition", "weight": 1},
-                {"structure": "Compound condition with n logical operators", "weight": "n"},
+                {"structure": "Compound condition with n logical operators", "weight": "n+1"},
             ],
             "examples": {
                 "Java": """

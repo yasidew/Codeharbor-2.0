@@ -1,19 +1,17 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Calculate Code Complexity - C#{% endblock %}
+{% block title %}C# Code Complexity Analysis{% endblock %}
 
 {% block content %}
     <style>
-        /* Dark Theme Background */
         body {
             background-color: #0d1117;
             color: #c9d1d9;
         }
 
-        /* Centered Container */
         .container-custom {
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             background-color: #161b22;
             padding: 30px;
@@ -22,89 +20,155 @@
             text-align: center;
         }
 
-        /* Improved Heading */
-        .container-custom h2 {
-            color: #58a6ff;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        /* File Input Customization */
-        .form-control {
-            background-color: #0d1117;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-        }
-
-        .form-control:focus {
-            border-color: #58a6ff;
-            box-shadow: 0 0 5px rgba(88, 166, 255, 0.5);
-            background-color: #0d1117;
-            color: white;
-        }
-
-        /* Submit Button */
-        .btn-primary {
-            background-color: #238636;
-            border: none;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-
-        .btn-primary:hover {
-            background-color: #2ea043;
-            transform: scale(1.05);
-        }
-
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-
-        /* Spinner Container */
-        .spinner-container {
+        .container-custom1 {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
             text-align: center;
+        }
+
+        .table-container {
+            width: 100%;
+            background-color: #161b22;
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        .table-header {
+            background-color: #21262d;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h5 {
+            margin: 0;
+            color: #58a6ff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .table-content {
+            display: none;
+            padding: 10px;
+            background-color: #0d1117;
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+
+        .table th, .table td {
+            border: 1px solid #30363d;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .table th {
+            background-color: #21262d;
+            color: #58a6ff;
+        }
+
+        .toggle-icon {
+            font-size: 18px;
+            transition: 0.3s;
         }
     </style>
 
     <div class="container my-5">
         <div class="container-custom">
-            <h2>Calculate Code Complexity - C#</h2>
+            <h2>C# Code Complexity Analysis</h2>
             <p class="text-muted">Upload your C# files to analyze code complexity. Supports multiple file uploads.</p>
 
             <form method="POST" action="" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="mb-3">
-                    <label for="files" class="form-label">Upload Your C# Files:</label>
+                    <label for="files" class="form-label">Upload C# Files:</label>
                     <input type="file" name="files" id="files" class="form-control" accept=".cs" multiple>
                 </div>
-                <button type="submit" class="btn btn-primary w-100" onclick="showLoading()">Calculate Complexity</button>
+                <button type="submit" class="btn btn-primary w-100" onclick="showLoading()">Calculate Complexity
+                </button>
             </form>
-            <p class="note text-muted mt-3">Supported file type: <strong>.cs</strong> (C# files only).</p>
         </div>
+
+        {% if complexities %}
+            <div class="container-custom1 mt-4">
+                <h3>Analysis Results</h3>
+                {% for file in complexities %}
+                    <div class="table-container">
+                        <!-- Clickable Header -->
+                        <div class="table-header" onclick="toggleTable('{{ file.filename|slugify }}')">
+                            <h5>{{ file.filename }}</h5>
+                            <span><strong>Total WCC:</strong> {{ file.total_wcc }}</span>
+                            <span class="toggle-icon" id="icon-{{ file.filename|slugify }}">+</span>
+                        </div>
+
+                        <!-- Collapsible Content -->
+                        <div id="table-{{ file.filename|slugify }}" class="table-content">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Size</th>
+                                    <th>Control</th>
+                                    <th>Nesting</th>
+                                    <th>Inheritance</th>
+                                    <th>Compound</th>
+                                    <th>Try-Catch</th>
+                                    <th>Thread</th>
+                                    <th>CBO</th>
+                                    <th>Complexity</th>
+                                    <th>Category</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for method in file.method_complexities %}
+                                    <tr>
+                                        <td>{{ method.method_name }}</td>
+                                        <td>{{ method.size }}</td>
+                                        <td>{{ method.control_structure_complexity }}</td>
+                                        <td>{{ method.nesting_weight }}</td>
+                                        <td>{{ method.inheritance_weight }}</td>
+                                        <td>{{ method.compound_condition_weight }}</td>
+                                        <td>{{ method.try_catch_weight }}</td>
+                                        <td>{{ method.thread_weight }}</td>
+                                        <td>{{ method.cbo_weight }}</td>
+                                        <td>{{ method.total_complexity }}</td>
+                                        <td>
+                                            <span class="badge {% if method.category == 'High' %}bg-danger{% elif method.category == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ method.category }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
 
-    <!-- Improved Loading Spinner -->
-    <div id="loading-spinner" class="loading-overlay" style="display: none;">
-        <div class="spinner-container">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="text-white mt-2">Processing your files, please wait...</p>
-        </div>
-    </div>
-
-{% endblock %}
-
-{% block scripts %}
     <script>
+        function toggleTable(id) {
+            var content = document.getElementById("table-" + id);
+            var icon = document.getElementById("icon-" + id);
+
+            if (content.style.display === "none" || content.style.display === "") {
+                content.style.display = "block";
+                icon.innerText = "-";
+            } else {
+                content.style.display = "none";
+                icon.innerText = "+";
+            }
+        }
+
         function showLoading() {
             document.getElementById('loading-spinner').style.display = 'flex';
         }

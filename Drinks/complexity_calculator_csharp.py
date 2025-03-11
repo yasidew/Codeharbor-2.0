@@ -16,6 +16,7 @@ from sklearn.model_selection import train_test_split
 from pygments.lexers import CSharpLexer
 from pygments.token import Token
 from pygments import lex
+from xgboost import XGBClassifier
 
 from Drinks.complexity_calculator import model_output
 from Drinks.process_java_file_cbo import process_csharp_files, process_csharp_files1, calculate_cbo_csharp1
@@ -423,48 +424,76 @@ class CBOMetricsCSharp:
 
 
 # Load dataset
-dataset = pd.read_csv("media/Updated_Dataset_with_CBO_Labeling.csv")
+df = pd.read_csv("media/Updated_Dataset_with_CBO_Labeling.csv")
 
-dataset = dataset.drop(columns=["file_name"], errors="ignore")
+# dataset = dataset.drop(columns=["file_name"], errors="ignore")
+#
+# # Ensure dataset contains labels
+# if "cbo_label" not in dataset.columns:
+#     raise ValueError("The dataset must contain a 'cbo_label' column!")
+#
+# # Split features and labels
+# X = dataset.drop(columns=["cbo_label"])
+# y = dataset["cbo_label"]
+#
+# # Handle missing values
+# X.fillna(0, inplace=True)
+#
+# # Check class distribution
+# value_counts = y.value_counts()
+#
+# # Ensure each class has at least two samples
+# if value_counts.min() < 2:
+#     print("⚠️ Warning: Some classes have fewer than two samples. Adjusting strategy.")
+#     stratify_param = None  # Disable stratification
+# else:
+#     stratify_param = y  # Keep stratification if valid
+#
+# # Split into training and test sets
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=stratify_param)
+#
+# # Train the Random Forest model
+# rf_model = RandomForestClassifier(n_estimators=200, random_state=42, max_depth=10, class_weight="balanced")
+# rf_model.fit(X_train, y_train)
+#
+# # Save trained model
+# joblib.dump(rf_model, "random_forest_csharp_cbo_model.pkl")
+#
+# # Evaluate model
+# y_pred = rf_model.predict(X_test)
+# print("✅✅✅✅hhhhhhhhhhhhhhh", classification_report(y_test, y_pred))
+# print("✅ Model saved as 'random_forest_csharp_cbo_model.pkl'")
 
-# Ensure dataset contains labels
-if "cbo_label" not in dataset.columns:
-    raise ValueError("The dataset must contain a 'cbo_label' column!")
+# Drop 'file_name' column as it's not a feature
+df.drop(columns=["file_name"], inplace=True)
 
-# Split features and labels
-X = dataset.drop(columns=["cbo_label"])
-y = dataset["cbo_label"]
+# Define features (X) and labels (y)
+X = df.drop(columns=["cbo_label"])
+y = df["cbo_label"]
 
-# Handle missing values
-X.fillna(0, inplace=True)
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Check class distribution
-value_counts = y.value_counts()
+# Define and train the XGBoost model
+model = XGBClassifier(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
+model.fit(X_train, y_train)
 
-# Ensure each class has at least two samples
-if value_counts.min() < 2:
-    print("⚠️ Warning: Some classes have fewer than two samples. Adjusting strategy.")
-    stratify_param = None  # Disable stratification
-else:
-    stratify_param = y  # Keep stratification if valid
+# Make predictions
+y_pred = model.predict(X_test)
 
-# Split into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=stratify_param)
+# Evaluate model performance
+accuracy = accuracy_score(y_test, y_pred)
+print(f"XGBoost Model Accuracy: {accuracy:.4f}")
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
 
-# Train the Random Forest model
-rf_model = RandomForestClassifier(n_estimators=200, random_state=42, max_depth=10, class_weight="balanced")
-rf_model.fit(X_train, y_train)
-
-# Save trained model
-joblib.dump(rf_model, "random_forest_csharp_cbo_model.pkl")
-
-# Evaluate model
-y_pred = rf_model.predict(X_test)
-print("✅✅✅✅hhhhhhhhhhhhhhh", classification_report(y_test, y_pred))
-print("✅ Model saved as 'random_forest_csharp_cbo_model.pkl'")
+# Save trained model for use in C#
+model_filename = "xgboost_c#_cbo_model.pkl"
+joblib.dump(model, model_filename)
+print(f"Model saved as {model_filename}")
 
 # Load the trained model
-rf_model = joblib.load("random_forest_csharp_cbo_model.pkl")
+rf_model = joblib.load("xgboost_c#_cbo_model.pkl")
 
 # Global dictionary for tracking inheritance depth
 inheritance_depth = {}
@@ -2061,7 +2090,7 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         # }
 
         print("model output>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", model_output)
-        model_based_recommendations = get_csharp_code_recommendations(lines, 'random_forest_c#_cbo_model.pkl')
+        model_based_recommendations = get_csharp_code_recommendations(lines, model_filename)
 
         results3[filename] = {
             "prediction": model_based_recommendations.get("prediction", "Unknown"),
