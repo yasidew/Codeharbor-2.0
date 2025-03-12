@@ -66,3 +66,17 @@ Nested.java,1,0,0,0.0,0.0,0.0,0
 Nested.java,1,0,0,0.0,0.0,0.0,0
 Exampleee.java,0,0,0,0.0,0.5,0.0,0
 UserService.java,2,0,0,0.0,0.5,0.0,0
+Example.java,1,1,0,0.0,1.0,0.5,0
+TryCatchTest.java,2,0,0,0.0,0.0,0.0,0
+TryCatchTest.java,2,0,0,0.0,0.0,0.0,0
+TryCatchTest.java,3,0,0,0.0,0.0,0.0,0
+TryCatchTest.java,8,0,0,0.0,0.0,0.0,1
+RecursiveProcessor.java,0,1,0,0.0,0.0,0.0,0
+AnotherDerivedClass.java,0,0,0,0.0,0.0,0.0,0
+BaseClass.java,0,0,0,0.0,0.0,0.0,0
+DeepInheritance.java,0,0,0,0.0,0.0,0.0,0
+DerivedClass.java,0,0,0,0.0,0.0,0.0,0
+VeryDeepInheritance.java,0,0,0,0.0,0.0,0.0,0
+CodeComplexityExample.java,1,0,0,0.0,0.0,0.0,0
+ComplexCodeExample.java,0,0,0,0.0,0.0,0.0,0
+HighComplexityExample.java,1,0,0,0.0,0.0,0.0,0

@@ -1,4 +1,3 @@
-
 {#{% load static %}#}
 {#<!DOCTYPE html>#}
 {#<html>#}
@@ -930,13 +929,21 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for rec in file.recommendations %}
-                    <tr class="recommendation-row">
-                        <td>{{ rec.line_number }}</td>
-                        <td>{{ rec.line_content }}</td>
-                        <td class="recommendation-text">{{ rec.recommendation }}</td>
+                {% if file.recommendations %}
+                    {% for rec in file.recommendations %}
+                        <tr class="recommendation-row">
+                            <td>{{ rec.line_number }}</td>
+                            <td>{{ rec.line_content }}</td>
+                            <td class="recommendation-text">{{ rec.recommendation }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #c9d1d9; font-style: italic;">
+                            No recommendations available
+                        </td>
                     </tr>
-                {% endfor %}
+                {% endif %}
                 </tbody>
             </table>
         </div>

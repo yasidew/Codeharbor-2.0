@@ -99,12 +99,16 @@
 
     <div class="container-custom mt-4">
         <h4 class="mt-5">Weighted Code Complexity (WCC) Equation</h4>
-        <h3><pre><code>WCC<sub>i</sub> = S<sub>i</sub> * (W<sub>c</sub> + W<sub>n</sub> + W<sub>i</sub> + W<sub>tc</sub> + W<sub>cc</sub> + W<sub>th</sub> + (W<sub>cbo</sub>(high) - W<sub>cbo</sub>(loose)))</code></pre></h3>
+        <h3>
+            <pre><code>WCC<sub>i</sub> = S<sub>i</sub> * (W<sub>c</sub> + W<sub>n</sub> + W<sub>i</sub> + W<sub>tc</sub> + W<sub>cc</sub> + W<sub>th</sub> + (W<sub>cbo</sub>(high) - W<sub>cbo</sub>(loose)))</code></pre>
+        </h3>
     </div>
 
     <div class="container-custom mt-4">
         <h4 class="mt-5">Total WCC for the Class</h4>
-        <h3><pre><code>WCC<sub>total</sub> = Σ (WCC<sub>i</sub>) for i=1 to N</code></pre></h3>
+        <h3>
+            <pre><code>WCC<sub>total</sub> = Σ (WCC<sub>i</sub>) for i=1 to N</code></pre>
+        </h3>
     </div>
 
     <button class="btn btn-info" onclick="window.location.href='/guidelines/'">View Guidelines</button>
@@ -244,14 +248,21 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for rec in file.recommendations %}
+                {% if file.recommendations %}
+                    {% for rec in file.recommendations %}
+                        <tr>
+                            <td>{{ rec.line_number }}</td>
+                            <td>{{ rec.line_content }}</td>
+                            <td>{{ rec.recommendation }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
                     <tr>
-                        <td>{{ rec.line_number }}</td>
-                        <td>{{ rec.line_content }}</td>
-                        <td>{{ rec.recommendation }}</td>
-                        <td>{{ rec.recommendation1 }}</td>
+                        <td colspan="3" style="text-align: center; color: #c9d1d9; font-style: italic;">
+                            No recommendations available
+                        </td>
                     </tr>
-                {% endfor %}
+                {% endif %}
                 </tbody>
             </table>
         </div>
@@ -309,7 +320,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalChartTitle"></h3>
-                <span class="close" onclick="closeModal()">&times;</span>
+                <span class="close" onclick="closePieChartModal()">&times;</span>
             </div>
             <img id="modalPieChart" src="" alt="Pie Chart">
         </div>
@@ -377,7 +388,7 @@
 
         }
 
-        function closeModal1() {
+        function closePieChartModal() {
             document.getElementById('chartModal').style.display = 'none';
         }
 

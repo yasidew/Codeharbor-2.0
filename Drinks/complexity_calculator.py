@@ -813,64 +813,223 @@ def calculate_compound_condition_weight(line):
     return complexity
 
 
+# def calculate_try_catch_weight(java_code):
+#     """
+#     Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
+#     - Increment nesting level for try.
+#     - Assign weights line by line for catch and finally based on nesting level.
+#     """
+#     # Remove comments from the Java code
+#     java_code = remove_comments(java_code)
+#     lines = java_code.splitlines()
+#
+#     # State variables
+#     current_nesting = 0
+#     nesting_levels = []
+#     line_weights = {}
+#
+#     # Regular expressions for try, catch, and finally
+#     control_regex = re.compile(r'\b(try|catch|finally)\b')
+#
+#     # Weights for catch based on nesting levels
+#     catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
+#     finally_weight = 1
+#
+#     for line_no, line in enumerate(lines, start=1):
+#         stripped_line = line.strip()
+#
+#         if not stripped_line:
+#             # Skip empty lines
+#             nesting_levels.append((line_no, stripped_line, current_nesting, 0))
+#             continue
+#
+#         # Check for try, catch, or finally
+#         control_match = control_regex.search(stripped_line)
+#         if control_match:
+#             control_type = control_match.group()
+#
+#             if control_type == 'try':
+#                 # Increment nesting level for try
+#                 current_nesting += 1
+#
+#             elif control_type == 'catch':
+#                 # Assign weight for catch based on nesting level
+#                 weight = catch_weights.get(current_nesting, 1)
+#                 line_weights[line_no] = weight
+#
+#             elif control_type == 'finally':
+#                 # Assign fixed weight for finally
+#                 line_weights[line_no] = finally_weight
+#
+#         # Append the current line and its weight
+#         nesting_levels.append((line_no, stripped_line, current_nesting, line_weights.get(line_no, 0)))
+#
+#         # Adjust nesting level for closing braces
+#         if stripped_line.endswith('}'):
+#             current_nesting = max(0, current_nesting - 1)
+#
+#     return nesting_levels, line_weights
+
 def calculate_try_catch_weight(java_code):
     """
     Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
-    - Increment nesting level for try.
-    - Assign weights line by line for catch and finally based on nesting level.
+    - Increments nesting level for try.
+    - Assigns weights for catch and finally based on nesting level.
+    - Properly handles nested try-catch-finally blocks.
     """
-    # Remove comments from the Java code
     java_code = remove_comments(java_code)
     lines = java_code.splitlines()
 
-    # State variables
     current_nesting = 0
     nesting_levels = []
     line_weights = {}
 
-    # Regular expressions for try, catch, and finally
     control_regex = re.compile(r'\b(try|catch|finally)\b')
-
-    # Weights for catch based on nesting levels
     catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
     finally_weight = 1
+
+    try_stack = []  # Stack to track try nesting levels
 
     for line_no, line in enumerate(lines, start=1):
         stripped_line = line.strip()
 
         if not stripped_line:
-            # Skip empty lines
             nesting_levels.append((line_no, stripped_line, current_nesting, 0))
             continue
 
-        # Check for try, catch, or finally
         control_match = control_regex.search(stripped_line)
         if control_match:
             control_type = control_match.group()
 
             if control_type == 'try':
-                # Increment nesting level for try
+                # Increase nesting level and push onto stack
                 current_nesting += 1
+                try_stack.append(current_nesting)
 
             elif control_type == 'catch':
-                # Assign weight for catch based on nesting level
-                weight = catch_weights.get(current_nesting, 1)
+                # Assign weight based on the last try nesting level
+                weight = catch_weights.get(try_stack[-1] if try_stack else 1, 1)
                 line_weights[line_no] = weight
 
             elif control_type == 'finally':
-                # Assign fixed weight for finally
+                # Assign a fixed weight for finally
                 line_weights[line_no] = finally_weight
 
-        # Append the current line and its weight
+        # Append line with its weight
         nesting_levels.append((line_no, stripped_line, current_nesting, line_weights.get(line_no, 0)))
 
-        # Adjust nesting level for closing braces
+        # Adjust nesting level when closing a try block
         if stripped_line.endswith('}'):
+            if try_stack:
+                try_stack.pop()
             current_nesting = max(0, current_nesting - 1)
 
     return nesting_levels, line_weights
 
+javaaaaa="""
+public class HighComplexityExample {
+    
+    public static void main(String[] args) {
+        try {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter a number:");
+            int num = scanner.nextInt();
 
+            // Deeply Nested If-Else
+            if (num > 0) {
+                if (num < 50) {
+                    if (num % 2 == 0) {
+                        if (num % 3 == 0) {
+                            if (num % 5 == 0) {
+                                System.out.println("Number is divisible by 2, 3, and 5.");
+                            } else {
+                                System.out.println("Number is divisible by 2 and 3 but not 5.");
+                            }
+                        } else {
+                            System.out.println("Number is even but not divisible by 3.");
+                        }
+                    } else {
+                        if (num % 7 == 0 && num % 11 == 0 && num % 13 == 0) {
+                            System.out.println("Highly composite number.");
+                        } else {
+                            System.out.println("Number is odd and large.");
+                        }
+                    }
+                } else {
+                    System.out.println("Number is greater than or equal to 50.");
+                }
+            } else {
+                System.out.println("Number is non-positive.");
+            }
+
+            // Complex switch-case nesting
+            switch (num) {
+                case 1:
+                    System.out.println("One");
+                    break;
+                case 2:
+                    switch (num % 2) {
+                        case 0:
+                            System.out.println("Two and even");
+                            break;
+                        default:
+                            System.out.println("Unexpected case");
+                            break;
+                    }
+                    break;
+                case 3:
+                    switch (num % 3) {
+                        case 0:
+                            System.out.println("Three and multiple of 3");
+                            break;
+                        default:
+                            System.out.println("Unexpected case");
+                            break;
+                    }
+                    break;
+                case 4:
+                    System.out.println("Four");
+                    break;
+                default:
+                    System.out.println("Some other number");
+                    break;
+            }
+
+            // Multiple Try-Catch Blocks
+            try {
+                int result = 100 / num;
+                System.out.println("Division result: " + result);
+            } catch (ArithmeticException e) {
+                System.out.println("Error: Division by zero!");
+            }
+
+            try {
+                int[] arr = new int[5];
+                System.out.println(arr[num]);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("Error: Array index out of bounds!");
+            }
+
+            try {
+                String str = null;
+                System.out.println(str.length());
+            } catch (NullPointerException e) {
+                System.out.println("Error: Null reference encountered!");
+            }
+
+            // Deep Inheritance
+            BaseClass obj = new LevelFour();
+            obj.process();
+
+        } catch (Exception e) {
+            System.out.println("General Exception: " + e.getMessage());
+        }
+    }
+}
+
+"""
+
+print("ghghfhshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh", calculate_try_catch_weight(javaaaaa))
 def calculate_thread_weight(java_code):
     complexity = {}
 
@@ -1053,53 +1212,6 @@ def detect_deadlocks(java_code):
 
     return deadlock_warnings
 
-
-# **Example Java Code with Potential Deadlock**
-java_code = """
-public class WritingToFiles {
-    public static void main(String[] args) {
-        BufferedWriter out = null;
-
-        try {
-            out = new BufferedWriter(new FileWriter("out.txt", true));
-
-            for(long number : FibonacciNumbers())
-            {
-                out.write(String.valueOf(number) + "\r\n");
-                //System.out.println(number);
-            }
-        }
-        catch(IOException e) {
-            System.err.println("File IO Failed.");
-        }
-        finally{
-            out.close();
-        }
-    }
-
-    private static long[] FibonacciNumbers() {
-        long[] fibNumbers = new long[50];
-        fibNumbers[0] = 0;
-        fibNumbers[1] = 1;
-        for(int i = 2; i < 50; i++)
-        {
-            fibNumbers[i] = fibNumbers[i - 1] + fibNumbers[i - 2];
-        }
-        return fibNumbers;
-    }
-}
-"""
-
-# **Run Deadlock Detection**
-deadlocks = detect_deadlocks(java_code)
-if deadlocks:
-    print("🔴 Potential Deadlocks Found!")
-    for warning in deadlocks:
-        print(f"⚠️ {warning['warning']}")
-else:
-    print("✅ No Deadlocks Detected!")
-
-
 def extract_class_references(java_code):
     instantiation_pattern = r'new\s+([A-Z][\w]*)'
     constructor_pattern = r'\bpublic\s+[A-Z][\w]*\s*\(([^)]*)\)'
@@ -1172,7 +1284,6 @@ def extract_class_references(java_code):
                 class_references[current_class][setter_class] = 1
 
     return class_references
-
 
 # Function to calculate CBO
 def calculate_cbo(class_references):
@@ -1578,41 +1689,74 @@ def update_dataset_and_model(new_data):
     model = train_model(dataset)
 
 
+# def recommend_action(metrics):
+#     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
+#
+#     if control_structure_complexity == 1 and nesting_level >= 5:
+#         if compound_condition_weight >= 5:
+#             return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
+#         return "Critical refactor: High complexity and if nesting"
+#
+#     if control_structure_complexity == 2 and nesting_level >= 5:
+#         if compound_condition_weight >= 5:
+#             return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
+#         return "Critical refactor: High complexity and for loop nesting"
+#
+#     if control_structure_complexity >= 3 and nesting_level >= 5:
+#         return "Critical refactor: High complexity and switch case nesting"
+#
+#     if try_catch_weight > 5:
+#         return "Critical refactor: High complexity due to try-catch nesting"
+#
+#     if current_inheritance > 4:
+#         return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
+#
+#     if current_inheritance > 3:
+#         return "Consider reducing inheritance levels to improve maintainability"
+#
+#     if compound_condition_weight > 4:
+#         if compound_condition_weight > 5:
+#             return "Critical refactor: Excessive compound conditions, simplify conditional logic"
+#         return "Consider simplifying compound conditions to improve readability"
+#
+#     if try_catch_weight > 3 and try_catch_weight <= 5:
+#         return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
+#
+#     if control_structure_complexity >= 2 and nesting_level > 5:
+#         return "Moderate complexity: Control structures are manageable but keep them simple"
+#
+#     return "No action needed"
+
 def recommend_action(metrics):
     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
 
-    if control_structure_complexity == 1 and nesting_level >= 3:
-        if compound_condition_weight >= 3:
+    if control_structure_complexity == 1 and nesting_level >= 5:
+        if compound_condition_weight > 5:
             return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
         return "Critical refactor: High complexity and if nesting"
 
-    if control_structure_complexity == 2 and nesting_level >= 3:
-        if compound_condition_weight >= 3:
+    if control_structure_complexity == 2 and nesting_level >= 5:
+        if compound_condition_weight > 5:
             return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
         return "Critical refactor: High complexity and for loop nesting"
 
-    if control_structure_complexity >= 3 and nesting_level >= 3:
+    if control_structure_complexity >= 3 and nesting_level >= 5:
         return "Critical refactor: High complexity and switch case nesting"
 
     if try_catch_weight > 5:
         return "Critical refactor: High complexity due to try-catch nesting"
 
-    if current_inheritance > 5:
+    if current_inheritance == 5:
         return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
 
     if current_inheritance > 3:
         return "Consider reducing inheritance levels to improve maintainability"
 
-    if compound_condition_weight > 3:
-        if compound_condition_weight > 5:
-            return "Critical refactor: Excessive compound conditions, simplify conditional logic"
-        return "Consider simplifying compound conditions to improve readability"
+    if compound_condition_weight > 5:
+        return "Critical refactor: Excessive compound conditions, simplify conditional logic"
 
     if try_catch_weight > 3 and try_catch_weight <= 5:
         return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
-
-    if control_structure_complexity >= 2 and nesting_level > 2:
-        return "Moderate complexity: Control structures are manageable but keep them simple"
 
     return "No action needed"
 
@@ -1675,20 +1819,6 @@ def calculate_code_complexity_line_by_line(code):
             'try_catch_weight': try_catch_weight,
             'thread_weight': thread_weight,
         })
-
-    # Get AI recommendations for each line in the file
-    # recommendations = ai_recommend_refactoring(line_complexities)
-    # Print the recommendations
-    # for recommendation in recommendations:
-    #     print(f"Line {recommendation['line_number']}: {recommendation['line_content']}")
-    #     print(f"Recommendation: {recommendation['recommendation']}\n")
-
-    # Extract class references and calculate CBO after processing lines
-    # class_references = extract_class_references(code)
-    # cbo_results = calculate_cbo(class_references)
-
-    # print(cbo_results)
-
     # Extract message passing data
     message_passing = extract_message_passing(code)
 
@@ -1721,64 +1851,6 @@ def calculate_code_complexity_multiple(file_contents):
         results[filename] = cbo_line_results
 
     return results
-
-
-"""
-# Function to extract CBO features from Java code
-def extract_cbo_features(java_code):
-    import javalang
-
-    cbo_features = {
-        "class_dependencies": set(),
-        "direct_instantiations": 0,
-        "static_method_calls": 0,
-        "static_variable_usage": 0,
-        "interface_implementations": 0,
-        "constructor_injections": 0,
-        "setter_injections": 0,
-        "global_variable_references": 0
-    }
-
-    try:
-        tree = javalang.parse.parse(java_code)
-
-        for path, node in tree:
-            if isinstance(node, javalang.tree.Import):
-                cbo_features["class_dependencies"].add(node.path)
-
-            if isinstance(node, javalang.tree.ClassCreator):
-                cbo_features["direct_instantiations"] += 1
-
-            if isinstance(node, javalang.tree.MethodDeclaration):
-                if 'static' in node.modifiers:
-                    cbo_features["static_method_calls"] += 1
-
-            if isinstance(node, javalang.tree.FieldDeclaration):
-                if "static" in node.modifiers:
-                    cbo_features["static_variable_usage"] += 1
-
-            if isinstance(node, javalang.tree.ClassDeclaration):
-                if node.implements:
-                    cbo_features["interface_implementations"] += len(node.implements)
-
-            if isinstance(node, javalang.tree.ConstructorDeclaration):
-                cbo_features["constructor_injections"] += len(node.parameters)
-
-            if isinstance(node, javalang.tree.MethodDeclaration):
-                if "set" in node.name.lower():
-                    cbo_features["setter_injections"] += 1
-
-            if isinstance(node, javalang.tree.FieldDeclaration):
-                if 'static' in node.modifiers and 'final' not in node.modifiers:
-                    cbo_features["global_variable_references"] += 1
-
-    except Exception as e:
-        print(f"Error parsing Java code: {e}")
-
-    cbo_features["class_dependencies"] = len(cbo_features["class_dependencies"])
-    return cbo_features
-"""
-
 
 def extract_line_number(entry):
     """ Extracts the numeric line number from a string like 'Line 6: some code' """

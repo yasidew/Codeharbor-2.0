@@ -1621,38 +1621,33 @@ def update_dataset_and_model(new_data):
 def recommend_action(metrics):
     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
 
-    if control_structure_complexity == 1 and nesting_level >= 3:
-        if compound_condition_weight >= 3:
+    if control_structure_complexity == 1 and nesting_level >= 5:
+        if compound_condition_weight > 5:
             return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
         return "Critical refactor: High complexity and if nesting"
 
-    if control_structure_complexity == 2 and nesting_level >= 3:
-        if compound_condition_weight >= 3:
+    if control_structure_complexity == 2 and nesting_level >= 5:
+        if compound_condition_weight > 5:
             return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
         return "Critical refactor: High complexity and for loop nesting"
 
-    if control_structure_complexity >= 3 and nesting_level >= 3:
+    if control_structure_complexity >= 3 and nesting_level >= 5:
         return "Critical refactor: High complexity and switch case nesting"
 
     if try_catch_weight > 5:
         return "Critical refactor: High complexity due to try-catch nesting"
 
-    if current_inheritance > 5:
+    if current_inheritance == 5:
         return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
 
     if current_inheritance > 3:
         return "Consider reducing inheritance levels to improve maintainability"
 
-    if compound_condition_weight > 3:
-        if compound_condition_weight > 5:
-            return "Critical refactor: Excessive compound conditions, simplify conditional logic"
-        return "Consider simplifying compound conditions to improve readability"
+    if compound_condition_weight > 5:
+        return "Critical refactor: Excessive compound conditions, simplify conditional logic"
 
     if try_catch_weight > 3 and try_catch_weight <= 5:
         return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
-
-    if control_structure_complexity >= 2 and nesting_level > 2:
-        return "Moderate complexity: Control structures are manageable but keep them simple"
 
     return "No action needed"
 
