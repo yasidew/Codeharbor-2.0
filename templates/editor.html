@@ -11,126 +11,78 @@
 {#            <p class="card-category">Edit the Submitted HTML File.</p>#}
 {#        </div>#}
 {#        <div class="card-body">#}
-{#            <!-- Code Editor -->#}
-{#            <textarea id="code-editor"></textarea>#}
+{#            <!-- Editor Container -->#}
+{#            <div id="monaco-editor" style="height: 500px; border: 1px solid #333;"></div>#}
 {#            <button id="save-code" class="btn btn-primary mt-3">Save Code</button>#}
 {#        </div>#}
 {#    </div>#}
 {#</div>#}
 {##}
-{#<!-- CodeMirror Library -->#}
-{#<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css">#}
-{#<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/theme/material-darker.min.css">#}
-{#<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js"></script>#}
-{#<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/xml/xml.min.js"></script>#}
-{##}
-{#<script>#}
-{#    document.addEventListener("DOMContentLoaded", function () {#}
-{#        let submittedHTML = sessionStorage.getItem("submittedHTML") || "<!-- No HTML submitted yet -->";#}
-{##}
-{#        // Initialize CodeMirror editor#}
-{#        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {#}
-{#            mode: "text/html",#}
-{#            theme: "material-darker",#}
-{#            lineNumbers: true,#}
-{#            autoCloseTags: true,#}
-{#            matchBrackets: true,#}
-{#            indentUnit: 4,#}
-{#        });#}
-{##}
-{#        // Set the value inside the editor#}
-{#        editor.setValue(submittedHTML);#}
-{##}
-{#        // Save updated HTML to sessionStorage#}
-{#        document.getElementById("save-code").addEventListener("click", function () {#}
-{#            sessionStorage.setItem("submittedHTML", editor.getValue());#}
-{#            alert("Code saved successfully!");#}
-{#        });#}
-{#    });#}
-{#</script>#}
-{##}
-{#{% endblock %}#}
-{##}
-{##}
-{#{% extends 'base.html' %}#}
-{#{% load static %}#}
-{##}
-{#{% block title %}Code Editor{% endblock %}#}
-{##}
-{#{% block content %}#}
-{#<div class="container my-5">#}
-{#    <div class="card">#}
-{#        <div class="card-header bg-dark text-white">#}
-{#            <h3 class="card-title">Code Editor</h3>#}
-{#            <p class="card-category">Edit the Submitted HTML File.</p>#}
-{#        </div>#}
-{#        <div class="card-body">#}
-{#            <textarea id="code-editor"></textarea>#}
-{#            <button id="save-code" class="btn btn-primary mt-3">Save Code</button>#}
-{#        </div>#}
-{#    </div>#}
-{#</div>#}
-{##}
-{#<!-- CodeMirror Library -->#}
-{#<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css">#}
-{#<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/theme/material-darker.min.css">#}
-{#<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js"></script>#}
-{#<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/xml/xml.min.js"></script>#}
-{##}
-{#<style>#}
-{#    /* Custom class to highlight violations */#}
-{#    .violation-highlight {#}
-{#        background: rgba(255, 0, 0, 0.3) !important; /* Light red background */#}
-{#        border-left: 3px solid red !important; /* Red left border */#}
-{#    }#}
-{#</style>#}
+{#<!-- Load Monaco Editor -->#}
+{#<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>#}
 {##}
 {#<script>#}
 {#    document.addEventListener("DOMContentLoaded", function () {#}
 {#        let submittedHTML = sessionStorage.getItem("submittedHTML") || "<!-- No HTML submitted yet -->";#}
 {#        let violations = JSON.parse(sessionStorage.getItem("violations") || "[]");#}
 {##}
-{#        // Initialize CodeMirror editor#}
-{#        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {#}
-{#            mode: "text/html",#}
-{#            theme: "material-darker",#}
-{#            lineNumbers: true,#}
-{#            autoCloseTags: true,#}
-{#            matchBrackets: true,#}
-{#            indentUnit: 4,#}
-{#        });#}
-{##}
-{#        // Set the value inside the editor#}
-{#        editor.setValue(submittedHTML);#}
-{##}
-{#        // Function to highlight violations#}
-{#        function highlightViolations() {#}
-{#            violations.forEach(violation => {#}
-{#                violation.nodes.forEach(node => {#}
-{#                    let elementHTML = node.html.trim(); // Extract the HTML causing the issue#}
-{#                    let doc = editor.getDoc(); // Get the document from CodeMirror#}
-{#                    let lines = doc.getValue().split("\n"); // Split into lines#}
-{##}
-{#                    // Find the line number where the issue occurs#}
-{#                    let lineNum = lines.findIndex(line => line.includes(elementHTML));#}
-{##}
-{#                    if (lineNum !== -1) {#}
-{#                        editor.addLineClass(lineNum, "background", "violation-highlight");#}
-{#                    }#}
-{#                });#}
+{#        // Load Monaco Editor#}
+{#        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' } });#}
+{#        require(["vs/editor/editor.main"], function () {#}
+{#            let editor = monaco.editor.create(document.getElementById("monaco-editor"), {#}
+{#                value: submittedHTML,#}
+{#                language: "html",#}
+{#                theme: "vs-dark",#}
+{#                automaticLayout: true#}
 {#            });#}
-{#        }#}
 {##}
-{#        // Call function to highlight violations#}
-{#        highlightViolations();#}
+{#            // Function to highlight violations#}
+{#            function highlightViolations() {#}
+{#                let model = editor.getModel();#}
+{#                let decorations = [];#}
 {##}
-{#        // Save updated HTML to sessionStorage#}
-{#        document.getElementById("save-code").addEventListener("click", function () {#}
-{#            sessionStorage.setItem("submittedHTML", editor.getValue());#}
-{#            alert("Code saved successfully!");#}
+{#                violations.forEach(violation => {#}
+{#                    violation.nodes.forEach(node => {#}
+{#                        let elementHTML = node.html.trim(); // Get the problematic HTML#}
+{##}
+{#                        // Find occurrences of the element in the editor text#}
+{#                        let match = model.findMatches(elementHTML, false, false, false, null, true);#}
+{##}
+{#                        // If match is found, highlight it#}
+{#                        match.forEach(m => {#}
+{#                            decorations.push({#}
+{#                                range: m.range,#}
+{#                                options: {#}
+{#                                    inlineClassName: "violation-highlight"#}
+{#                                }#}
+{#                            });#}
+{#                        });#}
+{#                    });#}
+{#                });#}
+{##}
+{#                // Apply highlights#}
+{#                editor.deltaDecorations([], decorations);#}
+{#            }#}
+{##}
+{#            // Call function to highlight violations#}
+{#            highlightViolations();#}
+{##}
+{#            // Save updated HTML to sessionStorage#}
+{#            document.getElementById("save-code").addEventListener("click", function () {#}
+{#                sessionStorage.setItem("submittedHTML", editor.getValue());#}
+{#                alert("Code saved successfully!");#}
+{#            });#}
 {#        });#}
 {#    });#}
 {#</script>#}
+{##}
+{#<!-- Custom CSS for Highlighting -->#}
+{#<style>#}
+{#    .violation-highlight {#}
+{#        background: rgba(255, 0, 0, 0.3); /* Light red background */#}
+{#        border-bottom: 2px solid red;#}
+{#    }#}
+{#</style>#}
 {##}
 {#{% endblock %}#}
 
@@ -148,74 +100,103 @@
             <p class="card-category">Edit the Submitted HTML File.</p>
         </div>
         <div class="card-body">
-            <textarea id="code-editor"></textarea>
+            <!-- Editor Container -->
+            <div id="monaco-editor" style="height: 500px; border: 1px solid #333;"></div>
             <button id="save-code" class="btn btn-primary mt-3">Save Code</button>
         </div>
     </div>
 </div>
 
-<!-- CodeMirror Library -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/theme/material-darker.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/xml/xml.min.js"></script>
+<!-- Load Monaco Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
 
-<style>
-    /* Custom class to highlight violations */
-    .violation-highlight {
-        background: rgba(255, 0, 0, 0.3) !important; /* Light red background */
-        border-left: 3px solid red !important; /* Red left border */
-    }
-</style>
-
-    <script>
+<script>
     document.addEventListener("DOMContentLoaded", function () {
         let submittedHTML = sessionStorage.getItem("submittedHTML") || "<!-- No HTML submitted yet -->";
         let violations = JSON.parse(sessionStorage.getItem("violations") || "[]");
 
-        // Initialize CodeMirror editor
-        let editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
-            mode: "text/html",
-            theme: "material-darker",
-            lineNumbers: true,
-            autoCloseTags: true,
-            matchBrackets: true,
-            indentUnit: 4,
-        });
-
-        // Set the value inside the editor
-        editor.setValue(submittedHTML);
-
-        // Function to find and highlight violations
-        function highlightViolations() {
-            let doc = editor.getDoc();
-            let lines = doc.getValue().split("\n"); // Split into lines
-
-            violations.forEach(violation => {
-                violation.nodes.forEach(node => {
-                    let elementHTML = node.html.trim(); // Extract the HTML causing the issue
-
-                    // Find the line number where the issue occurs
-                    let lineNum = lines.findIndex(line => line.includes(elementHTML));
-
-                    if (lineNum !== -1) {
-                        console.log(`Highlighting violation on line ${lineNum + 1}: ${elementHTML}`);
-                        editor.addLineClass(lineNum, "background", "violation-highlight");
-                    }
-                });
+        // Load Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' } });
+        require(["vs/editor/editor.main"], function () {
+            let editor = monaco.editor.create(document.getElementById("monaco-editor"), {
+                value: submittedHTML,
+                language: "html",
+                theme: "vs-dark",
+                automaticLayout: true
             });
-        }
 
-        // Call function to highlight violations
-        highlightViolations();
+            // Severity levels and highlight colors
+            const severityColors = {
+                "critical": "violation-critical",  // 🔴 Red
+                "serious": "violation-serious",    // 🟠 Orange
+                "moderate": "violation-moderate",  // 🔵 Blue
+                "minor": "violation-minor"         // 🟢 Green
+            };
 
-        // Save updated HTML to sessionStorage
-        document.getElementById("save-code").addEventListener("click", function () {
-            sessionStorage.setItem("submittedHTML", editor.getValue());
-            alert("Code saved successfully!");
+            // Function to highlight violations
+            function highlightViolations() {
+                let model = editor.getModel();
+                let decorations = [];
+
+                violations.forEach(violation => {
+                    let severity = violation.impact.toLowerCase(); // Get severity (critical, serious, etc.)
+                    let highlightClass = severityColors[severity] || "violation-minor"; // Default: Minor
+
+                    violation.nodes.forEach(node => {
+                        let elementHTML = node.html.trim(); // Get the problematic HTML
+
+                        // Find occurrences of the element in the editor text
+                        let match = model.findMatches(elementHTML, false, false, false, null, true);
+
+                        // If match is found, highlight it
+                        match.forEach(m => {
+                            decorations.push({
+                                range: m.range,
+                                options: {
+                                    inlineClassName: highlightClass
+                                }
+                            });
+                        });
+                    });
+                });
+
+                // Apply highlights
+                editor.deltaDecorations([], decorations);
+            }
+
+            // Call function to highlight violations
+            highlightViolations();
+
+            // Save updated HTML to sessionStorage
+            document.getElementById("save-code").addEventListener("click", function () {
+                sessionStorage.setItem("submittedHTML", editor.getValue());
+                alert("Code saved successfully!");
+            });
         });
     });
 </script>
+
+<!-- Custom CSS for Highlighting Different Severity Levels -->
+<style>
+    .violation-critical {
+        background: rgba(255, 0, 0, 0.3); /* 🔴 Light Red */
+        border-bottom: 3px solid red;
+    }
+    .violation-serious {
+        background: rgba(255, 165, 0, 0.3); /* 🟠 Light Orange */
+        border-bottom: 3px solid orange;
+    }
+    .violation-moderate {
+        background: rgba(0, 0, 255, 0.3); /* 🔵 Light Blue */
+        border-bottom: 3px solid blue;
+    }
+    .violation-minor {
+        background: rgba(0, 128, 0, 0.3); /* 🟢 Light Green */
+        border-bottom: 3px solid green;
+    }
+</style>
+
+
 
 
 {% endblock %}
