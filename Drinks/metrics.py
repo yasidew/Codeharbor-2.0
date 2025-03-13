@@ -50,6 +50,28 @@ def count_duplicate_code_percentage(code):
     duplicates = [item for item, count in Counter(lines).items() if count > 1 and item.strip()]
     return (len(duplicates) / len(lines)) * 100 if lines else 0
 
+def find_duplicate_code(code, block_size=3):
+    """
+    Find duplicate multi-line code snippets in the input code.
+    Uses a sliding window approach to detect repeated blocks of 'block_size' lines.
+    """
+    lines = code.split("\n")
+    block_counts = Counter()
+    duplicate_map = {}
+
+    # Create a dictionary to track occurrences of code blocks
+    for i in range(len(lines) - block_size + 1):
+        block = "\n".join(lines[i:i + block_size])  # Extract multi-line block
+        block_counts[block] += 1
+
+        if block_counts[block] > 1:  # ✅ Only store if it's a duplicate
+            if block not in duplicate_map:
+                duplicate_map[block] = []
+            duplicate_map[block].append(i + 1)  # Store line number of first occurrence
+
+    return duplicate_map
+
+
 # def calculate_comment_density(code):
 #     """Compute comment density (code-to-comment ratio)."""
 #     lines = code.split("\n")
@@ -126,6 +148,7 @@ def analyze_code_complexity(code):
     loc, eloc = count_lines_of_code(code)
     num_functions, avg_function_length = count_functions_and_length(code)
     duplicate_percentage = count_duplicate_code_percentage(code)
+    duplicate_code_details = find_duplicate_code(code)  # ✅ Get duplicate lines & locations
     comment_density = calculate_comment_density(code)
     readability_score = calculate_readability_score(code)
     complexity_score = calculate_complexity_score(loc, num_functions, duplicate_percentage)
@@ -136,6 +159,7 @@ def analyze_code_complexity(code):
         "num_functions": num_functions,
         "avg_function_length": avg_function_length,
         "duplicate_code_percentage": duplicate_percentage,
+        "duplicate_code_details": duplicate_code_details,  # ✅ Include duplicate details
         "comment_density": comment_density,
         "readability_score": readability_score,
         "complexity_score": complexity_score,
