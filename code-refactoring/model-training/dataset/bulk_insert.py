@@ -8,7 +8,7 @@ DB_PASSWORD = "root"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 SCHEMA = "code_harbor"  # Ensure we are using the correct schema
-DATASET_FILE = "datasets/strategy_pattern_data.json"  # Your dataset file
+DATASET_FILE = "datasets/observer_pattern_data.json"  # Your dataset file
 
 # Connect to PostgreSQL
 conn = psycopg2.connect(
