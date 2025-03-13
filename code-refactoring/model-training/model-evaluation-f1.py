@@ -1,3 +1,4 @@
+
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import json
 from sklearn.metrics import precision_recall_fscore_support
@@ -8,7 +9,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_dir)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
 # Step 2: Load the test data
-with open("processed_singleton_data.json", "r") as file:
+with open("dataset/processed_singleton_data.json", "r") as file:
     data_splits = json.load(file)
 
 test_inputs = data_splits["test"]["input"]

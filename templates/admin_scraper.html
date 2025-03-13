@@ -48,6 +48,151 @@
 {#</div>#}
 {#{% endblock %}#}
 {##}
+{##}
+{##}
+{#{% extends 'base.html' %}#}
+{##}
+{#{% block content %}#}
+{#<div class="card">#}
+{#    <div class="card-header">#}
+{#        <h4 class="card-title">GitHub Challenges</h4>#}
+{#        {% block title %}#}
+{#            {% if game %}#}
+{#                GitHub Challenges - {{ game.id }} - {{ game.name }}#}
+{#            {% else %}#}
+{#                GitHub Challenges Admin#}
+{#            {% endif %}#}
+{#        {% endblock %}#}
+{#        <p class="card-category">Fetch and manage accessibility challenges from GitHub</p>#}
+{#    </div>#}
+{#    <div class="card-body">#}
+{#        <button id="fetchChallengesBtn" class="btn btn-primary">#}
+{#            <i class="bi bi-download"></i> Fetch New Challenges#}
+{#        </button>#}
+{##}
+{#        <div id="loading" class="mt-3" style="display: none;">#}
+{#            <span class="spinner-border spinner-border-sm"></span> Fetching...#}
+{#        </div>#}
+{##}
+{#        <div class="table-responsive mt-4">#}
+{#            <table class="table">#}
+{#                <thead>#}
+{#                    <tr>#}
+{#                        <th>Select</th>#}
+{#                        <th>Title</th>#}
+{#                        <th>Difficulty</th>#}
+{#                        <th>Repo URL</th>#}
+{#                    </tr>#}
+{#                </thead>#}
+{#                <tbody>#}
+{#                    {% for challenge in challenges %}#}
+{#                        <tr>#}
+{#                            <td>#}
+{#                                <input type="radio" name="selectedChallenge" value="{{ challenge.id }}"#}
+{#                                    data-title="{{ challenge.title }}"#}
+{#                                    data-repo="{{ challenge.repo_url }}"#}
+{#                                    data-file="{{ challenge.file_url }}">#}
+{#                            </td>#}
+{#                            <td><a href="{{ challenge.file_url }}" target="_blank">{{ challenge.id }} - {{ challenge.title }}</a></td>#}
+{#                            <td>{{ challenge.get_difficulty_display }}</td>#}
+{#                            <td><a href="{{ challenge.repo_url }}" target="_blank">Repo</a></td>#}
+{#                        </tr>#}
+{#                    {% empty %}#}
+{#                        <tr><td colspan="4">No challenges available.</td></tr>#}
+{#                    {% endfor %}#}
+{#                </tbody>#}
+{#            </table>#}
+{#        </div>#}
+{##}
+{#        <!-- Submit Button -->#}
+{#        <button id="submitBtn" class="btn btn-success mt-3">Go to Checker</button>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#<script>#}
+{#    document.getElementById("submitBtn").addEventListener("click", function () {#}
+{#        let selectedChallenge = document.querySelector('input[name="selectedChallenge"]:checked');#}
+{##}
+{#        if (!selectedChallenge) {#}
+{#            alert("Please select a challenge before proceeding!");#}
+{#            return;#}
+{#        }#}
+{##}
+{#        // Extract challenge details#}
+{#        let challengeId = selectedChallenge.value;#}
+{#        let challengeTitle = selectedChallenge.dataset.title;#}
+{##}
+{#        // Extract game details from the template#}
+{#        let gameId = "{{ game.id }}";#}
+{#        let gameName = "{{ game.name }}";#}
+{##}
+{#        let data = {#}
+{#            game_name: gameName,#}
+{#            challenge_id: challengeId#}
+{#        };#}
+{##}
+{#        // Log details to console for testing#}
+{#        console.log("Redirecting with Data:", data);#}
+{##}
+{#        // Redirect to /checker/ with query parameters#}
+{#        let queryString = new URLSearchParams(data).toString();#}
+{#        window.location.href = `http://127.0.0.1:8000/checker/?${queryString}`;#}
+{#    });#}
+{#</script>#}
+{##}
+{#{% endblock %}#}
+
+
+{#{% extends 'base.html' %}#}
+{##}
+{#{% block content %}#}
+{#<div class="card">#}
+{#    <div class="card-header">#}
+{#        <h4 class="card-title">GitHub Challenges</h4>#}
+{#        {% block title %}#}
+{#    {% if game %}#}
+{#        GitHub Challenges - {{ game.id }} - {{ game.name }}#}
+{#    {% else %}#}
+{#        GitHub Challenges Admin#}
+{#    {% endif %}#}
+{#{% endblock %}#}
+{#        <p class="card-category">Fetch and manage accessibility challenges from GitHub</p>#}
+{#    </div>#}
+{#    <div class="card-body">#}
+{#        <button id="fetchChallengesBtn" class="btn btn-primary">#}
+{#            <i class="bi bi-download"></i> Fetch New Challenges#}
+{#        </button>#}
+{##}
+{#        <div id="loading" class="mt-3" style="display: none;">#}
+{#            <span class="spinner-border spinner-border-sm"></span> Fetching...#}
+{#        </div>#}
+{##}
+{#        <div class="table-responsive mt-4">#}
+{#            <table class="table">#}
+{#                <thead>#}
+{#                    <tr>#}
+{#                        <th>Title</th>#}
+{#                        <th>Difficulty</th>#}
+{#                        <th>Repo URL</th>#}
+{#                    </tr>#}
+{#                </thead>#}
+{#                <tbody>#}
+{#                    {% for challenge in challenges %}#}
+{#                        <tr>#}
+{#                            <td><a href="{{ challenge.file_url }}" target="_blank">{{ challenge.id }} - {{ challenge.title }}</a></td>#}
+{#                            <td>{{ challenge.get_difficulty_display }}</td>#}
+{#                            <td><a href="{{ challenge.repo_url }}" target="_blank">Repo</a></td>#}
+{#                        </tr>#}
+{#                    {% empty %}#}
+{#                        <tr><td colspan="3">No challenges available.</td></tr>#}
+{#                    {% endfor %}#}
+{#                </tbody>#}
+{#            </table>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
 
 
 {% extends 'base.html' %}

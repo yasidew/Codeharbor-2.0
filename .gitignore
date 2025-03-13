@@ -71,7 +71,14 @@ code-refactoring/factory_method_model/model.safetensors
 code-refactoring/singleton_model/model.safetensors
 code-refactoring/factory_method_model
 code-refactoring/results
+
+env/
+venv/
+
+env/Lib/site-packages/
+
 .env
 node_modules
 code-refactoring/singleton_model
 
+.venv

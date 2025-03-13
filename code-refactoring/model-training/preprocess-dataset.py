@@ -3,7 +3,7 @@ import random
 from sklearn.model_selection import train_test_split
 
 # Step 1: Load the dataset
-with open("singleton_data.json", "r") as file:
+with open("dataset/datasets/singleton_data.json", "r") as file:
     dataset = json.load(file)
 
 # Step 2: Shuffle the dataset for randomness
@@ -29,7 +29,7 @@ data_splits = {
     "test": {"input": X_test, "output": y_test, "type": t_test},
 }
 
-with open("processed_singleton_data.json", "w") as out_file:
+with open("dataset/processed_singleton_data.json", "w") as out_file:
     json.dump(data_splits, out_file, indent=4)
 
 print("Dataset preprocessing complete. File saved as processed_singleton_data.json")

@@ -1,3 +1,4 @@
+
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import json
 from datasets import Dataset
@@ -9,7 +10,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_dir)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
 # Step 2: Load the test data
-with open("processed_singleton_data.json", "r") as file:
+with open("dataset/processed_singleton_data.json", "r") as file:
     data_splits = json.load(file)
 
 test_inputs = data_splits["test"]["input"]
@@ -46,3 +47,4 @@ for i, (pred, ref) in enumerate(zip(predictions, references)):
 # Save predictions to a file (optional)
 with open("test_predictions.json", "w") as pred_file:
     json.dump({"predictions": predictions, "references": references}, pred_file, indent=4)
+
