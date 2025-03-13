@@ -1,14 +1,4 @@
-from django.db import models
 
-# class CodeAnalysis(models.Model):
-#     project_name = models.CharField(max_length=255)  # Track per project
-#     code_snippet = models.TextField()  # Original code
-#     ai_suggestion = models.TextField()  # AI-generated suggestion
-#     model_suggestion = models.TextField()  # Your trained model's suggestion
-#     timestamp = models.DateTimeField(auto_now_add=True)  # When analyzed
-#
-#     def __str__(self):
-#         return f"{self.project_name} - {self.timestamp}"
 
 
 from django.db import models
@@ -31,3 +21,16 @@ class CodeSnippet(models.Model):
 
     def __str__(self):
         return f"Snippet from {self.project.name} - {self.created_at}"
+
+
+class CodeAnalysisHistory(models.Model):
+    """Stores past code analysis results for trend comparison."""
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="analysis_history")
+    analyzed_at = models.DateTimeField(auto_now_add=True)
+    lines_of_code = models.IntegerField()
+    duplicate_code_percentage = models.FloatField()
+    complexity_score = models.FloatField()
+    security_issues = models.IntegerField(default=0)  # Store security issue count
+
+    def __str__(self):
+        return f"Analysis for {self.project.name} - {self.analyzed_at}"
