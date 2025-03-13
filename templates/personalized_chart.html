@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-dark text-white">
+            <h3 class="card-title text-center">User Accessibility Severity Chart</h3>
+        </div>
+        <div class="card-body">
+            <div class="chart-container d-flex justify-content-center">
+                <canvas id="severityChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    var ctx = document.getElementById('severityChart').getContext('2d');
+    var severityChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Critical', 'Serious', 'Moderate', 'Minor'],
+            datasets: [{
+                data: [
+                    {{ critical_score }},
+                    {{ serious_score }},
+                    {{ moderate_score }},
+                    {{ minor_score }}
+                ],
+                backgroundColor: ['red', 'orange', 'yellow', 'blue']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,  // Allow flexible sizing
+            plugins: {
+                legend: {
+                    position: 'bottom'  // Move legend below the chart
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
