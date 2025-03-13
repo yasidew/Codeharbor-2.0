@@ -174,81 +174,145 @@
         .table-hover tbody tr:hover {
             background-color: #30363d;
         }
+
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dots-loader span {
+            width: 15px;
+            height: 15px;
+            margin: 5px;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        /* Assign different colors to each dot */
+        .dots-loader .red {
+            background-color: #ff4d4d; /* Red */
+            animation-delay: -0.32s;
+        }
+
+        .dots-loader .yellow {
+            background-color: #ffd700; /* Yellow */
+            animation-delay: -0.16s;
+        }
+
+        .dots-loader .green {
+            background-color: #4caf50; /* Green */
+            animation-delay: 0s;
+        }
+
+        .dots-loader .blue {
+            background-color: #1e90ff; /* Blue */
+            animation-delay: 0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
     </style>
 
-    <div class="container my-5">
-        <div class="container-custom">
-            <h2>Calculate Code Complexity - Java</h2>
-            <p class="text-muted">Upload your Java files to analyze code complexity. Supports multiple file uploads.</p>
+    <div id="loading-spinner" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    z-index: 1000;
+    flex-direction: column;">
 
-            <form method="POST" action="" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="files" class="form-label">Upload Your Java Files:</label>
-                    <input type="file" name="files" id="files" class="form-control" accept=".java" multiple>
-                </div>
-                <button type="submit" class="btn btn-primary w-100" onclick="showLoading()">Calculate Complexity
-                </button>
-            </form>
+        <div class="dots-loader">
+            <span class="red"></span>
+            <span class="yellow"></span>
+            <span class="green"></span>
+            <span class="blue"></span>
         </div>
+        <p>Processing Java File... Please Wait</p>
+    </div>
+    <div class="container-custom">
+        <h2>Calculate Code Complexity - Java</h2>
+        <p class="text-muted">Upload your Java files to analyze code complexity. Supports multiple file uploads.</p>
 
-        <!-- Display Analysis Results -->
-        {% if complexities %}
-            <div class="container-custom1 mt-4">
-                <h3>Analysis Results</h3>
-                {% for file in complexities %}
-                    <div class="table-container">
-                        <!-- Clickable Header -->
-                        <div class="table-header" data-id="{{ file.filename|slugify }}">
-                            <h5>{{ file.filename }}</h5>
-                            <span><strong>Total WCC:</strong> {{ file.total_wcc }}</span>
-                        </div>
+        <form method="POST" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="files" class="form-label">Upload Your Java Files:</label>
+                <input type="file" name="files" id="files" class="form-control" accept=".java" multiple>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" onclick="showLoading()">Calculate Complexity
+            </button>
+        </form>
+    </div>
 
-                        <!-- Collapsible Content -->
-                        <div class="table-content" id="table-{{ file.filename|slugify }}">
-                            <table class="table table-hover">
-                                <thead>
+    <!-- Display Analysis Results -->
+    {% if complexities %}
+        <div class="container-custom1 mt-4">
+            <h3>Analysis Results</h3>
+            {% for file in complexities %}
+                <div class="table-container">
+                    <!-- Clickable Header -->
+                    <div class="table-header" data-id="{{ file.filename|slugify }}">
+                        <h5>{{ file.filename }}</h5>
+                        <span><strong>Total WCC:</strong> {{ file.total_wcc }}</span>
+                    </div>
+
+                    <!-- Collapsible Content -->
+                    <div class="table-content" id="table-{{ file.filename|slugify }}">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Size</th>
+                                <th>Control</th>
+                                <th>Nesting</th>
+                                <th>Inheritance</th>
+                                <th>Compound</th>
+                                <th>Try-Catch</th>
+                                <th>Thread</th>
+                                <th>CBO</th>
+                                <th>Complexity</th>
+                                <th>Category</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for method in file.method_complexities %}
                                 <tr>
-                                    <th>Method</th>
-                                    <th>Size</th>
-                                    <th>Control</th>
-                                    <th>Nesting</th>
-                                    <th>Inheritance</th>
-                                    <th>Compound</th>
-                                    <th>Try-Catch</th>
-                                    <th>Thread</th>
-                                    <th>CBO</th>
-                                    <th>Complexity</th>
-                                    <th>Category</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for method in file.method_complexities %}
-                                    <tr>
-                                        <td>{{ method.method_name }}</td>
-                                        <td>{{ method.size }}</td>
-                                        <td>{{ method.control_structure_complexity }}</td>
-                                        <td>{{ method.nesting_weight }}</td>
-                                        <td>{{ method.inheritance_weight }}</td>
-                                        <td>{{ method.compound_condition_weight }}</td>
-                                        <td>{{ method.try_catch_weight }}</td>
-                                        <td>{{ method.thread_weight }}</td>
-                                        <td>{{ method.cbo_weight }}</td>
-                                        <td>{{ method.total_complexity }}</td>
-                                        <td>
+                                    <td>{{ method.method_name }}</td>
+                                    <td>{{ method.size }}</td>
+                                    <td>{{ method.control_structure_complexity }}</td>
+                                    <td>{{ method.nesting_weight }}</td>
+                                    <td>{{ method.inheritance_weight }}</td>
+                                    <td>{{ method.compound_condition_weight }}</td>
+                                    <td>{{ method.try_catch_weight }}</td>
+                                    <td>{{ method.thread_weight }}</td>
+                                    <td>{{ method.cbo_weight }}</td>
+                                    <td>{{ method.total_complexity }}</td>
+                                    <td>
                                             <span class="badge {% if method.category == 'High' %}bg-danger{% elif method.category == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
                                                 {{ method.category }}
                                             </span>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
     </div>
 
     <!-- JavaScript Code Placed at the Bottom -->
@@ -272,12 +336,18 @@
 
         function showLoading() {
             document.getElementById('loading-spinner').style.display = 'flex';
+
+            // Delay form submission by 5 seconds
+            setTimeout(() => {
+                document.querySelector('form').submit();
+            }, 200000);
         }
 
         function hideLoading() {
             document.getElementById('loading-spinner').style.display = 'none';
         }
 
+        // Ensure the spinner is hidden when the page loads after processing
         window.onload = function () {
             hideLoading();
         };

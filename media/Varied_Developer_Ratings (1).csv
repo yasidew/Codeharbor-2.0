@@ -23,7 +23,7 @@ method5,Dev1,5,5,9,382
 method5,Dev2,8,8,7,382
 method5,Dev3,7,7,7,382
 method5,Dev4,3,5,8,382
-method5,Dev5,2,5,9,382
+method5,Dev5,4,4,7,382
 method6,Dev1,2,7,5,291
 method6,Dev2,7,7,5,291
 method6,Dev3,3,3,7,291
@@ -38,7 +38,7 @@ method8,Dev1,2,5,5,205
 method8,Dev2,8,8,5,205
 method8,Dev3,8,8,6,205
 method8,Dev4,7,7,2,205
-method8,Dev5,2,2,2,205
+method8,Dev5,6,6,2,205
 method9,Dev1,7,7,4,121
 method9,Dev2,8,7,4,121
 method9,Dev3,8,8,4,121
