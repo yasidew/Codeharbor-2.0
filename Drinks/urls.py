@@ -75,6 +75,8 @@ path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexi
 
                   path('analyze-code/', views.analyze_code_view, name='analyze_code'),
 
+                  path("export-excel/", export_excel, name="export_excel"),
+
 
                   path('refactor/', views.refactor_view, name='refactor_view'),
                   path('upload-code/', views.upload_code, name='upload_code'),
