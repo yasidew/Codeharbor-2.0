@@ -161,6 +161,8 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
                   path('analyze-code/', views.analyze_code_view, name='analyze_code'),
 
+                  path("export-excel/", export_excel, name="export_excel"),
+
 
                   path('refactor/', views.refactor_view, name='refactor_view'),
                   path('upload-code/', views.upload_code, name='upload_code'),
@@ -171,5 +173,7 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
+
 # Apply format suffix patterns
+
 urlpatterns = format_suffix_patterns(urlpatterns)
