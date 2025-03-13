@@ -165,17 +165,17 @@
 {#                        else if (v.impact === "minor") minorCount++;#}
 {#                    });#}
 {##}
-                    {#// ✅ Store severity counts in sessionStorage#}
-                    {#sessionStorage.setItem("critical-count", criticalCount);#}
-                    {#sessionStorage.setItem("serious-count", seriousCount);#}
-                    {#sessionStorage.setItem("moderate-count", moderateCount);#}
-                    {#sessionStorage.setItem("minor-count", minorCount);#}
-                    {##}
-                    {#// ✅ Display categorized counts#}
-                    {#document.getElementById('critical-count').textContent = criticalCount;#}
-                    {#document.getElementById('serious-count').textContent = seriousCount;#}
-                    {#document.getElementById('moderate-count').textContent = moderateCount;#}
-                    {#document.getElementById('minor-count').textContent = minorCount;#}
+{#// ✅ Store severity counts in sessionStorage#}
+{#sessionStorage.setItem("critical-count", criticalCount);#}
+{#sessionStorage.setItem("serious-count", seriousCount);#}
+{#sessionStorage.setItem("moderate-count", moderateCount);#}
+{#sessionStorage.setItem("minor-count", minorCount);#}
+{##}
+{#// ✅ Display categorized counts#}
+{#document.getElementById('critical-count').textContent = criticalCount;#}
+{#document.getElementById('serious-count').textContent = seriousCount;#}
+{#document.getElementById('moderate-count').textContent = moderateCount;#}
+{#document.getElementById('minor-count').textContent = minorCount;#}
 {##}
 {#                    // ✅ Calculate percentages#}
 {#                    let totalViolations = criticalCount + seriousCount + moderateCount + minorCount;#}
@@ -226,10 +226,10 @@
 {#            }#}
 {##}
 {#            // ✅ Get severity scores from sessionStorage#}
-            {#let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;#}
-            {#let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;#}
-            {#let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;#}
-            {#let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;#}
+{#let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;#}
+{#let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;#}
+{#let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;#}
+{#let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;#}
 {##}
 {#            let criticalPercentage = sessionStorage.getItem("critical-percentage");#}
 {#let seriousPercentage = sessionStorage.getItem("serious-percentage");#}
@@ -281,58 +281,57 @@
 {#</div>#}
 
 
-
 {% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Accessibility Checker{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <div class="card">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <div>
-                <h3 class="card-title">Accessibility Checker</h3>
-                <p class="card-category">Analyze your code for accessibility compliance.</p>
-            </div>
-            <button id="editor-button" class="btn btn-light text-dark">See in the Editor</button>
-        </div>
-
-        <div class="card-body">
-            <!-- Accessibility Summary -->
-            <div class="alert alert-info text-center">
-                <h5>Summary:</h5>
-                <p>
-                    <strong>Violations:</strong> <span id="violation-count" class="text-danger">0</span> |
-                    <strong>Passes:</strong> <span id="pass-count" class="text-success">0</span> |
-                    <strong>Incomplete:</strong> <span id="incomplete-count" class="text-warning">0</span> |
-                    <strong>🔴 Critical:</strong> <span id="critical-count" class="text-danger">0 (0%)</span> |
-                    <strong>🟠 Serious:</strong> <span id="serious-count" class="text-warning">0 (0%)</span> |
-                    <strong>🔵 Moderate:</strong> <span id="moderate-count" class="text-primary">0 (0%)</span> |
-                    <strong>🟢 Minor:</strong> <span id="minor-count" class="text-success">0 (0%)</span>
-                </p>
+    <div class="container my-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="card-title">Accessibility Checker</h3>
+                    <p class="card-category">Analyze your code for accessibility compliance.</p>
+                </div>
+                <button id="editor-button" class="btn btn-light text-dark">See in the Editor</button>
             </div>
 
-            <div id="game-info" class="mb-4">
-                <h4>Game Name: <span id="gameName">Loading...</span></h4>
-                <h5>Challenge ID: <span id="challengeId">Loading...</span></h5>
-            </div>
+            <div class="card-body">
+                <!-- Accessibility Summary -->
+                <div class="alert alert-info text-center">
+                    <h5>Summary:</h5>
+                    <p>
+                        <strong>Violations:</strong> <span id="violation-count" class="text-danger">0</span> |
+                        <strong>Passes:</strong> <span id="pass-count" class="text-success">0</span> |
+                        <strong>Incomplete:</strong> <span id="incomplete-count" class="text-warning">0</span> |
+                        <strong>🔴 Critical:</strong> <span id="critical-count" class="text-danger">0 (0%)</span> |
+                        <strong>🟠 Serious:</strong> <span id="serious-count" class="text-warning">0 (0%)</span> |
+                        <strong>🔵 Moderate:</strong> <span id="moderate-count" class="text-primary">0 (0%)</span> |
+                        <strong>🟢 Minor:</strong> <span id="minor-count" class="text-success">0 (0%)</span>
+                    </p>
+                </div>
 
-            <!-- File Upload Form -->
-            <form id="accessibility-form" enctype="multipart/form-data" class="mb-4">
-                <input type="file" name="html_file" accept=".html" required class="form-control mb-3">
-                <button type="submit" class="btn btn-primary w-100">Check Accessibility</button>
-            </form>
+                <div id="game-info" class="mb-4">
+                    <h4>Game Name: <span id="gameName">Loading...</span></h4>
+                    <h5>Challenge ID: <span id="challengeId">Loading...</span></h5>
+                </div>
 
-            <!-- Results -->
-            <div id="results">
-                <div class="score mb-3" id="score"></div>
+                <!-- File Upload Form -->
+                <form id="accessibility-form" enctype="multipart/form-data" class="mb-4">
+                    <input type="file" name="html_file" accept=".html" required class="form-control mb-3">
+                    <button type="submit" class="btn btn-primary w-100">Check Accessibility</button>
+                </form>
 
-                <!-- Passes Table -->
-                <div class="section">
-                    <h4>Passes</h4>
-                    <table class="table table-bordered table-striped">
-                        <thead class="table-dark">
+                <!-- Results -->
+                <div id="results">
+                    <div class="score mb-3" id="score"></div>
+
+                    <!-- Passes Table -->
+                    <div class="section">
+                        <h4>Passes</h4>
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
                                 <th>Impact</th>
@@ -341,18 +340,20 @@
                                 <th>Help URL</th>
                                 <th>Target</th>
                             </tr>
-                        </thead>
-                        <tbody id="passes-content">
-                            <tr><td colspan="6" class="text-center">No passes found.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody id="passes-content">
+                            <tr>
+                                <td colspan="6" class="text-center">No passes found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                <!-- Violations Table -->
-                <div class="section">
-                    <h4>Violations</h4>
-                    <table class="table table-bordered table-striped">
-                        <thead class="table-danger">
+                    <!-- Violations Table -->
+                    <div class="section">
+                        <h4>Violations</h4>
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
                                 <th>Impact</th>
@@ -361,18 +362,20 @@
                                 <th>Help URL</th>
                                 <th>Target</th>
                             </tr>
-                        </thead>
-                        <tbody id="violations-content">
-                            <tr><td colspan="6" class="text-center">No violations found.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody id="violations-content">
+                            <tr>
+                                <td colspan="6" class="text-center">No violations found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                <!-- Incomplete Table -->
-                <div class="section">
-                    <h4>Incomplete</h4>
-                    <table class="table table-bordered table-striped">
-                        <thead class="table-warning">
+                    <!-- Incomplete Table -->
+                    <div class="section">
+                        <h4>Incomplete</h4>
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
                                 <th>Impact</th>
@@ -381,76 +384,78 @@
                                 <th>Help URL</th>
                                 <th>Target</th>
                             </tr>
-                        </thead>
-                        <tbody id="incomplete-content">
-                            <tr><td colspan="6" class="text-center">No incomplete checks found.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody id="incomplete-content">
+                            <tr>
+                                <td colspan="6" class="text-center">No incomplete checks found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                <!-- Submit Score Button -->
-                <button id="submit-score" class="btn btn-success w-100 mt-3" disabled>Submit Score</button>
+                    <!-- Submit Score Button -->
+                    <button id="submit-score" class="btn btn-success w-100 mt-3" disabled>Submit Score</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    function getQueryParams() {
-        let params = new URLSearchParams(window.location.search);
-        return {
-            game_name: params.get("game_name") || "Unknown Game",
-            challenge_id: params.get("challenge_id") || "N/A"
-        };
-    }
-
-    let queryParams = getQueryParams();
-    document.getElementById("gameName").textContent = queryParams.game_name;
-    document.getElementById("challengeId").textContent = queryParams.challenge_id;
-
-    document.getElementById('editor-button').addEventListener('click', function () {
-        window.location.href = `/editor`;
-    });
-
-    document.getElementById('accessibility-form').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-            alert("You are not logged in! Redirecting to login...");
-            window.location.href = '/login';
-            return;
+    <script>
+        function getQueryParams() {
+            let params = new URLSearchParams(window.location.search);
+            return {
+                game_name: params.get("game_name") || "Unknown Game",
+                challenge_id: params.get("challenge_id") || "N/A"
+            };
         }
 
-        const formData = new FormData(this);
+        let queryParams = getQueryParams();
+        document.getElementById("gameName").textContent = queryParams.game_name;
+        document.getElementById("challengeId").textContent = queryParams.challenge_id;
 
-        try {
-            const response = await fetch("{% url 'check_accessibility' %}", {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: formData
-            });
+        document.getElementById('editor-button').addEventListener('click', function () {
+            window.location.href = `/editor`;
+        });
 
-            const data = await response.json();
-            if (data.error) {
-                document.getElementById('score').textContent = "Error: " + data.error;
+        document.getElementById('accessibility-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                alert("You are not logged in! Redirecting to login...");
+                window.location.href = '/login';
                 return;
             }
 
-            let actualScore = data.score;
-            document.getElementById('score').textContent = `Accessibility Score: ${actualScore.toFixed(2)}%`;
+            const formData = new FormData(this);
 
-            function populateTable(sectionId, results) {
-                let tableBody = document.getElementById(sectionId);
-                tableBody.innerHTML = "";
+            try {
+                const response = await fetch("{% url 'check_accessibility' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: formData
+                });
 
-                if (results.length > 0) {
-                    results.forEach(item => {
-                        let row = document.createElement("tr");
-                        row.innerHTML = `
+                const data = await response.json();
+                if (data.error) {
+                    document.getElementById('score').textContent = "Error: " + data.error;
+                    return;
+                }
+
+                let actualScore = data.score;
+                document.getElementById('score').textContent = `Accessibility Score: ${actualScore.toFixed(2)}%`;
+
+                function populateTable(sectionId, results) {
+                    let tableBody = document.getElementById(sectionId);
+                    tableBody.innerHTML = "";
+
+                    if (results.length > 0) {
+                        results.forEach(item => {
+                            let row = document.createElement("tr");
+                            row.innerHTML = `
                             <td>${item.id}</td>
                             <td>${item.impact ? item.impact : "N/A"}</td>
                             <td>${item.description}</td>
@@ -458,39 +463,39 @@
                             <td><a href="${item.helpUrl}" target="_blank">View</a></td>
                             <td>${item.nodes.map(node => node.target.join(", ")).join("<br>")}</td>
                         `;
-                        tableBody.appendChild(row);
-                    });
-                } else {
-                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No results found.</td></tr>`;
+                            tableBody.appendChild(row);
+                        });
+                    } else {
+                        tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No results found.</td></tr>`;
+                    }
                 }
+
+                populateTable("passes-content", data.passes);
+                populateTable("violations-content", data.violations);
+                populateTable("incomplete-content", data.incomplete);
+
+                let criticalCount = data.violations.filter(v => v.impact === "critical").length;
+                let seriousCount = data.violations.filter(v => v.impact === "serious").length;
+                let moderateCount = data.violations.filter(v => v.impact === "moderate").length;
+                let minorCount = data.violations.filter(v => v.impact === "minor").length;
+                let totalViolations = criticalCount + seriousCount + moderateCount + minorCount;
+
+                function percentage(count) {
+                    return totalViolations ? ((count / totalViolations) * 100).toFixed(2) : "0.00";
+                }
+
+                document.getElementById('critical-count').textContent = `${criticalCount} (${percentage(criticalCount)}%)`;
+                document.getElementById('serious-count').textContent = `${seriousCount} (${percentage(seriousCount)}%)`;
+                document.getElementById('moderate-count').textContent = `${moderateCount} (${percentage(moderateCount)}%)`;
+                document.getElementById('minor-count').textContent = `${minorCount} (${percentage(minorCount)}%)`;
+
+                document.getElementById('submit-score').disabled = false;
+            } catch (error) {
+                console.error("Error:", error);
             }
+        });
 
-            populateTable("passes-content", data.passes);
-            populateTable("violations-content", data.violations);
-            populateTable("incomplete-content", data.incomplete);
-
-            let criticalCount = data.violations.filter(v => v.impact === "critical").length;
-            let seriousCount = data.violations.filter(v => v.impact === "serious").length;
-            let moderateCount = data.violations.filter(v => v.impact === "moderate").length;
-            let minorCount = data.violations.filter(v => v.impact === "minor").length;
-            let totalViolations = criticalCount + seriousCount + moderateCount + minorCount;
-
-            function percentage(count) {
-                return totalViolations ? ((count / totalViolations) * 100).toFixed(2) : "0.00";
-            }
-
-            document.getElementById('critical-count').textContent = `${criticalCount} (${percentage(criticalCount)}%)`;
-            document.getElementById('serious-count').textContent = `${seriousCount} (${percentage(seriousCount)}%)`;
-            document.getElementById('moderate-count').textContent = `${moderateCount} (${percentage(moderateCount)}%)`;
-            document.getElementById('minor-count').textContent = `${minorCount} (${percentage(minorCount)}%)`;
-
-            document.getElementById('submit-score').disabled = false;
-        } catch (error) {
-            console.error("Error:", error);
-        }
-    });
-
-    // Submit Score to Backend#}
+        // Submit Score to Backend#}
         document.getElementById('submit-score').addEventListener('click', async function () {
             let score = sessionStorage.getItem("accessibilityScore");
 
@@ -513,9 +518,9 @@
             let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;
 
             let criticalPercentage = sessionStorage.getItem("critical-percentage");
-let seriousPercentage = sessionStorage.getItem("serious-percentage");
-let moderatePercentage = sessionStorage.getItem("moderate-percentage");
-let minorPercentage = sessionStorage.getItem("minor-percentage");
+            let seriousPercentage = sessionStorage.getItem("serious-percentage");
+            let moderatePercentage = sessionStorage.getItem("moderate-percentage");
+            let minorPercentage = sessionStorage.getItem("minor-percentage");
 
 
             console.log("challengeId", queryParams.challenge_id);
@@ -556,6 +561,6 @@ let minorPercentage = sessionStorage.getItem("minor-percentage");
                 alert("Failed to submit score.");
             }
         });
-</script>
+    </script>
 
 {% endblock %}

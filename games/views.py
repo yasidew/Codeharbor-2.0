@@ -26,7 +26,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from games.github_scraper import fetch_bad_code_from_github  # Import function
-from games.models import GitHubChallenge, GitHubScraperGame
+from games.models import GitHubChallenge, GitHubScraperGame, GitGameScore
 
 from django.shortcuts import render
 
@@ -65,3 +65,36 @@ def get_github_challenges(request):
     """Returns a JSON response with all GitHub accessibility challenges"""
     challenges = GitHubChallenge.objects.all().values("title", "repo_url", "file_url", "difficulty", "created_at")
     return JsonResponse(list(challenges), safe=False)
+
+# def user_severity_chart(request, user_id):
+#     """Fetch user severity scores and render the pie chart."""
+#     try:
+#         user_scores = GitGameScore.objects.get(user_id=user_id)
+#     except GitGameScore.DoesNotExist:
+#         user_scores = None
+#
+#     context = {
+#         "critical_score": user_scores.critical_score if user_scores else 0,
+#         "serious_score": user_scores.serious_score if user_scores else 0,
+#         "moderate_score": user_scores.moderate_score if user_scores else 0,
+#         "minor_score": user_scores.minor_score if user_scores else 0,
+#     }
+#
+#     return render(request, "personalized_chart.html", context)
+
+def user_severity_chart(request, user_id, challenge_id):
+    """Fetch user severity scores for a specific challenge and render the pie chart."""
+    try:
+        user_scores = GitGameScore.objects.get(user_id=user_id, github_challenge_id=challenge_id)
+    except GitGameScore.DoesNotExist:
+        user_scores = None
+
+    context = {
+        "critical_score": user_scores.critical_score if user_scores else 0,
+        "serious_score": user_scores.serious_score if hasattr(user_scores, "serious_score") else 0,
+        "moderate_score": user_scores.moderate_score if user_scores else 0,
+        "minor_score": user_scores.minor_score if user_scores else 0,
+    }
+
+    return render(request, "personalized_chart.html", context)
+
