@@ -1,12 +1,7 @@
-# from django.contrib import admin
-# from .models import CodeAnalysis
-#
-# admin.site.register(CodeAnalysis)
-# from django.contrib import admin
-#
-# # Register your models here.
+
 from django.contrib import admin
-from .models import Project, CodeSnippet
+from .models import Project, CodeSnippet, CodeAnalysisHistory
+
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
@@ -19,4 +14,11 @@ class CodeSnippetAdmin(admin.ModelAdmin):
     list_display = ("project", "created_at")  # Show project name and created time
     search_fields = ("project__name", "snippet")  # Search by project name and snippet
     list_filter = ("project",)  # Add filter by project
+
+
+@admin.register(CodeAnalysisHistory)
+class CodeAnalysisHistoryAdmin(admin.ModelAdmin):
+    list_display = ("project", "analyzed_at", "complexity_score", "duplicate_code_percentage", "security_issues")
+    search_fields = ("project__name",)
+    list_filter = ("project", "analyzed_at")
 
