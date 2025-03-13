@@ -926,207 +926,118 @@ def calculate_try_catch_weight(java_code):
 
     return nesting_levels, line_weights
 
-javaaaaa="""
-public class HighComplexityExample {
-    
-    public static void main(String[] args) {
-        try {
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Enter a number:");
-            int num = scanner.nextInt();
 
-            // Deeply Nested If-Else
-            if (num > 0) {
-                if (num < 50) {
-                    if (num % 2 == 0) {
-                        if (num % 3 == 0) {
-                            if (num % 5 == 0) {
-                                System.out.println("Number is divisible by 2, 3, and 5.");
-                            } else {
-                                System.out.println("Number is divisible by 2 and 3 but not 5.");
-                            }
-                        } else {
-                            System.out.println("Number is even but not divisible by 3.");
-                        }
-                    } else {
-                        if (num % 7 == 0 && num % 11 == 0 && num % 13 == 0) {
-                            System.out.println("Highly composite number.");
-                        } else {
-                            System.out.println("Number is odd and large.");
-                        }
-                    }
-                } else {
-                    System.out.println("Number is greater than or equal to 50.");
-                }
-            } else {
-                System.out.println("Number is non-positive.");
-            }
+def extract_thread_classes(java_files):
+    """
+    Extracts all class names that extend Thread from a list of Java files.
+    """
+    thread_classes = set()
 
-            // Complex switch-case nesting
-            switch (num) {
-                case 1:
-                    System.out.println("One");
-                    break;
-                case 2:
-                    switch (num % 2) {
-                        case 0:
-                            System.out.println("Two and even");
-                            break;
-                        default:
-                            System.out.println("Unexpected case");
-                            break;
-                    }
-                    break;
-                case 3:
-                    switch (num % 3) {
-                        case 0:
-                            System.out.println("Three and multiple of 3");
-                            break;
-                        default:
-                            System.out.println("Unexpected case");
-                            break;
-                    }
-                    break;
-                case 4:
-                    System.out.println("Four");
-                    break;
-                default:
-                    System.out.println("Some other number");
-                    break;
-            }
+    for java_code in java_files.values():  # Process all files
+        lines = java_code.splitlines()
 
-            // Multiple Try-Catch Blocks
-            try {
-                int result = 100 / num;
-                System.out.println("Division result: " + result);
-            } catch (ArithmeticException e) {
-                System.out.println("Error: Division by zero!");
-            }
+        for line in lines:
+            class_match = re.search(r'class\s+(\w+)\s+extends\s+Thread', line)
+            if class_match:
+                thread_classes.add(class_match.group(1))  # Store thread class name
 
-            try {
-                int[] arr = new int[5];
-                System.out.println(arr[num]);
-            } catch (ArrayIndexOutOfBoundsException e) {
-                System.out.println("Error: Array index out of bounds!");
-            }
+    return thread_classes
 
-            try {
-                String str = null;
-                System.out.println(str.length());
-            } catch (NullPointerException e) {
-                System.out.println("Error: Null reference encountered!");
-            }
 
-            // Deep Inheritance
-            BaseClass obj = new LevelFour();
-            obj.process();
-
-        } catch (Exception e) {
-            System.out.println("General Exception: " + e.getMessage());
-        }
-    }
-}
-
-"""
-
-print("ghghfhshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh", calculate_try_catch_weight(javaaaaa))
-def calculate_thread_weight(java_code):
+def calculate_thread_weight(java_files):
+    """
+    Calculates thread complexity from multiple Java files.
+    """
     complexity = {}
+    thread_classes = extract_thread_classes(java_files)  # Step 1: Extract thread classes
 
-    lines = java_code.splitlines()
-    synchronized_stack = []
-    block_start_line = None
-    last_thread_creation_line = None
-    inside_synchronized_method = False
+    for file_name, java_code in java_files.items():
+        lines = java_code.splitlines()
 
-    for line_no, line in enumerate(lines, start=1):
-        score = 0
-        recommendations = []
-        line = line.strip()
+        synchronized_stack = []
+        block_start_line = None
+        last_thread_creation_line = None
+        inside_synchronized_method = False
 
-        # Check for thread creation
-        if re.search(r'new\s+Thread\b', line):
-            if last_thread_creation_line is not None and line_no == last_thread_creation_line + 1:
-                score += 2  # Regular thread creation (not nested)
-                recommendations.append({
-                    "line_number": line_no,
-                    "line_content": line,
-                    "recommendation": "Avoid creating threads consecutively; consider using a thread pool instead."
-                })
-            else:
-                score += 2
-            last_thread_creation_line = line_no  # Update the last thread creation line
+        for line_no, line in enumerate(lines, start=1):
+            score = 0
+            recommendations = []
+            line = line.strip()
 
-        # Check for synchronized block
-        lock_match = re.search(r'synchronized\s*\((.*?)\)', line)
-        if lock_match:
-            lock_variable = lock_match.group(1)  # Extract the lock variable
-            if block_start_line is None:
-                block_start_line = line_no  # Start of synchronized block
-            if synchronized_stack:
-                # Nested synchronized block: assign higher weight for nested synchronization.
-                score += 4
-                recommendations.append({
-                    "line_number": line_no,
-                    "line_content": line,
-                    "recommendation": "Avoid nested synchronized blocks for better concurrency."
-                })
-            else:
-                if inside_synchronized_method == False:
-                    score += 3  # Basic synchronization block weight
+            # Check for thread creation (direct or via subclass)
+            if re.search(r'new\s+Thread\b', line) or any(
+                    re.search(r'new\s+' + cls + r'\b', line) for cls in thread_classes):
+                if last_thread_creation_line is not None and line_no == last_thread_creation_line + 1:
+                    score += 2  # Consecutive thread creation
                     recommendations.append({
+                        "file": file_name,
                         "line_number": line_no,
                         "line_content": line,
-                        "recommendation": "Review synchronized block scope for optimal concurrency."
+                        "recommendation": "Avoid creating threads consecutively; consider using a thread pool instead."
                     })
-            if inside_synchronized_method:
-                score += 4  # Extra weight for nested synchronization inside a method
-                recommendations.append({
-                    "line_number": line_no,
-                    "line_content": line,
-                    "recommendation": "Avoid using synchronized blocks inside a synchronized method."
-                })
-            synchronized_stack.append(lock_variable)  # Push the lock variable to the stack
+                else:
+                    score += 2  # Regular thread creation
+                last_thread_creation_line = line_no
 
-        # Check for end of block
-        if line == "}":
-            if synchronized_stack:
-                start_lock = synchronized_stack.pop()  # Pop the stack
-                # If the synchronized block spans many lines, add extra weight.
-                if block_start_line and (line_no - block_start_line) > 5:
-                    score += 5
+            # Check for synchronized block
+            lock_match = re.search(r'synchronized\s*\((.*?)\)', line)
+            if lock_match:
+                lock_variable = lock_match.group(1)
+                if block_start_line is None:
+                    block_start_line = line_no
+                if synchronized_stack:
+                    score += 4  # Nested synchronization
                     recommendations.append({
+                        "file": file_name,
                         "line_number": line_no,
                         "line_content": line,
-                        "recommendation": "Refactor to reduce the scope of synchronized blocks for better concurrency."
+                        "recommendation": "Avoid nested synchronized blocks for better concurrency."
                     })
-                if not synchronized_stack:  # Reset block start when no nested blocks remain
-                    block_start_line = None
+                else:
+                    if not inside_synchronized_method:
+                        score += 3  # Basic synchronization block
+                        recommendations.append({
+                            "file": file_name,
+                            "line_number": line_no,
+                            "line_content": line,
+                            "recommendation": "Review synchronized block scope for optimal concurrency."
+                        })
+                if inside_synchronized_method:
+                    score += 4  # Extra weight for nested synchronization inside method
+                    recommendations.append({
+                        "file": file_name,
+                        "line_number": line_no,
+                        "line_content": line,
+                        "recommendation": "Avoid using synchronized blocks inside a synchronized method."
+                    })
+                synchronized_stack.append(lock_variable)
 
-        # Check for method-level synchronization
-        if re.search(r'public\s+synchronized\b', line):
-            score += 5  # Higher weight for method-level synchronization
-            inside_synchronized_method = True
-            recommendations.append({
-                "line_number": line_no,
-                "line_content": line,
-                "recommendation": "Avoid method-level synchronization; prefer fine-grained synchronization."
-            })
-            # Check for any nested synchronized block inside a synchronized method
-            if re.search(r'synchronized\s*\(', line):
-                score += 4  # Nested synchronized block inside a synchronized method
+            # Check for method-level synchronization
+            if re.search(r'public\s+synchronized\b', line):
+                score += 5  # Adjusted weight (was 5)
+                inside_synchronized_method = True
                 recommendations.append({
+                    "file": file_name,
                     "line_number": line_no,
                     "line_content": line,
-                    "recommendation": "Refactor to avoid nested synchronized blocks within synchronized methods."
+                    "recommendation": "Consider using synchronized blocks instead of method-level synchronization."
                 })
 
-        # Store the score and recommendations for the current line if any
-        if score > 0:
-            complexity[line_no] = {"score": score, "recommendations": recommendations}
+                # Check for nested synchronized blocks inside synchronized method
+                if re.search(r'synchronized\s*\(', line):
+                    score += 4
+                    recommendations.append({
+                        "file": file_name,
+                        "line_number": line_no,
+                        "line_content": line,
+                        "recommendation": "Refactor to avoid nested synchronized blocks within synchronized methods."
+                    })
+
+            # Store the score and recommendations for the current line if any
+            if score > 0:
+                complexity[(file_name, line_no)] = {"score": score, "recommendations": recommendations}
 
     return complexity
-
 
 def detect_deadlocks(java_code):
     lines = java_code.splitlines()
@@ -1865,6 +1776,7 @@ def calculate_code_complexity_multiple_files(file_contents):
 
     # Step 1: Track inheritance across all files
     track_inheritance_depth_across_files(file_contents)
+    complexity_results = calculate_thread_weight(file_contents)
 
     # result1 typically contains line-based data from a previous function
     result1 = calculate_code_complexity_multiple(file_contents)
@@ -1937,7 +1849,12 @@ def calculate_code_complexity_multiple_files(file_contents):
         nesting_levels = calculate_nesting_level(content)
         nesting_level_dict = {line[0]: line[2] for line in nesting_levels}
         try_catch_weights, try_catch_weight_dict = calculate_try_catch_weight(content)
-        thread_weights = calculate_thread_weight(content)
+        if filename in {key[0] for key in complexity_results.keys()}:
+            thread_weights = {key[1]: value for key, value in complexity_results.items() if key[0] == filename}
+        else:
+            thread_weights = {}
+            print(f"Warning: No thread weight data found for {filename}!")
+
 
         # Calculate file-level CBO & MPC if needed
         cbo_value = calculate_cbo(class_references)

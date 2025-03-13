@@ -511,7 +511,6 @@ def remove_comments(line):
     return line
 
 
-# Function to calculate the size of a single line (token count)
 def calculate_size(line):
     global class_declaration_ended
 
@@ -525,13 +524,11 @@ def calculate_size(line):
         return 0, []  # Ignore namespace declarations
 
     # ✅ Check for class/struct declaration and skip until it's completed
-    # if not class_declaration_ended:
     if re.search(r'\b(class|struct)\s+\w+', line):
         class_declaration_ended = True
         return 0, []  # Ignore class/struct declaration
-        # return 0, []  # Still inside class declaration, ignore
 
-    # ✅ Remove attributes like `[Obsolete]`
+    # ✅ Remove attributes like [Obsolete]
     line = re.sub(r'\[\w+\]', '', line)
 
     # ✅ Remove access modifiers and keywords
@@ -564,7 +561,7 @@ def calculate_size(line):
     user_defined_call_pattern = r'\b([a-zA-Z_]\w*)\s*\.\s*([a-zA-Z_]\w*)\s*\(.*?\)'
     line = re.sub(user_defined_call_pattern, r'\1 , . , \2()', line)
 
-    # ✅ Handle logger calls (e.g., `Logger.Info("Message")`)
+    # ✅ Handle logger calls (e.g., Logger.Info("Message"))
     logger_call_pattern = r'\b(logger|Logger)\s*\.\s*([a-zA-Z_]\w*)\s*\("(.*?)"\)'
     line = re.sub(logger_call_pattern, r'\1 , . , \2 "\3"', line)
 
@@ -579,13 +576,13 @@ def calculate_size(line):
     token_pattern = r'''
         "[^"]*"                 # Strings inside double quotes
         | '[^']*'               # Strings inside single quotes
-        | \+\+|--               # Pre and post increment/decrement
+        | \+\+|--               # Pre and post increment/decrement as one token
         | \belse\s+if\b         # "else if" as one token
         | \bif\b                # "if" should be counted
         | \b(?:for|while|switch|case|default|catch)\b  # Control structures
         | \b(?:int|float|double|char|bool|long|short|byte|string|void)\b  # Data types
         | &&|\|\||===|==|!==|>=|<=|!=   # Logical and comparison operators as one token
-        | [\+\*/%=&|<>!~^]      # Operators
+        | [-+*/%=&|<>!~^]         # Operators
         | -?\d+                 # Numbers
         | \.                    # Dot operator
         | \b[a-zA-Z_]\w*\(\)    # Method calls
@@ -609,119 +606,69 @@ def get_code_lines(csharp_code):
     return {i + 1: line.strip() for i, line in enumerate(csharp_code.split("\n"))}
 
 
-# def calculate_control_structure_complexity(lines):
-#     """
-#     Calculates control structure complexity for a given C# code.
-#
-#     Parameters:
-#         - csharp_code (str): C# code as a string.
-#
-#     Returns:
-#         - dict: A dictionary with line numbers as keys and assigned complexity weights as values.
-#         - int: Total complexity of the code.
-#     """
-#
-#     # Split C# code into lines
-#     # lines = csharp_code.split("\n")
-#     total_weight = 0
-#     line_weights = {}
-#
-#     for line_number, line in enumerate(lines, start=1):
-#         stripped_line = line.strip()
-#
-#         # Ignore empty lines
-#         if not stripped_line:
-#             continue
-#
-#         # ✅ Branching Statements (if, else if, else) → Weight = 1
-#         if re.match(r"^\s*if\b", stripped_line):
-#             weight = 1
-#         elif re.match(r"^\s*\}?\s*else\s*if\b", stripped_line):  # Ensure 'else if' is correctly captured
-#             weight = 1
-#
-#         # ✅ Loops (for, while, do-while) → Weight = 2
-#         elif re.match(r"^\s*(for|while|do|foreach)\b", stripped_line):
-#             weight = 2
-#
-#         # ✅ Switch-Case Complexity → Weight = Number of cases
-#         elif re.match(r"^\s*switch\b", stripped_line):
-#             case_count = 0
-#             switch_end_found = False
-#             for subsequent_line in lines[line_number:]:
-#                 subsequent_line = subsequent_line.strip()
-#                 if re.match(r"^\s*(case|default)\b", subsequent_line):
-#                     case_count += 1
-#                 if subsequent_line == "}":  # End of switch block
-#                     switch_end_found = True
-#                     break
-#             weight = max(1,
-#                          case_count if switch_end_found else 0)  # Ensure switch has at least weight 1, or case_count if greater
-#
-#         else:
-#             weight = 0  # Default weight for lines without control structures
-#
-#         # ✅ Store results
-#         line_weights[line_number] = {
-#             "line_content": stripped_line,
-#             "weight": weight
-#         }
-#         total_weight += weight
-#
-#     return line_weights, total_weight
-
-
 def calculate_control_structure_complexity(lines):
     """
-    Calculates control structure complexity for a given C# code using Pygments tokenization.
+    Calculates control structure complexity for a given C# code.
 
     Parameters:
-        - lines (list of str): List of lines in C# code.
+        - lines (list): List of C# code lines.
 
     Returns:
         - dict: A dictionary with line numbers as keys and assigned complexity weights as values.
         - int: Total complexity of the code.
     """
-
     total_weight = 0
     line_weights = {}
-    switch_case_count = 0  # Stores switch case count
-    inside_switch = False  # Flag for tracking switch cases
-    switch_start_line = None
+
+    # Stack to keep track of switch-case blocks
+    switch_stack = []
 
     for line_number, line in enumerate(lines, start=1):
         stripped_line = line.strip()
-        tokens = list(lex(stripped_line, CSharpLexer()))
 
         # Ignore empty lines
         if not stripped_line:
             continue
 
-        weight = 0  # Default weight
-
         # ✅ Branching Statements (if, else if, else) → Weight = 1
-        if any(tok[0] == Token.Keyword and tok[1] in ["if", "else"] for tok in tokens):
+        if re.match(r"^\s*if\b", stripped_line):
+            weight = 1
+        elif re.match(r"^\s*\}?\s*else\s*if\b", stripped_line):  # Ensure 'else if' is correctly captured
             weight = 1
 
         # ✅ Loops (for, while, do-while, foreach) → Weight = 2
-        elif any(tok[0] == Token.Keyword and tok[1] in ["for", "while", "do", "foreach"] for tok in tokens):
+        elif re.match(r"^\s*(for|while|do|foreach)\b", stripped_line):
             weight = 2
 
-        # ✅ Switch-Case Complexity → Weight = 1 for switch + Number of cases
-        elif any(tok[0] == Token.Keyword and tok[1] == "switch" for tok in tokens):
-            inside_switch = True
-            switch_case_count = 0  # Reset case count
-            switch_start_line = line_number  # Store switch start line
-            weight = 1  # Base weight for switch
+        # ✅ Switch-Case Complexity → Weight = Number of cases + 1 (if default is present)
+        elif re.match(r"^\s*switch\b", stripped_line):
+            case_count = 0
+            default_found = False
+            switch_stack.append(line_number)  # Track the switch block
 
-        elif inside_switch and any(tok[0] == Token.Keyword and tok[1] in ["case", "default"] for tok in tokens):
-            switch_case_count += 1  # Count cases
-            weight = 1  # Assign weight to each case
+            # Scan forward to count cases & check for a default statement
+            for subsequent_line in lines[line_number:]:
+                subsequent_line = subsequent_line.strip()
+                if re.match(r"^\s*case\b", subsequent_line):
+                    case_count += 1
+                if re.match(r"^\s*default\b", subsequent_line):
+                    default_found = True
+                if subsequent_line == "}":  # End of switch block
+                    break
 
-        elif inside_switch and "}" in stripped_line:
-            # End of switch block, update switch weight
-            if switch_start_line:
-                line_weights[switch_start_line]["weight"] += switch_case_count  # Assign case count to switch line
-            inside_switch = False
+            # Calculate switch weight
+            weight = case_count + (1 if default_found else 0)
+
+            # ✅ Ensure the minimum weight for a switch with exactly 2 cases and 1 default is 3
+            if case_count == 2 and default_found:
+                weight = 3
+
+        # ✅ Handle nested switch cases correctly
+        elif re.match(r"^\s*case\b", stripped_line) or re.match(r"^\s*default\b", stripped_line):
+            weight = 0  # Cases/defaults themselves do not add weight
+
+        else:
+            weight = 0  # Default weight for lines without control structures
 
         # ✅ Store results
         line_weights[line_number] = {
@@ -731,6 +678,69 @@ def calculate_control_structure_complexity(lines):
         total_weight += weight
 
     return line_weights, total_weight
+
+
+# def calculate_control_structure_complexity(lines):
+#     """
+#     Calculates control structure complexity for a given C# code using Pygments tokenization.
+#
+#     Parameters:
+#         - lines (list of str): List of lines in C# code.
+#
+#     Returns:
+#         - dict: A dictionary with line numbers as keys and assigned complexity weights as values.
+#         - int: Total complexity of the code.
+#     """
+#
+#     total_weight = 0
+#     line_weights = {}
+#     switch_case_count = 0  # Stores switch case count
+#     inside_switch = False  # Flag for tracking switch cases
+#     switch_start_line = None
+#
+#     for line_number, line in enumerate(lines, start=1):
+#         stripped_line = line.strip()
+#         tokens = list(lex(stripped_line, CSharpLexer()))
+#
+#         # Ignore empty lines
+#         if not stripped_line:
+#             continue
+#
+#         weight = 0  # Default weight
+#
+#         # ✅ Branching Statements (if, else if, else) → Weight = 1
+#         if any(tok[0] == Token.Keyword and tok[1] in ["if", "else"] for tok in tokens):
+#             weight = 1
+#
+#         # ✅ Loops (for, while, do-while, foreach) → Weight = 2
+#         elif any(tok[0] == Token.Keyword and tok[1] in ["for", "while", "do", "foreach"] for tok in tokens):
+#             weight = 2
+#
+#         # ✅ Switch-Case Complexity → Weight = 1 for switch + Number of cases
+#         elif any(tok[0] == Token.Keyword and tok[1] == "switch" for tok in tokens):
+#             inside_switch = True
+#             switch_case_count = 0  # Reset case count
+#             switch_start_line = line_number  # Store switch start line
+#             weight = 1  # Base weight for switch
+#
+#         elif inside_switch and any(tok[0] == Token.Keyword and tok[1] in ["case", "default"] for tok in tokens):
+#             switch_case_count += 1  # Count cases
+#             weight = 1  # Assign weight to each case
+#
+#         elif inside_switch and "}" in stripped_line:
+#             # End of switch block, update switch weight
+#             if switch_start_line:
+#                 line_weights[switch_start_line]["weight"] += switch_case_count  # Assign case count to switch line
+#             inside_switch = False
+#
+#         # ✅ Store results
+#         line_weights[line_number] = {
+#             "line_content": stripped_line,
+#             "weight": weight
+#         }
+#         total_weight += weight
+#
+#     return line_weights, total_weight
 
 
 def calculate_nesting_level(java_code):
@@ -2049,41 +2059,6 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         # CBO feature extraction
         cbo_report = calculate_cbo_csharp(lines)
 
-        # (Optional) Process C# files for some other step
-        # process_csharp_files1(json_file, output_csv1)
-        #
-        # # CBO feature extraction & classification
-        # new_cbo_features = extract_csharp_class_dependencies(content)
-        # print("new_cbo_features>>>>>>>>>>>>>>>>>>>>>>>>", new_cbo_features)
-        # X_new = pd.DataFrame([new_cbo_features])[X.columns]
-        # prediction = rf_model.predict(X_new)[0]
-        #
-        # # Generate recommendations
-        # recommendations = []
-        # if X_new["class_dependencies"][0] > 5:
-        #     recommendations.append(
-        #         "⚠️ Reduce class dependencies by using interfaces instead of direct implementations.")
-        # if X_new["direct_instantiations"][0] > 3:
-        #     recommendations.append("⚠️ Too many direct object instantiations. Use dependency injection instead.")
-        # if X_new["static_method_calls"][0] > 3:
-        #     recommendations.append("⚠️ Reduce static method calls to improve testability and flexibility.")
-        # if X_new["static_variable_usage"][0] > 2:
-        #     recommendations.append("⚠️ Minimize static variable usage to prevent global state issues.")
-        # if X_new["setter_injections"][0] > 1:
-        #     recommendations.append("⚠️ Too many setter injections detected. Prefer constructor injection.")
-        # if X_new["interface_implementations"][0] > 2:
-        #     recommendations.append("⚠️ Avoid God Interfaces.(interfaces with too many responsibilities)")
-        # if X_new["global_variable_references"][0] > 2:
-        #     recommendations.append(
-        #         "⚠️ Avoid using global variables. Use dependency injection or encapsulation instead to prevent hidden dependencies."
-        #     )
-        #
-        # # Store the result for this file in results3
-        # results3[filename] = {
-        #     "prediction": "High CBO (Issue)" if prediction == 1 else "Low CBO (Good)",
-        #     "recommendations": recommendations
-        # }
-
         print("model output>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", model_output)
         model_based_recommendations = get_csharp_code_recommendations(lines, model_filename)
 
@@ -2119,22 +2094,6 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
 
         # Control structure complexities
         line_weights, total_control_complexity = calculate_control_structure_complexity(lines)
-
-        # Run a C#-specific CBO analysis
-        # cbo_analyzer = CBOMetricsCSharp(content)
-        # cbo_report = cbo_analyzer.calculate_cbo()
-        # print("uyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", cbo_report)
-
-        # For example, track lines that have certain patterns
-        # cbo_constructor_lines = {extract_line_number(info): info for info in cbo_report["Constructor Injections"]}
-        # cbo_setter_lines = {extract_line_number(info): info for info in cbo_report["Setter Injections"]}
-        # cbo_instantiation_lines = {extract_line_number(info): info for info in
-        #                            cbo_report["Direct Object Instantiations"]}
-        # cbo_static_calls = {extract_line_number(info): info for info in cbo_report["Static Method Calls"]}
-        # cbo_static_vars = {extract_line_number(info): info for info in cbo_report["Static Variable Usages"]}
-        # cbo_dependency_assignment_lines = {
-        #     extract_line_number(info): info for info in cbo_report["Dependency Assignments"]
-        # }
 
         cbo_instantiation_lines = {info["line"]: info for info in cbo_report.get("Direct Object Instantiations", []) if
                                    isinstance(info, dict)}

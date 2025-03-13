@@ -88,4 +88,14 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 4,1,1,0,1,No action needed
 1,1,4,0,1,No action needed
 1,4,1,0,1,No action needed
-
+1,4,2,0,1,No action needed
+1,7,2,0,1,Critical refactor: High complexity and if nesting
+1,8,1,0,1,Critical refactor: High complexity and if nesting
+0,8,0,0,1,No action needed
+2,3,0,0,1,No action needed
+2,4,0,0,1,No action needed
+1,5,4,0,1,Critical refactor: High complexity and if nesting
+3,3,1,0,1,No action needed
+1,3,0,0,1,No action needed
+3,2,1,0,1,No action needed
+3,1,1,0,1,No action needed
