@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Challenges</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .challenges-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 600px;
+        }
+        .challenges-container h2 {
+            margin: 0 0 20px;
+            text-align: center;
+        }
+        .challenge-card {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            cursor: pointer;
+        }
+        .challenge-card:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="challenges-container">
+        <h2>Monthly Challenges</h2>
+        <div id="challenges"></div>
+    </div>
+
+    <script>
+        async function fetchChallengesOfMonth() {
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                alert("You are not logged in!");
+                window.location.href = '/login/'; // Redirect to login page
+                return;
+            }
+
+            try {
+                const response = await fetch('/challenges/current/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const challengesContainer = document.getElementById('challenges');
+
+                if (response.ok) {
+                    const data = await response.json();
+                    challengesContainer.innerHTML = ''; // Clear existing content
+
+                    if (data.challenges.length > 0) {
+                        data.challenges.forEach((challenge) => {
+                            const challengeCard = document.createElement('div');
+                            challengeCard.className = 'challenge-card';
+                            challengeCard.textContent = `Category: ${challenge.category} | Difficulty: ${challenge.difficulty}`;
+                            challengeCard.onclick = () => {
+                                window.location.href = `/challenge-details.html?id=${challenge.id}`;
+                            };
+                            challengesContainer.appendChild(challengeCard);
+                        });
+                    } else {
+                        challengesContainer.innerHTML = '<p>No challenges available for this month.</p>';
+                    }
+                } else {
+                    const errorData = await response.json();
+                    challengesContainer.innerHTML = `<p>${errorData.error || "Failed to fetch challenges."}</p>`;
+                }
+            } catch (error) {
+                console.error("Error fetching challenges:", error);
+                challengesContainer.innerHTML = '<p>An error occurred. Please try again.</p>';
+            }
+        }
+
+        // Fetch challenges on page load
+        window.onload = fetchChallengesOfMonth;
+    </script>
+</body>
+</html>
