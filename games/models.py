@@ -81,10 +81,10 @@ class GitGameScore(models.Model):
     last_played = models.DateTimeField(auto_now=True)
 
     # ✅ Separate fields for different severity scores
-    critical_score = models.IntegerField(default=0)
-    serious_score = models.IntegerField(default=0)
-    moderate_score = models.IntegerField(default=0)
-    minor_score = models.IntegerField(default=0)
+    critical_score = models.FloatField(default=0.0)
+    serious_score = models.FloatField(default=0.0)
+    moderate_score = models.FloatField(default=0.0)
+    minor_score = models.FloatField(default=0.0)
 
     def __str__(self):
         return (f"User ID: {self.user.id} | Game ID: {self.game.id} | Challenge ID: {self.github_challenge.id if self.github_challenge else 'None'} | "

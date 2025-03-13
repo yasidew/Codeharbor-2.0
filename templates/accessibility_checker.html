@@ -165,18 +165,36 @@
                         else if (v.impact === "minor") minorCount++;
                     });
 
-                    // ✅ Store severity counts in sessionStorage
-                    sessionStorage.setItem("critical-count", criticalCount);
-                    sessionStorage.setItem("serious-count", seriousCount);
-                    sessionStorage.setItem("moderate-count", moderateCount);
-                    sessionStorage.setItem("minor-count", minorCount);
+                    {#// ✅ Store severity counts in sessionStorage#}
+                    {#sessionStorage.setItem("critical-count", criticalCount);#}
+                    {#sessionStorage.setItem("serious-count", seriousCount);#}
+                    {#sessionStorage.setItem("moderate-count", moderateCount);#}
+                    {#sessionStorage.setItem("minor-count", minorCount);#}
+                    {##}
+                    {#// ✅ Display categorized counts#}
+                    {#document.getElementById('critical-count').textContent = criticalCount;#}
+                    {#document.getElementById('serious-count').textContent = seriousCount;#}
+                    {#document.getElementById('moderate-count').textContent = moderateCount;#}
+                    {#document.getElementById('minor-count').textContent = minorCount;#}
 
-                    // ✅ Display categorized counts
-                    document.getElementById('critical-count').textContent = criticalCount;
-                    document.getElementById('serious-count').textContent = seriousCount;
-                    document.getElementById('moderate-count').textContent = moderateCount;
-                    document.getElementById('minor-count').textContent = minorCount;
+                    // ✅ Calculate percentages
+                    let totalViolations = criticalCount + seriousCount + moderateCount + minorCount;
+                    let criticalPercentage = totalViolations ? ((criticalCount / totalViolations) * 100).toFixed(2) : 0;
+                    let seriousPercentage = totalViolations ? ((seriousCount / totalViolations) * 100).toFixed(2) : 0;
+                    let moderatePercentage = totalViolations ? ((moderateCount / totalViolations) * 100).toFixed(2) : 0;
+                    let minorPercentage = totalViolations ? ((minorCount / totalViolations) * 100).toFixed(2) : 0;
 
+                    // ✅ Store severity percentages in sessionStorage
+                    sessionStorage.setItem("critical-percentage", criticalPercentage);
+                    sessionStorage.setItem("serious-percentage", seriousPercentage);
+                    sessionStorage.setItem("moderate-percentage", moderatePercentage);
+                    sessionStorage.setItem("minor-percentage", minorPercentage);
+
+                    // ✅ Display categorized percentages
+                    document.getElementById('critical-count').textContent = `${criticalCount} (${criticalPercentage}%)`;
+                    document.getElementById('serious-count').textContent = `${seriousCount} (${seriousPercentage}%)`;
+                    document.getElementById('moderate-count').textContent = `${moderateCount} (${moderatePercentage}%)`;
+                    document.getElementById('minor-count').textContent = `${minorCount} (${minorPercentage}%)`;
 
                 }
             } catch (error) {
@@ -208,20 +226,26 @@
             }
 
             // ✅ Get severity scores from sessionStorage
-            let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;
-            let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;
-            let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;
-            let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;
+            {#let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;#}
+            {#let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;#}
+            {#let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;#}
+            {#let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;#}
+
+            let criticalPercentage = sessionStorage.getItem("critical-percentage");
+let seriousPercentage = sessionStorage.getItem("serious-percentage");
+let moderatePercentage = sessionStorage.getItem("moderate-percentage");
+let minorPercentage = sessionStorage.getItem("minor-percentage");
+
 
             console.log("challengeId", queryParams.challenge_id);
             let submissionData = {
                 game_name: queryParams.game_name,
                 challenge_id: queryParams.challenge_id,
                 score: parseFloat(score), // Ensure correct score precision
-                critical_score: criticalCount,
-                serious_score: seriousCount,
-                moderate_score: moderateCount,
-                minor_score: minorCount
+                critical_score: criticalPercentage,
+                serious_score: seriousPercentage,
+                moderate_score: moderatePercentage,
+                minor_score: minorPercentage
             };
 
             console.log("Submitting Score:", submissionData);
