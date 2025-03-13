@@ -63,7 +63,7 @@ def add_metadata(input_file, output_file):
     print(f"Enriched dataset saved to {output_file}")
 
 # Define input and output file paths
-input_file = "singleton_data.json"  # Replace with your actual file name
+input_file = "datasets/singleton_data.json"  # Replace with your actual file name
 output_file = "enriched_singleton_data.json"
 
 # Run the enrichment process

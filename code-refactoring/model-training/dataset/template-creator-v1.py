@@ -47,8 +47,8 @@ def convert_to_template_format(input_file, output_file):
     print(f"Converted dataset saved to {output_file}")
 
 # Define input and output file paths
-input_file = "factory_method_data.json"
-output_file = "converted_factory_method_data.json"
+input_file = "datasets/observer_pattern_data.json"
+output_file = "converted_observer_pattern_data.json"
 
 # Run the conversion
 convert_to_template_format(input_file, output_file)
