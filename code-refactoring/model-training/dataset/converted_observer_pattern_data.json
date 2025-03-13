@@ -1,7 +1,4 @@
-import json
-
-# Patterns for design patterns with placeholders
-patterns = [
+[
     {
         "type": "Observer",
         "input_template": "public class {name} {{\n\n    public {name}() {{}}\n\n}}",
@@ -1022,41 +1019,4 @@ patterns = [
         "comments": "Can integrate with AI-powered tutoring assistance",
         "source": "Inspired by AI-driven personalized education solutions"
     }
-
 ]
-
-# Generate examples for each pattern
-examples = []
-unique_checker = set()  # To track unique (input, output) pairs
-
-for pattern in patterns:
-    for i in range(10):  # Generate 5 variations per pattern
-        class_name = f"{pattern['type']}Example{i + 1}"
-        generated_input = pattern["input_template"].format(name=class_name)
-        generated_output = pattern["output_template"].format(name=class_name)
-
-        # Check if the (input, output) pair is unique
-        if (generated_input, generated_output) not in unique_checker:
-            examples.append({
-                "type": pattern["type"],
-                "input": generated_input,
-                "output": generated_output,
-                "complexity": pattern["complexity"],
-                "language": pattern["language"],
-                "context": pattern["context"],
-                "edge_cases": pattern["edge_cases"],
-                "dependencies": pattern["dependencies"],
-                "performance_notes": pattern["performance_notes"],
-                "real_world_usage": pattern["real_world_usage"],
-                "testing_notes": pattern["testing_notes"],
-                "comments": pattern["comments"],
-                "source": pattern["source"]
-            })
-            unique_checker.add((generated_input, generated_output))  # Mark as generated
-
-# Save the dataset to a JSON file
-dataset_filename = "augmented_Observer_method_data.json"
-with open(dataset_filename, "w") as json_file:
-    json.dump(examples, json_file, indent=4)
-
-print(f"Dataset generated and saved to {dataset_filename}.")
