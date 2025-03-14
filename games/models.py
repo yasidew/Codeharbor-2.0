@@ -1,4 +1,3 @@
-
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -7,6 +6,7 @@ DIFFICULTY_CHOICES = [
     ('medium', 'Medium'),
     ('hard', 'Hard'),
 ]
+
 
 class GitHubChallenge(models.Model):
     """Model for storing GitHub challenges with difficulty levels."""
@@ -20,6 +20,7 @@ class GitHubChallenge(models.Model):
     def __str__(self):
         return f"{self.title} ({self.difficulty})"
 
+
 class GitHubScraperGame(models.Model):
     """Model for storing details about the accessibility checking game."""
     name = models.CharField(max_length=255, unique=True)
@@ -28,6 +29,7 @@ class GitHubScraperGame(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class GitGameScore(models.Model):
     """Model to store user progress, scores, challenge ID, and categorized violation scores."""
@@ -45,5 +47,6 @@ class GitGameScore(models.Model):
     minor_score = models.FloatField(default=0.0)
 
     def __str__(self):
-        return (f"User ID: {self.user.id} | Game ID: {self.game.id} | Challenge ID: {self.github_challenge.id if self.github_challenge else 'None'} | "
-                f"Score: {self.score} | Critical: {self.critical_score} | Serious: {self.serious_score} | Moderate: {self.moderate_score} | Minor: {self.minor_score}")
+        return (
+            f"User ID: {self.user.id} | Game ID: {self.game.id} | Challenge ID: {self.github_challenge.id if self.github_challenge else 'None'} | "
+            f"Score: {self.score} | Critical: {self.critical_score} | Serious: {self.serious_score} | Moderate: {self.moderate_score} | Minor: {self.minor_score}")

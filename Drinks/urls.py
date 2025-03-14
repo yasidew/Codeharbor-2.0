@@ -104,10 +104,13 @@ urlpatterns = [
     path('drinks/<int:id>/', views.drink_detail),
 
     # Complexity Calculation URLs
-    path('calculate-complexity-line-by-line/', views.calculate_complexity_multiple_java_files, name='calculate_complexity_line_by_line'),
+    path('calculate-complexity-line-by-line/', views.calculate_complexity_multiple_java_files,
+         name='calculate_complexity_line_by_line'),
     path('calculate-complexity/', views.calculate_complexity_line_by_line, name='calculate_complexity'),
-    path('calculate-complexity-line-by-line-csharp/', views.calculate_complexity_line_by_line_csharp, name='calculate_complexity_line_by_line_csharp'),
-    path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexity_multiple_csharp_files, name='calculate_complexity_line_by_line_csharp'),
+    path('calculate-complexity-line-by-line-csharp/', views.calculate_complexity_line_by_line_csharp,
+         name='calculate_complexity_line_by_line_csharp'),
+    path('calculate-complexity-line-by-line-csharp-files/', views.calculate_complexity_multiple_csharp_files,
+         name='calculate_complexity_line_by_line_csharp'),
     path('calculate-complexity-excel/', views.calculate_complexity, name='calculate_complexity-excel'),
 
     # Code Analysis URLs

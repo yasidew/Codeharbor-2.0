@@ -13,6 +13,7 @@
                 </div>
                 <button id="editor-button" class="btn btn-light text-dark">See in the Editor</button>
                 <button id="chart-button" class="btn btn-light text-dark">Chart</button>
+                <button id="submit-score" class="btn btn-success w-100 mt-3" disabled>Submit Score</button>
             </div>
 
             <div class="card-body">
@@ -118,66 +119,81 @@
         </div>
     </div>
 
-   <script>
-    function getQueryParams() {
-        let params = new URLSearchParams(window.location.search);
-        return {
-            game_name: params.get("game_name") || "Unknown Game",
-            challenge_id: params.get("challenge_id") || "N/A"
-        };
-    }
-
-    let queryParams = getQueryParams();
-    document.getElementById("gameName").textContent = queryParams.game_name;
-    document.getElementById("challengeId").textContent = queryParams.challenge_id;
-
-    document.getElementById('editor-button').addEventListener('click', function () {
-        window.location.href = `/editor`;
-    });
-
-    document.getElementById('accessibility-form').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-            alert("You are not logged in! Redirecting to login...");
-            window.location.href = '/login';
-            return;
+    <script>
+        function getQueryParams() {
+            let params = new URLSearchParams(window.location.search);
+            return {
+                game_name: params.get("game_name") || "Unknown Game",
+                challenge_id: params.get("challenge_id") || "N/A"
+            };
         }
 
-        const formData = new FormData(this);
+        let queryParams = getQueryParams();
+        document.getElementById("gameName").textContent = queryParams.game_name;
+        document.getElementById("challengeId").textContent = queryParams.challenge_id;
 
-        try {
-            const response = await fetch("{% url 'check_accessibility' %}", {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: formData
-            });
+        document.getElementById('editor-button').addEventListener('click', function () {
+            window.location.href = `/editor`;
+        });
 
-            const data = await response.json();
-            if (data.error) {
-                document.getElementById('score').textContent = "Error: " + data.error;
+        document.getElementById('accessibility-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                alert("You are not logged in! Redirecting to login...");
+                window.location.href = '/login';
                 return;
             }
 
-            let actualScore = data.score;
-            document.getElementById('score').textContent = `Accessibility Score: ${actualScore.toFixed(2)}%`;
+            const formData = new FormData(this);
 
-            // ✅ Store Score in Both sessionStorage and localStorage
-            sessionStorage.setItem("accessibilityScore", actualScore);
-            localStorage.setItem("accessibilityScore", actualScore);
+            try {
+                const response = await fetch("{% url 'check_accessibility' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: formData
+                });
 
-            function populateTable(sectionId, results) {
-                let tableBody = document.getElementById(sectionId);
-                tableBody.innerHTML = "";
+                const data = await response.json();
+                if (data.error) {
+                    document.getElementById('score').textContent = "Error: " + data.error;
+                    return;
+                }
 
-                if (results.length > 0) {
-                    results.forEach(item => {
-                        let row = document.createElement("tr");
-                        row.innerHTML = `
+                let actualScore = data.score;
+                document.getElementById('score').textContent = `Accessibility Score: ${actualScore.toFixed(2)}%`;
+
+                // ✅ Store Score in Both sessionStorage and localStorage
+                sessionStorage.setItem("accessibilityScore", actualScore);
+                localStorage.setItem("accessibilityScore", actualScore);
+
+
+                if (data.html_code) {
+                    sessionStorage.setItem("submittedHTML", data.html_code);
+                }
+
+                // ✅ Store violations with their severity for highlighting
+                let violationData = data.violations.map(v => ({
+                    id: v.id,
+                    impact: v.impact,
+                    nodes: v.nodes.map(node => node.html)
+                }));
+
+                sessionStorage.setItem("violations", JSON.stringify(violationData));
+
+
+                function populateTable(sectionId, results) {
+                    let tableBody = document.getElementById(sectionId);
+                    tableBody.innerHTML = "";
+
+                    if (results.length > 0) {
+                        results.forEach(item => {
+                            let row = document.createElement("tr");
+                            row.innerHTML = `
                             <td>${item.id}</td>
                             <td>${item.impact ? item.impact : "N/A"}</td>
                             <td>${item.description}</td>
@@ -185,111 +201,159 @@
                             <td><a href="${item.helpUrl}" target="_blank">View</a></td>
                             <td>${item.nodes.map(node => node.target.join(", ")).join("<br>")}</td>
                         `;
-                        tableBody.appendChild(row);
-                    });
-                } else {
-                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No results found.</td></tr>`;
+                            tableBody.appendChild(row);
+                        });
+                    } else {
+                        tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No results found.</td></tr>`;
+                    }
                 }
+
+                populateTable("passes-content", data.passes);
+                populateTable("violations-content", data.violations);
+                populateTable("incomplete-content", data.incomplete);
+
+                let criticalCount = data.violations.filter(v => v.impact === "critical").length;
+                let seriousCount = data.violations.filter(v => v.impact === "serious").length;
+                let moderateCount = data.violations.filter(v => v.impact === "moderate").length;
+                let minorCount = data.violations.filter(v => v.impact === "minor").length;
+                let totalViolations = criticalCount + seriousCount + moderateCount + minorCount;
+
+                function percentage(count) {
+                    return totalViolations ? ((count / totalViolations) * 100).toFixed(2) : "0.00";
+                }
+
+                document.getElementById('critical-count').textContent = `${criticalCount} (${percentage(criticalCount)}%)`;
+                document.getElementById('serious-count').textContent = `${seriousCount} (${percentage(seriousCount)}%)`;
+                document.getElementById('moderate-count').textContent = `${moderateCount} (${percentage(moderateCount)}%)`;
+                document.getElementById('minor-count').textContent = `${minorCount} (${percentage(minorCount)}%)`;
+
+                // ✅ Store severity scores in sessionStorage
+                sessionStorage.setItem("critical-count", criticalCount);
+                sessionStorage.setItem("serious-count", seriousCount);
+                sessionStorage.setItem("moderate-count", moderateCount);
+                sessionStorage.setItem("minor-count", minorCount);
+
+                sessionStorage.setItem("critical-percentage", percentage(criticalCount));
+                sessionStorage.setItem("serious-percentage", percentage(seriousCount));
+                sessionStorage.setItem("moderate-percentage", percentage(moderateCount));
+                sessionStorage.setItem("minor-percentage", percentage(minorCount));
+
+                document.getElementById('submit-score').disabled = false;
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        });
+
+
+        document.getElementById('submit-score').addEventListener('click', async function () {
+            let score = sessionStorage.getItem("accessibilityScore");
+
+            if (!score) {
+                alert("No score available to submit!");
+                return;
             }
 
-            populateTable("passes-content", data.passes);
-            populateTable("violations-content", data.violations);
-            populateTable("incomplete-content", data.incomplete);
-
-            let criticalCount = data.violations.filter(v => v.impact === "critical").length;
-            let seriousCount = data.violations.filter(v => v.impact === "serious").length;
-            let moderateCount = data.violations.filter(v => v.impact === "moderate").length;
-            let minorCount = data.violations.filter(v => v.impact === "minor").length;
-            let totalViolations = criticalCount + seriousCount + moderateCount + minorCount;
-
-            function percentage(count) {
-                return totalViolations ? ((count / totalViolations) * 100).toFixed(2) : "0.00";
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                alert("You are not logged in! Redirecting to login...");
+                window.location.href = '/login';
+                return;
             }
 
-            document.getElementById('critical-count').textContent = `${criticalCount} (${percentage(criticalCount)}%)`;
-            document.getElementById('serious-count').textContent = `${seriousCount} (${percentage(seriousCount)}%)`;
-            document.getElementById('moderate-count').textContent = `${moderateCount} (${percentage(moderateCount)}%)`;
-            document.getElementById('minor-count').textContent = `${minorCount} (${percentage(minorCount)}%)`;
+            let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;
+            let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;
+            let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;
+            let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;
 
-            // ✅ Store severity scores in sessionStorage
-            sessionStorage.setItem("critical-count", criticalCount);
-            sessionStorage.setItem("serious-count", seriousCount);
-            sessionStorage.setItem("moderate-count", moderateCount);
-            sessionStorage.setItem("minor-count", minorCount);
+            let criticalPercentage = sessionStorage.getItem("critical-percentage") || "0.00";
+            let seriousPercentage = sessionStorage.getItem("serious-percentage") || "0.00";
+            let moderatePercentage = sessionStorage.getItem("moderate-percentage") || "0.00";
+            let minorPercentage = sessionStorage.getItem("minor-percentage") || "0.00";
 
-            sessionStorage.setItem("critical-percentage", percentage(criticalCount));
-            sessionStorage.setItem("serious-percentage", percentage(seriousCount));
-            sessionStorage.setItem("moderate-percentage", percentage(moderateCount));
-            sessionStorage.setItem("minor-percentage", percentage(minorCount));
+            let submissionData = {
+                game_name: queryParams.game_name,
+                challenge_id: queryParams.challenge_id,
+                score: parseFloat(score),
+                critical_score: criticalPercentage,
+                serious_score: seriousPercentage,
+                moderate_score: moderatePercentage,
+                minor_score: minorPercentage
+            };
 
-            document.getElementById('submit-score').disabled = false;
-        } catch (error) {
-            console.error("Error:", error);
-        }
-    });
+            console.log("Submitting Score:", submissionData);
 
-    // Submit Score to Backend
-    document.getElementById('submit-score').addEventListener('click', async function () {
-        let score = sessionStorage.getItem("accessibilityScore");
+            try {
+                const response = await fetch("http://127.0.0.1:8000/checker/submit_score/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${accessToken}`,
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify(submissionData)
+                });
 
-        if (!score) {
-            alert("No score available to submit!");
-            return;
-        }
+                const result = await response.json();
+                console.log("🔹 Server Response:", result);
 
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-            alert("You are not logged in! Redirecting to login...");
-            window.location.href = '/login';
-            return;
-        }
+                if (response.ok) {
+                    alert(`Score submitted successfully! User ID: ${result.user_id}`);
 
-        let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;
-        let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;
-        let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;
-        let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;
+                    // ✅ Ensure user_id is stored correctly
+                    sessionStorage.setItem("user_id", result.user_id);
+                    localStorage.setItem("user_id", result.user_id);  // Also store in localStorage for persistence
 
-        let criticalPercentage = sessionStorage.getItem("critical-percentage") || "0.00";
-        let seriousPercentage = sessionStorage.getItem("serious-percentage") || "0.00";
-        let moderatePercentage = sessionStorage.getItem("moderate-percentage") || "0.00";
-        let minorPercentage = sessionStorage.getItem("minor-percentage") || "0.00";
-
-        let submissionData = {
-            game_name: queryParams.game_name,
-            challenge_id: queryParams.challenge_id,
-            score: parseFloat(score),
-            critical_score: criticalPercentage,
-            serious_score: seriousPercentage,
-            moderate_score: moderatePercentage,
-            minor_score: minorPercentage
-        };
-
-        console.log("Submitting Score:", submissionData);
-
-        try {
-            const response = await fetch("http://127.0.0.1:8000/checker/submit_score/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`,
-                    "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: JSON.stringify(submissionData)
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                alert("Score submitted successfully!");
-                console.log("Server Response:", result);
-            } else {
-                alert("Error submitting score: " + result.error);
+                    console.log("🔹 Stored User ID in sessionStorage:", sessionStorage.getItem("user_id"));
+                    console.log("🔹 Stored User ID in localStorage:", localStorage.getItem("user_id"));
+                } else {
+                    alert("❌ Error submitting score: " + result.error);
+                }
+            } catch (error) {
+                console.error("Error submitting score:", error);
+                alert("Failed to submit score.");
             }
-        } catch (error) {
-            console.error("Error submitting score:", error);
-            alert("Failed to submit score.");
-        }
-    });
-</script>
+        });
+
+
+        document.getElementById('chart-button').addEventListener('click', function () {
+            // ✅ Retrieve stored user ID from sessionStorage or localStorage
+            let userId = sessionStorage.getItem("user_id") || localStorage.getItem("user_id");
+            let challengeId = queryParams.challenge_id;
+
+            console.log("🔹 Retrieved User ID:", userId);  // ✅ Debugging step
+            console.log("🔹 Retrieved Challenge ID:", challengeId);  // ✅ Debugging step
+
+            // Ensure both userId and challengeId exist before navigating
+            if (!userId || userId === "null") {
+                alert("❌ User ID not found! Please submit your score first.");
+                return;
+            }
+
+            if (!challengeId || challengeId === "N/A") {
+                alert("❌ Challenge ID not found!");
+                return;
+            }
+
+            // ✅ Navigate to severity chart page with user ID and challenge ID
+            window.location.href = `http://127.0.0.1:8000/games/severity-chart/${userId}/${challengeId}/`;
+        });
+
+
+        document.getElementById('editor-button').addEventListener('click', function () {
+            // Get necessary details from the current page
+            let submittedHTML = sessionStorage.getItem("submittedHTML") || "<!-- No HTML submitted yet -->";
+            let violations = sessionStorage.getItem("violations") || "[]";
+
+            // Store the submitted HTML and violations in sessionStorage
+            sessionStorage.setItem("submittedHTML", submittedHTML);
+            sessionStorage.setItem("violations", violations);
+
+            // Navigate to the editor page
+            window.location.href = "/editor";
+        });
+
+
+    </script>
 
 
 {% endblock %}

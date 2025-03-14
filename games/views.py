@@ -45,8 +45,8 @@ def get_github_challenges(request):
     challenges = GitHubChallenge.objects.all().values("title", "repo_url", "file_url", "difficulty", "created_at")
     return JsonResponse(list(challenges), safe=False)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
 def user_severity_chart(request, user_id, challenge_id):
     """Fetch user severity scores for a specific challenge and render the pie chart."""
     try:
@@ -62,6 +62,14 @@ def user_severity_chart(request, user_id, challenge_id):
     }
 
     return render(request, "personalized_chart.html", context)
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def get_user_id(request):
+    return JsonResponse({"success": True, "user_id": request.user.id})
+
 
 
 # from django.http import JsonResponse
