@@ -113,7 +113,7 @@ def extract_cbo_features(java_code):
     except Exception as e:
         print(f"Error parsing Java code: {e}")
 
-    # Convert class_dependencies from a set to a count
+    # Convert class_dependencies from a set to a count--
     cbo_features["class_dependencies"] = len(cbo_features["class_dependencies"])
     return cbo_features
 
@@ -143,7 +143,7 @@ class CBOMetrics1:
             "NumberFormatException", "RecordNotFoundException", "BadRequestException", "InputStreamResource",
             "InvalidFileTypeException", "IllegalArgumentException", 'ArrayList', 'Hashtable', 'Queue', 'Stack',
             'SortedList', 'List', 'Dictionary', 'SortedDictionary', 'SortedList', 'Queue', 'Stack', 'HashSet',
-            'SortedSet', 'ConcurrentBag', 'ConcurrentQueue', 'ConcurrentStack', 'ConcurrentDictionary'
+            'SortedSet', 'ConcurrentBag', 'ConcurrentQueue', 'ConcurrentStack', 'ConcurrentDictionary', "Timer", "Random","ExecutorService", "URL"
         }
         self.constructor_injections = {}
         self.setter_injections = {}
@@ -159,7 +159,7 @@ class CBOMetrics1:
         Extracts constructor injections, setter injections, direct instantiations,
         static method calls, static variable usages, interface implementations, and global variable references.
         """
-        # --- Constructor Injection (DI, Weight = 1) ---
+        # --- Constructor Injection (DI, Weight = 1)--
         for _, node in self.tree.filter(javalang.tree.ConstructorDeclaration):
             constructor_line = node.position.line if node.position else "Unknown"
             for index, param in enumerate(node.parameters):
@@ -287,7 +287,8 @@ class CBOMetrics1:
             "Setter Injections": self.setter_injections,
             "Direct Object Instantiations": self.direct_instantiations,
             "Static Method Calls": self.static_method_calls,
-            "Static Variable Usages": self.static_variable_usages
+            "Static Variable Usages": self.static_variable_usages,
+            "Injection Initiations": self.assignment_weights,
         }
         return report
 
@@ -300,16 +301,12 @@ def extract_cbo_features1(java_code):
     cbo_metrics = CBOMetrics1(java_code)
     report = cbo_metrics.get_cbo_report()
 
-    print("report>>>>>>>>>>>>>>>>>>>>>>>>>>", report)
-
     return {
         "direct_instantiations": len(report["Direct Object Instantiations"]),
         "static_method_calls": len(report["Static Method Calls"]),
         "static_variable_usage": len(report["Static Variable Usages"]),
         "interface_implementations": len(report["Interface Implementations"]),
-        "constructor_injections": len(report["Constructor Injections"]),
-        "setter_injections": len(report["Setter Injections"])
-        # "global_variable_references": len(report["Global Variable References"])
+        "assignment_weights": len(report["Injection Initiations"])
     }
 
 def process_java_files(json_file, output_csv):
@@ -332,8 +329,9 @@ def process_java_files(json_file, output_csv):
 
         # Apply decrement by 1 to specific factors
         interface_implementations = WEIGHT_INTERFACE * max(0, cbo_features["interface_implementations"])
-        constructor_injections = WEIGHT_INTERFACE *  max(0, cbo_features["constructor_injections"])
-        setter_injections = WEIGHT_INTERFACE * max(0, cbo_features["setter_injections"])
+        # constructor_injections = WEIGHT_INTERFACE *  max(0, cbo_features["constructor_injections"])
+        # setter_injections = WEIGHT_INTERFACE * max(0, cbo_features["setter_injections"])
+        assignment_weights = WEIGHT_INTERFACE * max(0, cbo_features["assignment_weights"])
 
         # Collect all CBO factor values (after decrement)
         cbo_values = [
@@ -342,8 +340,9 @@ def process_java_files(json_file, output_csv):
             cbo_features["static_method_calls"],
             cbo_features["static_variable_usage"],
             interface_implementations,  # Decrement applied
-            constructor_injections,  # Decrement applied
-            setter_injections,  # Decrement applied
+            assignment_weights
+            # constructor_injections,  # Decrement applied
+            # setter_injections,  # Decrement applied
             # cbo_features["global_variable_references"]
         ]
 
@@ -351,19 +350,17 @@ def process_java_files(json_file, output_csv):
 
     df = pd.DataFrame(csv_data, columns=[
         "file_name", "direct_instantiations", "static_method_calls",
-        "static_variable_usage", "interface_implementations", "constructor_injections",
-        "setter_injections"
+        "static_variable_usage", "interface_implementations", "assignment_weights"
     ])
 
     # Compute dynamic CBO threshold (90th percentile)
     cbo_sum = df.iloc[:, 1:].sum(axis=1)  # Sum of all CBO features per file (after decrement adjustments)
-    print("scbo_sum>>>>>>>>>>>>>>>>>>>>>>>>", cbo_sum)
-    dynamic_threshold = cbo_sum.quantile(0.90)  # 90th percentile for thresholding
+    print("scbo_sum>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", cbo_sum)
+    dynamic_threshold = cbo_sum.quantile(0.85)  # 90th percentile for thresholding
 
-    # Assign CBO label dynamically
     df["cbo_label"] = cbo_sum.apply(lambda x: 1 if x > dynamic_threshold else 0)
 
-    # Save updated CSV
+    # Save updated
     df.to_csv(output_csv, index=False)
 
     print(f"CSV file '{output_csv}' generated successfully with dynamic threshold: {dynamic_threshold}")
@@ -646,7 +643,7 @@ def process_csharp_files(json_file, output_csv):
 
     # Compute dynamic CBO threshold (75th percentile)
     cbo_sum = df.iloc[:, 2:].sum(axis=1)  # Sum of all CBO features per file
-    dynamic_threshold = cbo_sum.quantile(0.75)  # 75th percentile
+    dynamic_threshold = cbo_sum.quantile(0.90)  # 75th percentile
 
     # Assign CBO label dynamically
     df["cbo_label"] = cbo_sum.apply(lambda x: 1 if x > dynamic_threshold else 0)

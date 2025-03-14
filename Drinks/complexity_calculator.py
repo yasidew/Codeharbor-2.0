@@ -42,7 +42,7 @@ class CBOMetrics:
             "NumberFormatException", "RecordNotFoundException", "BadRequestException", "InputStreamResource",
             "InvalidFileTypeException", "IllegalArgumentException", 'ArrayList', 'Hashtable', 'Queue', 'Stack',
             'SortedList', 'List', 'Dictionary', 'SortedDictionary', 'SortedList', 'Queue', 'Stack',
-            'HashSet', 'SortedSet', 'ConcurrentBag', 'ConcurrentQueue', 'ConcurrentStack', 'ConcurrentDictionary'
+            'HashSet', 'SortedSet', 'ConcurrentBag', 'ConcurrentQueue', 'ConcurrentStack', 'ConcurrentDictionary', "Timer", "Random","ExecutorService", "URL"
         }
         self.constructor_injections = {}
         self.setter_injections = {}
@@ -227,7 +227,7 @@ class CBOMetrics:
 
 
 output_csv = "media/cbo_features_output.csv"
-model_output = "xgboost_model.pkl"
+model_output = "xgboost_java_model.pkl"
 
 # Load dataset
 df = pd.read_csv(output_csv)
@@ -434,14 +434,14 @@ def get_code_recommendations(java_code, model_path):
     # Generate recommendations
     recommendations = []
 
-    if features["direct_instantiations"] > 3:
+    if features["direct_instantiations"] >= 5:
         recommendations.append("⚠️ Too many direct object instantiations. Use dependency injection instead.")
-    if features["static_method_calls"] > 3:
+    if features["static_method_calls"] >= 5:
         recommendations.append("⚠️ Reduce static method calls to improve testability and flexibility.")
-    if features["static_variable_usage"] > 2:
+    if features["static_variable_usage"] >= 3:
         recommendations.append("⚠️ Minimize static variable usage to prevent global state issues.")
-    if features["setter_injections"] > 1:
-        recommendations.append("⚠️ Too many setter injections detected. Prefer constructor injection.")
+    # if features["setter_injections"] > 1:
+    #     recommendations.append("⚠️ Too many setter injections detected. Prefer constructor injection.")
     if features["interface_implementations"] > 2:
         recommendations.append("⚠️ Avoid God Interfaces (interfaces with too many responsibilities).")
     # if features["global_variable_references"] > 2:

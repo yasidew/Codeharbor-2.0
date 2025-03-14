@@ -575,8 +575,6 @@ def calculate_complexity_multiple_csharp_files(request):
 
             save_complexity_to_db_csharp(filename, file_contents[filename], total_wcc, method_complexities)
 
-            print("method_complexities.....]]]]]]]]]]{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{", method_complexities)
-
             for line_data in complexity_data:
                 results_table.add_row([filename] + line_data)  # Now line_data has 9 values
 
@@ -585,8 +583,6 @@ def calculate_complexity_multiple_csharp_files(request):
             for method_name, method_data in method_complexities.items():
                 if isinstance(method_data, dict):
                     total_complexity = method_data.get('total_complexity', 0)
-
-                    print("total_complexity<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", total_complexity)
 
                     if total_complexity <= threshold_low:
                         category = 'Low'
@@ -665,8 +661,6 @@ def calculate_complexity_multiple_csharp_files(request):
             'total_wcc': file.total_wcc,
             'method_complexities': method_list
         })
-
-        print("complexities>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",complexities)
 
     # If GET request, just show the form
     return render(request, 'complexityC_form.html', {'complexities': complexities})

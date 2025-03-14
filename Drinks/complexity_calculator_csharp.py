@@ -2018,15 +2018,15 @@ def get_csharp_code_recommendations(csharp_code, model_path):
 
     # **Generate Recommendations**
     recommendations = []
-    if cleaned_features["direct_instantiations"] > 3:
+    if cleaned_features["direct_instantiations"] > 5:
         recommendations.append("⚠️ Too many direct object instantiations. Use dependency injection instead.")
-    if cleaned_features["static_method_calls"] > 3:
+    if cleaned_features["static_method_calls"] > 5:
         recommendations.append("⚠️ Reduce static method calls to improve testability and flexibility.")
     if cleaned_features["static_variable_usage"] > 3:
         recommendations.append("⚠️ Minimize static variable usage to prevent global state issues.")
     if cleaned_features["injection_initiations"] > 2:
         recommendations.append("⚠️ Too many dependency injection assignments. Consider simplifying your design.")
-    if cleaned_features["interface_implementations"] > 2:
+    if cleaned_features["interface_implementations"] > 3:
         recommendations.append("⚠️ Avoid God Interfaces (interfaces with too many responsibilities).")
 
     return {
