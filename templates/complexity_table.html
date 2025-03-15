@@ -506,9 +506,17 @@
             background-color: rgba(255, 255, 255, 0.02);
         }
 
+        th:nth-child(1), td:nth-child(1) { /* Line column */
+            width: 5%; /* Give code more space */
+            text-align: left; /* Align text for readability */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
         /* Increase the width of the 'Line' and 'Tokens' columns */
         th:nth-child(2), td:nth-child(2) { /* Line column */
-            width: 50%; /* Give code more space */
+            width: 40%; /* Give code more space */
             text-align: left; /* Align text for readability */
             word-wrap: break-word;
             overflow-wrap: break-word;
@@ -832,7 +840,7 @@
             <table>
                 <thead>
                 <tr>
-                    <th>Line Number</th>
+                    <th>Line No</th>
                     <th>Line</th>
                     <th>S</th>
                     <th>Tokens</th>

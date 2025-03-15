@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Clustering Analysis Results{% endblock %}
+{% block title %}Statistical Analysis Results{% endblock %}
 
 {% block content %}
     <style>
@@ -51,7 +51,7 @@
     </style>
 
     <div class="container mt-5">
-        <h1 class="text-center">Clustering Analysis Results</h1>
+        <h1 class="text-center">Statistical Analysis Results</h1>
 
         <!-- Correlation Analysis -->
         <section class="my-5">
@@ -105,7 +105,7 @@
             <h2>Scatter Plots</h2>
             {% for column, plot_path in scatter_plots.items %}
                 <div class="mb-4">
-                    <h3 class="text-muted" style="color: white;">{{ column }} vs WCC</h3>
+                    <h3 class="text-muted" style="color: blueviolet">{{ column }} vs WCC</h3>
                     <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}"
                          class="analysis-img">
                 </div>
@@ -119,18 +119,17 @@
             <p><strong>High Center:</strong> {{ high_center }}</p>
         </section>
 
-        <!-- Boxplot -->
-        <section class="my-5">
-            <h2>Boxplot of WCC by Complexity Level</h2>
-            <img src="{{ MEDIA_URL }}/media/boxplot_with_thresholds.png" alt="Boxplot of WCC by Complexity Level"
-                 class="analysis-img">
-        </section>
-
         <section class="my-5">
             <h2>WCC Clustering and Thresholds Graph </h2>
             <img src="{{ MEDIA_URL }}/media/wcc_clustering.png" alt="Boxplot of WCC by Complexity Level"
                  class="analysis-img">
         </section>
 
+        <!-- Boxplot -->
+        <section class="my-5">
+            <h2>Boxplot of WCC by Complexity Level</h2>
+            <img src="{{ MEDIA_URL }}/media/boxplot_with_thresholds.png" alt="Boxplot of WCC by Complexity Level"
+                 class="analysis-img">
+        </section>
     </div>
 {% endblock %}

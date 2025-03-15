@@ -9,7 +9,7 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
 import joblib
 from xgboost import XGBClassifier
@@ -1581,9 +1581,23 @@ def train_model(data):
     model = RandomForestClassifier(random_state=42)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    print("Model Accuracy:", accuracy_score(y_test, y_pred))
-    print("F1 Score Report:")
-    print(classification_report(y_test, y_pred))
+    # Evaluate model performance
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average='weighted')
+    recall = recall_score(y_test, y_pred, average='weighted')
+    f1 = f1_score(y_test, y_pred, average='weighted')
+
+    # Print evaluation metrics
+    print("=" * 50)
+    print("📊 Model Evaluation Metrics")
+    print("=" * 50)
+    print(f"✅ Model Accuracy: {accuracy:.4f}")
+    print(f"🔹 Precision: {precision:.2f}")
+    print(f"🔹 Recall: {recall:.2f}")
+    print(f"🔹 F1 Score: {f1:.2f}")
+    print("=" * 50)
+
+
     return model
 
 
