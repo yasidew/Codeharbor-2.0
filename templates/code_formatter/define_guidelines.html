@@ -154,6 +154,7 @@
 
             async function fetchAISuggestion(pattern) {
                 guidelineText.value = "Fetching AI suggestion... 🔄";
+                showToast("Fetching AI suggestion...", "success");
                 try {
                     const response = await fetch("/code-formatter/generate-guideline/", {
                         method: "POST",
@@ -168,9 +169,11 @@
                         const data = await response.json();
                         guidelineText.value = data.suggestion || "AI could not generate a suggestion.";
                         regenerateBtn.disabled = false;
+                        showToast("AI suggestion fetched successfully!", "success");
                     } else {
                         guidelineText.value = "Error fetching AI suggestion.";
                         regenerateBtn.disabled = true;
+                        showToast("An error occurred while fetching AI suggestion.", "error");
                     }
                 } catch (error) {
                     guidelineText.value = "An error occurred.";
@@ -277,7 +280,7 @@
                                     document.getElementById(`guideline-${id}`).remove();  // ✅ Remove without refresh
                                 } else {
                                     {#alert("Error deleting guideline.");#}
-                                showToast("❌ Error deleting guideline.", "error");
+                                    showToast("❌ Error deleting guideline.", "error");
 
                                 }
                             })

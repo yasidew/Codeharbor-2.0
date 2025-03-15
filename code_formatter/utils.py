@@ -52,7 +52,7 @@ def analyze_code(code):
     try:
         client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system",
                  "content": "You are an AI that analyzes code for complexity, maintainability, and readability."},

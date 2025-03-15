@@ -9,7 +9,6 @@ from .models import Guideline, DesignPatternResource
 from .forms import GuidelineForm, DesignPatternResourceForm
 from .models import CodeRefactoringRecord
 from .utils import analyze_code, refactor_code
-from django.core.files.storage import FileSystemStorage
 import re
 import requests
 import base64
