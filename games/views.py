@@ -72,35 +72,5 @@ def get_user_id(request):
 
 
 
-# from django.http import JsonResponse
-# from django.views.decorators.csrf import csrf_exempt
-# import json
-#
-# @csrf_exempt  # Disable CSRF for testing, enable it in production
-# def user_severity_chart(request):
-#     """Fetch user severity scores for a specific challenge from request body and render the pie chart."""
-#     if request.method == "POST":
-#         try:
-#             data = json.loads(request.body)  # Parse JSON body
-#             user_id = data.get("user_id")
-#             challenge_id = data.get("challenge_id")
-#
-#             if not user_id or not challenge_id:
-#                 return JsonResponse({"error": "user_id and challenge_id are required"}, status=400)
-#
-#             user_scores = GitGameScore.objects.filter(user_id=user_id, github_challenge_id=challenge_id).first()
-#
-#             context = {
-#                 "critical_score": user_scores.critical_score if user_scores else 0,
-#                 "serious_score": user_scores.serious_score if user_scores else 0,
-#                 "moderate_score": user_scores.moderate_score if user_scores else 0,
-#                 "minor_score": user_scores.minor_score if user_scores else 0,
-#             }
-#
-#             return render(request, "personalized_chart.html", context)
-#
-#         except json.JSONDecodeError:
-#             return JsonResponse({"error": "Invalid JSON format"}, status=400)
-#
-#     return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
+
 
