@@ -121,32 +121,25 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-		#'ENGINE': 'django.db.backends.postgresql',
-        #'NAME': 'postgres',  # Keep this as 'postgres' (Main DB)
-        #'USER': 'postgres',
-        #'PASSWORD': 'root',
-        #'HOST': 'localhost',
-        #'PORT': '5432',
-        #'OPTIONS': {
-        #   'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
-        #}
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',  # Use 'schools' if you want to connect to that DB instead
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',  # Replace with your actual password
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'djongo',
-#         'NAME': 'drinks_db',  # Change this to your MongoDB database name
-#         'CLIENT': {
-#             'host': 'mongodb://wasana:wasana@localhost:27017/',
-#
-#         }
-#
-#     }
 
 
 
