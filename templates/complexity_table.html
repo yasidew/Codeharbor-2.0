@@ -895,7 +895,11 @@
                 </thead>
                 <tbody>
                 {% for method in file.method_complexities %}
-                    <tr class="{{ method.category|lower }}-complexity">
+                    <tr style="
+                                {% if method.category == 'High' %}background-color: #f8d7da; color: #721c24;{% endif %}
+                                {% if method.category == 'Medium' %}background-color: #fff3cd; color: #856404;{% endif %}
+                                {% if method.category == 'Low' %}background-color: #d4edda; color: #155724;{% endif %}
+                                ">
                         <td>{{ method.method_name }}</td>
                         <td>{{ method.size }}</td>
                         <td>{{ method.control_structure_complexity }}</td>

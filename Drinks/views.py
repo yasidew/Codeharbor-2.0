@@ -33,7 +33,6 @@ from prettytable import PrettyTable
 import statsmodels.api as sm
 
 
-
 # @api_view(['GET', 'POST'])
 # def python_code_analysis(request):
 #     if request.method == 'POST':
@@ -64,6 +63,7 @@ import statsmodels.api as sm
 #     return render(request, 'python_code_analysis.html')
 def home(request):
     return render(request, 'home.html')
+
 
 @api_view(['GET', 'POST'])
 def python_code_analysis(request):
@@ -107,7 +107,6 @@ def python_code_analysis(request):
         return JsonResponse({'recommendations': grouped_recommendations})
 
     return render(request, 'python_code_analysis.html')
-
 
 
 @api_view(['GET', 'POST'])
@@ -180,7 +179,6 @@ def detect_defects_view(request):
     return render(request, "detect_defects.html")
 
 
-
 # @api_view(['GET', 'POST'])
 # def java_code_analysis(request):
 #     if request.method == 'POST':
@@ -197,7 +195,6 @@ def detect_defects_view(request):
 #             return JsonResponse({'error': str(e)}, status=500)
 #
 #     return render(request, 'java_code_analysis.html')
-
 
 
 # @api_view(['GET', 'POST'])
@@ -255,7 +252,8 @@ def drink_list(request, format=None):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-@api_view(['GET', 'PUT' ,'DELETE'])
+
+@api_view(['GET', 'PUT', 'DELETE'])
 def drink_detail(request, id, format=None):
     Drink.objects.get(pk=id)
 
@@ -297,15 +295,16 @@ def calculate_complexity_line_by_line(request):
             return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Call your function to calculate complexity
-        result= calculate_code_complexity_line_by_line(code)
+        result = calculate_code_complexity_line_by_line(code)
         complexity = result['line_complexities']
         cbo = result['cbo']
 
         # Render the result in the template
-        return render(request, 'complexityA_table.html', {'complexities': complexity, 'cbo':cbo})
+        return render(request, 'complexityA_table.html', {'complexities': complexity, 'cbo': cbo})
 
     # If GET request, just show the form
     return render(request, 'complexityA_form.html')
+
 
 def get_thresholds():
     thresholds_file = os.path.join(settings.BASE_DIR, 'media', 'threshold4.json')
@@ -665,6 +664,7 @@ def calculate_complexity_multiple_csharp_files(request):
     # If GET request, just show the form
     return render(request, 'complexityC_form.html', {'complexities': complexities})
 
+
 def save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_complexities):
     """Save C# complexity results to the database while preventing duplicate method names."""
     try:
@@ -698,6 +698,7 @@ def save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_comple
                 )
     except Exception as e:
         print(f"Error saving complexity data for {filename}: {e}")
+
 
 @api_view(['GET', 'POST'])
 def calculate_complexity(request):
@@ -747,9 +748,12 @@ def calculate_complexity(request):
             plt.close()
 
             # Clustering for WCC thresholds
-            wcc_values = np.array([101, 191, 205, 246, 291, 293, 298, 344, 346, 382,
-                                   170, 61, 108, 183, 204, 153, 305, 270, 137, 201,
-                                   345, 73, 114, 153]).reshape(-1, 1)
+            wcc_values = np.array(
+                [502, 219, 219, 554, 195, 167, 248, 646, 101, 306, 191, 399, 616, 220, 205, 246, 291, 306, 293, 298,
+                 344, 346, 382, 115,
+                 170, 108, 183, 204, 153, 305, 270, 137, 201,
+                 345, 114, 153, 161, 251, 215, 296, 162, 219, 554, 195, 248, 646, 199, 284, 259,
+                 397, 645, 237, 196, 241, 551, 224, 188, 212, 257, 288, 257, 230, 210]).reshape(-1, 1)
 
             plt.figure(figsize=(10, 6))
             sns.histplot(wcc_values, bins=10, kde=True, color='blue')
@@ -765,7 +769,7 @@ def calculate_complexity(request):
 
             kmeans = KMeans(n_clusters=2, random_state=0, n_init=10).fit(wcc_values)
             data['Cluster_Level'] = kmeans.predict(data[['WCC']])
-
+            clusters = kmeans.predict(wcc_values)
             # Map clusters to categories based on cluster centers
             cluster_centers = sorted(kmeans.cluster_centers_.flatten())
             low_center, high_center = cluster_centers[0], cluster_centers[1]
@@ -785,6 +789,22 @@ def calculate_complexity(request):
             threshold_file_path = os.path.join(media_dir, 'threshold4.json')
             with open(threshold_file_path, 'w') as json_file:
                 json.dump(thresholds, json_file)
+
+            # Generate WCC Clustering and Thresholds Graph
+            plt.figure(figsize=(10, 6))
+            sns.scatterplot(x=np.arange(len(wcc_values)), y=wcc_values.flatten(), hue=clusters, palette="coolwarm",
+                                s=100)
+            plt.axhline(y=low_center, color='red', linestyle='--', label=f'Low Threshold ({round(low_center, 2)})')
+            plt.axhline(y=high_center, color='green', linestyle='--',
+                            label=f'High Threshold ({round(high_center, 2)})')
+            plt.title("WCC Clustering and Thresholds using K-Means")
+            plt.xlabel("Sample Index")
+            plt.ylabel("WCC Values")
+            plt.legend()
+            plt.grid(True)
+            clustering_graph_path = os.path.join(media_dir, 'wcc_clustering.png')
+            plt.savefig(clustering_graph_path)
+            plt.close()
 
             # Scatter plots for each metric
             scatter_plots = {}
@@ -830,10 +850,11 @@ def calculate_complexity(request):
                 'high_center': round(high_center, 2),
                 'kmeans_centers': cluster_centers,
                 'plot_path': 'scatter_Complexity.png',
+                'clustering_graph_path': 'wcc_clustering.png',
                 'heatmap_path': 'heatmap.png',
             }
 
-            # Render the result page
+            # Render the result pag
             return render(request, 'analysis_result.html', context)
 
         else:

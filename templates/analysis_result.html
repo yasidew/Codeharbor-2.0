@@ -60,20 +60,20 @@
             <div class="table-responsive">
                 <table class="table table-bordered text-white">
                     <thead>
-                        <tr>
-                            <th>Metric</th>
-                            <th>Pearson Correlation</th>
-                            <th>Pearson p-value</th>
-                        </tr>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Pearson Correlation</th>
+                        <th>Pearson p-value</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {% for column, result in pearson_results.items %}
+                    {% for column, result in pearson_results.items %}
                         <tr>
                             <td>{{ column }}</td>
                             <td>{{ result.correlation }}</td>
                             <td>{{ result.p_value }}</td>
                         </tr>
-                        {% endfor %}
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -81,23 +81,35 @@
             <div class="table-responsive mt-4">
                 <table class="table table-bordered text-white">
                     <thead>
-                        <tr>
-                            <th>Metric</th>
-                            <th>Spearman Correlation</th>
-                            <th>Spearman p-value</th>
-                        </tr>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Spearman Correlation</th>
+                        <th>Spearman p-value</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {% for column, result in spearman_results.items %}
+                    {% for column, result in spearman_results.items %}
                         <tr>
                             <td>{{ column }}</td>
                             <td>{{ result.correlation }}</td>
                             <td>{{ result.p_value }}</td>
                         </tr>
-                        {% endfor %}
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
+        </section>
+
+        <!-- Scatter Plots -->
+        <section class="my-5">
+            <h2>Scatter Plots</h2>
+            {% for column, plot_path in scatter_plots.items %}
+                <div class="mb-4">
+                    <h3 class="text-muted" style="color: white;">{{ column }} vs WCC</h3>
+                    <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}"
+                         class="analysis-img">
+                </div>
+            {% endfor %}
         </section>
 
         <!-- Cluster Centers -->
@@ -107,21 +119,17 @@
             <p><strong>High Center:</strong> {{ high_center }}</p>
         </section>
 
-        <!-- Scatter Plots -->
-        <section class="my-5">
-            <h2>Scatter Plots</h2>
-            {% for column, plot_path in scatter_plots.items %}
-            <div class="mb-4">
-                <h3 class="text-muted" style="color: white;">{{ column }} vs WCC</h3>
-                <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}" class="analysis-img">
-            </div>
-            {% endfor %}
-        </section>
-
         <!-- Boxplot -->
         <section class="my-5">
             <h2>Boxplot of WCC by Complexity Level</h2>
-            <img src="{{ MEDIA_URL }}/media/boxplot_with_thresholds.png" alt="Boxplot of WCC by Complexity Level" class="analysis-img">
+            <img src="{{ MEDIA_URL }}/media/boxplot_with_thresholds.png" alt="Boxplot of WCC by Complexity Level"
+                 class="analysis-img">
+        </section>
+
+        <section class="my-5">
+            <h2>WCC Clustering and Thresholds Graph </h2>
+            <img src="{{ MEDIA_URL }}/media/wcc_clustering.png" alt="Boxplot of WCC by Complexity Level"
+                 class="analysis-img">
         </section>
 
     </div>
