@@ -1,4 +1,4 @@
-
+from django.db.models import Avg
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
@@ -69,6 +69,15 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def get_user_id(request):
     return JsonResponse({"success": True, "user_id": request.user.id})
+
+
+def leaderboard_view(request):
+    leaderboard = (
+        GitGameScore.objects.values("user__id", "user__username")
+        .annotate(avg_score=Avg("score"))
+        .order_by("-avg_score")  # Sort from highest to lowest
+    )
+    return render(request, "leaderboard.html", {"leaderboard": leaderboard})
 
 
 
