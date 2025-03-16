@@ -77,7 +77,7 @@ def python_code_analysis(request):
     if request.method == 'POST':
         recommendations = {}
 
-        # Handle pasted code
+        # Handle pasted cod
         code = request.POST.get('code', '').strip()
         if code:
             try:
