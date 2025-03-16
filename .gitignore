@@ -34,6 +34,9 @@ yarn-error.log*
 # Environment variables
 .env
 
+#models
+models
+
 # Build outputs
 dist/
 build/
