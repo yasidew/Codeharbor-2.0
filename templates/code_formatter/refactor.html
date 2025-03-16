@@ -101,9 +101,10 @@
                 </div>
 
                 <!-- Changes Summary -->
+                <!-- CHANGED #1: Collapsible Cards for "Changes Made" -->
                 <div id="changes-section" class="mt-4" style="display: none;">
-                    <h4 class="text-white">Changes Made:</h4>
-                    <ul id="changes-list" class="text-white"></ul>
+                    <h4 class="text-white mb-3">Changes Made:</h4>
+                    <div id="changesContainer" class="d-flex flex-column gap-3"></div>
                 </div>
 
                 <!-- Design Pattern Used -->
@@ -131,6 +132,11 @@
     <!-- ✅ GitHub Import Modal (Added at the Bottom of Content) -->
     <!-- Container to Load Modal -->
     <div id="modal-container"></div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+5c5cj0I9PHK3i1b+8SlE71i9u7xS"
+      crossorigin="anonymous">
+    </script>
 
     <!-- Include Monaco Editor & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
@@ -172,7 +178,9 @@
             const loadingBar = document.getElementById('loading-bar');
             const refactoredSection = document.getElementById('refactored-section');
             const changesSection = document.getElementById('changes-section');
-            const changesList = document.getElementById('changes-list');
+            {#const changesList = document.getElementById('changes-list');#}
+            // CHANGED #2: We'll target "changesContainer" for collapsible cards
+            const changesContainer = document.getElementById('changesContainer');
             const resourcesSection = document.getElementById('resources-section');
             const resourcesList = document.getElementById('resources-list');
             const designPatternText = document.getElementById('design-pattern-text');
@@ -181,7 +189,9 @@
             refactoredSection.style.display = 'none';
             changesSection.style.display = 'none';
             resourcesSection.style.display = 'none';
-            changesList.innerHTML = ''; // Clear previous changes
+
+            changesContainer.innerHTML = "";// Clear previous changes
+            {#changesList.innerHTML = ''; // Clear previous changes#}
             resourcesList.innerHTML = ''; // Clear previous resources
 
             try {
@@ -200,12 +210,44 @@
                     refactoredEditor.setValue(data.refactored_code);
                     refactoredSection.style.display = 'block';
 
-                    // Display "Changes Made" section
-                    if (data.changes_made.length > 0) {
-                        data.changes_made.forEach(change => {
-                            const li = document.createElement('li');
-                            li.textContent = change;
-                            changesList.appendChild(li);
+                    // CHANGED #3: Build collapsible "cards" for each change
+                    // If we have changes, create a collapsible card for each
+                    if (data.changes_made && data.changes_made.length > 0) {
+                        data.changes_made.forEach((change, index) => {
+                            // Each "change" is a card with a collapsible area
+                            const card = document.createElement('div');
+                            // CHANGED #2: Use "sleek-card" for custom gradient
+                            card.classList.add('card', 'sleek-card', 'text-white');
+
+                            const collapseId = `change-collapse-${index}`;
+
+                            card.innerHTML = `
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <!-- Instead of "Change #1", we show the actual text from AI in the heading. -->
+                                    <h5 class="mb-0">${change}</h5>
+                                    <button class="btn btn-sm btn-outline-light" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#${collapseId}"
+                                        aria-expanded="false"
+                                        aria-controls="${collapseId}">
+                                        Show Details
+                                    </button>
+                                </div>
+                                <div id="${collapseId}" class="collapse">
+                                    <div class="card-body">
+                                        <!-- Original vs Refactored placeholders -->
+                                        <p class="mb-2">
+                                            <strong>Description:</strong> ${change}
+                                        </p>
+                                        <hr/>
+                                        <p><strong>Original Snippet:</strong></p>
+                                        <pre class="bg-dark text-white p-2 mb-3">[No snippet from AI or DB yet]</pre>
+                                        <p><strong>Refactored Snippet:</strong></p>
+                                        <pre class="bg-dark text-white p-2">[No snippet from AI or DB yet]</pre>
+                                    </div>
+                                </div>
+                            `;
+                            changesContainer.appendChild(card);
                         });
                         changesSection.style.display = 'block';
                     }
@@ -219,14 +261,13 @@
                     }
 
                     // Display Suggested Resources
-                    if (data.resources.length > 0) {
-                        data.resources.forEach(resource => {
-                            const li = document.createElement('li');
-                            li.innerHTML = `<strong>${resource.pattern_name}</strong> - <a href="${resource.link}" target="_blank" class="text-info">View Resource</a>`;
-                            resourcesList.appendChild(li);
-                        });
-                        resourcesSection.style.display = 'block';
-                    }
+                    {#if (data.resources && data.resources.length > 0) {#}
+                    {#    data.resources.forEach(resource => {#}
+                    {#        const li = document.createElement('li');#}
+                    {#        li.innerHTML = `<strong>${resource.pattern_name}</strong> - <a href="${resource.link}" target="_blank" class="text-info">View Resource</a>`;#}
+                    {#        resourcesList.appendChild(li);#}
+                    {#    });#}
+                    {#    resourcesSection.style.display = 'block';}#}
 
                 } else {
                     showToast("❌ Error in refactoring code!", "error");
@@ -566,6 +607,25 @@
             position: absolute;
             left: 0;
             top: 1px;
+        }
+
+        /* CHANGED #3: A custom gradient for "sleek-card" class */
+        .sleek-card {
+            background: linear-gradient(135deg, #3a3a3c, #2c2c2e);
+            border: 1px solid #444;
+            color: #fff;
+        }
+
+        .card-header {
+            border-bottom: 1px solid #444;
+        }
+        .card-body {
+            background-color: transparent; /* Let gradient show through */
+        }
+
+        .btn-outline-light:hover {
+            background-color: #444;
+            color: #fff;
         }
 
 
