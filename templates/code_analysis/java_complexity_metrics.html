@@ -31,12 +31,12 @@
                         <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.method_length }}</span>
                     </span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <strong><i class="fas fa-random"></i> Cyclomatic Complexity:</strong>
-                    <span>{{ summary.complexity_metrics.cyclomatic_complexity }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.cyclomatic_complexity }}</span>
-                    </span>
-                </li>
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-random"></i> Cyclomatic Complexity:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.cyclomatic_complexity }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.cyclomatic_complexity }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-layer-group"></i> Nesting Depth:</strong>
                     <span>{{ summary.complexity_metrics.nesting_depth }}</span>
