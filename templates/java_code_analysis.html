@@ -205,7 +205,7 @@
                                                 </div>
                                                 <div class="suggestion-block">
                                                     <strong>Suggestion:</strong>
-                                                    <pre>{{ suggestion.suggestion }}</pre>
+                                                    <pre>{{ suggestion.suggestion | safe }}</pre>
                                                 </div>
                                             {% endif %}
                                         {% endfor %}
@@ -234,7 +234,7 @@
                                                 </div>
                                                 <div class="suggestion-block">
                                                     <strong>Suggestion:</strong>
-                                                    <pre>{{ suggestion.suggestion }}</pre>
+                                                    <pre>{{ suggestion.suggestion | safe }}</pre>
                                                 </div>
                                             {% endif %}
                                         {% endfor %}
