@@ -1581,7 +1581,7 @@ def train_model(data):
     model = RandomForestClassifier(random_state=42)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    # Evaluate model performance
+    # Evaluate model performanc
     accuracy = accuracy_score(y_test, y_pred)
     precision = precision_score(y_test, y_pred, average='weighted')
     recall = recall_score(y_test, y_pred, average='weighted')
@@ -1671,17 +1671,17 @@ def recommend_action(metrics):
     if try_catch_weight > 5:
         return "Critical refactor: High complexity due to try-catch nesting"
 
+    if compound_condition_weight > 5:
+        return "Critical refactor: Excessive compound conditions simplify conditional logic"
+
+    if try_catch_weight > 3 and try_catch_weight <= 5:
+        return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
+
     if current_inheritance == 5:
         return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
 
     if current_inheritance > 3:
         return "Consider reducing inheritance levels to improve maintainability"
-
-    if compound_condition_weight > 5:
-        return "Critical refactor: Excessive compound conditions, simplify conditional logic"
-
-    if try_catch_weight > 3 and try_catch_weight <= 5:
-        return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
 
     return "No action needed"
 

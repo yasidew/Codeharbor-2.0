@@ -507,12 +507,21 @@
         }
 
         th:nth-child(1), td:nth-child(1) { /* Line column */
+            width: 20%; /* Give code more space */
+            text-align: left; /* Align text for readability */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        th:nth-child(1), td:nth-child(1) { /* Line column */
             width: 5%; /* Give code more space */
             text-align: left; /* Align text for readability */
             word-wrap: break-word;
             overflow-wrap: break-word;
             white-space: normal;
         }
+
 
         /* Increase the width of the 'Line' and 'Tokens' columns */
         th:nth-child(2), td:nth-child(2) { /* Line column */
@@ -810,15 +819,15 @@
     <button class="btn btn-info" onclick="window.location.href='/guidelines/'">View Guidelines</button>
 
     {% for file in complexities %}
-        <div class="metrics container">
+        <div class="metrics container xx">
             <h2>Filename: {{ file.filename }}</h2>
             <h2>Class Complexity</h2>
             <table style="border: 1px solid white; color: white;">
                 <thead>
                 <tr>
-                    <th>Class Name</th>
-                    <th>Complexity Score</th>
-                    <th>Pie Chart</th>
+                    <th style="width: 40%;">Class Name</th>
+                    <th style="width: 30%;">Complexity Score</th>
+                    <th style="width: 30%;">Pie Chart</th>
                 </tr>
                 </thead>
                 <tbody>
