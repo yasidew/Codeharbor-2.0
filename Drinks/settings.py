@@ -77,6 +77,7 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "accept",
     "origin",
+    'code_analysis'
 ]
 
 MIDDLEWARE = [
@@ -132,6 +133,7 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
+
         'NAME': 'postgres',  # Use 'schools' if you want to connect to that DB instead
         'USER': 'postgres',
         'PASSWORD': 'postgres',  # Replace with your actual password
@@ -141,6 +143,19 @@ DATABASES = {
 }
 
 
+
+
+
+        'NAME': 'code_complexity_db',  # Keep this as 'postgres' (Main DB)
+        'USER': 'postgres',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        # 'OPTIONS': {
+        #     'options': '-c search_path=code_harbor,public'  # Prioritize 'code_harbor' schema
+        # }
+    }
+}
 
 
 
@@ -201,9 +216,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB max upload size
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (

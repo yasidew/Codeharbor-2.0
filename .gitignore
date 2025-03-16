@@ -1,3 +1,11 @@
+
+node_modules
+/models
+dataset
+.env
+venv
+code-refactoring
+
 # Python/Django
 
 # Byte-compiled files
@@ -68,3 +76,9 @@ env/
 venv/
 
 env/Lib/site-packages/
+
+.env
+node_modules
+code-refactoring/singleton_model
+
+.venv

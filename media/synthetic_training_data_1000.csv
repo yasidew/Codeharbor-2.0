@@ -1,0 +1,93 @@
+control_structure_complexity,nesting_level,compound_condition_weight,try_catch_weight,current_inheritance,label
+2,3,3,1,3,Consider simplifying deep nesting.
+0,1,3,2,2,no action needed
+0,0,0,0,1,No action needed
+0,0,0,5,1,Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity
+0,0,0,2,1,No action needed
+0,0,0,4,1,Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity
+0,0,0,3,1,No action needed
+0,0,0,1,1,No action needed
+0,0,0,0,2,No action needed
+1,1,2,0,2,No action needed
+0,1,0,0,2,No action needed
+1,2,2,0,2,No action needed
+0,0,0,1,2,No action needed
+0,0,0,2,2,No action needed
+0,0,0,0,3,No action needed
+2,1,0,0,3,No action needed
+0,1,0,0,3,No action needed
+1,2,2,0,3,No action needed
+0,2,0,0,3,No action needed
+2,1,0,0,2,No action needed
+2,3,0,0,2,Critical refactor: High complexity and for loop nesting
+1,4,1,0,2,Critical refactor: High complexity and if nesting
+1,1,1,0,1,No action needed
+0,2,0,0,1,No action needed
+3,1,0,0,1,No action needed
+0,1,0,0,1,No action needed
+2,2,0,0,1,No action needed
+2,1,0,0,1,No action needed
+1,2,1,0,1,No action needed
+1,2,2,0,1,No action needed
+0,1,0,5,1,Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity
+1,1,4,0,1,Consider simplifying compound conditions to improve readability
+0,1,1,0,1,No action needed
+1,1,2,0,1,No action needed
+1,1,3,0,1,No action needed
+2,3,0,0,1,Critical refactor: High complexity and for loop nesting
+0,3,0,0,1,No action needed
+1,3,1,0,1,Critical refactor: High complexity and if nesting
+0,0,0,5,2,Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity
+2,4,0,0,1,Critical refactor: High complexity and for loop nesting
+0,4,0,0,1,No action needed
+1,5,1,0,1,Critical refactor: High complexity and if nesting
+0,5,0,0,1,No action needed
+0,4,0,1,1,No action needed
+0,2,2,0,1,No action needed
+0,0,0,0,4,Consider reducing inheritance levels to improve maintainability
+0,1,0,3,1,No action needed
+1,4,1,0,1,Critical refactor: High complexity and if nesting
+2,5,0,0,1,Critical refactor: High complexity and for loop nesting
+1,6,2,0,1,Critical refactor: High complexity and if nesting
+0,6,0,0,1,No action needed
+1,1,1,0,2,No action needed
+0,2,0,0,2,No action needed
+2,2,0,0,2,No action needed
+1,3,1,0,2,Critical refactor: High complexity and if nesting
+0,3,0,0,2,No action needed
+1,2,1,0,2,No action needed
+0,3,1,0,2,No action needed
+0,4,0,0,2,No action needed
+0,0,6,0,1,Critical refactor: High complexity due to try-catch nesting
+2,1,1,0,3,No action needed
+2,2,1,0,2,No action needed
+2,1,1,0,1,No action needed
+1,1,0,0,1,No action needed
+2,1,2,0,1,No action needed
+0,1,0,1,1,No action needed
+2,3,1,0,1,Critical refactor: High complexity and for loop nesting
+2,1,1,0,2,No action needed
+2,3,1,0,2,Critical refactor: High complexity and for loop nesting
+2,2,1,0,1,No action needed
+2,5,1,0,1,Critical refactor: High complexity and for loop nesting
+2,4,1,0,1,Critical refactor: High complexity and for loop nesting
+0,2,1,0,1,No action needed
+1,2,0,0,1,No action needed
+4,1,0,0,1,No action needed
+1,4,3,0,1,Critical refactor: High complexity and if nesting & reduce compound conditional statement
+1,6,1,0,1,Critical refactor: High complexity and if nesting
+3,3,0,0,1,Critical refactor: High complexity and switch case nesting
+0,2,0,1,1,No action needed
+0,2,0,1,2,No action needed
+0,3,0,1,1,No action needed
+0,1,0,1,2,No action needed
+3,2,0,0,1,No action needed
+3,2,0,1,1,No action needed
+5,2,0,0,1,No action needed
+1,1,5,0,1,Consider simplifying compound conditions to improve readability
+1,4,2,0,1,Critical refactor: High complexity and if nesting
+0,0,1,0,1,No action needed
+0,7,0,0,1,No action needed
+6,7,0,0,1,Critical refactor: High complexity and switch case nesting
+1,5,2,0,1,Critical refactor: High complexity and if nesting
+0,1,0,2,1,No action needed

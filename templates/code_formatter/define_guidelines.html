@@ -1,22 +1,49 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Define Guidelines{% endblock %}
+
 {% block sidebar %}
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
             <div class="logo">
-                <a href="#" class="simple-text logo-mini">
+                <a href="http://127.0.0.1:8000" class="simple-text logo-mini">
                     <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
                 </a>
-                <a href="#" class="simple-text logo-normal">Code Harbor</a>
+                <a href="http://127.0.0.1:8000" class="simple-text logo-normal">Code Harbor</a>
             </div>
             <ul class="nav">
                 <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
                     <p>Refactor Code</p></a></li>
+                <li>
+                    <a href="#" class="upload-btn"><i class="bi bi-upload"></i>
+                        <p>Upload Code</p>
+                    </a>
+                    <input type="file" name="file" id="fileInput" class="d-none">
+                </li>
                 <li><a href="{% url 'define_guidelines' %}"><i class="bi bi-pencil"></i>
                     <p>Define Guidelines</p></a></li>
+                <!-- ✅ Import Code from GitHub Trigger -->
+                <li>
+                    <a href="{% url 'github_import_modal' %}" onclick="loadModal(); return false;">
+                        <i class="bi bi-github"></i>
+                        <p>Import from GitHub</p>
+                    </a>
+                </li>
                 <li><a href="#"><i class="bi bi-bar-chart"></i>
                     <p>Analysis</p></a></li>
+                <!-- ✅ Add Resources with a proper icon -->
+                <li>
+                    <a href="{% url 'add_resource' %}"><i class="bi bi-plus-square"></i>
+                        <p>Add Resources</p>
+                    </a>
+                </li>
+
+                <!-- ✅ View Resources with a proper icon -->
+                <li>
+                    <a href="{% url 'list_resources' %}"><i class="bi bi-book"></i>
+                        <p>View Resources</p>
+                    </a>
+                </li>
                 <li><a href="#"><i class="bi bi-gear"></i>
                     <p>Settings</p></a></li>
                 <li><a href="#"><i class="bi bi-box-arrow-right"></i>
@@ -29,286 +56,479 @@
 {% block content %}
     <div class="container mt-5">
         <h2 class="text-white text-center mb-4">Define Guidelines</h2>
-        <form method="POST" action="{% url 'define_guidelines' %}" enctype="multipart/form-data">
-            {% csrf_token %}
 
+        <!-- FORM FOR CREATING NEW GUIDELINES ONLY -->
+        <form id="create-guideline-form" method="POST" action="{% url 'define_guidelines' %}"
+              enctype="multipart/form-data"
+              class="p-4 rounded form-container">
+            {% csrf_token %}
             <!-- Company Name -->
-            <div class="form-group">
-                <label class="text-white">Company Name:</label>
-                <input type="text" name="company_name" class="form-control mb-3" required>
+            <div class="form-group mb-4">
+                <label class="text-white font-weight-bold">Company Name:</label>
+                <input type="text" name="company_name" class="form-control custom-input" required>
             </div>
 
             <!-- Logo Upload -->
-            <div class="form-group">
-                <label class="text-white">Upload Company Logo:</label>
+            <div class="form-group mb-4">
+                <label class="text-white font-weight-bold">Upload Company Logo:</label>
                 <input type="file" name="company_logo" id="logo-input" accept="image/png, image/jpeg"
-                       class="form-control mb-3">
-                <div class="preview-container">
-                    <img id="logo-preview"
-                         src="{% static 'images/gallery.png' %}"
-                         alt="Company Logo Preview"
+                       class="form-control custom-input">
+                <div class="preview-container mt-3">
+                    <img id="logo-preview" src="{% static 'images/gallery.png' %}" alt="Company Logo Preview"
                          class="company-logo-preview">
                 </div>
             </div>
 
             <!-- Pattern Selection -->
-            <div class="form-group">
-                <label class="text-white">Pattern:</label>
-                <select id="pattern-selector" name="pattern" class="form-control mb-3 custom-dropdown">
+            <div class="form-group mb-4">
+                <label class="text-white font-weight-bold">Pattern:</label>
+                <select id="pattern-selector" name="pattern" class="form-control custom-dropdown" required>
                     <option value="" selected disabled>-- Select a Pattern --</option>
                     <option value="Factory">🏭 Factory Pattern</option>
                     <option value="Strategy">🔀 Strategy Pattern</option>
                     <option value="Observer">📡 Observer Pattern</option>
+                    <option value="AbstractFactory">🎨 Abstract Factory</option>
+                    <option value="Builder">🔧 Builder Pattern</option>
+                    <option value="Prototype">🧬 Prototype Pattern</option>
+                    <option value="Singleton">🔒 Singleton Pattern</option>
+                    <option value="Adapter">🔌 Adapter Pattern</option>
+                    <option value="Bridge">🌉 Bridge Pattern</option>
+                    <option value="Composite">🌲 Composite Pattern</option>
+                    <option value="Decorator">💄 Decorator Pattern</option>
+                    <option value="Facade">🏰 Facade Pattern</option>
+                    <option value="Flyweight">🪶 Flyweight Pattern</option>
+                    <option value="Proxy">🪟 Proxy Pattern</option>
+                    <option value="ChainOfResponsibility">⛓️ Chain of Responsibility</option>
+                    <option value="Command">💡 Command Pattern</option>
+                    <option value="Interpreter">🗣️ Interpreter Pattern</option>
+                    <option value="Iterator">🔁 Iterator Pattern</option>
+                    <option value="Mediator">🤝 Mediator Pattern</option>
+                    <option value="Memento">📜 Memento Pattern</option>
+                    <option value="State">🔄 State Pattern</option>
+                    <option value="TemplateMethod">🧩 Template Method</option>
+                    <option value="Visitor">👀 Visitor Pattern</option>
                 </select>
             </div>
 
             <!-- AI Suggested Guideline -->
-            <div class="form-group">
-                <label class="text-white">Guideline:</label>
-                <textarea id="guideline-text" name="rule" class="form-control mb-3 resizable-textarea"
+            <div class="form-group mb-4">
+                <label class="text-white font-weight-bold">Guideline:</label>
+                <textarea id="guideline-text" name="rule" class="form-control resizable-textarea custom-input"
                           required></textarea>
-                <button type="button" id="regenerate-btn" class="btn btn-warning btn-sm mt-2" disabled>🔄 Regenerate
+                <button type="button" id="regenerate-btn" class="btn btn-warning btn-sm mt-3" disabled>🔄 Regenerate
                     Suggestion
                 </button>
             </div>
 
-            <button type="submit" class="btn btn-info btn-block">Save Guideline</button>
+            <button type="submit" class="btn btn-primary btn-block">Save Guideline</button>
         </form>
 
-        <!-- Saved Guidelines Section -->
+        <!-- SAVED GUIDELINES (WITH INLINE EDITING) -->
         <h3 class="text-white text-center mt-5">Saved Guidelines</h3>
+        {#        <div class="card bg-dark text-white p-4 mb-4 shadow guideline-card">#}
         <div id="guidelines-container">
             {% for guideline in guidelines %}
-                <div class="card bg-dark text-white p-3 mb-3" id="guideline-{{ guideline.id }}">
-                    <div class="d-flex align-items-center">
-                        {% if guideline.company_logo %}
-                            <img src="{{ guideline.company_logo.url }}" alt="Company Logo" class="company-logo">
-                        {% else %}
-                            <img src="{% static 'images/gallery.png' %}" alt="Default Logo" class="company-logo">
-                        {% endif %}
-                        <div class="guideline-content">
-                            <strong>{{ guideline.company_name }}</strong>
-                            <p>
-                                {% if guideline.pattern == "Factory" %}
-                                    🏭 <span class="pattern-tag">Factory Pattern</span>
-                                {% elif guideline.pattern == "Strategy" %}
-                                    🔀 <span class="pattern-tag">Strategy Pattern</span>
-                                {% else %}
-                                    📡 <span class="pattern-tag">Observer Pattern</span>
-                                {% endif %}
-                            </p>
-                            <div class="guideline-text">
-                                {% for line in guideline.rule.splitlines %}
-                                    {% if line|length > 0 %}
-                                        <p>{{ line }}</p>
+                <div class="card bg-dark text-white p-4 mb-4 shadow" id="guideline-{{ guideline.id }}">
+                    <!-- Normal Display -->
+                    <div class="guideline-display">
+                        <div class="d-flex align-items-center">
+                            {% if guideline.company_logo %}
+                                <img src="{{ guideline.company_logo.url }}" alt="Company Logo" class="company-logo">
+                            {% else %}
+                                <img src="{% static 'images/gallery.png' %}" alt="Default Logo"
+                                     class="company-logo">
+                            {% endif %}
+                            <div class="guideline-content ml-3">
+                                <strong class="guideline-company">{{ guideline.company_name }}</strong>
+                                <p>
+                                    {% if guideline.pattern == "Factory" %}
+                                        🏭 <span class="pattern-tag">Factory Pattern</span>
+                                    {% elif guideline.pattern == "Strategy" %}
+                                        🔀 <span class="pattern-tag">Strategy Pattern</span>
+                                    {% elif guideline.pattern == "Observer" %}
+                                        📡 <span class="pattern-tag">Observer Pattern</span>
+                                    {% elif guideline.pattern == "AbstractFactory" %}
+                                        🎨 <span class="pattern-tag">Abstract Factory</span>
+                                    {% elif guideline.pattern == "Builder" %}
+                                        🔧 <span class="pattern-tag">Builder Pattern</span>
+                                    {% elif guideline.pattern == "Prototype" %}
+                                        🧬 <span class="pattern-tag">Prototype Pattern</span>
+                                    {% elif guideline.pattern == "Singleton" %}
+                                        🔒 <span class="pattern-tag">Singleton Pattern</span>
+                                    {% elif guideline.pattern == "Adapter" %}
+                                        🔌 <span class="pattern-tag">Adapter Pattern</span>
+                                    {% elif guideline.pattern == "Bridge" %}
+                                        🌉 <span class="pattern-tag">Bridge Pattern</span>
+                                    {% elif guideline.pattern == "Composite" %}
+                                        🌲 <span class="pattern-tag">Composite Pattern</span>
+                                    {% elif guideline.pattern == "Decorator" %}
+                                        💄 <span class="pattern-tag">Decorator Pattern</span>
+                                    {% elif guideline.pattern == "Facade" %}
+                                        🏰 <span class="pattern-tag">Facade Pattern</span>
+                                    {% elif guideline.pattern == "Flyweight" %}
+                                        🪶 <span class="pattern-tag">Flyweight Pattern</span>
+                                    {% elif guideline.pattern == "Proxy" %}
+                                        🪟 <span class="pattern-tag">Proxy Pattern</span>
+                                    {% elif guideline.pattern == "ChainOfResponsibility" %}
+                                        ⛓️ <span class="pattern-tag">Chain of Responsibility</span>
+                                    {% elif guideline.pattern == "Command" %}
+                                        💡 <span class="pattern-tag">Command Pattern</span>
+                                    {% elif guideline.pattern == "Interpreter" %}
+                                        🗣️ <span class="pattern-tag">Interpreter Pattern</span>
+                                    {% elif guideline.pattern == "Iterator" %}
+                                        🔁 <span class="pattern-tag">Iterator Pattern</span>
+                                    {% elif guideline.pattern == "Mediator" %}
+                                        🤝 <span class="pattern-tag">Mediator Pattern</span>
+                                    {% elif guideline.pattern == "Memento" %}
+                                        📜 <span class="pattern-tag">Memento Pattern</span>
+                                    {% elif guideline.pattern == "State" %}
+                                        🔄 <span class="pattern-tag">State Pattern</span>
+                                    {% elif guideline.pattern == "TemplateMethod" %}
+                                        🧩 <span class="pattern-tag">Template Method Pattern</span>
+                                    {% elif guideline.pattern == "Visitor" %}
+                                        👀 <span class="pattern-tag">Visitor Pattern</span>
+                                    {% else %}
+                                        <span class="pattern-tag">{{ guideline.pattern }}</span>
                                     {% endif %}
-                                {% endfor %}
+                                </p>
+
+                                <div class="guideline-text">
+                                    {% for line in guideline.rule.splitlines %}
+                                        {% if line|length > 0 %}
+                                            <p>{{ line }}</p>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <button class="btn btn-warning btn-sm edit-btn mt-2" data-id="{{ guideline.id }}">
+                                    Edit
+                                </button>
+                                <button class="btn btn-danger btn-sm delete-btn mt-2" data-id="{{ guideline.id }}">
+                                    Delete
+                                </button>
                             </div>
-                            <button class="btn btn-warning btn-sm edit-btn" data-id="{{ guideline.id }}">Edit</button>
-                            <button class="btn btn-danger btn-sm delete-btn" data-id="{{ guideline.id }}">Delete
-                            </button>
                         </div>
                     </div>
 
-                    <!-- Hidden Edit Form -->
-                    <div class="edit-form d-none" id="edit-form-{{ guideline.id }}">
-                        <input type="text" class="form-control mb-2" id="edit-company-{{ guideline.id }}"
-                               value="{{ guideline.company_name }}">
-                        <select class="form-control mb-2" id="edit-pattern-{{ guideline.id }}">
-                            <option value="Factory" {% if guideline.pattern == "Factory" %}selected{% endif %}>Factory
-                            </option>
-                            <option value="Strategy" {% if guideline.pattern == "Strategy" %}selected{% endif %}>
-                                Strategy
-                            </option>
-                            <option value="Observer" {% if guideline.pattern == "Observer" %}selected{% endif %}>
-                                Observer
-                            </option>
-                        </select>
-                        <textarea class="form-control mb-2"
-                                  id="edit-rule-{{ guideline.id }}">{{ guideline.rule }}</textarea>
+                    <!-- Inline Edit Form (hidden by default) -->
+                    <div class="edit-form d-none mt-3" id="edit-form-{{ guideline.id }}">
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" id="edit-company-{{ guideline.id }}"
+                                   class="form-control custom-input"
+                                   value="{{ guideline.company_name }}">
+                        </div>
 
-                        <!-- Upload New Logo -->
-                        <input type="file" id="edit-logo-{{ guideline.id }}" accept="image/png, image/jpeg"
-                               class="form-control mb-2">
+                        <div class="form-group">
+                            <label>Pattern</label>
+                            <select id="edit-pattern-{{ guideline.id }}" class="form-control custom-dropdown">
+                                <option value="Factory" {% if guideline.pattern == "Factory" %}selected{% endif %}>🏭
+                                    Factory
+                                </option>
+                                <option value="Strategy" {% if guideline.pattern == "Strategy" %}selected{% endif %}>🔀
+                                    Strategy
+                                </option>
+                                <option value="Observer" {% if guideline.pattern == "Observer" %}selected{% endif %}>📡
+                                    Observer
+                                </option>
+                                <option value="AbstractFactory"
+                                        {% if guideline.pattern == "AbstractFactory" %}selected{% endif %}>🎨 Abstract
+                                    Factory
+                                </option>
+                                <option value="Builder" {% if guideline.pattern == "Builder" %}selected{% endif %}>🔧
+                                    Builder
+                                </option>
+                                <option value="Prototype" {% if guideline.pattern == "Prototype" %}selected{% endif %}>
+                                    🧬 Prototype
+                                </option>
+                                <option value="Singleton" {% if guideline.pattern == "Singleton" %}selected{% endif %}>
+                                    🔒 Singleton
+                                </option>
+                                <option value="Adapter" {% if guideline.pattern == "Adapter" %}selected{% endif %}>🔌
+                                    Adapter
+                                </option>
+                                <option value="Bridge" {% if guideline.pattern == "Bridge" %}selected{% endif %}>🌉
+                                    Bridge
+                                </option>
+                                <option value="Composite" {% if guideline.pattern == "Composite" %}selected{% endif %}>
+                                    🌲 Composite
+                                </option>
+                                <option value="Decorator" {% if guideline.pattern == "Decorator" %}selected{% endif %}>
+                                    💄 Decorator
+                                </option>
+                                <option value="Facade" {% if guideline.pattern == "Facade" %}selected{% endif %}>🏰
+                                    Facade
+                                </option>
+                                <option value="Flyweight" {% if guideline.pattern == "Flyweight" %}selected{% endif %}>
+                                    🪶 Flyweight
+                                </option>
+                                <option value="Proxy" {% if guideline.pattern == "Proxy" %}selected{% endif %}>🪟 Proxy
+                                </option>
+                                <option value="ChainOfResponsibility"
+                                        {% if guideline.pattern == "ChainOfResponsibility" %}selected{% endif %}>⛓️
+                                    Chain of Responsibility
+                                </option>
+                                <option value="Command" {% if guideline.pattern == "Command" %}selected{% endif %}>💡
+                                    Command
+                                </option>
+                                <option value="Interpreter"
+                                        {% if guideline.pattern == "Interpreter" %}selected{% endif %}>🗣️ Interpreter
+                                </option>
+                                <option value="Iterator" {% if guideline.pattern == "Iterator" %}selected{% endif %}>🔁
+                                    Iterator
+                                </option>
+                                <option value="Mediator" {% if guideline.pattern == "Mediator" %}selected{% endif %}>🤝
+                                    Mediator
+                                </option>
+                                <option value="Memento" {% if guideline.pattern == "Memento" %}selected{% endif %}>📜
+                                    Memento
+                                </option>
+                                <option value="State" {% if guideline.pattern == "State" %}selected{% endif %}>🔄 State
+                                </option>
+                                <option value="TemplateMethod"
+                                        {% if guideline.pattern == "TemplateMethod" %}selected{% endif %}>🧩 Template
+                                    Method
+                                </option>
+                                <option value="Visitor" {% if guideline.pattern == "Visitor" %}selected{% endif %}>👀
+                                    Visitor
+                                </option>
+                            </select>
+                        </div>
 
-                        <button class="btn btn-success btn-sm save-btn" data-id="{{ guideline.id }}">Save</button>
-                        <button class="btn btn-secondary btn-sm cancel-btn" data-id="{{ guideline.id }}">Cancel</button>
+
+                        <div class="form-group">
+                            <label>Guideline Text</label>
+                            <textarea id="edit-rule-{{ guideline.id }}" class="form-control custom-input"
+                                      rows="5">{{ guideline.rule }}</textarea>
+                        </div>
+
+                        <!-- Optionally allow changing logo -->
+                        <div class="form-group">
+                            <label>Upload New Logo (optional)</label>
+                            <input type="file" id="edit-logo-{{ guideline.id }}" accept="image/png, image/jpeg"
+                                   class="form-control custom-input">
+                        </div>
+
+                        <button class="btn btn-success btn-sm save-btn mt-2" data-id="{{ guideline.id }}">Save
+                        </button>
+                        <button class="btn btn-secondary btn-sm cancel-btn mt-2" data-id="{{ guideline.id }}">Cancel
+                        </button>
                     </div>
                 </div>
             {% endfor %}
         </div>
-
-        <!-- Global Loading Spinner -->
-        <div id="loading-overlay">
-            <div class="loading-spinner"></div>
-        </div>
-
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Handle AI Suggestion
+            // =====================================
+            //    CREATE FORM LOGIC (TOP FORM)
+            // =====================================
             const patternSelector = document.getElementById("pattern-selector");
             const guidelineText = document.getElementById("guideline-text");
             const regenerateBtn = document.getElementById("regenerate-btn");
+            regenerateBtn.disabled = true; // Initially disabled
 
-            async function fetchAISuggestion(pattern) {
-                guidelineText.value = "Fetching AI suggestion... 🔄";
-                try {
-                    const response = await fetch("/code-formatter/generate-guideline/", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": "{{ csrf_token }}"
-                        },
-                        body: JSON.stringify({pattern})
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        guidelineText.value = data.suggestion || "AI could not generate a suggestion.";
-                        regenerateBtn.disabled = false;
-                    } else {
-                        guidelineText.value = "Error fetching AI suggestion.";
-                        regenerateBtn.disabled = true;
-                    }
-                } catch (error) {
-                    guidelineText.value = "An error occurred.";
-                    regenerateBtn.disabled = true;
-                }
-            }
-
+            // Enable Regenerate if a pattern is chosen
             patternSelector.addEventListener("change", function () {
-                fetchAISuggestion(this.value);
+                // Enable the button if a valid pattern is selected
+                regenerateBtn.disabled = !this.value;
+
+                // Automatically fetch AI suggestion when a pattern is selected
+                if (this.value) {
+                    fetchAISuggestion(this.value);
+                }
             });
 
             regenerateBtn.addEventListener("click", function () {
+                if (!patternSelector.value) {
+                    showToast("Please select a pattern first.", "error");
+                    return;
+                }
                 fetchAISuggestion(patternSelector.value);
             });
 
-            const loadingOverlay = document.getElementById("loading-overlay");
+            function fetchAISuggestion(pattern) {
+                regenerateBtn.disabled = true;
+                guidelineText.value = "Fetching AI suggestion... 🔄";
+                showToast("Fetching AI suggestion... 🔄", "success");
 
-            function showLoading() {
-                loadingOverlay.style.display = "flex"; // Show loading spinner
-            }
-
-            function hideLoading() {
-                loadingOverlay.style.display = "none"; // Hide spinner
-            }
-
-            // Show loading on form submission (Save)
-            document.querySelector("form").addEventListener("submit", function () {
-                showLoading();
-            });
-
-            // Handle Edit Mode Toggle
-            document.querySelectorAll(".edit-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    const id = this.getAttribute("data-id");
-                    document.getElementById(`guideline-${id}`).querySelector(".edit-form").classList.remove("d-none");
-                });
-            });
-
-            // Cancel Edit Mode
-            document.querySelectorAll(".cancel-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    const id = this.getAttribute("data-id");
-                    document.getElementById(`guideline-${id}`).querySelector(".edit-form").classList.add("d-none");
-                });
-            });
-
-            // Save Edits
-            document.querySelectorAll(".save-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    showLoading();
-
-                    const id = this.getAttribute("data-id");
-                    const company = document.getElementById(`edit-company-${id}`).value;
-                    const pattern = document.getElementById(`edit-pattern-${id}`).value;
-                    const rule = document.getElementById(`edit-rule-${id}`).value;
-                    const logoInput = document.getElementById(`edit-logo-${id}`).files[0];
-
-                    const formData = new FormData();
-                    formData.append("company_name", company);
-                    formData.append("pattern", pattern);
-                    formData.append("rule", rule);
-                    if (logoInput) {
-                        formData.append("company_logo", logoInput);
-                    }
-
-                    fetch(`/code-formatter/edit-guideline/${id}/`, {
-                        method: "POST",
-                        headers: {"X-CSRFToken": "{{ csrf_token }}"},
-                        body: formData,
+                fetch("/code-formatter/generate-guideline/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({pattern})
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        guidelineText.value = data.suggestion || "AI could not generate a suggestion.";
+                        showToast("AI suggestion fetched successfully!", "success");
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            hideLoading();
-                            if (data.success) {
-                                location.reload();
-                            } else {
-                                {#alert("Error updating guideline.");#}
-                                showToast("❌ Error updating guideline.", "error");
-                            }
-                        })
-                        .catch(() => {
-                            hideLoading();
-                            {#alert("Something went wrong.");#}
-                            showToast("❌ Something went wrong.", "error");
-                        });
-                });
-            });
+                    .catch(() => {
+                        guidelineText.value = "An error occurred.";
+                        showToast("An error occurred while fetching AI suggestion.", "error");
+                    })
+                    .finally(() => {
+                        // Re-enable if pattern still selected
+                        regenerateBtn.disabled = !patternSelector.value;
+                    });
+            }
 
-            // Delete Guideline Instantly
-            document.querySelectorAll(".delete-btn").forEach(btn => {
-                btn.addEventListener("click", function () {
-                    const id = this.getAttribute("data-id");
-                    if (confirm("Are you sure you want to delete this guideline?")) {
-                        showLoading();  // ✅ Show loading spinner
+            // =====================================
+            //    LOGO PREVIEW (TOP FORM)
+            // =====================================
+            const logoInput = document.getElementById("logo-input");
+            const logoPreview = document.getElementById("logo-preview");
 
-                        fetch(`/code-formatter/delete-guideline/${id}/`, {
-                            method: "POST",
-                            headers: {"X-CSRFToken": "{{ csrf_token }}"}
-                        })
-                            .then(response => response.json())  // ✅ Parse JSON response
-                            .then(data => {
-                                hideLoading();  // ✅ Hide spinner after response
-                                if (data.success) {
-                                    document.getElementById(`guideline-${id}`).remove();  // ✅ Remove without refresh
-                                } else {
-                                    {#alert("Error deleting guideline.");#}
-                                showToast("❌ Error deleting guideline.", "error");
-
-                                }
-                            })
-                            .catch(() => {
-                                hideLoading();
-                                {#alert("Something went wrong.");  // ✅ Handle network issues#}
-                                showToast("❌ Something went wrong.", "error");
-
-
-                            });
-                    }
-                });
-            });
-
-
-            // Preview Uploaded Logo
-            document.getElementById("logo-input").addEventListener("change", function (event) {
-                const file = event.target.files[0];
+            logoInput.addEventListener("change", function () {
+                const file = this.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function (e) {
-                        document.getElementById("logo-preview").src = e.target.result;
+                        logoPreview.src = e.target.result;
                     };
                     reader.readAsDataURL(file);
                 }
             });
 
+            // =====================================
+            //    INLINE EDIT & DELETE LOGIC
+            // =====================================
+            // Show inline edit form
+            document.querySelectorAll(".edit-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    const card = document.getElementById(`guideline-${id}`);
+
+                    // Hide the normal display, show the edit form
+                    card.querySelector(".guideline-display").classList.add("d-none");
+                    card.querySelector(".edit-form").classList.remove("d-none");
+
+                    showToast("Editing mode enabled!", "success");
+                });
+            });
+
+            // Cancel inline edit
+            document.querySelectorAll(".cancel-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    const card = document.getElementById(`guideline-${id}`);
+
+                    // Hide the edit form, show the normal display again
+                    card.querySelector(".edit-form").classList.add("d-none");
+                    card.querySelector(".guideline-display").classList.remove("d-none");
+                });
+            });
+
+            // Save inline edit
+            document.querySelectorAll(".save-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    const card = document.getElementById(`guideline-${id}`);
+
+                    const companyName = card.querySelector(`#edit-company-${id}`).value.trim();
+                    const pattern = card.querySelector(`#edit-pattern-${id}`).value;
+                    const rule = card.querySelector(`#edit-rule-${id}`).value.trim();
+                    const logoFile = card.querySelector(`#edit-logo-${id}`).files[0]; // optional
+
+                    // Prepare FormData
+                    const formData = new FormData();
+                    formData.append("company_name", companyName);
+                    formData.append("pattern", pattern);
+                    formData.append("rule", rule);
+                    if (logoFile) {
+                        formData.append("company_logo", logoFile);
+                    }
+
+                    // AJAX call to your "edit-guideline" endpoint
+                    fetch(`/code-formatter/edit-guideline/${id}/`, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showToast("Guideline updated successfully!", "success");
+                                // Option 1: Reload page to see changes
+                                location.reload();
+
+                                // Option 2: Update card in place (requires more code)
+                                // ... if you want to avoid reloading, parse data and update the DOM
+                            } else {
+                                showToast("Error updating guideline.", "error");
+                            }
+                        })
+                        .catch(() => {
+                            showToast("Something went wrong while updating guideline.", "error");
+                        });
+                });
+            });
+
+            // Delete guideline
+            document.querySelectorAll(".delete-btn").forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const id = this.getAttribute("data-id");
+                    if (confirm("Are you sure you want to delete this guideline?")) {
+                        fetch(`/code-formatter/delete-guideline/${id}/`, {
+                            method: "POST",
+                            headers: {"X-CSRFToken": "{{ csrf_token }}"}
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    document.getElementById(`guideline-${id}`).remove();
+                                    showToast("Guideline deleted successfully!", "error");
+                                } else {
+                                    showToast("Error deleting guideline.", "error");
+                                }
+                            })
+                            .catch(() => {
+                                showToast("Something went wrong.", "error");
+                            });
+                    }
+                });
+            });
         });
     </script>
 
     <style>
+        .form-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .custom-input {
+            background-color: #222;
+            border: 1px solid #666;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .custom-input:focus {
+            border-color: #00aaff;
+            box-shadow: 0px 0px 5px #00aaff;
+        }
+
+        .custom-dropdown {
+            background-color: #222;
+            color: white;
+            border-radius: 5px;
+            border: 1px solid #666;
+            padding: 10px;
+        }
+
+        .custom-dropdown option {
+            background-color: #333;
+            color: white;
+        }
+
         .company-logo-preview {
             width: 100px;
             height: 100px;
@@ -318,30 +538,11 @@
             margin-top: 10px;
         }
 
-        .resizable-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .custom-dropdown {
-            appearance: none;
-            background-color: #222;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #666;
-        }
-
-        .custom-dropdown option {
-            background-color: #222;
-            color: white;
-        }
-
         .company-logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 15px;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
         }
 
         .guideline-content {
@@ -359,48 +560,41 @@
         .guideline-text p {
             white-space: pre-line;
             line-height: 1.6;
-            margin-bottom: 8px;
+            margin-top: 10px;
+            margin-bottom: 12px;
         }
 
-        .guideline-text ol {
-            padding-left: 20px;
+        .guideline-company {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
         }
 
-        .guideline-text li {
-            margin-bottom: 5px;
+        /* CHANGED: added "guideline-card" class for spacing around each card */
+        .guideline-card {
+            padding: 25px; /* more internal padding */
+            margin-bottom: 25px;
         }
 
-        /* Full-screen overlay */
-        #loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
+
+        .shadow {
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* Beautiful animated spinner */
-        .loading-spinner {
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-top: 5px solid #ffffff;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
+        .edit-form {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
         }
 
-        @keyframes spin {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
+        .d-none {
+            display: none !important;
+        }
+
+        .resizable-textarea {
+            resize: vertical; /* allows vertical stretching */
+            min-height: 150px; /* optional: ensures enough initial height */
         }
     </style>
 {% endblock %}

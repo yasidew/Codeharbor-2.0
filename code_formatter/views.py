@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .complexity_calculator import calculate_loc, calculate_readability
-import openai
+# import openai
 import os
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,21 +9,43 @@ from .models import Guideline, DesignPatternResource
 from .forms import GuidelineForm, DesignPatternResourceForm
 from .models import CodeRefactoringRecord
 from .utils import analyze_code, refactor_code
+# from .utils import analyze_code, refactor_code
 from django.core.files.storage import FileSystemStorage
 import re
 import requests
 import base64
+from django.contrib import messages
 
 # Create OpenAI Client with API Key
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # GitHub API Token from environment variable
 GITHUB_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 
 GUIDELINE_PROMPTS = {
-    "Factory": "What are the best practices for using the Factory Pattern in software design?",
-    "Strategy": "What are the best practices for implementing the Strategy Pattern in code?",
-    "Observer": "What are the best practices for using the Observer Pattern effectively?",
+    "Factory": "What are the best practices for using the Factory Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Strategy": "What are the best practices for implementing the Strategy Pattern in code? Please provide your answer in a numbered list without any markdown formatting.",
+    "Observer": "What are the best practices for using the Observer Pattern effectively? Please provide your answer in a numbered list without any markdown formatting.",
+    "AbstractFactory": "What are the best practices for using the Abstract Factory Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Builder": "What are the best practices for using the Builder Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Prototype": "What are the best practices for using the Prototype Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Singleton": "What are the best practices for using the Singleton Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Adapter": "What are the best practices for using the Adapter Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Bridge": "What are the best practices for using the Bridge Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Composite": "What are the best practices for using the Composite Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Decorator": "What are the best practices for using the Decorator Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Facade": "What are the best practices for using the Facade Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Flyweight": "What are the best practices for using the Flyweight Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Proxy": "What are the best practices for using the Proxy Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "ChainOfResponsibility": "What are the best practices for using the Chain of Responsibility Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Command": "What are the best practices for using the Command Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Interpreter": "What are the best practices for using the Interpreter Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Iterator": "What are the best practices for using the Iterator Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Mediator": "What are the best practices for using the Mediator Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Memento": "What are the best practices for using the Memento Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "State": "What are the best practices for using the State Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "TemplateMethod": "What are the best practices for using the Template Method Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Visitor": "What are the best practices for using the Visitor Pattern in software design? Please provide your answer in a numbered list without any markdown formatting."
 }
 
 
@@ -46,6 +68,7 @@ def upload_code(request):
 
 
 # Function to handle code refactoring using OpenAI API
+
 @csrf_exempt
 def refactor_code(request):
     """Handles code refactoring with optional guideline usage."""
@@ -58,17 +81,29 @@ def refactor_code(request):
             if not code:
                 return JsonResponse({'error': 'No code provided'}, status=400)
 
+            # ✅ Identify the design pattern used in the code
+            detected_pattern = analyze_code_for_pattern(code)
+
+            # ✅ Initialize guidelines_prompt properly
+            guidelines_prompt = ""  # Default empty guidelines
+
+            # ✅ Check for guideline restrictions
+            if use_guidelines:
+                guidelines = Guideline.objects.all()
+                pattern_guidelines = {g.pattern: g.rule for g in guidelines}  # Convert to dict
+
+                if detected_pattern in pattern_guidelines:
+                    guideline_text = pattern_guidelines[detected_pattern]
+                    guidelines_prompt = guideline_text  # ✅ Set guidelines prompt correctly
+                    return JsonResponse({
+                        'message': f"Refactoring blocked. {detected_pattern} pattern is restricted.",
+                        'guideline': guideline_text
+                    }, status=400)  # 🚨 Stop refactoring if the pattern is disallowed
+
+            # ✅ If no guideline restricts it, proceed with refactoring
             # Calculate LOC and Readability for the original code
             original_loc = calculate_loc(code)
             original_readability = calculate_readability(code)
-
-            # Apply guidelines if enabled
-            if use_guidelines:
-                guidelines = Guideline.objects.all()
-                guideline_texts = [f"{g.pattern}: {g.rule}" for g in guidelines]
-                guidelines_prompt = "\n\n".join(guideline_texts)
-            else:
-                guidelines_prompt = ""
 
             # AI Code Refactoring Request
             prompt = f"""
@@ -138,6 +173,99 @@ def refactor_code(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+# @csrf_exempt
+# def refactor_code(request):
+#     """Handles code refactoring with optional guideline usage."""
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             code = data.get('code', '').strip()
+#             use_guidelines = data.get('use_guidelines', False)  # Check if user enabled guidelines
+#
+#             if not code:
+#                 return JsonResponse({'error': 'No code provided'}, status=400)
+#
+#             # Calculate LOC and Readability for the original code
+#             original_loc = calculate_loc(code)
+#             original_readability = calculate_readability(code)
+#
+#             # Apply guidelines if enabled
+#             if use_guidelines:
+#                 guidelines = Guideline.objects.all()
+#                 guideline_texts = [f"{g.pattern}: {g.rule}" for g in guidelines]
+#                 guidelines_prompt = "\n\n".join(guideline_texts)
+#             else:
+#                 guidelines_prompt = ""
+#
+#             # AI Code Refactoring Request
+#             prompt = f"""
+#             Refactor the following code to improve structure, readability, and efficiency.
+#             Ensure that you:
+#             1. Improve maintainability and efficiency.
+#             2. Follow best practices while keeping the functionality intact.
+#
+#             ### Original Code:
+#             {code}
+#
+#             ### Guidelines (if applicable):
+#             {guidelines_prompt if guidelines_prompt else "No specific guidelines provided."}
+#
+#             After refactoring, clearly provide a "Changes Made" section listing the improvements in bullet points.
+#             """
+#
+#             response = client.chat.completions.create(
+#                 model="gpt-3.5-turbo",
+#                 messages=[
+#                     {"role": "system", "content": "You are a professional code refactoring assistant."},
+#                     {"role": "user", "content": prompt}
+#                 ],
+#                 temperature=0.2
+#             )
+#
+#             # ✅ Ensure response_text is properly extracted
+#             response_text = str(response.choices[0].message.content).strip()
+#
+#             # ✅ Debugging log to check AI response
+#             print("AI Response:", response_text)
+#
+#             # ✅ Extract the refactored code using regex
+#             code_match = re.search(r"```java([\s\S]*?)```", response_text)
+#             refactored_code = code_match.group(1).strip() if code_match else response_text  # Fallback to full response
+#
+#             # ✅ Extract "Changes Made" section
+#             changes_match = re.search(r"Changes Made:\n([\s\S]*)", response_text)
+#             changes_made = changes_match.group(1).strip().split("\n") if changes_match else []
+#
+#             # Calculate LOC and Readability for the refactored code
+#             refactored_loc = calculate_loc(refactored_code)
+#             refactored_readability = calculate_readability(refactored_code)
+#
+#             # Save to DB
+#             record = CodeRefactoringRecord.objects.create(
+#                 original_code=code,
+#                 refactored_code=refactored_code,
+#                 original_complexity=original_loc,
+#                 refactored_complexity=refactored_loc,
+#                 original_readability=original_readability,
+#                 refactored_readability=refactored_readability,
+#             )
+#
+#             return JsonResponse({
+#                 'refactored_code': refactored_code,
+#                 'changes_made': changes_made,  # ✅ Return extracted changes
+#                 'original_loc': original_loc,
+#                 'refactored_loc': refactored_loc,
+#                 'original_readability': original_readability,
+#                 'refactored_readability': refactored_readability,
+#                 'id': record.id
+#             })
+#
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+#
+#     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
 
 # API Endpoint for AI to Fetch Guidelines
 def get_guidelines(request):
@@ -201,48 +329,48 @@ def delete_guideline(request, guideline_id):
 
 
 @csrf_exempt
-def refactor_and_compare(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            original_code = data.get("code", "")
-
-            print("Received code:", original_code)  # Debugging log
-
-            # Analyze Original Code Complexity
-            original_complexity, original_readability = analyze_code(original_code)
-
-            # Refactor Code
-            refactored_code = refactor_code(original_code)
-
-            # Analyze Refactored Code Complexity
-            refactored_complexity, refactored_readability = analyze_code(refactored_code)
-
-            # Save to Database
-            history = CodeRefactoringRecord.objects.create(
-                original_code=original_code,
-                refactored_code=refactored_code,
-                original_complexity=original_complexity,
-                refactored_complexity=refactored_complexity,
-                original_readability=original_readability,
-                refactored_readability=refactored_readability
-            )
-
-            print("Saved to database:", history.id)  # Debugging log
-
-            return JsonResponse({
-                "success": True,
-                "before_code": original_code,
-                "after_code": refactored_code,
-                "original_complexity": original_complexity,
-                "refactored_complexity": refactored_complexity,
-                "original_readability": original_readability,
-                "refactored_readability": refactored_readability,
-                "id": history.id
-            })
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-    return JsonResponse({"success": False, "error": "Invalid request"})
+# def refactor_and_compare(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             original_code = data.get("code", "")
+#
+#             print("Received code:", original_code)  # Debugging log
+#
+#             # Analyze Original Code Complexity
+#             original_complexity, original_readability = analyze_code(original_code)
+#
+#             # Refactor Code
+#             refactored_code = refactor_code(original_code)
+#
+#             # Analyze Refactored Code Complexity
+#             refactored_complexity, refactored_readability = analyze_code(refactored_code)
+#
+#             # Save to Database
+#             history = CodeRefactoringRecord.objects.create(
+#                 original_code=original_code,
+#                 refactored_code=refactored_code,
+#                 original_complexity=original_complexity,
+#                 refactored_complexity=refactored_complexity,
+#                 original_readability=original_readability,
+#                 refactored_readability=refactored_readability
+#             )
+#
+#             print("Saved to database:", history.id)  # Debugging log
+#
+#             return JsonResponse({
+#                 "success": True,
+#                 "before_code": original_code,
+#                 "after_code": refactored_code,
+#                 "original_complexity": original_complexity,
+#                 "refactored_complexity": refactored_complexity,
+#                 "original_readability": original_readability,
+#                 "refactored_readability": refactored_readability,
+#                 "id": history.id
+#             })
+#         except Exception as e:
+#             return JsonResponse({"success": False, "error": str(e)})
+#     return JsonResponse({"success": False, "error": "Invalid request"})
 
 
 def refactor_code_view(request):
@@ -284,35 +412,35 @@ def refactor_code_view(request):
 
 # ✅ AI-Powered Guideline Generation
 @csrf_exempt
-def generate_guideline(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            pattern = data.get("pattern", "").strip()
-
-            if not pattern or pattern not in GUIDELINE_PROMPTS:
-                return JsonResponse({"error": "Invalid pattern selected"}, status=400)
-
-            prompt = GUIDELINE_PROMPTS[pattern]
-
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a professional software architect."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.2
-            )
-
-            # ✅ Correct way to extract the response
-            guideline_text = response.choices[0].message.content.strip()
-
-            return JsonResponse({"suggestion": guideline_text})
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"error": "Invalid request"}, status=400)
+# def generate_guideline(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             pattern = data.get("pattern", "").strip()
+#
+#             if not pattern or pattern not in GUIDELINE_PROMPTS:
+#                 return JsonResponse({"error": "Invalid pattern selected"}, status=400)
+#
+#             prompt = GUIDELINE_PROMPTS[pattern]
+#
+#             response = client.chat.completions.create(
+#                 model="gpt-3.5-turbo",
+#                 messages=[
+#                     {"role": "system", "content": "You are a professional software architect."},
+#                     {"role": "user", "content": prompt}
+#                 ],
+#                 temperature=0.2
+#             )
+#
+#             # ✅ Correct way to extract the response
+#             guideline_text = response.choices[0].message.content.strip()
+#
+#             return JsonResponse({"suggestion": guideline_text})
+#
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)}, status=500)
+#
+#     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
 @csrf_exempt
@@ -455,9 +583,11 @@ def create_github_pr(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
 def github_import_modal(request):
     """ Renders the GitHub Import Modal. """
     return render(request, "code_formatter/github_import_modal.html")
+
 
 def get_github_token(request):
     """Returns the GitHub Access Token securely"""
@@ -481,3 +611,150 @@ def add_resource(request):
 def list_resources(request):
     resources = DesignPatternResource.objects.all().order_by('-added_on')
     return render(request, 'code_formatter/list_resources.html', {'resources': resources})
+
+
+@csrf_exempt
+def fetch_snippet_diff(request):
+    """Return snippet diff for a given refactoring record from DB or AI."""
+    record_id = request.GET.get("record_id")
+    if not record_id:
+        return JsonResponse({"success": False, "error": "Missing record_id"})
+
+    try:
+        record = CodeRefactoringRecord.objects.get(id=record_id)
+        # For a real line-based diff, you'd do something like:
+        # snippet_diff = compute_diff(record.original_code, record.refactored_code)
+        # But let's just pretend we have short placeholders:
+        original_snippet = "public static void main(String[] args) { ... }"
+        refactored_snippet = "public static void runApp(String[] args) { ... }"
+
+        return JsonResponse({
+            "success": True,
+            "original_snippet": original_snippet,
+            "refactored_snippet": refactored_snippet
+        })
+    except CodeRefactoringRecord.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Record not found"})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+
+@csrf_exempt
+def get_pattern(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            code = data.get("code", "")
+
+            if not code.strip():
+                return JsonResponse({"error": "Empty code provided"}, status=400)
+
+            # Call the updated AI-powered pattern analysis function
+            suggested_pattern = analyze_code_for_pattern(code)
+
+            return JsonResponse({"pattern": suggested_pattern})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+def analyze_code_for_pattern(code):
+    """
+    Uses AI and keyword-based detection to find the best-suited design pattern.
+    """
+    # Dictionary mapping design patterns to common keywords and structure
+    patterns = {
+        "Factory": ["create", "newInstance", "factory", "instantiate"],
+        "Strategy": ["interface", "strategy", "context", "algorithm"],
+        "Observer": ["notify", "subscriber", "event", "listener"],
+        "Abstract Factory": ["abstract factory", "create", "product", "factory method"],
+        "Builder": ["builder", "construct", "step-by-step"],
+        "Prototype": ["clone", "prototype", "copy"],
+        "Singleton": ["private static", "getInstance", "singleton"],
+        "Adapter": ["adapter", "convert", "interface"],
+        "Bridge": ["bridge", "decouple", "abstraction", "implementation"],
+        "Composite": ["component", "composite", "tree structure"],
+        "Decorator": ["extends", "wrap", "component", "dynamic behavior"],
+        "Facade": ["facade", "simplify", "unified interface"],
+        "Flyweight": ["flyweight", "shared objects", "minimize memory"],
+        "Proxy": ["proxy", "control access", "delegate"],
+        "Chain of Responsibility": ["chain", "handle", "successor"],
+        "Command": ["execute", "command", "invoker"],
+        "Interpreter": ["grammar", "interpreter", "parse"],
+        "Iterator": ["iterator", "next", "traverse"],
+        "Mediator": ["mediator", "communication", "colleague"],
+        "Memento": ["memento", "save state", "restore"],
+        "State": ["state", "context", "transition"],
+        "Template Method": ["template method", "base class", "override"],
+        "Visitor": ["visitor", "accept", "operation"],
+    }
+
+    # **Step 1: Keyword-Based Detection**
+    for pattern, keywords in patterns.items():
+        if any(keyword.lower() in code.lower() for keyword in keywords):
+            return pattern  # Return if direct match found
+
+    # **Step 2: AI-Based Suggestion for More Complex Detections**
+    return get_ai_suggested_pattern(code, patterns)
+
+
+def get_ai_suggested_pattern(code, patterns):
+    """
+    Uses OpenAI GPT model to analyze the code and suggest a design pattern.
+    """
+    try:
+        prompt = f"""
+        Analyze the following Java code and determine the most appropriate design pattern to apply.
+
+        **Rules for detection:**
+        - If multiple instances of a class are created but should only be **one**, suggest `Singleton`.
+        - If an interface is used to change behavior at runtime, suggest `Strategy`.
+        - If a separate **factory method** is used for object creation, suggest `Factory`.
+        - If objects notify observers when they change, suggest `Observer`.
+        - If a method builds a complex object step by step, suggest `Builder`.
+        - If an object copies itself to create new instances, suggest `Prototype`.
+        - If there is a need to convert one interface into another, suggest `Adapter`.
+        - If two independent parts of an application need to work together without being tightly coupled, suggest `Bridge`.
+        - If a tree structure is used to represent part-whole hierarchies, suggest `Composite`.
+        - If additional functionality is added dynamically to an object, suggest `Decorator`.
+        - If an object provides a simplified interface to a larger body of code, suggest `Facade`.
+        - If there are too many instances of the same object and memory needs to be optimized, suggest `Flyweight`.
+        - If an object acts as a placeholder for another object to control access, suggest `Proxy`.
+        - If multiple handlers process a request sequentially, suggest `Chain of Responsibility`.
+        - If a request is wrapped as an object to parameterize clients with different requests, suggest `Command`.
+        - If a language interpreter is implemented with a grammar, suggest `Interpreter`.
+        - If an object is needed to iterate over elements of a collection, suggest `Iterator`.
+        - If a central object manages communication between multiple objects, suggest `Mediator`.
+        - If an object saves and restores its state later, suggest `Memento`.
+        - If an object changes its behavior based on its state, suggest `State`.
+        - If a base class defines a template for its subclasses to override specific steps, suggest `Template Method`.
+        - If new operations need to be added without modifying existing objects, suggest `Visitor`.
+
+        **Example Code:**
+        {code}
+
+        **Only return the design pattern name.**
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system",
+                 "content": "You are a software architecture expert specializing in design patterns."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2
+        )
+
+        # Extract AI response
+        suggested_pattern = response.choices[0].message.content.strip()
+
+        # Validate the pattern exists in our known list
+        if suggested_pattern in patterns.keys():
+            return suggested_pattern
+
+        return "General Refactoring Opportunity"
+
+    except Exception as e:
+        return f"Error fetching AI suggestion: {str(e)}"

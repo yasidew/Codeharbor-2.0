@@ -103,6 +103,7 @@ urlpatterns = [
     path('drinks/', views.drink_list),
     path('drinks/<int:id>/', views.drink_detail),
 
+
     # Complexity Calculation URLs
     path('calculate-complexity-line-by-line/', views.calculate_complexity_multiple_java_files,
          name='calculate_complexity_line_by_line'),
@@ -117,8 +118,15 @@ urlpatterns = [
     path('python_code_analysis/', views.python_code_analysis, name='python_code_analysis'),
     path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
 
+    path('calculate-complexity-excel/', views.calculate_complexity, name='calculate_complexity-excel'),
+
+                  path('guidelines/', views.guidelines_view, name='guidelines'),
+path('python_code_analysis/', views.python_code_analysis, name='python_code_analysis'),
+
+
     # Defect Detection
     path("detect-defects/", views.detect_defects_view, name="detect_defects"),
+
 
     # Include code_formatter URLs
     # path('code-formatter/', include('code_formatter.urls')),
@@ -149,5 +157,27 @@ urlpatterns = [
 # Add static file handling
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+                  path('js_code_analyser/', views.js_code_analyser, name='js_code_analyser'),
+
+                  path('php_code_analyser/', views.php_code_analyser, name='php_code_analyser'),
+
+                  path("detect-defects/", views.detect_defects_view, name="detect_defects"),
+
+                  path('analyze-code/', views.analyze_code_view, name='analyze_code'),
+
+                  path("export-excel/", export_excel, name="export_excel"),
+
+
+                  path('refactor/', views.refactor_view, name='refactor_view'),
+                  path('upload-code/', views.upload_code, name='upload_code'),
+                  path('refactor-code/', views.refactor_code, name='refactor_code'),
+
+
+                  path('', views.home, name='home')  #Root URL
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
 # Apply format suffix patterns
+
 urlpatterns = format_suffix_patterns(urlpatterns)
