@@ -142,6 +142,9 @@ urlpatterns = [
     path('challenges/', include('challenges.urls')),
     path('editor/', editor_view, name='editor'),
 
+    #Code Refactoring
+    path('code-formatter/', include('code_formatter.urls')),
+
     # Root URL
     path('', views.home, name='home'),
 ]
