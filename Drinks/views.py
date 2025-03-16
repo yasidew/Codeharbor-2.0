@@ -379,6 +379,24 @@ def extract_logical_block(method_body, keyword):
     return "\n".join(extracted)
 
 
+def is_java_code(code):
+    """
+    Checks if the provided code is valid Java by parsing it using javalang.
+    Cleans non-Java comments (e.g., # Markdown, annotations) before parsing.
+    """
+    try:
+        # ✅ Remove invalid characters (like `#` which is not used in Java)
+        cleaned_code = "\n".join(line for line in code.splitlines() if not line.strip().startswith("#"))
+
+        # ✅ Ensure the cleaned code is not empty
+        if not cleaned_code.strip():
+            return False
+
+        # ✅ Attempt to parse the cleaned Java code
+        javalang.parse.parse(cleaned_code)
+        return True
+    except (javalang.parser.JavaSyntaxError, javalang.tokenizer.LexerError):
+        return False
 
 @api_view(['GET', 'POST'])
 def java_code_analysis(request):
@@ -432,10 +450,27 @@ def java_code_analysis(request):
             for uploaded_file in uploaded_files:
                 file_name = uploaded_file.name
                 file_content = uploaded_file.read().decode('utf-8')
+                # ✅ If the file is not Java, render error on the same page
+                if not is_java_code(file_content):
+                    return render(request, 'java_code_analysis.html', {
+                        "error": f"🚨 The uploaded file `{file_name}` is not valid Java!",
+                        "code": "",  # ✅ No code shown in the editor
+                        "suggestions": [],
+                        "summary": summary,
+                        "final_guideline": ""
+                    })
                 all_code_snippets.append({"name": file_name, "code": file_content})
 
         # ✅ Add manually pasted code
         if code_snippet:
+            if not is_java_code(code_snippet):
+                return render(request, 'java_code_analysis.html', {
+                    "error": "🚨 The pasted code is not valid Java!",
+                    "code": code_snippet,  # ✅ Keep invalid code in the editor
+                    "suggestions": [],
+                    "summary": summary,
+                    "final_guideline": ""
+                })
             all_code_snippets.append({"name": "Pasted Code", "code": code_snippet})
 
         # ✅ Handle GitHub repository files (if provided)
@@ -520,14 +555,16 @@ def java_code_analysis(request):
 
                     print(f"📌 Stored analysis for {file_name}, Line {line_num} in DB.")
 
-                    suggestions.append({
-                        "file_name": file_name,
-                        "code": snippet,
-                        "category": category,
-                        "suggestion": final_suggestion,
-                        "severity": severity,
-                        "line": line_num
-                    })
+                    # ✅ **Check if this snippet already exists in suggestions before appending**
+                    if not any(s["code"] == snippet and s["suggestion"] == final_suggestion for s in suggestions):
+                        suggestions.append({
+                            "file_name": file_name,
+                            "code": snippet,
+                            "category": category,
+                            "suggestion": final_suggestion,
+                            "severity": severity,
+                            "line": line_num
+                        })
 
                 except Exception as snippet_error:
                     print(f"❌ Error analyzing snippet in {file_name}, Line {line_num}: {str(snippet_error)}")

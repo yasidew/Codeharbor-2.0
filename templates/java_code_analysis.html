@@ -3,6 +3,11 @@
 {% block content %}
     <h1 class="text-center mb-4">Java Code Analyzer</h1>
 
+    {% if error %}
+        <div class="alert alert-danger text-center">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+    {% endif %}
     <!-- Include Toast Messages from code_analysis directory -->
     {% include 'code_analysis/toast_messages.html' %}
 
