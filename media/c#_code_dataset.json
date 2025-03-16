@@ -1,0 +1,258 @@
+[
+    {
+        "file_name": "Example1.cs",
+        "csharp_code": "public class Example1 {\n    public Example1() {\n        Connection connection = new Connection();\n    }\n\n    public void ExecuteTask() {\n        Task task = new Task();\n        task.Run();\n    }\n}"
+    },
+    {
+        "file_name": "Example2.cs",
+        "csharp_code": "public class Example2 {\n    private Service service;\n\n    public Example2(Service service) {\n        this.service = service;\n    }\n\n    public void ProcessData() {\n        DataProcessor processor = new DataProcessor();\n        processor.Process();\n    }\n}"
+    },
+    {
+        "file_name": "Example3.cs",
+        "csharp_code": "public class Example3 {\n    private static Database dbInstance;\n\n    public Example3() {\n        dbInstance = Database.GetInstance();\n    }\n\n    public void FetchData() {\n        dbInstance.Query(\"SELECT * FROM users\");\n    }\n}"
+    },
+    {
+        "file_name": "Example4.cs",
+        "csharp_code": "using System;\nusing System.Collections.Generic;\nusing System.IO;\n\npublic class Example4 {\n    public void LogMessage() {\n        var logger = Logger.GetLogger(typeof(Example4).Name);\n        logger.Info(\"Logging message\");\n    }\n}"
+    },
+    {
+        "file_name": "Example5.cs",
+        "csharp_code": "using System;\n\npublic class Example5 {\n    public void CalculateSum(int a, int b) {\n        Console.WriteLine(\"Sum: \" + (a + b));\n    }\n}"
+    },
+    {
+        "file_name": "Example6.cs",
+        "csharp_code": "using System;\n\npublic class Example6 {\n    private static readonly int MAX_RETRIES = 3;\n\n    public void RetryOperation() {\n        for (int i = 0; i < MAX_RETRIES; i++) {\n            Console.WriteLine(\"Retrying operation \" + i);\n        }\n    }\n}"
+    },
+    {
+        "file_name": "Example7.cs",
+        "csharp_code": "using System;\nusing System.Threading;\n\npublic class Example7 {\n    public void StartThread() {\n        Thread thread = new Thread(() => Console.WriteLine(\"Thread is running\"));\n        thread.Start();\n    }\n}"
+    },
+    {
+        "file_name": "Example8.cs",
+        "csharp_code": "using System;\n\npublic class Example8 {\n    public static void PrintMessage() {\n        Console.WriteLine(\"Hello, World!\");\n    }\n}"
+    },
+    {
+        "file_name": "Example9.cs",
+        "csharp_code": "using System;\nusing System.IO;\n\npublic class Example9 {\n    public void ReadFile(string filename) {\n        using (StreamReader reader = new StreamReader(filename)) {\n            string line;\n            while ((line = reader.ReadLine()) != null) {\n                Console.WriteLine(line);\n            }\n        }\n    }\n}"
+    },
+    {
+        "file_name": "Example10.cs",
+        "csharp_code": "using System;\n\npublic class Example10 {\n    public int Factorial(int n) {\n        return (n <= 1) ? 1 : n * Factorial(n - 1);\n    }\n}"
+    },
+    {
+        "file_name": "Example11.cs",
+        "csharp_code": "using System;\n\npublic class Example11 {\n    private ILogger logger;\n\n    public Example11(ILogger logger) {\n        this.logger = logger;\n    }\n\n    public void LogMessage(string message) {\n        logger.Log(message);\n    }\n}"
+    },
+    {
+        "file_name": "Example12.cs",
+        "csharp_code": "public class Example12 {\n    private Repository repository;\n\n    public Example12(Repository repository) {\n        this.repository = repository;\n    }\n\n    public void SaveData(string data) {\n        repository.Save(data);\n    }\n}"
+    },
+    {
+        "file_name": "Example13.cs",
+        "csharp_code": "public class Example13 {\n    private static Cache cache = new Cache();\n\n    public void GetData(string key) {\n        var data = cache.Get(key);\n    }\n}"
+    },
+    {
+        "file_name": "Example14.cs",
+        "csharp_code": "public class Example14 {\n    private IService service;\n\n    public void SetService(IService service) {\n        this.service = service;\n    }\n\n    public void Execute() {\n        service.Run();\n    }\n}"
+    },
+    {
+        "file_name": "Example15.cs",
+        "csharp_code": "using System;\n\npublic class Example15 {\n    public void CalculateArea(double radius) {\n        double area = Math.PI * radius * radius;\n        Console.WriteLine(\"Area: \" + area);\n    }\n}"
+    },
+    {
+        "file_name": "Example16.cs",
+        "csharp_code": "public class Example16 {\n    public void ProcessData() {\n        Processor processor = new Processor();\n        processor.Process();\n    }\n}"
+    },
+    {
+        "file_name": "Example17.cs",
+        "csharp_code": "public class Example17 {\n    public void StartTransaction() {\n        Database db = Database.Instance;\n        db.BeginTransaction();\n    }\n}"
+    },
+    {
+        "file_name": "Example18.cs",
+        "csharp_code": "public class Example18 {\n    public void SaveOrder(Order order) {\n        OrderRepository repository = new OrderRepository();\n        repository.Save(order);\n    }\n}"
+    },
+    {
+        "file_name": "Example19.cs",
+        "csharp_code": "public class Example19 {\n    private PaymentGateway gateway;\n\n    public Example19(PaymentGateway gateway) {\n        this.gateway = gateway;\n    }\n\n    public void ProcessPayment(double amount) {\n        gateway.Pay(amount);\n    }\n}"
+    },
+    {
+        "file_name": "Example20.cs",
+        "csharp_code": "public class Example20 {\n    private IEmailService emailService;\n\n    public Example20(IEmailService emailService) {\n        this.emailService = emailService;\n    }\n\n    public void SendEmail(string recipient, string message) {\n        emailService.Send(recipient, message);\n    }\n}"
+    },
+    {
+        "file_name": "Example21.cs",
+        "csharp_code": "public class Example21 {\n    public void FetchUsers() {\n        UserService userService = new UserService();\n        var users = userService.GetUsers();\n    }\n}"
+    },
+    {
+        "file_name": "Example22.cs",
+        "csharp_code": "public class Example22 {\n    private Configuration config;\n\n    public Example22(Configuration config) {\n        this.config = config;\n    }\n\n    public void LoadSettings() {\n        config.Load();\n    }\n}"
+    },
+    {
+        "file_name": "Example23.cs",
+        "csharp_code": "public class Example23 {\n    public void GenerateReport() {\n        ReportGenerator generator = new ReportGenerator();\n        generator.Create();\n    }\n}"
+    },
+    {
+        "file_name": "Example24.cs",
+        "csharp_code": "public class Example24 {\n    private static Logger logger = Logger.Instance;\n\n    public void LogAction(string action) {\n        logger.Log(action);\n    }\n}"
+    },
+    {
+        "file_name": "Example25.cs",
+        "csharp_code": "public class Example25 {\n    public void StoreData(string data) {\n        Storage storage = new Storage();\n        storage.Save(data);\n    }\n}"
+    },
+    {
+        "file_name": "Example26.cs",
+        "csharp_code": "public class Example26 {\n    private readonly CacheManager cacheManager;\n\n    public Example26(CacheManager cacheManager) {\n        this.cacheManager = cacheManager;\n    }\n\n    public void CacheData(string key, string value) {\n        cacheManager.Store(key, value);\n    }\n}"
+    },
+    {
+        "file_name": "Example27.cs",
+        "csharp_code": "public class Example27 {\n    private APIClient client;\n\n    public Example27(APIClient client) {\n        this.client = client;\n    }\n\n    public void FetchAPIData() {\n        var data = client.GetData();\n    }\n}"
+    },
+    {
+        "file_name": "Example28.cs",
+        "csharp_code": "public class Example28 {\n    public void SendSMS(string number, string text) {\n        SMSService smsService = new SMSService();\n        smsService.Send(number, text);\n    }\n}"
+    },
+    {
+        "file_name": "Example29.cs",
+        "csharp_code": "public class Example29 {\n    private DataParser parser;\n\n    public Example29(DataParser parser) {\n        this.parser = parser;\n    }\n\n    public void ParseData(string rawData) {\n        parser.Parse(rawData);\n    }\n}"
+    },
+    {
+        "file_name": "Example30.cs",
+        "csharp_code": "public class Example30 {\n    private static ConnectionPool pool = ConnectionPool.Instance;\n\n    public void GetConnection() {\n        var conn = pool.GetConnection();\n    }\n}"
+    },
+    {
+        "file_name": "Example31.cs",
+        "csharp_code": "public class Example31 {\n    private Logger logger;\n\n    public Example31(Logger logger) {\n        this.logger = logger;\n    }\n\n    public void WriteLog(string logMessage) {\n        logger.Log(logMessage);\n    }\n}"
+    },
+    {
+        "file_name": "Example32.cs",
+        "csharp_code": "public class Example32 {\n    public void HandleUserInput() {\n        UserInputHandler handler = new UserInputHandler();\n        handler.ProcessInput();\n    }\n}"
+    },
+    {
+        "file_name": "Example33.cs",
+        "csharp_code": "public class Example33 {\n    private OrderProcessor processor;\n\n    public Example33(OrderProcessor processor) {\n        this.processor = processor;\n    }\n\n    public void ProcessOrder(Order order) {\n        processor.Process(order);\n    }\n}"
+    },
+    {
+        "file_name": "Example34.cs",
+        "csharp_code": "public class Example34 {\n    public void EncryptData(string data) {\n        EncryptionService encryptionService = new EncryptionService();\n        encryptionService.Encrypt(data);\n    }\n}"
+    },
+    {
+        "file_name": "Example35.cs",
+        "csharp_code": "public class Example35 {\n    private SessionManager sessionManager;\n\n    public Example35(SessionManager sessionManager) {\n        this.sessionManager = sessionManager;\n    }\n\n    public void StartSession() {\n        sessionManager.Start();\n    }\n}"
+    },
+    {
+        "file_name": "Example36.cs",
+        "csharp_code": "public class Example36 {\n    public void CompressFile(string filePath) {\n        FileCompressor compressor = new FileCompressor();\n        compressor.Compress(filePath);\n    }\n}"
+    },
+    {
+        "file_name": "Example37.cs",
+        "csharp_code": "public class Example37 {\n    private EmailService emailService;\n\n    public Example37(EmailService emailService) {\n        this.emailService = emailService;\n    }\n\n    public void SendNotification(string email, string message) {\n        emailService.Send(email, message);\n    }\n}"
+    },
+    {
+        "file_name": "Example38.cs",
+        "csharp_code": "public class Example38 {\n    private Database database;\n    public Example38(Database database) {\n        this.database = database;\n    }\n    public void QueryData() {\n        database.ExecuteQuery(\"SELECT * FROM Products\");\n    }\n}"
+    },
+    {
+        "file_name": "Example39.cs",
+        "csharp_code": "public class Example39 {\n    private Service service;\n    public void SetService(Service service) {\n        this.service = service;\n    }\n    public void ExecuteService() {\n        service.Run();\n    }\n}"
+    },
+    {
+        "file_name": "Example40.cs",
+        "csharp_code": "public class Example40 {\n    private static Logger logger = Logger.Instance;\n    public void LogAction(string action) {\n        logger.Log(action);\n    }\n}"
+    },
+    {
+        "file_name": "Example41.cs",
+        "csharp_code": "public class Example41 {\n    public void ProcessPayment() {\n        PaymentProcessor paymentProcessor = new PaymentProcessor();\n        paymentProcessor.Pay(100);\n    }\n}"
+    },
+    {
+        "file_name": "Example42.cs",
+        "csharp_code": "public interface IService {\n    void Execute();\n}\npublic class Example42 {\n    private IService service;\n    public Example42(IService service) {\n        this.service = service;\n    }\n    public void RunService() {\n        service.Execute();\n    }\n}"
+    },
+    {
+        "file_name": "Example43.cs",
+        "csharp_code": "public class Example43 {\n    public static void PrintWelcomeMessage() {\n        Console.WriteLine(\"Welcome to our system!\");\n    }\n}"
+    },
+    {
+        "file_name": "Example44.cs",
+        "csharp_code": "public class Example44 {\n    private Cache cache;\n    public Example44(Cache cache) {\n        this.cache = cache;\n    }\n    public void RetrieveData(string key) {\n        var data = cache.Get(key);\n    }\n}"
+    },
+    {
+        "file_name": "Example45.cs",
+        "csharp_code": "public class Example45 {\n    public void StartTransaction() {\n        Transaction transaction = new Transaction();\n        transaction.Commit();\n    }\n}"
+    },
+    {
+        "file_name": "Example46.cs",
+        "csharp_code": "public class Example46 {\n    private INotifier notifier;\n    public Example46(INotifier notifier) {\n        this.notifier = notifier;\n    }\n    public void NotifyUser(string message) {\n        notifier.SendNotification(message);\n    }\n}"
+    },
+    {
+        "file_name": "Example47.cs",
+        "csharp_code": "public class Example47 {\n    public static int ComputeSum(int a, int b) {\n        return a + b;\n    }\n}"
+    },
+    {
+        "file_name": "Example48.cs",
+        "csharp_code": "public class Example48 {\n    private Logger logger;\n    public Example48(Logger logger) {\n        this.logger = logger;\n    }\n    public void LogError(string errorMessage) {\n        logger.Log(errorMessage);\n    }\n}"
+    },
+    {
+        "file_name": "Example49.cs",
+        "csharp_code": "public class Example49 {\n    public void OpenFile() {\n        FileManager fileManager = new FileManager();\n        fileManager.Open(\"document.txt\");\n    }\n}"
+    },
+    {
+        "file_name": "Example50.cs",
+        "csharp_code": "public class Example50 {\n    private Configuration configuration;\n    public Example50(Configuration configuration) {\n        this.configuration = configuration;\n    }\n    public void LoadSettings() {\n        configuration.Load();\n    }\n}"
+    },
+    {
+        "file_name": "Example51.cs",
+        "csharp_code": "public class Example51 {\n    private static ConfigManager configManager = ConfigManager.Instance;\n    public void RetrieveConfig(string key) {\n        var value = configManager.GetValue(key);\n    }\n}"
+    },
+    {
+        "file_name": "Example52.cs",
+        "csharp_code": "public class Example52 {\n    public void SaveUserData() {\n        Database database = new Database();\n        database.Insert(\"User Data\");\n    }\n}"
+    },
+    {
+        "file_name": "Example53.cs",
+        "csharp_code": "public class Example53 {\n    private EmailService emailService;\n    public Example53(EmailService emailService) {\n        this.emailService = emailService;\n    }\n    public void SendEmail(string recipient, string message) {\n        emailService.Send(recipient, message);\n    }\n}"
+    },
+    {
+        "file_name": "Example54.cs",
+        "csharp_code": "public class Example54 {\n    public void GenerateReport() {\n        ReportGenerator reportGenerator = new ReportGenerator();\n        reportGenerator.CreateReport();\n    }\n}"
+    },
+    {
+        "file_name": "Example55.cs",
+        "csharp_code": "public class Example55 {\n    private ILoggingService loggingService;\n    public Example55(ILoggingService loggingService) {\n        this.loggingService = loggingService;\n    }\n    public void LogActivity(string activity) {\n        loggingService.Log(activity);\n    }\n}"
+    },
+    {
+        "file_name": "Example56.cs",
+        "csharp_code": "public class Example56 {\n    private static readonly string API_KEY = \"ABCD1234\";\n    public void Authenticate() {\n        Console.WriteLine(\"Authenticating using API Key: \" + API_KEY);\n    }\n}"
+    },
+    {
+        "file_name": "Example57.cs",
+        "csharp_code": "public class Example57 {\n    private ReportGenerator reportGenerator;\n    public Example57(ReportGenerator reportGenerator) {\n        this.reportGenerator = reportGenerator;\n    }\n    public void GenerateYearlyReport() {\n        reportGenerator.Create();\n    }\n}"
+    },
+    {
+        "file_name": "Example58.cs",
+        "csharp_code": "public class Example58 {\n    public void ParseFile() {\n        FileParser parser = new FileParser();\n        parser.Parse(\"file.txt\");\n    }\n}"
+    },
+    {
+        "file_name": "Example59.cs",
+        "csharp_code": "public class Example59 {\n    private static SessionManager sessionManager = SessionManager.Instance;\n    public void StartNewSession() {\n        sessionManager.Initialize();\n    }\n}"
+    },
+    {
+        "file_name": "Example60.cs",
+        "csharp_code": "public class Example60 {\n    private ICache cache;\n    public Example60(ICache cache) {\n        this.cache = cache;\n    }\n    public void StoreData(string key, string value) {\n        cache.Store(key, value);\n    }\n}"
+    },
+    {
+        "file_name": "Example61.cs",
+        "csharp_code": "public class Example61 {\n    public void CompressLogFiles() {\n        FileCompressor compressor = new FileCompressor();\n        compressor.Compress(\"logs.txt\");\n    }\n}"
+    },
+    {
+        "file_name": "Example62.cs",
+        "csharp_code": "public class Example62 {\n    private NotificationService notificationService;\n    public Example62(NotificationService notificationService) {\n        this.notificationService = notificationService;\n    }\n    public void NotifyUsers(string message) {\n        notificationService.Send(message);\n    }\n}"
+    },
+    {
+        "file_name": "Example63.cs",
+        "csharp_code": "public class Example63 {\n    public void ProcessRequest() {\n        RequestHandler handler = new RequestHandler();\n        handler.Handle();\n    }\n}"
+    },
+    {
+        "file_name": "Example64.cs",
+        "csharp_code": "public class Example64 {\n    private APIClient apiClient;\n    public Example64(APIClient apiClient) {\n        this.apiClient = apiClient;\n    }\n    public void FetchAPIResponse() {\n        var response = apiClient.GetResponse();\n    }\n}"
+    }
+]

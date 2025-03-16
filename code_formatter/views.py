@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .complexity_calculator import calculate_loc, calculate_readability
-import openai
+# import openai
 import os
 import json
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,13 +9,15 @@ from .models import Guideline, DesignPatternResource
 from .forms import GuidelineForm, DesignPatternResourceForm
 from .models import CodeRefactoringRecord
 from .utils import analyze_code, refactor_code
+# from .utils import analyze_code, refactor_code
+from django.core.files.storage import FileSystemStorage
 import re
 import requests
 import base64
 from django.contrib import messages
 
 # Create OpenAI Client with API Key
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # GitHub API Token from environment variable
 GITHUB_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
@@ -71,97 +73,97 @@ def upload_code(request):
 
 
 # Function to handle code refactoring using OpenAI API
-@csrf_exempt
-def refactor_code(request):
-    """Handles code refactoring with optional guideline usage."""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            code = data.get('code', '').strip()
-            use_guidelines = data.get('use_guidelines', False)  # Check if user enabled guidelines
-
-            if not code:
-                return JsonResponse({'error': 'No code provided'}, status=400)
-
-            # Calculate LOC and Readability for the original code
-            original_loc = calculate_loc(code)
-            original_readability = calculate_readability(code)
-
-            # Apply guidelines if enabled
-            if use_guidelines:
-                guidelines = Guideline.objects.all()
-                guideline_texts = [f"{g.pattern}: {g.rule}" for g in guidelines]
-                guidelines_prompt = "\n\n".join(guideline_texts)
-            else:
-                guidelines_prompt = ""
-
-            # AI Code Refactoring Request
-            prompt = f"""
-            Refactor the following code to improve structure, readability, and efficiency. 
-            Ensure that you:
-            1. Improve maintainability and efficiency.
-            2. Follow best practices while keeping the functionality intact.
-
-            ### Original Code:
-            {code}
-
-            ### Guidelines (if applicable):
-            {guidelines_prompt if guidelines_prompt else "No specific guidelines provided."}
-
-            After refactoring, clearly provide a "Changes Made" section listing the improvements in bullet points.
-            """
-
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a professional code refactoring assistant."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.2
-            )
-
-            # ✅ Ensure response_text is properly extracted
-            response_text = str(response.choices[0].message.content).strip()
-
-            # ✅ Debugging log to check AI response
-            print("AI Response:", response_text)
-
-            # ✅ Extract the refactored code using regex
-            code_match = re.search(r"```java([\s\S]*?)```", response_text)
-            refactored_code = code_match.group(1).strip() if code_match else response_text  # Fallback to full response
-
-            # ✅ Extract "Changes Made" section
-            changes_match = re.search(r"Changes Made:\n([\s\S]*)", response_text)
-            changes_made = changes_match.group(1).strip().split("\n") if changes_match else []
-
-            # Calculate LOC and Readability for the refactored code
-            refactored_loc = calculate_loc(refactored_code)
-            refactored_readability = calculate_readability(refactored_code)
-
-            # Save to DB
-            record = CodeRefactoringRecord.objects.create(
-                original_code=code,
-                refactored_code=refactored_code,
-                original_complexity=original_loc,
-                refactored_complexity=refactored_loc,
-                original_readability=original_readability,
-                refactored_readability=refactored_readability,
-            )
-
-            return JsonResponse({
-                'refactored_code': refactored_code,
-                'changes_made': changes_made,  # ✅ Return extracted changes
-                'original_loc': original_loc,
-                'refactored_loc': refactored_loc,
-                'original_readability': original_readability,
-                'refactored_readability': refactored_readability,
-                'id': record.id
-            })
-
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+# @csrf_exempt
+# def refactor_code(request):
+#     """Handles code refactoring with optional guideline usage."""
+#     if request.method == 'POST':
+#         try:
+#             data = json.loads(request.body)
+#             code = data.get('code', '').strip()
+#             use_guidelines = data.get('use_guidelines', False)  # Check if user enabled guidelines
+#
+#             if not code:
+#                 return JsonResponse({'error': 'No code provided'}, status=400)
+#
+#             # Calculate LOC and Readability for the original code
+#             original_loc = calculate_loc(code)
+#             original_readability = calculate_readability(code)
+#
+#             # Apply guidelines if enabled
+#             if use_guidelines:
+#                 guidelines = Guideline.objects.all()
+#                 guideline_texts = [f"{g.pattern}: {g.rule}" for g in guidelines]
+#                 guidelines_prompt = "\n\n".join(guideline_texts)
+#             else:
+#                 guidelines_prompt = ""
+#
+#             # AI Code Refactoring Request
+#             prompt = f"""
+#             Refactor the following code to improve structure, readability, and efficiency.
+#             Ensure that you:
+#             1. Improve maintainability and efficiency.
+#             2. Follow best practices while keeping the functionality intact.
+#
+#             ### Original Code:
+#             {code}
+#
+#             ### Guidelines (if applicable):
+#             {guidelines_prompt if guidelines_prompt else "No specific guidelines provided."}
+#
+#             After refactoring, clearly provide a "Changes Made" section listing the improvements in bullet points.
+#             """
+#
+#             response = client.chat.completions.create(
+#                 model="gpt-3.5-turbo",
+#                 messages=[
+#                     {"role": "system", "content": "You are a professional code refactoring assistant."},
+#                     {"role": "user", "content": prompt}
+#                 ],
+#                 temperature=0.2
+#             )
+#
+#             # ✅ Ensure response_text is properly extracted
+#             response_text = str(response.choices[0].message.content).strip()
+#
+#             # ✅ Debugging log to check AI response
+#             print("AI Response:", response_text)
+#
+#             # ✅ Extract the refactored code using regex
+#             code_match = re.search(r"```java([\s\S]*?)```", response_text)
+#             refactored_code = code_match.group(1).strip() if code_match else response_text  # Fallback to full response
+#
+#             # ✅ Extract "Changes Made" section
+#             changes_match = re.search(r"Changes Made:\n([\s\S]*)", response_text)
+#             changes_made = changes_match.group(1).strip().split("\n") if changes_match else []
+#
+#             # Calculate LOC and Readability for the refactored code
+#             refactored_loc = calculate_loc(refactored_code)
+#             refactored_readability = calculate_readability(refactored_code)
+#
+#             # Save to DB
+#             record = CodeRefactoringRecord.objects.create(
+#                 original_code=code,
+#                 refactored_code=refactored_code,
+#                 original_complexity=original_loc,
+#                 refactored_complexity=refactored_loc,
+#                 original_readability=original_readability,
+#                 refactored_readability=refactored_readability,
+#             )
+#
+#             return JsonResponse({
+#                 'refactored_code': refactored_code,
+#                 'changes_made': changes_made,  # ✅ Return extracted changes
+#                 'original_loc': original_loc,
+#                 'refactored_loc': refactored_loc,
+#                 'original_readability': original_readability,
+#                 'refactored_readability': refactored_readability,
+#                 'id': record.id
+#             })
+#
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+#
+#     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 # API Endpoint for AI to Fetch Guidelines
@@ -226,48 +228,48 @@ def delete_guideline(request, guideline_id):
 
 
 @csrf_exempt
-def refactor_and_compare(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            original_code = data.get("code", "")
-
-            print("Received code:", original_code)  # Debugging log
-
-            # Analyze Original Code Complexity
-            original_complexity, original_readability = analyze_code(original_code)
-
-            # Refactor Code
-            refactored_code = refactor_code(original_code)
-
-            # Analyze Refactored Code Complexity
-            refactored_complexity, refactored_readability = analyze_code(refactored_code)
-
-            # Save to Database
-            history = CodeRefactoringRecord.objects.create(
-                original_code=original_code,
-                refactored_code=refactored_code,
-                original_complexity=original_complexity,
-                refactored_complexity=refactored_complexity,
-                original_readability=original_readability,
-                refactored_readability=refactored_readability
-            )
-
-            print("Saved to database:", history.id)  # Debugging log
-
-            return JsonResponse({
-                "success": True,
-                "before_code": original_code,
-                "after_code": refactored_code,
-                "original_complexity": original_complexity,
-                "refactored_complexity": refactored_complexity,
-                "original_readability": original_readability,
-                "refactored_readability": refactored_readability,
-                "id": history.id
-            })
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
-    return JsonResponse({"success": False, "error": "Invalid request"})
+# def refactor_and_compare(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             original_code = data.get("code", "")
+#
+#             print("Received code:", original_code)  # Debugging log
+#
+#             # Analyze Original Code Complexity
+#             original_complexity, original_readability = analyze_code(original_code)
+#
+#             # Refactor Code
+#             refactored_code = refactor_code(original_code)
+#
+#             # Analyze Refactored Code Complexity
+#             refactored_complexity, refactored_readability = analyze_code(refactored_code)
+#
+#             # Save to Database
+#             history = CodeRefactoringRecord.objects.create(
+#                 original_code=original_code,
+#                 refactored_code=refactored_code,
+#                 original_complexity=original_complexity,
+#                 refactored_complexity=refactored_complexity,
+#                 original_readability=original_readability,
+#                 refactored_readability=refactored_readability
+#             )
+#
+#             print("Saved to database:", history.id)  # Debugging log
+#
+#             return JsonResponse({
+#                 "success": True,
+#                 "before_code": original_code,
+#                 "after_code": refactored_code,
+#                 "original_complexity": original_complexity,
+#                 "refactored_complexity": refactored_complexity,
+#                 "original_readability": original_readability,
+#                 "refactored_readability": refactored_readability,
+#                 "id": history.id
+#             })
+#         except Exception as e:
+#             return JsonResponse({"success": False, "error": str(e)})
+#     return JsonResponse({"success": False, "error": "Invalid request"})
 
 
 def refactor_code_view(request):
@@ -309,35 +311,35 @@ def refactor_code_view(request):
 
 # ✅ AI-Powered Guideline Generation
 @csrf_exempt
-def generate_guideline(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            pattern = data.get("pattern", "").strip()
-
-            if not pattern or pattern not in GUIDELINE_PROMPTS:
-                return JsonResponse({"error": "Invalid pattern selected"}, status=400)
-
-            prompt = GUIDELINE_PROMPTS[pattern]
-
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a professional software architect."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.2
-            )
-
-            # ✅ Correct way to extract the response
-            guideline_text = response.choices[0].message.content.strip()
-
-            return JsonResponse({"suggestion": guideline_text})
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"error": "Invalid request"}, status=400)
+# def generate_guideline(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             pattern = data.get("pattern", "").strip()
+#
+#             if not pattern or pattern not in GUIDELINE_PROMPTS:
+#                 return JsonResponse({"error": "Invalid pattern selected"}, status=400)
+#
+#             prompt = GUIDELINE_PROMPTS[pattern]
+#
+#             response = client.chat.completions.create(
+#                 model="gpt-3.5-turbo",
+#                 messages=[
+#                     {"role": "system", "content": "You are a professional software architect."},
+#                     {"role": "user", "content": prompt}
+#                 ],
+#                 temperature=0.2
+#             )
+#
+#             # ✅ Correct way to extract the response
+#             guideline_text = response.choices[0].message.content.strip()
+#
+#             return JsonResponse({"suggestion": guideline_text})
+#
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)}, status=500)
+#
+#     return JsonResponse({"error": "Invalid request"}, status=400)
 
 
 @csrf_exempt

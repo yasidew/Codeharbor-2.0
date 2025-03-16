@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenge Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .challenge-details-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            text-align: center;
+        }
+        .challenge-details-container h2 {
+            margin: 0 0 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="challenge-details-container">
+        <h2>Challenge Details</h2>
+        <div id="challengeDetails"></div>
+    </div>
+
+    <script>
+        async function fetchChallengeDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const challengeId = urlParams.get('id');
+            const accessToken = localStorage.getItem('accessToken');
+
+            if (!accessToken) {
+                alert("You are not logged in!");
+                window.location.href = '/login'; // Redirect to login page
+                return;
+            }
+
+            if (!challengeId) {
+                document.getElementById('challengeDetails').innerHTML = '<p>Invalid challenge ID.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/challenges/${challengeId}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                const challengeDetailsContainer = document.getElementById('challengeDetails');
+
+                if (response.ok) {
+                    const challenge = await response.json();
+                    challengeDetailsContainer.innerHTML = `
+                        <p><strong>Category:</strong> ${challenge.category}</p>
+                        <p><strong>Difficulty:</strong> ${challenge.difficulty}</p>
+                        <p><strong>Template:</strong> ${challenge.template}</p>
+                        <p><strong>Month:</strong> ${challenge.month}</p>
+                        <p><strong>Created At:</strong> ${challenge.created_at}</p>
+                    `;
+                } else {
+                    const errorData = await response.json();
+                    challengeDetailsContainer.innerHTML = `<p>${errorData.error || "Failed to fetch challenge details."}</p>`;
+                }
+            } catch (error) {
+                console.error("Error fetching challenge details:", error);
+                document.getElementById('challengeDetails').innerHTML = '<p>An error occurred. Please try again.</p>';
+            }
+        }
+
+        // Fetch challenge details on page load
+        window.onload = fetchChallengeDetails;
+    </script>
+</body>
+</html>

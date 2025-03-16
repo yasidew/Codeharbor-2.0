@@ -1,0 +1,106 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Month's Challenges</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .challenge {
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+        }
+        .challenge:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Current Month's Challenges</h1>
+        <div id="challenges-container">
+            <p>Loading challenges...</p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchChallenges() {
+            const accessToken = localStorage.getItem('accessToken');
+console.log("Access token-" + accessToken);
+            if (!accessToken) {
+                alert("You are not logged in!");
+                window.location.href = '/login'; // Redirect to login page
+                return;
+            }
+            console.log(accessToken);
+            try {
+                const response = await fetch('/challenges/current', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                });
+
+                const challengesContainer = document.getElementById('challenges-container');
+                challengesContainer.innerHTML = '';
+                console.log(response);
+
+                if (response.ok) {
+                    console.log("OK");
+                     const data = await response.json();
+                     console.log("Full API Response:", data); // ✅ Debugging
+                     const challenges = Array.isArray(data) ? data : data.challenges;
+
+                    if (!challenges || challenges.length === 0) {
+                        challengesContainer.innerHTML = '<p>No challenges available for this month.</p>';
+                        return;
+                    }
+
+                    challenges.forEach(challenge => {
+                        const challengeDiv = document.createElement('div');
+                        challengeDiv.classList.add('challenge');
+                        challengeDiv.innerHTML = `
+                            <h3>${challenge.category}</h3>
+                            <p><strong>Difficulty:</strong> ${challenge.difficulty}</p>
+                            <p><strong>Template:</strong> ${challenge.template}</p>
+                            <p><strong>Month:</strong> ${challenge.month}</p>
+                            <p><strong>Created At:</strong> ${challenge.created_at}</p>
+                        `;
+                        challengesContainer.appendChild(challengeDiv);
+                    });
+
+                } else {
+                    challengesContainer.innerHTML = '<p>Failed to load challenges.</p>';
+                }
+            } catch (error) {
+
+                console.log("Error fetching challenges: "+ error);
+                document.getElementById('challenges-container').innerHTML = '<p>An error occurred. Please try again.</p>';
+            }
+        }
+
+        // Fetch challenges on page load
+        window.onload = fetchChallenges;
+    </script>
+</body>
+</html>

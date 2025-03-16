@@ -81,6 +81,16 @@ class JavaCodeAnalyzer:
             self._check_unreachable_code,
             self._check_variable_shadowing,
             self._check_naming_conventions,
+            self._check_mutable_defaults,
+            self._check_unencrypted_communication,
+            self._check_dangerous_functions,
+            self._check_dead_code,
+            self._check_duplicate_code,
+            self._check_excessive_classes_or_functions,
+            self._check_dependency_inversion,
+            self._check_inefficient_complexity,
+            self._check_yagni_violation,
+            self._check_hardcoded_file_paths,
         ]
         for check in checks:
             try:
@@ -347,6 +357,135 @@ class JavaCodeAnalyzer:
                     "message": f"Variable name '{node.name}' does not follow camelCase naming convention.",
                     "line": getattr(node.position, "line", "unknown"),
                 })
+
+    def _check_mutable_defaults(self, tree):
+        """Detect mutable default arguments in methods."""
+        for path, node in tree.filter(javalang.tree.MethodDeclaration):
+            for parameter in node.parameters:
+                if isinstance(parameter.default, (javalang.tree.ArrayInitializer, list, dict)):
+                    self.recommendations.append({
+                        "rule": "Mutable Defaults",
+                        "message": f"Method '{node.name}' has a mutable default argument '{parameter.name}'.",
+                        "line": getattr(node.position, "line", "unknown"),
+                    })
+
+    def _check_unencrypted_communication(self, tree):
+        """Detect unencrypted communication (e.g., HTTP, FTP)."""
+        insecure_protocols = {"http://", "ftp://"}
+        for path, node in tree.filter(javalang.tree.Literal):
+            if isinstance(node.value, str) and any(proto in node.value for proto in insecure_protocols):
+                self.recommendations.append({
+                    "rule": "Unencrypted Communication",
+                    "message": f"Unencrypted communication detected: '{node.value}'.",
+                    "line": getattr(node.position, "line", "unknown"),
+                })
+
+
+    def _check_dangerous_functions(self, tree):
+        """Detect usage of dangerous functions."""
+        dangerous_functions = {"Runtime.exec", "ProcessBuilder", "System.loadLibrary", "System.exit", "Thread.stop"}
+        for path, node in tree.filter(javalang.tree.MethodInvocation):
+            if node.member in dangerous_functions:
+                self.recommendations.append({
+                    "rule": "Dangerous Functions",
+                    "message": f"Usage of dangerous function '{node.member}'.",
+                    "line": getattr(node.position, "line", "unknown"),
+                })
+
+
+    def _check_dead_code(self, tree):
+        """Detect dead code (unreachable or unused)."""
+        for path, node in tree.filter(javalang.tree.BlockStatement):
+            return_detected = False
+            for child in node.children:
+                if isinstance(child, (javalang.tree.ReturnStatement, javalang.tree.ThrowStatement)):
+                    return_detected = True
+                elif return_detected:
+                    self.recommendations.append({
+                        "rule": "Dead Code",
+                        "message": "Dead code detected after return/throw statement.",
+                        "line": getattr(child.position, "line", "unknown"),
+                    })
+
+
+    def _check_duplicate_code(self, tree):
+        """Detect duplicate code blocks."""
+        code_blocks = {}
+        for path, node in tree.filter(javalang.tree.BlockStatement):
+            block_code = ''.join([str(child) for child in node.children])
+            if block_code in code_blocks:
+                self.recommendations.append({
+                    "rule": "Duplicate Code",
+                    "message": "Duplicate code block detected.",
+                    "line": getattr(node.position, "line", "unknown"),
+                })
+            else:
+                code_blocks[block_code] = True
+
+
+    def _check_excessive_classes_or_functions(self, tree):
+        """Detect excessive number of classes or functions."""
+        classes = list(tree.filter(javalang.tree.ClassDeclaration))
+        methods = list(tree.filter(javalang.tree.MethodDeclaration))
+
+        if len(classes) > 10:
+            self.recommendations.append({
+                "rule": "Excessive Classes",
+                "message": f"Excessive number of classes ({len(classes)}) detected. Consider refactoring.",
+            })
+
+        if len(methods) > 50:
+            self.recommendations.append({
+                "rule": "Excessive Functions",
+                "message": f"Excessive number of functions ({len(methods)}) detected. Consider refactoring.",
+            })
+
+
+    def _check_dependency_inversion(self, tree):
+        """Detect violations of the Dependency Inversion Principle."""
+        for path, node in tree.filter(javalang.tree.VariableDeclarator):
+            if "new" in str(node.initializer) and "Interface" not in str(node.initializer):
+                self.recommendations.append({
+                    "rule": "Dependency Inversion Violation",
+                    "message": f"Dependency directly to a concrete class '{node.name}' detected. Use interfaces instead.",
+                    "line": getattr(node.position, "line", "unknown"),
+                })
+
+
+
+    def _check_inefficient_complexity(self, tree):
+        """Detect inefficient complexity (e.g., nested loops)."""
+        for path, node in tree.filter(javalang.tree.ForStatement):
+            inner_loops = sum(1 for child in node.body.children if isinstance(child, javalang.tree.ForStatement))
+            if inner_loops > 1:
+                self.recommendations.append({
+                    "rule": "Inefficient Complexity",
+                    "message": "Nested loops detected, consider optimizing.",
+                    "line": getattr(node.position, "line", "unknown"),
+                })
+
+
+    def _check_yagni_violation(self, tree):
+        """Detect unused or unnecessary code violating YAGNI."""
+        unused_methods = [node.name for _, node in tree.filter(javalang.tree.MethodDeclaration) if not node.body]
+        if unused_methods:
+            self.recommendations.append({
+                "rule": "YAGNI Violation",
+                "message": f"Unused methods detected: {', '.join(unused_methods)}. Remove unused code.",
+            })
+
+
+    def _check_hardcoded_file_paths(self, tree):
+        """Detect hardcoded file paths."""
+        file_path_pattern = r"[a-zA-Z]:[\\/].*"
+        for path, node in tree.filter(javalang.tree.Literal):
+            if isinstance(node.value, str) and re.match(file_path_pattern, node.value):
+                self.recommendations.append({
+                    "rule": "Hardcoded File Paths",
+                    "message": f"Hardcoded file path '{node.value}' detected. Consider using configuration files.",
+                    "line": getattr(node.position, "line", "unknown"),
+                })
+
 
 
 # Example Usage
