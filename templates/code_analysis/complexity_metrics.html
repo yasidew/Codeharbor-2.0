@@ -1,0 +1,292 @@
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-primary text-white text-center">
+        <h4><i class="fas fa-chart-line"></i> Code Complexity Metrics</h4>
+    </div>
+    <div class="card-body">
+        {% if summary.complexity_metrics %}
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-code"></i> Lines of Code:</strong>
+                    <span>{{ summary.complexity_metrics.lines_of_code }}
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.lines_of_code }}</span>
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-check-double"></i> Effective Lines of Code:</strong>
+                    <span>{{ summary.complexity_metrics.effective_lines_of_code }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-list-ul"></i> Number of Functions:</strong>
+                    <span>{{ summary.complexity_metrics.num_functions }}
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.num_functions }}</span>
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-expand-arrows-alt"></i> Avg Function Length:</strong>
+                    <span>{{ summary.complexity_metrics.avg_function_length }}
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.function_length }}</span>
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-clone"></i> Duplicate Code Percentage:</strong>
+                    <span>{{ summary.complexity_metrics.duplicate_code_percentage }}%
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.duplicate_code }}</span>
+                    </span>
+                </li>
+                {% if summary.complexity_metrics.duplicate_code_details %}
+                    <div class="container mt-4">
+                        <div class="duplicate-code-panel p-3 shadow-sm rounded">
+                            <h3 class="text-center text-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Duplicate Code Detected
+                            </h3>
+                            <p class="text-center">Below are the repeated code segments found in your submission:</p>
+
+                            <div class="duplicate-code-container">
+                                <ul class="list-group">
+                                    {% for line, occurrences in summary.complexity_metrics.duplicate_code_details.items %}
+                                        <li class="list-group-item duplicate-code-item">
+                                            <strong class="text-warning"><i class="fas fa-code"></i> Duplicate Code:</strong>
+                                            <pre class="code-highlight">{{ line }}</pre>
+                                            <small class="found-at-lines">📌 Found at lines: {{ occurrences | join:", " }}</small>
+
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    {#                    <p class="text-center text-success">✅ No duplicate code detected!</p>#}
+                {% endif %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-comments"></i> Comment Density:</strong>
+                    <span>{{ summary.complexity_metrics.comment_density }}
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.comment_density }}</span>
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-eye"></i> Readability Score:</strong>
+                    <span>{{ summary.complexity_metrics.readability_score }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong><i class="fas fa-brain"></i> Complexity Score:</strong>
+                    <span>{{ summary.complexity_metrics.complexity_score }}
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score }}</span>
+                    </span>
+                </li>
+            </ul>
+
+            <!-- Visual Indicators for Complexity Scores -->
+            <div class="mt-4">
+                <h5 class="text-center">Complexity Overview</h5>
+                <div class="mb-3">
+                    <label>Code Complexity</label>
+                    <div class="progress">
+                        <div class="progress-bar
+                            {% if summary.complexity_metrics.rating.complexity_score == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.complexity_score == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                             role="progressbar"
+                             style="width: {{ summary.complexity_metrics.complexity_score }}%;"
+                             aria-valuenow="{{ summary.complexity_metrics.complexity_score }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            {{ summary.complexity_metrics.complexity_score }}%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label>Duplicate Code</label>
+                    <div class="progress">
+                        <div class="progress-bar
+                            {% if summary.complexity_metrics.duplicate_code_percentage < 10 %}bg-success
+                            {% elif summary.complexity_metrics.duplicate_code_percentage < 20 %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                             role="progressbar"
+                             style="width: {{ summary.complexity_metrics.duplicate_code_percentage }}%;"
+                             aria-valuenow="{{ summary.complexity_metrics.duplicate_code_percentage }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            {{ summary.complexity_metrics.duplicate_code_percentage }}%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label>Readability Score</label>
+                    <div class="progress">
+                        <div class="progress-bar bg-info"
+                             role="progressbar"
+                             style="width: {{ summary.complexity_metrics.readability_score }}%;"
+                             aria-valuenow="{{ summary.complexity_metrics.readability_score }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            {{ summary.complexity_metrics.readability_score }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-center text-danger">⚠️ Complexity metrics could not be calculated!</p>
+        {% endif %}
+    </div>
+</div>
+
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js" crossorigin="anonymous"></script>
+
+<!-- Chart.js for Graph -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>#}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+
+
+<style>
+    /* 📌 Card Styling */
+    .card {
+        background-color: #1a1f3b !important; /* Deep navy blue */
+        color: white !important;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px rgba(0, 123, 255, 0.2);
+    }
+
+    /* 📌 Card Header */
+    .card-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 10px 10px 0 0;
+        padding: 12px;
+    }
+
+    /* 📌 List Group Items */
+    .list-group-item {
+        background-color: #232a45 !important;
+        color: white !important;
+        border: none;
+        font-size: 16px;
+        padding: 12px 15px;
+    }
+
+    /* 🎨 Enhance Badges */
+    .badge {
+        font-size: 12px;
+        font-weight: bold;
+        padding: 6px 10px;
+        border-radius: 6px;
+    }
+
+    /* 🟢 Green for Low */
+    .badge.bg-secondary {
+        background-color: #28a745 !important; /* Green */
+        color: white;
+    }
+
+    /* 🟠 Yellow for Medium */
+    .badge.bg-warning {
+        background-color: #ffc107 !important; /* Yellow */
+        color: black;
+    }
+
+    /* 🔴 Red for High */
+    .badge.bg-danger {
+        background-color: #dc3545 !important; /* Red */
+        color: white;
+    }
+
+    /* 📊 Progress Bar Styling */
+    .progress {
+        height: 25px;
+        border-radius: 8px;
+        background-color: #374166;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    /* ✅ Progress Bar Labels */
+    .progress-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 🟢 Success for Low Complexity */
+    .progress-bar.bg-success {
+        background: linear-gradient(135deg, #28a745, #218838) !important;
+    }
+
+    /* 🟠 Warning for Medium Complexity */
+    .progress-bar.bg-warning {
+        background: linear-gradient(135deg, #ffc107, #d39e00) !important;
+        color: white;
+    }
+
+    /* 🔴 Danger for High Complexity */
+    .progress-bar.bg-danger {
+        background: linear-gradient(135deg, #dc3545, #bd2130) !important;
+    }
+
+    /* 🔵 Readability Score */
+    .progress-bar.bg-info {
+        background: linear-gradient(135deg, #17a2b8, #117a8b) !important;
+    }
+
+    /* 📌 Readability of Labels Above Progress Bars */
+    .progress + label {
+        font-size: 14px;
+        font-weight: bold;
+        color: white;
+        margin-top: 8px;
+        display: block;
+        text-align: center;
+    }
+    /* ✅ Duplicate Code Section Styling */
+    .duplicate-code-container {
+        max-height: 250px; /* Limit height for scrolling */
+        overflow-y: auto; /* Enable scrolling */
+        border: 1px solid #ffc107; /* Yellow border */
+        padding: 10px;
+        border-radius: 6px;
+        background-color: #2a2d3e; /* Dark background */
+    }
+
+    /* ✅ Individual Duplicate Code Items */
+    .duplicate-code-item {
+        background-color: #333952 !important; /* Deep navy blue */
+        color: white !important;
+        border-left: 5px solid #ffc107; /* Yellow accent border */
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+
+    /* ✅ Scrollbar Customization */
+    .duplicate-code-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .duplicate-code-container::-webkit-scrollbar-thumb {
+        background-color: #ffc107; /* Yellow scrollbar */
+        border-radius: 4px;
+    }
+
+    .duplicate-code-container::-webkit-scrollbar-track {
+        background: #1f2432; /* Dark track */
+    }
+
+    /* Ensure text appears white */
+    .found-at-lines {
+        color: white !important;
+        font-weight: bold; /* Optional: Makes it stand out */
+    }
+
+</style>
