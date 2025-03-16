@@ -3,7 +3,9 @@ import os
 
 import numpy as np
 import torch
+import javalang
 
+import re
 import pandas as pd
 from datetime import datetime
 
@@ -288,9 +290,7 @@ def java_generate_suggestion(code_snippet):
         return f"❌ Error generating suggestion: {str(e)}"
 
 
-import javalang
 
-import re
 
 def java_split_code_snippets(code):
     """
