@@ -92,7 +92,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from games.views import editor_view
-from user.views import UserAPI, logout, logout_all
+from user.views import UserAPI, logout, logout_all, user_profile_view
 from . import views
 
 urlpatterns = [
@@ -129,6 +129,7 @@ urlpatterns = [
     path('api/user/', UserAPI.as_view()),
     path('api/logout/', logout),
     path('api/logout-all/', logout_all),
+    path("profile/<str:username>/", user_profile_view, name="user-profile"),
 
     # Web Pages
     path('login/', lambda request: render(request, 'login.html'), name='login'),
