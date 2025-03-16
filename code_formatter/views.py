@@ -504,6 +504,7 @@ def list_resources(request):
     resources = DesignPatternResource.objects.all().order_by('-added_on')
     return render(request, 'code_formatter/list_resources.html', {'resources': resources})
 
+
 @csrf_exempt
 def fetch_snippet_diff(request):
     """Return snippet diff for a given refactoring record from DB or AI."""
@@ -528,3 +529,124 @@ def fetch_snippet_diff(request):
         return JsonResponse({"success": False, "error": "Record not found"})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
+
+
+@csrf_exempt
+def get_pattern(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            code = data.get("code", "")
+
+            if not code.strip():
+                return JsonResponse({"error": "Empty code provided"}, status=400)
+
+            # Call the updated AI-powered pattern analysis function
+            suggested_pattern = analyze_code_for_pattern(code)
+
+            return JsonResponse({"pattern": suggested_pattern})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+def analyze_code_for_pattern(code):
+    """
+    Uses AI and keyword-based detection to find the best-suited design pattern.
+    """
+    # Dictionary mapping design patterns to common keywords and structure
+    patterns = {
+        "Factory": ["create", "newInstance", "factory", "instantiate"],
+        "Strategy": ["interface", "strategy", "context", "algorithm"],
+        "Observer": ["notify", "subscriber", "event", "listener"],
+        "Abstract Factory": ["abstract factory", "create", "product", "factory method"],
+        "Builder": ["builder", "construct", "step-by-step"],
+        "Prototype": ["clone", "prototype", "copy"],
+        "Singleton": ["private static", "getInstance", "singleton"],
+        "Adapter": ["adapter", "convert", "interface"],
+        "Bridge": ["bridge", "decouple", "abstraction", "implementation"],
+        "Composite": ["component", "composite", "tree structure"],
+        "Decorator": ["extends", "wrap", "component", "dynamic behavior"],
+        "Facade": ["facade", "simplify", "unified interface"],
+        "Flyweight": ["flyweight", "shared objects", "minimize memory"],
+        "Proxy": ["proxy", "control access", "delegate"],
+        "Chain of Responsibility": ["chain", "handle", "successor"],
+        "Command": ["execute", "command", "invoker"],
+        "Interpreter": ["grammar", "interpreter", "parse"],
+        "Iterator": ["iterator", "next", "traverse"],
+        "Mediator": ["mediator", "communication", "colleague"],
+        "Memento": ["memento", "save state", "restore"],
+        "State": ["state", "context", "transition"],
+        "Template Method": ["template method", "base class", "override"],
+        "Visitor": ["visitor", "accept", "operation"],
+    }
+
+    # **Step 1: Keyword-Based Detection**
+    for pattern, keywords in patterns.items():
+        if any(keyword.lower() in code.lower() for keyword in keywords):
+            return pattern  # Return if direct match found
+
+    # **Step 2: AI-Based Suggestion for More Complex Detections**
+    return get_ai_suggested_pattern(code, patterns)
+
+
+def get_ai_suggested_pattern(code, patterns):
+    """
+    Uses OpenAI GPT model to analyze the code and suggest a design pattern.
+    """
+    try:
+        prompt = f"""
+        Analyze the following Java code and determine the most appropriate design pattern to apply.
+
+        **Rules for detection:**
+        - If multiple instances of a class are created but should only be **one**, suggest `Singleton`.
+        - If an interface is used to change behavior at runtime, suggest `Strategy`.
+        - If a separate **factory method** is used for object creation, suggest `Factory`.
+        - If objects notify observers when they change, suggest `Observer`.
+        - If a method builds a complex object step by step, suggest `Builder`.
+        - If an object copies itself to create new instances, suggest `Prototype`.
+        - If there is a need to convert one interface into another, suggest `Adapter`.
+        - If two independent parts of an application need to work together without being tightly coupled, suggest `Bridge`.
+        - If a tree structure is used to represent part-whole hierarchies, suggest `Composite`.
+        - If additional functionality is added dynamically to an object, suggest `Decorator`.
+        - If an object provides a simplified interface to a larger body of code, suggest `Facade`.
+        - If there are too many instances of the same object and memory needs to be optimized, suggest `Flyweight`.
+        - If an object acts as a placeholder for another object to control access, suggest `Proxy`.
+        - If multiple handlers process a request sequentially, suggest `Chain of Responsibility`.
+        - If a request is wrapped as an object to parameterize clients with different requests, suggest `Command`.
+        - If a language interpreter is implemented with a grammar, suggest `Interpreter`.
+        - If an object is needed to iterate over elements of a collection, suggest `Iterator`.
+        - If a central object manages communication between multiple objects, suggest `Mediator`.
+        - If an object saves and restores its state later, suggest `Memento`.
+        - If an object changes its behavior based on its state, suggest `State`.
+        - If a base class defines a template for its subclasses to override specific steps, suggest `Template Method`.
+        - If new operations need to be added without modifying existing objects, suggest `Visitor`.
+
+        **Example Code:**
+        {code}
+
+        **Only return the design pattern name.**
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a software architecture expert specializing in design patterns."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2
+        )
+
+        # Extract AI response
+        suggested_pattern = response.choices[0].message.content.strip()
+
+        # Validate the pattern exists in our known list
+        if suggested_pattern in patterns.keys():
+            return suggested_pattern
+
+        return "General Refactoring Opportunity"
+
+    except Exception as e:
+        return f"Error fetching AI suggestion: {str(e)}"
+
