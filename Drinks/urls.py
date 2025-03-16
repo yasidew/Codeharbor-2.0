@@ -33,30 +33,30 @@ path('guidelines/', views.guidelines_view, name='guidelines'),
 
                   path("detect-defects/", views.detect_defects_view, name="detect_defects"),
 
-                  # Authentication and User Management
-                  path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-                  path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-                  path('api/user/', UserAPI.as_view()),
-                  path('api/logout/', logout),
-                  path('api/logout-all/', logout_all),
-                  path("profile/<str:username>/", user_profile_view, name="user-profile"),
+    # Authentication and User Management
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/user/', UserAPI.as_view()),
+    path('api/logout/', logout),
+    path('api/logout-all/', logout_all),
+    path("profile/<str:username>/", user_profile_view, name="user-profile"),
 
-                  # Web Pages
-                  path('login/', lambda request: render(request, 'login.html'), name='login'),
-                  path('dashboard/', lambda request: render(request, 'dashboard.html'), name='dashboard'),
-                  path('profile/', lambda request: render(request, 'update_profile.html'), name='profile'),
+    # Web Pages
+    path('login/', lambda request: render(request, 'login.html'), name='login'),
+    path('dashboard/', lambda request: render(request, 'dashboard.html'), name='dashboard'),
+    path('profile/', lambda request: render(request, 'update_profile.html'), name='profile'),
 
-                  # Other Apps
-                  path('checker/', include('accessibility_checker.urls')),
-                  path('games/', include('games.urls')),
-                  path('challenges/', include('challenges.urls')),
-                  path('editor/', editor_view, name='editor'),
+    # Other Apps
+    path('checker/', include('accessibility_checker.urls')),
+    path('games/', include('games.urls')),
+    path('challenges/', include('challenges.urls')),
+    path('editor/', editor_view, name='editor'),
 
-                  #Code Refactoring
-                  path('code-formatter/', include('code_formatter.urls')),
+    # Code Refactoring
+    path('code-formatter/', include('code_formatter.urls')),
 
-                  # Root URL
-                  path('', views.home, name='home'),
+    # Root URL
+    path('', views.home, name='home'),
 ]
 # Add static file handling
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

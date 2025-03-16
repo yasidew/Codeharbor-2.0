@@ -60,6 +60,7 @@ coverage/
 #Yeran
 code-refactoring/singleton_model/model.safetensors
 code-refactoring/factory_method_model/model.safetensors
+code-refactoring/refactoring_model/
 .env
 node_modules
 code-refactoring/singleton_model/model.safetensors
