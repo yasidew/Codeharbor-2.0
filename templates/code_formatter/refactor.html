@@ -101,7 +101,6 @@
                 </div>
 
                 <!-- Changes Summary -->
-                <!-- CHANGED #1: Collapsible Cards for "Changes Made" -->
                 <div id="changes-section" class="mt-4" style="display: none;">
                     <h4 class="text-white mb-3">Changes Made:</h4>
                     <div id="changesContainer" class="d-flex flex-column gap-3"></div>
@@ -132,10 +131,12 @@
     <!-- ✅ GitHub Import Modal (Added at the Bottom of Content) -->
     <!-- Container to Load Modal -->
     <div id="modal-container"></div>
+
+    <!-- Bootstrap JS for Collapsible + icons for chevrons -->
     <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+5c5cj0I9PHK3i1b+8SlE71i9u7xS"
-      crossorigin="anonymous">
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+5c5cj0I9PHK3i1b+8SlE71i9u7xS"
+            crossorigin="anonymous">
     </script>
 
     <!-- Include Monaco Editor & Chart.js -->
@@ -210,46 +211,45 @@
                     refactoredEditor.setValue(data.refactored_code);
                     refactoredSection.style.display = 'block';
 
-                    // CHANGED #3: Build collapsible "cards" for each change
-                    // If we have changes, create a collapsible card for each
+                    // Build collapsible "cards" for each change
                     if (data.changes_made && data.changes_made.length > 0) {
-                        data.changes_made.forEach((change, index) => {
-                            // Each "change" is a card with a collapsible area
-                            const card = document.createElement('div');
-                            // CHANGED #2: Use "sleek-card" for custom gradient
-                            card.classList.add('card', 'sleek-card', 'text-white');
+                        data.changes_made.forEach((rawChangeText, index) => {
+                            // remove leading dash
+                            const changeText = rawChangeText.replace(/^[-\s]+/, '');
 
-                            const collapseId = `change-collapse-${index}`;
+                            const cardHTML = `
+                          <div class="sleek-card position-relative text-white my-2">
+                            <div class="accent-shape"></div>
+                            <div class="d-flex justify-content-between align-items-center p-3 clickable-row"
+                                 data-bs-toggle="collapse"
+                                 data-bs-target="#collapse-${index}"
+                                 aria-expanded="false"
+                                 aria-controls="collapse-${index}"
+                                 style="cursor: pointer; z-index: 2;">
+                              <div class="d-flex align-items-center" style="z-index:2;">
+                                <i class="me-2 text-warning fs-4"></i>
+                                <span class="fs-6">${changeText}</span>
+                              </div>
+                              <i class="bi bi-chevron-down fs-5 text-warning"></i>
+                            </div>
+                            <div id="collapse-${index}" class="collapse">
+                              <div class="p-3">
+                                <div id="snippet-container-${index}"
+                                     data-loaded="false"
+                                     data-change-text="${encodeURIComponent(changeText)}">
+                                  <p class="text-info">Loading snippet...</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        `;
 
-                            card.innerHTML = `
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <!-- Instead of "Change #1", we show the actual text from AI in the heading. -->
-                                    <h5 class="mb-0">${change}</h5>
-                                    <button class="btn btn-sm btn-outline-light" type="button"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target="#${collapseId}"
-                                        aria-expanded="false"
-                                        aria-controls="${collapseId}">
-                                        Show Details
-                                    </button>
-                                </div>
-                                <div id="${collapseId}" class="collapse">
-                                    <div class="card-body">
-                                        <!-- Original vs Refactored placeholders -->
-                                        <p class="mb-2">
-                                            <strong>Description:</strong> ${change}
-                                        </p>
-                                        <hr/>
-                                        <p><strong>Original Snippet:</strong></p>
-                                        <pre class="bg-dark text-white p-2 mb-3">[No snippet from AI or DB yet]</pre>
-                                        <p><strong>Refactored Snippet:</strong></p>
-                                        <pre class="bg-dark text-white p-2">[No snippet from AI or DB yet]</pre>
-                                    </div>
-                                </div>
-                            `;
-                            changesContainer.appendChild(card);
+                            const cardDiv = document.createElement('div');
+                            cardDiv.innerHTML = cardHTML.trim();
+                            changesContainer.appendChild(cardDiv);
                         });
                         changesSection.style.display = 'block';
+                        attachCardExpandHandlers(data.id); // attach snippet fetch on expand
                     }
 
                     // Display "Design Pattern Used" section
@@ -278,6 +278,49 @@
                 loadingBar.style.display = 'none';
             }
         });
+
+        // CHANGED #4: Query the DB or AI to get snippet diffs
+        // Collapsible snippet logic
+        function attachCardExpandHandlers(recordId) {
+            const allCollapses = document.querySelectorAll('[id^="collapse-"]');
+            allCollapses.forEach((collapseEl) => {
+                // Instead of show.bs.collapse, use "shown.bs.collapse"
+                collapseEl.addEventListener('shown.bs.collapse', async () => {
+                    console.log("Collapsible opened => fetching snippet...");
+                    const snippetContainer = collapseEl.querySelector('[id^="snippet-container-"]');
+                    if (!snippetContainer) return;
+
+                    if (snippetContainer.dataset.loaded === "true") return;
+
+                    snippetContainer.innerHTML = `<p class="text-info">Fetching snippet diff from AI/DB...</p>`;
+                    const bulletText = snippetContainer.dataset.changeText || "";
+                    try {
+                        const url = `/code-formatter/fetch-snippet-diff/?record_id=${recordId}&change_text=${bulletText}`;
+                        const response = await fetch(url);
+                        const result = await response.json();
+                        if (result.success) {
+                            snippetContainer.innerHTML = `
+                            <p><strong>Original Snippet:</strong></p>
+                            <pre class="bg-dark text-white p-2 mb-3">${result.original_snippet}</pre>
+                            <p><strong>Refactored Snippet:</strong></p>
+                            <pre class="bg-dark text-white p-2">${result.refactored_snippet}</pre>
+                        `;
+                        } else {
+                            snippetContainer.innerHTML = `<p class="text-danger">Error: ${result.error}</p>`;
+                        }
+                        snippetContainer.dataset.loaded = "true";
+                    } catch (err) {
+                        snippetContainer.innerHTML = `<p class="text-danger">Failed to fetch snippet: ${err.message}</p>`;
+                    }
+                });
+            });
+        }
+
+        // Simple toast
+        function showToast(msg, type = "info") {
+            console.log(`[${type.toUpperCase()}] ${msg}`);
+            // or integrate your real toast...
+        }
 
 
         // Function to extract only the code block
@@ -609,23 +652,52 @@
             top: 1px;
         }
 
-        /* CHANGED #3: A custom gradient for "sleek-card" class */
+
+        /* The "sleek-card" gradient from your previous code */
+        /* Shiny Blue Background for Sleek Cards */
         .sleek-card {
-            background: linear-gradient(135deg, #3a3a3c, #2c2c2e);
-            border: 1px solid #444;
+            background: linear-gradient(135deg, #1e3c72, #2a5298); /* Deep blue gradient */
+            border: 1px solid #4a90e2; /* Light blue border */
             color: #fff;
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(74, 144, 226, 0.6); /* Subtle blue glow */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
 
-        .card-header {
+        /* Slight hover effect */
+        .sleek-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(74, 144, 226, 0.8); /* Stronger glow on hover */
+        }
+
+        /* Ensure text remains readable */
+        .sleek-card .fs-6 {
+            color: #fff; /* White text for contrast */
+        }
+
+        .sleek-card .card-header {
             border-bottom: 1px solid #444;
-        }
-        .card-body {
-            background-color: transparent; /* Let gradient show through */
+            background: none; /* let the gradient show */
+            z-index: 2; /* above the accent-shape */
         }
 
-        .btn-outline-light:hover {
-            background-color: #444;
-            color: #fff;
+        .sleek-card .card-body {
+            background-color: transparent;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* Ensure the text area is above the shape */
+        .sleek-card .d-flex {
+            position: relative;
+            z-index: 2; /* text above shape */
+        }
+
+        /* Make the clickable row have pointer cursor */
+        .clickable-row {
+            cursor: pointer;
         }
 
 
