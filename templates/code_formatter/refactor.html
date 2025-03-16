@@ -219,14 +219,13 @@
                     }
 
                     // Display Suggested Resources
-                    if (data.resources && data.resources.length > 0) {
-                        data.resources.forEach(resource => {
-                            const li = document.createElement('li');
-                            li.innerHTML = `<strong>${resource.pattern_name}</strong> - <a href="${resource.link}" target="_blank" class="text-info">View Resource</a>`;
-                            resourcesList.appendChild(li);
-                        });
-                        resourcesSection.style.display = 'block';
-                    }
+                    {#if (data.resources && data.resources.length > 0) {#}
+                    {#    data.resources.forEach(resource => {#}
+                    {#        const li = document.createElement('li');#}
+                    {#        li.innerHTML = `<strong>${resource.pattern_name}</strong> - <a href="${resource.link}" target="_blank" class="text-info">View Resource</a>`;#}
+                    {#        resourcesList.appendChild(li);#}
+                    {#    });#}
+                    {#    resourcesSection.style.display = 'block';}#}
 
                 } else {
                     showToast("❌ Error in refactoring code!", "error");
