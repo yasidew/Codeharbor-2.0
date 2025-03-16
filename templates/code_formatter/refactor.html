@@ -201,7 +201,7 @@
                     refactoredSection.style.display = 'block';
 
                     // Display "Changes Made" section
-                    if (data.changes_made.length > 0) {
+                    if (data.changes_made && data.changes_made.length > 0) {
                         data.changes_made.forEach(change => {
                             const li = document.createElement('li');
                             li.textContent = change;
@@ -219,7 +219,7 @@
                     }
 
                     // Display Suggested Resources
-                    if (data.resources.length > 0) {
+                    if (data.resources && data.resources.length > 0) {
                         data.resources.forEach(resource => {
                             const li = document.createElement('li');
                             li.innerHTML = `<strong>${resource.pattern_name}</strong> - <a href="${resource.link}" target="_blank" class="text-info">View Resource</a>`;
