@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Code Editor{% endblock %}
+
+{% block content %}
+    <div class="container my-5">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h3 class="card-title">Code Editor</h3>
+                <p class="card-category">Edit the Submitted HTML File.</p>
+            </div>
+            <div class="card-body">
+                <!-- Editor Container -->
+                <div id="monaco-editor" style="height: 500px; border: 1px solid #333;"></div>
+                <button id="save-code" class="btn btn-primary mt-3">Save Code</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Monaco Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+
+    <script>
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            let submittedHTML = sessionStorage.getItem("submittedHTML") || "<!-- No HTML submitted yet -->";
+            let violations = JSON.parse(sessionStorage.getItem("violations") || "[]");
+
+            require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs'}});
+            require(["vs/editor/editor.main"], function () {
+                let editor = monaco.editor.create(document.getElementById("monaco-editor"), {
+                    value: submittedHTML,
+                    language: "html",
+                    theme: "vs-dark",
+                    automaticLayout: true
+                });
+
+                // Severity colors mapping
+                const severityColors = {
+                    "critical": "violation-critical",  // 🔴 Red
+                    "serious": "violation-serious",    // 🟠 Orange
+                    "moderate": "violation-moderate",  // 🔵 Blue
+                    "minor": "violation-minor"         // 🟢 Green
+                };
+
+                // Function to highlight violations
+                function highlightViolations() {
+                    let model = editor.getModel();
+                    let decorations = [];
+
+                    violations.forEach(violation => {
+                        let severity = violation.impact.toLowerCase();
+                        let highlightClass = severityColors[severity] || "violation-minor";
+
+                        violation.nodes.forEach(htmlSnippet => {
+                            let matches = model.findMatches(htmlSnippet, false, false, false, null, true);
+
+                            matches.forEach(match => {
+                                let startLine = match.range.startLineNumber;
+                                let endLine = match.range.endLineNumber;
+
+                                decorations.push({
+                                    range: new monaco.Range(startLine, 1, endLine, 1),
+                                    options: {
+                                        isWholeLine: true,
+                                        className: highlightClass
+                                    }
+                                });
+                            });
+                        });
+                    });
+
+                    editor.deltaDecorations([], decorations);
+                }
+
+                // Apply highlighting
+                highlightViolations();
+
+                // Save updated HTML
+                document.getElementById("save-code").addEventListener("click", function () {
+                    sessionStorage.setItem("submittedHTML", editor.getValue());
+                    alert("Code saved successfully!");
+                });
+            });
+        });
+
+
+    </script>
+
+
+    <style>
+        /* Critical Violation (🔴 Red) */
+        .violation-critical {
+            background: rgba(139, 0, 0, 0.7) !important; /* Dark Red Background */
+            border-left: 5px solid darkred !important;
+        }
+
+
+        /* Serious Violation (🟠 Orange) */
+        .violation-serious {
+            background: rgba(255, 165, 0, 0.3) !important;
+            border-left: 5px solid orange !important;
+        }
+
+        /* Moderate Violation (🔵 Blue) */
+        .violation-moderate {
+            background: rgba(0, 0, 255, 0.2) !important;
+            border-left: 5px solid blue !important;
+        }
+
+        /* Minor Violation (🟢 Green) */
+        .violation-minor {
+            background: rgba(0, 128, 0, 0.2) !important;
+            border-left: 5px solid green !important;
+        }
+    </style>
+
+
+{% endblock %}
