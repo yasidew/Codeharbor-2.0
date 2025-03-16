@@ -1,0 +1,32 @@
+<div class="sleek-card position-relative text-white my-2">
+    <!-- Accent shape in top-left corner, reminiscent of "Yellow Dot Award" style -->
+    <div class="accent-shape"></div>
+
+    <!-- The heading row, with an icon + text + chevron -->
+    <div class="d-flex justify-content-between align-items-center p-3 clickable-row" 
+         data-bs-toggle="collapse" 
+         data-bs-target="#collapse-{{ change_id }}"
+         aria-expanded="false" 
+         aria-controls="collapse-{{ change_id }}">
+         
+        <!-- left side: icon + short text -->
+        <div class="d-flex align-items-center">
+            <!-- A bold icon, e.g. Bootstrap’s “lightning” or anything you like -->
+            <i class="bi bi-lightning-charge-fill me-2 text-warning fs-4"></i>
+            <span class="fs-6">{{ change_text }}</span>
+        </div>
+
+        <!-- right side: chevron down icon -->
+        <i class="bi bi-chevron-down fs-5 text-warning"></i>
+    </div>
+
+    <!-- Collapsible content with original vs. refactored snippet, loaded dynamically -->
+    <div id="collapse-{{ change_id }}" class="collapse">
+        <div class="p-3">
+            <!-- We'll show the snippet diff from the DB or AI -->
+            <div id="snippet-container-{{ change_id }}">
+                <p class="text-info">Loading snippet...</p>
+            </div>
+        </div>
+    </div>
+</div>

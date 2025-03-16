@@ -131,7 +131,7 @@
 
 
 {% load static %}
-<!DOCTYPE html>
+<!--<!DOCTYPE html>-->
 <html lang="en">
 <head>
     <title>{% block title %}Code Harbor Home{% endblock %}</title>
@@ -153,7 +153,11 @@
 
     <!-- Toastify CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <!-- Toastify JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
@@ -164,21 +168,35 @@
         <div class="sidebar" data-color="black">
             <div class="sidebar-wrapper">
                 <div class="logo">
-                    <a href="#" class="simple-text logo-mini">
+                    <a href="http://127.0.0.1:8000" class="simple-text logo-mini">
                         <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
                     </a>
-                    <a href="#" class="simple-text logo-normal">Code Harbor</a>
+                    <a href="http://127.0.0.1:8000" class="simple-text logo-normal">Code Harbor</a>
                 </div>
                 <ul class="nav">
+
+                    <li><a href="#"><i class="bi bi-gear"></i>
+                        <p>Settings</p></a></li>
+
+
                     <li><a href="{% url 'guidelines' %}"><i class="bi-card-list"></i>
                         <p>Guidelines</p></a></li>
                     <li><a href="{% url 'calculate_complexity_line_by_line' %}"><i class="fa-brands fa-java"></i>
                         <p>Java WCC Calculator</p></a></li>
+
+                    <li><a href="{% url 'calculate_complexity_line_by_line_csharp' %}"><i
+                            class="fa-brands fa-microsoft"></i>
+                        <p>C# WCC Calculator</p></a></li>
+                    <li><a href="{% url 'calculate_complexity-excel' %}"><i class="bi bi-graph-up"></i>
+                        <p>Statical Analysis</p></a></li>
+                    <li><a href="http://127.0.0.1:8000/api/logout"><i class="bi bi-box-arrow-right"></i>
+
                     <li><a href="{% url 'calculate_complexity_line_by_line_csharp' %}"><i class="fa-brands fa-microsoft"></i>
                         <p>C# WCC Calculator</p></a></li>
                     <li><a href="{% url 'calculate_complexity-excel' %}"><i class="bi bi-graph-up"></i>
                         <p>Statical Analysis</p></a></li>
                     <li><a href="#"><i class="bi bi-box-arrow-right"></i>
+
                         <p>Logout</p></a></li>
 
 
@@ -243,6 +261,16 @@
 <script>
 
     function logoutUser() {
+
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        alert("You have logged out.");
+        window.location.href = '/login'; // Redirect to login page
+    }
+
+    // Logout functionality
+    document.getElementById('logoutButton').addEventListener('click', logoutUser);
+
             localStorage.removeItem('accessToken');
             localStorage.removeItem('refreshToken');
             alert("You have logged out.");
@@ -252,7 +280,11 @@
         // Logout functionality
         document.getElementById('logoutButton').addEventListener('click', logoutUser);
 
+
     document.getElementById('logoutLink').addEventListener('click', logoutUser);
+
+
+
 
 
 
@@ -268,6 +300,9 @@
                 break;
             case "warning":
                 backgroundColor = "linear-gradient(to right, #FFA500, #FF8C00)"; // Orange ⚠️
+                break;
+            case "info":
+                backgroundColor = "linear-gradient(to right, #2196F3, #1976D2)"; // Blue ℹ️
                 break;
             default:
                 backgroundColor = "linear-gradient(to right, #333, #555)"; // Default Grey

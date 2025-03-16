@@ -7,10 +7,10 @@
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
             <div class="logo">
-                <a href="#" class="simple-text logo-mini">
+                <a href="http://127.0.0.1:8000" class="simple-text logo-mini">
                     <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
                 </a>
-                <a href="#" class="simple-text logo-normal">Code Harbor</a>
+                <a href="http://127.0.0.1:8000" class="simple-text logo-normal">Code Harbor</a>
             </div>
             <ul class="nav">
                 <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
@@ -55,36 +55,36 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-white text-center mb-4">📚 Design Pattern Resources</h2>
+    <div class="container mt-5">
+        <h2 class="text-white text-center mb-4">📚 Design Pattern Resources</h2>
 
-    <div class="card bg-dark text-white p-4">
-        <table class="table table-dark table-hover">
-            <thead>
+        <div class="card bg-dark text-white p-4">
+            <table class="table table-dark table-hover">
+                <thead>
                 <tr>
                     <th>Pattern Name</th>
                     <th>Category</th>
                     <th>Link</th>
                     <th>Added On</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {% for resource in resources %}
-                <tr>
-                    <td>{{ resource.pattern_name }}</td>
-                    <td>{{ resource.category }}</td>
-                    <td><a href="{{ resource.link }}" target="_blank" class="btn btn-info btn-sm">🔗 View</a></td>
-                    <td>{{ resource.added_on|date:"Y-m-d H:i" }}</td>
-                </tr>
+                    <tr>
+                        <td>{{ resource.pattern_name }}</td>
+                        <td>{{ resource.category }}</td>
+                        <td><a href="{{ resource.link }}" target="_blank" class="btn btn-info btn-sm">🔗 View</a></td>
+                        <td>{{ resource.added_on|date:"Y-m-d H:i" }}</td>
+                    </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center text-white">No resources added yet.</td>
-                </tr>
+                    <tr>
+                        <td colspan="4" class="text-center text-white">No resources added yet.</td>
+                    </tr>
                 {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
 
-        <a href="{% url 'add_resource' %}" class="btn btn-success w-100">➕ Add New Resource</a>
+            <a href="{% url 'add_resource' %}" class="btn btn-success w-100">➕ Add New Resource</a>
+        </div>
     </div>
-</div>
 {% endblock %}
