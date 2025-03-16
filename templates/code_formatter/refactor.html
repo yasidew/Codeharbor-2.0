@@ -5,11 +5,11 @@
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
             <div class="logo">
-                <a href="#" class="simple-text logo-mini">
-                    <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
-                </a>
-                <a href="#" class="simple-text logo-normal">Code Harbor</a>
-            </div>
+                    <a href="http://127.0.0.1:8000" class="simple-text logo-mini">
+                        <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
+                    </a>
+                    <a href="http://127.0.0.1:8000" class="simple-text logo-normal">Code Harbor</a>
+                </div>
             <ul class="nav">
                 <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
                     <p>Refactor Code</p></a></li>
@@ -55,7 +55,7 @@
 {% block content %}
     <div class="content d-flex align-items-center justify-content-center min-vh-100">
         <div class="container">
-            <h2 class="text-center text-white mb-4">Code Refactoring Tool</h2>
+            <h2 class="text-center text-white mb-4">Code Refactoring</h2>
 
             <!-- Toggle to Enable/Disable Guidelines -->
             <!-- Toggle to Enable/Disable Guidelines -->
