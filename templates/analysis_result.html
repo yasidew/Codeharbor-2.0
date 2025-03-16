@@ -53,6 +53,10 @@
     <div class="container mt-5">
         <h1 class="text-center">Statistical Analysis Results</h1>
 
+        <p>This table presents the **Pearson Correlation** and **Spearman Correlation** results. These correlations
+            measure the relationship between Weighted Code Complexity (WCC) and various software metrics, such as
+            complexity, maintainability, and readability.</p>
+
         <!-- Correlation Analysis -->
         <section class="my-5">
             <h2>Correlation Analysis</h2>
@@ -78,6 +82,9 @@
                 </table>
             </div>
 
+            <p>**Pearson Correlation** measures the linear relationship between WCC and the given metrics. A positive
+                value means a direct correlation, while a negative value indicates an inverse relationship.</p>
+
             <div class="table-responsive mt-4">
                 <table class="table table-bordered text-white">
                     <thead>
@@ -98,16 +105,22 @@
                     </tbody>
                 </table>
             </div>
+
+            <p>**Spearman Correlation** is a rank-based correlation method that measures how well the relationship
+                between WCC and the metrics can be described using a monotonic function.</p>
         </section>
 
         <!-- Scatter Plots -->
         <section class="my-5">
             <h2>Scatter Plots</h2>
+            <p>These scatter plots visualize the relationship between WCC and different software quality metrics.</p>
             {% for column, plot_path in scatter_plots.items %}
                 <div class="mb-4">
                     <h3 class="text-muted" style="color: blueviolet">{{ column }} vs WCC</h3>
                     <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}"
                          class="analysis-img">
+                    <p>🔹 This scatter plot shows how **{{ column }}** changes as WCC increases. The red trendline
+                        helps visualize whether the relationship is positive or negative.</p>
                 </div>
             {% endfor %}
         </section>
@@ -115,14 +128,20 @@
         <!-- Cluster Centers -->
         <section class="my-5">
             <h2>Cluster Centers (Thresholds)</h2>
-            <p><strong>Low Center:</strong> {{ low_center }}</p>
-            <p><strong>High Center:</strong> {{ high_center }}</p>
+            <p>Clustering was performed to determine two complexity levels: **Low Complexity** and **High Complexity**.
+            </p>
+            <p><strong>Low Complexity:</strong> {{ low_center }}</p>
+            <p><strong>High Complexity:</strong> {{ high_center }}</p>
+            <p>🔹 These threshold values can help categorize class methods(Low, Medium, High) into different complexity
+                levels.</p>
         </section>
 
         <section class="my-5">
             <h2>WCC Clustering and Thresholds Graph </h2>
             <img src="{{ MEDIA_URL }}/media/wcc_clustering.png" alt="Boxplot of WCC by Complexity Level"
                  class="analysis-img">
+            <p>🔹 This visualization uses **K-Means Clustering** to separate high-complexity and low-complexity
+                components based on WCC values.</p>
         </section>
 
         <!-- Boxplot -->
@@ -130,6 +149,8 @@
             <h2>Boxplot of WCC by Complexity Level</h2>
             <img src="{{ MEDIA_URL }}/media/boxplot_with_thresholds.png" alt="Boxplot of WCC by Complexity Level"
                  class="analysis-img">
+            <p>🔹 This boxplot represents the distribution of WCC values for **High Complexity** and **Low Complexity**
+                groups. The **dashed lines** indicate the threshold values determined from clustering.</p>
         </section>
     </div>
 {% endblock %}
