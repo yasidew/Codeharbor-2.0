@@ -162,6 +162,8 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
                   path('js_code_analyser/', views.js_code_analyser, name='js_code_analyser'),
 
+                  path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
+
                   path('php_code_analyser/', views.php_code_analyser, name='php_code_analyser'),
 
                   path("detect-defects/", views.detect_defects_view, name="detect_defects"),
