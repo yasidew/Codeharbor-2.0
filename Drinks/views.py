@@ -747,7 +747,7 @@ def calculate_complexity(request):
             plt.savefig(heatmap_path)
             plt.close()
 
-            # Clustering for WCC ww
+            # Clustering for WCC
             wcc_values = np.array(
                 [502, 219, 219, 554, 195, 167, 248, 646, 101, 306, 191, 399, 616, 220, 205, 246, 291, 306, 293, 298,
                  344, 346, 382, 115, 313, 537, 439, 554, 686, 324,
