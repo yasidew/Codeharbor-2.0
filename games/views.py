@@ -1,32 +1,11 @@
-# from django.shortcuts import render
-#
-# # Create your views here.
-# from django.http import JsonResponse
-# from rest_framework.decorators import api_view
-# from .models import GitHubChallenge
-#
-# @api_view(['GET'])
-# def get_challenges_by_difficulty(request, difficulty):
-#     """ Fetch challenges based on difficulty level without using serializers """
-#     if difficulty not in ["easy", "medium", "hard"]:
-#         return JsonResponse({"error": "Invalid difficulty level"}, status=400)
-#
-#     challenges = GitHubChallenge.objects.filter(difficulty=difficulty)
-#
-#     if not challenges.exists():
-#         return JsonResponse({"message": f"No {difficulty} challenges available"}, status=404)
-#
-#     # Manually convert QuerySet to JSON
-#     challenges_data = list(challenges.values("id", "title", "repo_url", "file_url", "html_code", "difficulty", "created_at"))
-#
-#     return JsonResponse({"challenges": challenges_data}, safe=False)
-
-
-
+from django.db.models import Avg
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
 from games.github_scraper import fetch_bad_code_from_github  # Import function
-from games.models import GitHubChallenge, GitHubScraperGame
+from games.models import GitHubChallenge, GitHubScraperGame, GitGameScore
 
 from django.shortcuts import render
 
@@ -65,3 +44,42 @@ def get_github_challenges(request):
     """Returns a JSON response with all GitHub accessibility challenges"""
     challenges = GitHubChallenge.objects.all().values("title", "repo_url", "file_url", "difficulty", "created_at")
     return JsonResponse(list(challenges), safe=False)
+
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def user_severity_chart(request, user_id, challenge_id):
+    """Fetch user severity scores for a specific challenge and render the pie chart."""
+    try:
+        user_scores = GitGameScore.objects.get(user_id=user_id, github_challenge_id=challenge_id)
+    except GitGameScore.DoesNotExist:
+        user_scores = None
+
+    context = {
+        "critical_score": user_scores.critical_score if user_scores else 0,
+        "serious_score": user_scores.serious_score if hasattr(user_scores, "serious_score") else 0,
+        "moderate_score": user_scores.moderate_score if user_scores else 0,
+        "minor_score": user_scores.minor_score if user_scores else 0,
+    }
+
+    return render(request, "personalized_chart.html", context)
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def get_user_id(request):
+    return JsonResponse({"success": True, "user_id": request.user.id})
+
+
+def leaderboard_view(request):
+    leaderboard = (
+        GitGameScore.objects.values("user__id", "user__username")
+        .annotate(avg_score=Avg("score"))
+        .order_by("-avg_score")  # Sort from highest to lowest
+    )
+    return render(request, "leaderboard.html", {"leaderboard": leaderboard})
+
+
+
+
+

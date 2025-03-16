@@ -1,0 +1,93 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ user_profile.user.username }}'s Profile{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <img src="{% if user_profile.avatar %}{{ user_profile.avatar.url }}{% else %}/media/avatars/default.png{% endif %}"
+     alt="Profile Picture" class="profile-avatar">
+
+        <h2>{{ user_profile.user.username }}</h2>
+        <p>{{ user_profile.bio }}</p>
+    </div>
+
+    <div class="profile-stats">
+        <h3>📊 Stats</h3>
+        <ul>
+            <li>🏅 <strong>Rank:</strong> {{ rank }}</li>
+            <li>🔥 <strong>Current Streak:</strong> {{ user_profile.current_streak }} Days</li>
+            <li>🏆 <strong>Longest Streak:</strong> {{ user_profile.longest_streak }} Days</li>
+            <li>📈 <strong>Completed Challenges:</strong> {{ completed_challenges }}</li>
+            <li>⭐ <strong>Average Score:</strong> {{ avg_score|floatformat:2 }}</li>
+        </ul>
+    </div>
+
+    <div class="profile-badges">
+        <h3>🏅 Badges</h3>
+        <div class="badge-container">
+            {% for badge in user_profile.badges %}
+                <span class="badge">{{ badge }}</span>
+            {% empty %}
+                <p>No badges yet. Start playing to earn some! 🎯</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        max-width: 600px;
+        margin: auto;
+        text-align: center;
+        background: linear-gradient(135deg, #221b44, #6a0572);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+
+    .profile-header {
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 3px solid white;
+    }
+
+    .profile-stats ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .profile-stats li {
+        margin: 10px 0;
+        font-size: 18px;
+    }
+
+    .profile-badges {
+        margin-top: 20px;
+    }
+
+    .badge-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        background: gold;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        color: black;
+        box-shadow: 2px 2px 5px rgba(255, 215, 0, 0.5);
+    }
+</style>
+{% endblock %}

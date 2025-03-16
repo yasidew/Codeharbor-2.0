@@ -1,4 +1,8 @@
-from django.shortcuts import render
+from datetime import date, timedelta
+
+from django.contrib.auth.decorators import login_required
+from django.db.models import Avg
+from django.shortcuts import render, get_object_or_404
 
 # Create your views here.
 from django.shortcuts import render
@@ -13,6 +17,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, OutstandingToken
 from rest_framework.exceptions import NotAuthenticated
 from django.core.exceptions import ValidationError
+
+from games.models import GitGameScore
+from user.models import UserProfile
 
 
 class UserAPI(APIView):
@@ -111,4 +118,53 @@ def logout_all(request):
     for token in tokens:
         token.blacklist()
     return Response({'message': 'Successfully logged out from all sessions.'}, status=200)
+
+
+def update_user_streak(user):
+    """Ensure the user's streak is updated when they play."""
+    today = date.today()
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
+
+    latest_score = GitGameScore.objects.filter(user=user).order_by("-last_played").first()
+
+    if latest_score and latest_score.last_played:
+        if latest_score.last_played == today - timedelta(days=1):
+            user_profile.current_streak += 1
+        else:
+            user_profile.current_streak = 1
+
+    if user_profile.current_streak > user_profile.longest_streak:
+        user_profile.longest_streak = user_profile.current_streak
+
+    user_profile.save()
+
+
+
+def user_profile_view(request, username):
+    """Display the user profile."""
+    user = get_object_or_404(User, username=username)
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
+
+    # Calculate leaderboard position
+    leaderboard = (
+        GitGameScore.objects.values("user__id", "user__username")
+        .annotate(avg_score=Avg("score"))
+        .order_by("-avg_score")
+    )
+
+    rank = next((index + 1 for index, entry in enumerate(leaderboard) if entry["user__id"] == user.id), None)
+
+    completed_challenges = GitGameScore.objects.filter(user=user).count()
+    avg_score = GitGameScore.objects.filter(user=user).aggregate(Avg("score"))["score__avg"] or 0
+
+    return render(
+        request,
+        "profile.html",
+        {
+            "user_profile": user_profile,
+            "rank": rank,
+            "completed_challenges": completed_challenges,
+            "avg_score": avg_score,
+        },
+    )
 
