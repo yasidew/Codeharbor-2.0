@@ -503,3 +503,28 @@ def add_resource(request):
 def list_resources(request):
     resources = DesignPatternResource.objects.all().order_by('-added_on')
     return render(request, 'code_formatter/list_resources.html', {'resources': resources})
+
+@csrf_exempt
+def fetch_snippet_diff(request):
+    """Return snippet diff for a given refactoring record from DB or AI."""
+    record_id = request.GET.get("record_id")
+    if not record_id:
+        return JsonResponse({"success": False, "error": "Missing record_id"})
+
+    try:
+        record = CodeRefactoringRecord.objects.get(id=record_id)
+        # For a real line-based diff, you'd do something like:
+        # snippet_diff = compute_diff(record.original_code, record.refactored_code)
+        # But let's just pretend we have short placeholders:
+        original_snippet = "public static void main(String[] args) { ... }"
+        refactored_snippet = "public static void runApp(String[] args) { ... }"
+
+        return JsonResponse({
+            "success": True,
+            "original_snippet": original_snippet,
+            "refactored_snippet": refactored_snippet
+        })
+    except CodeRefactoringRecord.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Record not found"})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
