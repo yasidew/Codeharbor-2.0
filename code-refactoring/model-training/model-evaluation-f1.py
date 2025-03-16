@@ -3,12 +3,12 @@ import json
 from sklearn.metrics import precision_recall_fscore_support
 
 # Step 1: Load the fine-tuned model and tokenizer
-model_dir = "./singleton_model"
+model_dir = "../singleton_model"
 tokenizer = AutoTokenizer.from_pretrained(model_dir)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
 # Step 2: Load the test data
-with open("processed_singleton_data.json", "r") as file:
+with open("dataset/processed_singleton_data.json", "r") as file:
     data_splits = json.load(file)
 
 test_inputs = data_splits["test"]["input"]

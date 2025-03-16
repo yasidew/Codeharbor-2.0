@@ -1,7 +1,7 @@
 import json
 
 # Load the dataset
-input_file = "singleton_data.json"
+input_file = "datasets/singleton_data.json"
 output_file = "cleaned_singleton_data.json"
 
 def load_dataset(file_path):

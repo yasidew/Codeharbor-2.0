@@ -18,6 +18,8 @@ urlpatterns = [
     path('get-github-token/', get_github_token, name='get_github_token'),
     path('add-resource/', add_resource, name='add_resource'),
     path('resources/', list_resources, name='list_resources'),
+    # path('fetch-github-file/', fetch_github_file, name='fetch_github_file'),  # ✅ Added
+    # path('create-github-pr/', create_github_pr, name='create_github_pr'),  # ✅ Added
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

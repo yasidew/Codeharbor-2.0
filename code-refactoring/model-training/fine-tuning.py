@@ -3,7 +3,7 @@ import json
 from datasets import Dataset
 
 # Step 1: Load the processed dataset
-with open("processed_singleton_data.json", "r") as file:
+with open("dataset/processed_singleton_data.json", "r") as file:
     data_splits = json.load(file)
 
 # Add "type" to train and validation datasets

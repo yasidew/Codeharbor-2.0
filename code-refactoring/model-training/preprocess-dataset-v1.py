@@ -3,7 +3,7 @@ import random
 from sklearn.model_selection import train_test_split
 
 # Step 1: Load the dataset
-with open("factory_method_data.json", "r") as file:
+with open("dataset/datasets/strategy_pattern_data.json", "r") as file:
     dataset = json.load(file)
 
 # Step 2: Shuffle the dataset for randomness
@@ -86,7 +86,7 @@ data_splits = {
 }
 
 # Step 6: Save the processed dataset
-output_file = "processed_factory_method_data.json"
+output_file = "dataset/strategy_factory_method_data.json"
 with open(output_file, "w") as out_file:
     json.dump(data_splits, out_file, indent=4)
 

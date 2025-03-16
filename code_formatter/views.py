@@ -9,10 +9,10 @@ from .models import Guideline, DesignPatternResource
 from .forms import GuidelineForm, DesignPatternResourceForm
 from .models import CodeRefactoringRecord
 from .utils import analyze_code, refactor_code
-from django.core.files.storage import FileSystemStorage
 import re
 import requests
 import base64
+from django.contrib import messages
 
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -20,10 +20,35 @@ client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # GitHub API Token from environment variable
 GITHUB_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 
+# GUIDELINE_PROMPTS = {
+#     "Factory": "What are the best practices for using the Factory Pattern in software design?",
+#     "Strategy": "What are the best practices for implementing the Strategy Pattern in code?",
+#     "Observer": "What are the best practices for using the Observer Pattern effectively?",
+# }
 GUIDELINE_PROMPTS = {
-    "Factory": "What are the best practices for using the Factory Pattern in software design?",
-    "Strategy": "What are the best practices for implementing the Strategy Pattern in code?",
-    "Observer": "What are the best practices for using the Observer Pattern effectively?",
+    "Factory": "What are the best practices for using the Factory Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Strategy": "What are the best practices for implementing the Strategy Pattern in code? Please provide your answer in a numbered list without any markdown formatting.",
+    "Observer": "What are the best practices for using the Observer Pattern effectively? Please provide your answer in a numbered list without any markdown formatting.",
+    "AbstractFactory": "What are the best practices for using the Abstract Factory Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Builder": "What are the best practices for using the Builder Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Prototype": "What are the best practices for using the Prototype Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Singleton": "What are the best practices for using the Singleton Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Adapter": "What are the best practices for using the Adapter Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Bridge": "What are the best practices for using the Bridge Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Composite": "What are the best practices for using the Composite Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Decorator": "What are the best practices for using the Decorator Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Facade": "What are the best practices for using the Facade Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Flyweight": "What are the best practices for using the Flyweight Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Proxy": "What are the best practices for using the Proxy Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "ChainOfResponsibility": "What are the best practices for using the Chain of Responsibility Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Command": "What are the best practices for using the Command Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Interpreter": "What are the best practices for using the Interpreter Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Iterator": "What are the best practices for using the Iterator Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Mediator": "What are the best practices for using the Mediator Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Memento": "What are the best practices for using the Memento Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "State": "What are the best practices for using the State Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "TemplateMethod": "What are the best practices for using the Template Method Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
+    "Visitor": "What are the best practices for using the Visitor Pattern in software design? Please provide your answer in a numbered list without any markdown formatting."
 }
 
 
@@ -455,9 +480,11 @@ def create_github_pr(request):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
 def github_import_modal(request):
     """ Renders the GitHub Import Modal. """
     return render(request, "code_formatter/github_import_modal.html")
+
 
 def get_github_token(request):
     """Returns the GitHub Access Token securely"""
