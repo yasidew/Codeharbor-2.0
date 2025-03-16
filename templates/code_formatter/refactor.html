@@ -66,10 +66,10 @@
                 <span class="text-white">Use Guidelines</span>
             </div>
 
-            <!-- Suggested Design Pattern -->
-            <div id="suggested-pattern" class="d-flex align-items-center mb-3" style="display: none;">
-                <span class="badge bg-primary text-white p-2 me-2">Suggested Design Pattern:</span>
-                <span id="pattern-name" class="text-warning fw-bold"></span>
+            <!-- Suggested Design Pattern (Modern UI) -->
+            <div id="suggested-pattern" class="pattern-badge d-flex align-items-center mb-3" style="display: none;">
+                <span class="badge-text">Suggested Design Pattern:</span>
+                <span id="pattern-name" class="pattern-name"></span>
             </div>
 
             <!-- Monaco Code Editor for Original Code -->
@@ -742,6 +742,128 @@
             cursor: pointer;
         }
 
+        /* Buttons */
+        .refactor-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: auto;
+            padding: 10px;
+            font-size: 18px;
+            background: linear-gradient(90deg, #ff758c, #ff7eb3);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .refactor-btn:hover {
+            background: linear-gradient(90deg, #ff5a8a, #ff6ea3);
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 25px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #444;
+            border-radius: 25px;
+            transition: 0.4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 17px;
+            width: 17px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(25px);
+        }
+
+        /* General Page Styles */
+        body {
+            background-color: #1c1c1e;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* Modernized Suggested Pattern Badge */
+        .pattern-badge {
+            background: linear-gradient(135deg, #6a11cb, #2575fc); /* Sleek gradient */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .pattern-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .badge-text {
+            color: #fff;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .pattern-name {
+            font-weight: bold;
+            color: #ffeb3b; /* Bright gold for contrast */
+            font-size: 18px;
+        }
 
 
     </style>
