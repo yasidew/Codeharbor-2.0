@@ -325,6 +325,10 @@
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
+        console.log('Username:', username); // Print username in console
+        localStorage.setItem('username', username); // Store username in localStorage
+
+
         try {
             const response = await fetch('/api/token/', {
                 method: 'POST',
