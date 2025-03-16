@@ -1,12 +1,3 @@
-
-import os
-import torch
-import pandas as pd
-from datasets import Dataset
-from torch.utils.data import DataLoader
-from transformers import RobertaTokenizer, RobertaForSequenceClassification, DataCollatorWithPadding
-
-
 from transformers import T5ForConditionalGeneration, AutoTokenizer
 from torch.utils.data import DataLoader
 from datasets import Dataset
@@ -54,9 +45,9 @@ def load_and_preprocess_dataset(file_path, tokenizer):
 
     return data.map(tokenize_function, batched=True)
 
-# Paths to the processed JSON files
-train_file_path = "dataset/processed_data/custom_train.json"
-test_file_path = "dataset/processed_data/custom_test.json"
+# Paths to the processed Java dataset
+train_file_path = "dataset/processed_java_data/java_train_tokenized.json"
+test_file_path = "dataset/processed_java_data/java_test_tokenized.json"
 
 # Preprocess datasets
 train_dataset = load_and_preprocess_dataset(train_file_path, tokenizer)
@@ -92,7 +83,7 @@ for epoch in range(epochs):
     print(f"Epoch {epoch + 1}/{epochs} Loss: {total_loss / len(train_dataloader)}")
 
 # Save the trained model
-model_save_path = "models/custom_seq2seq_model"
+model_save_path = "models/custom_java_model"
 model.save_pretrained(model_save_path)
 tokenizer.save_pretrained(model_save_path)
 
@@ -124,8 +115,7 @@ print(f"F1 Score: {f1:.4f}")
 
 # Display some examples
 for i in range(5):
-    print(f"Input Code: {test_dataset[i]['func']}")
+    print(f"Input Java Code: {test_dataset[i]['func']}")
     print(f"Generated Suggestion: {generated_targets[i]}")
     print(f"Ground Truth Suggestion: {ground_truth_targets[i]}")
     print()
-
