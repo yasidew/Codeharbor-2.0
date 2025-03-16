@@ -116,14 +116,24 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'code_complexity_db',  # Keep this as 'postgres' (Main DB)
+        'USER': 'postgres',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c search_path=code_complexity_db,public'  # Prioritize 'code_harbor' schema
+        },
+        'TEST': {
+            'MIRROR': 'default'  # Use the same database but with a different schema
+        },
     },
     'code_analysis': {  # Secondary DB for code analysis
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'code_analysis_db',  # Change as needed
         'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'PASSWORD': '12345',
         'HOST': 'localhost',  # Use the correct DB host
         'PORT': '5432',  # Default PostgreSQL port
     }

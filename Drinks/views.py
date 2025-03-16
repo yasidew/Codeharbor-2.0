@@ -844,7 +844,7 @@ def split_code_snippets(code_snippet):
 openai.api_key = os.getenv("OPENAI_API_KEY1")
 
 # Ensure API Key is loaded
-GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
+GITHUB_ACCESS_TOKEN1 = os.getenv("GITHUB_ACCESS_TOKEN1")
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY1"))
 
@@ -906,7 +906,7 @@ def fetch_github_files(repo_url):
         branch = repo_parts[3] if len(repo_parts) > 3 and repo_parts[2] == "tree" else "main"
 
         api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/git/trees/{branch}?recursive=1"
-        headers = {"Authorization": f"token {GITHUB_ACCESS_TOKEN}"}
+        headers = {"Authorization": f"token {GITHUB_ACCESS_TOKEN1}"}
 
         response = requests.get(api_url, headers=headers)
         if response.status_code != 200:
