@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from .views import define_guidelines, edit_guideline, delete_guideline, get_guidelines, \
-    github_import_modal, get_github_token, add_resource, list_resources
+    github_import_modal, get_github_token, add_resource, list_resources, get_pattern, fetch_snippet_diff
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -20,6 +20,8 @@ urlpatterns = [
     path('resources/', list_resources, name='list_resources'),
 
     path("fetch-snippet-diff/", views.fetch_snippet_diff, name="fetch_snippet_diff"),
+
+    path('get-pattern/', get_pattern, name='get_pattern'),
     # path('fetch-github-file/', fetch_github_file, name='fetch_github_file'),  # ✅ Added
     # path('create-github-pr/', create_github_pr, name='create_github_pr'),  # ✅ Added
 ]
