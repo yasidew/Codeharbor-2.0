@@ -34,3 +34,25 @@ class CodeAnalysisHistory(models.Model):
 
     def __str__(self):
         return f"Analysis for {self.project.name} - {self.analyzed_at}"
+
+############################ java ######################################
+
+class JavaProject(models.Model):
+    """Stores project metadata for Java analysis."""
+    name = models.CharField(max_length=255, unique=True, default="Untitled Java Project")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class JavaCodeSnippet(models.Model):
+    """Stores individual Java code snippets and their analysis results."""
+    project = models.ForeignKey(JavaProject, on_delete=models.CASCADE, related_name="java_snippets")
+    snippet = models.TextField()  # Store Java code snippets
+    ai_suggestion = models.TextField()  # Store AI suggestion for this snippet
+    model_suggestion = models.TextField()  # Store CodeT5 suggestion for this snippet
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Java Snippet from {self.project.name} - {self.created_at}"
