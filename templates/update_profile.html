@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .update-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 400px;
+        }
+        .update-container h2 {
+            margin: 0 0 20px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .success-message {
+            color: green;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="update-container">
+        <h2>Update Profile</h2>
+        <form id="updateForm">
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" name="first_name" placeholder="Enter your first name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" name="last_name" placeholder="Enter your last name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">Update Profile</button>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+        </form>
+    </div>
+
+    <script>
+        async function fetchUserDetails() {
+            const accessToken = localStorage.getItem('accessToken');
+
+            console.log("Update profile fetchUserDetails");
+
+            if (!accessToken) {
+                alert("You are not logged in!");
+                window.location.href = '/login'; // Redirect to login page
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    document.getElementById('first_name').value = userData.first_name || '';
+                    document.getElementById('last_name').value = userData.last_name || '';
+                    document.getElementById('email').value = userData.email || '';
+                } else if (response.status === 401) {
+                    alert("Your session has expired. Please log in again.");
+                    window.location.href = '/login'; // Redirect to login page
+                } else {
+                    alert("Failed to fetch user details.");
+                }
+            } catch (error) {
+                console.error("Error fetching user details:", error);
+                alert("An error occurred. Please try again.");
+            }
+        }
+
+        async function updateProfile(event) {
+            event.preventDefault();
+
+            const accessToken = localStorage.getItem('accessToken');
+            console.log("Access token : ", accessToken)
+            if (!accessToken) {
+                alert("You are not logged in!");
+                window.location.href = '/login'; // Redirect to login page
+                return;
+            }
+
+            const firstName = document.getElementById('first_name').value;
+            const lastName = document.getElementById('last_name').value;
+            const email = document.getElementById('email').value;
+
+            try {
+                const response = await fetch('/api/user', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ first_name: firstName, last_name: lastName, email: email }),
+                });
+
+                const responseData = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('successMessage').textContent = responseData.message;
+                    document.getElementById('errorMessage').textContent = '';
+                    setTimeout(() => {
+                        window.location.href = '/dashboard'; // Redirect to dashboard after success
+                    }, 2000); // Delay to allow user to read the success message
+                } else {
+                    document.getElementById('errorMessage').textContent = responseData.error;
+                    document.getElementById('successMessage').textContent = '';
+                }
+            } catch (error) {
+                console.error("Error updating profile:", error);
+                document.getElementById('errorMessage').textContent = "An error occurred. Please try again.";
+                document.getElementById('successMessage').textContent = '';
+            }
+        }
+
+        // Fetch user details on page load
+        window.onload = fetchUserDetails;
+
+        // Add event listener to update form
+        document.getElementById('updateForm').addEventListener('submit', updateProfile);
+    </script>
+</body>
+</html>

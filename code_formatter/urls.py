@@ -1,15 +1,23 @@
 from django.urls import path
 from . import views
 from .views import define_guidelines, edit_guideline, delete_guideline, get_guidelines, \
+
     github_import_modal, get_github_token, add_resource, list_resources, get_pattern, fetch_snippet_diff
+
+    github_import_modal, get_github_token, add_resource, list_resources
+
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('refactor/', views.refactor_view, name='refactor_view'),
     path('upload-code/', views.upload_code, name='upload_code'),
+
     path('refactor-code/', views.refactor_code, name='refactor_code'),
     path("generate-guideline/", views.generate_guideline, name="generate_guideline"),
+
+    # path('refactor-code/', views.refactor_code, name='refactor_code'),
+
     path('api/guidelines/<str:company_name>/', get_guidelines, name='get_guidelines'),
     path('define-guidelines/', define_guidelines, name='define_guidelines'),
     path("edit-guideline/<int:id>/", edit_guideline, name="edit_guideline"),
