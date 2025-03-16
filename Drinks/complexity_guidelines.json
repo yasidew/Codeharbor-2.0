@@ -1,0 +1,32 @@
+{
+  "lines_of_code": {
+    "low": 0,
+    "medium": 200,
+    "high": 1000
+  },
+  "code_density": {
+    "low": 20,
+    "medium": 10,
+    "high": 1
+  },
+  "function_length": {
+    "low": 20,
+    "medium": 50,
+    "high": 100
+  },
+  "duplicate_code": {
+    "low": 10,
+    "medium": 20,
+    "high": 30
+  },
+  "num_functions": {
+    "low": 10,
+    "medium": 50,
+    "high": 100
+  },
+  "complexity_score": {
+    "low": 25,
+    "medium": 50,
+    "high": 75
+  }
+}

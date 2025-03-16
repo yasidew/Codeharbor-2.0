@@ -1,94 +1,128 @@
-{#<!DOCTYPE html>#}
-{#<html>#}
-{#<head>#}
-{#    <title>Analysis Results</title>#}
-{#</head>#}
-{#<body>#}
-{#    <h2>Analysis Results</h2>#}
-{##}
-{#    <h3>Correlation Results</h3>#}
-{#    <p>Pearson Correlation (WCC vs Complexity): {{ pearson_corr }}</p>#}
-{#    <p>Spearman Correlation (WCC vs Complexity): {{ spearman_corr }}</p>#}
-{##}
-{#    <h3>Threshold Values</h3>#}
-{#    <p>Low Complexity Threshold: {{ threshold_low }}</p>#}
-{#    <p>Medium Complexity Threshold: {{ threshold_medium }}</p>#}
-{##}
-{#    <h3>Correlation Heatmap</h3>#}
-{#    <img src="{{ heatmap_path }}" alt="Correlation Heatmap">#}
-{##}
-{#    <h3>Scatter Plot</h3>#}
-{#    <img src="{{ scatter_plot_path }}" alt="Scatter Plot">#}
-{##}
-{#    <h3>Linear Regression Summary</h3>#}
-{#    <pre>{{ regression_summary }}</pre>#}
-{#</body>#}
-{#</html>#}
+{% extends 'base.html' %}
+{% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Correlation Analysis Results</title>
+{% block title %}Clustering Analysis Results{% endblock %}
+
+{% block content %}
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Page Styling */
+        .container-custom {
+            max-width: 1100px;
+            margin: auto;
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
         }
 
-        table, th, td {
-            border: 1px solid black;
+        /* Headings */
+        h1, h2 {
+            color: #58a6ff;
+            font-weight: bold;
         }
 
-        th, td {
-            padding: 10px;
-            text-align: left;
+        /* Tables */
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        img {
-            width: 50%;
-            margin: 20px 0;
+        .table thead {
+            background-color: #21262d;
+            color: #c9d1d9;
         }
+
+        .table tbody tr {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Image Styling */
+        .analysis-img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
     </style>
-</head>
-<body>
-    <h1>Correlation Analysis Results</h1>
 
-    <h2>Pearson and Spearman Correlation Results</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Metric</th>
-                <th>Pearson Correlation</th>
-                <th>Pearson p-value</th>
-                <th>Spearman Correlation</th>
-                <th>Spearman p-value</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for metric, pearson in pearson_results.items %}
-            <tr>
-                <td>{{ metric }}</td>
-                <td>{{ pearson.correlation }}</td>
-                <td>{{ pearson.p_value }}</td>
-                <td>{{ spearman_results[metric].correlation }}</td>
-                <td>{{ spearman_results[metric].p_value }}</td>
-            </tr>
+    <div class="container mt-5">
+        <h1 class="text-center">Clustering Analysis Results</h1>
+
+        <!-- Correlation Analysis -->
+        <section class="my-5">
+            <h2>Correlation Analysis</h2>
+
+            <div class="table-responsive">
+                <table class="table table-bordered text-white">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Pearson Correlation</th>
+                            <th>Pearson p-value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for column, result in pearson_results.items %}
+                        <tr>
+                            <td>{{ column }}</td>
+                            <td>{{ result.correlation }}</td>
+                            <td>{{ result.p_value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-responsive mt-4">
+                <table class="table table-bordered text-white">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Spearman Correlation</th>
+                            <th>Spearman p-value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for column, result in spearman_results.items %}
+                        <tr>
+                            <td>{{ column }}</td>
+                            <td>{{ result.correlation }}</td>
+                            <td>{{ result.p_value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Cluster Centers -->
+        <section class="my-5">
+            <h2>Cluster Centers (Thresholds)</h2>
+            <p><strong>Low Center:</strong> {{ low_center }}</p>
+            <p><strong>High Center:</strong> {{ high_center }}</p>
+        </section>
+
+        <!-- Scatter Plots -->
+        <section class="my-5">
+            <h2>Scatter Plots</h2>
+            {% for column, plot_path in scatter_plots.items %}
+            <div class="mb-4">
+                <h3 class="text-muted" style="color: white;">{{ column }} vs WCC</h3>
+                <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}" class="analysis-img">
+            </div>
             {% endfor %}
-        </tbody>
-    </table>
+        </section>
 
-    <h2>Correlation Matrix Heatmap</h2>
-    <img src="{{ heatmap_path }}" alt="Correlation Heatmap">
+        <!-- Boxplot -->
+        <section class="my-5">
+            <h2>Boxplot of WCC by Complexity Level</h2>
+            <img src="{{ MEDIA_URL }}/media/boxplot_with_thresholds.png" alt="Boxplot of WCC by Complexity Level" class="analysis-img">
+        </section>
 
-    <h2>Scatter Plots for WCC vs Metrics</h2>
-    {% for metric, plot_path in scatter_plots.items %}
-        <h3>WCC vs {{ metric }}</h3>
-        <img src="{{ plot_path }}" alt="Scatter Plot for {{ metric }}">
-    {% endfor %}
-
-    <br>
-    <a href="{% url 'calculate_complexity' %}">Go back to upload another CSV file</a>
-</body>
-</html>
+    </div>
+{% endblock %}

@@ -69,6 +69,18 @@ class PythonCodeAnalyzer:
             self._check_unreachable_code,
             self._check_variable_shadowing,
             self._check_naming_conventions,
+            self._check_mutable_defaults,
+            self._check_unencrypted_communication,
+            self._check_dangerous_functions,
+            self._check_dead_code,
+            self._check_duplicate_code,
+            self._check_excessive_classes_or_functions,
+            self._check_dependency_inversion,
+            self._check_inefficient_complexity,
+            self._check_yagni_violation,
+            self._check_hardcoded_file_paths,
+
+
         ]
         for check in checks:
             try:
@@ -368,6 +380,174 @@ class PythonCodeAnalyzer:
                             "line": getattr(node, "lineno", "unknown"),
                         }
                     )
+
+    def _check_mutable_defaults(self, tree):
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                for arg in node.args.defaults:
+                    if isinstance(arg, (ast.List, ast.Dict, ast.Set)):
+                        self.recommendations.append(
+                            {
+                                "rule": "Mutable Default Argument",
+                                "message": f"Mutable default argument detected in function '{node.name}'",
+                                "line": getattr(node, "lineno", "unknown"),
+                            }
+                        )
+
+
+    def _check_unencrypted_communication(self, tree):
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                if isinstance(node.func.value, ast.Name) and node.func.attr in {"get", "post", "put", "delete"}:
+                    for arg in node.args:
+                        if isinstance(arg, ast.Str) and arg.s.startswith("http://"):
+                            self.recommendations.append(
+                                {
+                                    "rule": "Unencrypted Communication",
+                                    "message": f"Unencrypted HTTP communication detected: {arg.s}",
+                                    "line": getattr(node, "lineno", "unknown"),
+                                }
+                            )
+
+    def _check_dangerous_functions(self, tree):
+        dangerous_funcs = {"eval", "exec"}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id in dangerous_funcs:
+                    self.recommendations.append(
+                        {
+                            "rule": "Dangerous Function Usage",
+                            "message": f"Usage of dangerous function '{node.func.id}' detected.",
+                            "line": getattr(node, "lineno", "unknown"),
+                        }
+                    )
+
+    def _check_excessive_classes_or_functions(self, tree):
+        class_count = 0
+        function_count = 0
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                class_count += 1
+            elif isinstance(node, ast.FunctionDef):
+                function_count += 1
+
+        if class_count > 10:  # Example threshold
+            self.recommendations.append(
+                {
+                    "rule": "Too Many Classes",
+                    "message": f"File contains {class_count} classes, which might indicate excessive responsibility.",
+                    "line": "unknown",
+                }
+            )
+        if function_count > 20:  # Example threshold
+            self.recommendations.append(
+                {
+                    "rule": "Too Many Functions",
+                    "message": f"File contains {function_count} functions, which might indicate excessive responsibility.",
+                    "line": "unknown",
+                }
+            )
+
+
+    def _check_duplicate_code(self, tree):
+        def get_code_snippet(node):
+            return ast.unparse(node)
+
+        snippets = {}
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+                snippet = get_code_snippet(node)
+                if snippet in snippets:
+                    self.recommendations.append(
+                        {
+                            "rule": "Duplicate Code",
+                            "message": f"Duplicate code detected: {node.name} matches another block.",
+                            "line": getattr(node, "lineno", "unknown"),
+                        }
+                    )
+                else:
+                    snippets[snippet] = node
+
+
+
+    def _check_dead_code(self, tree):
+        defined_functions = set()
+        called_functions = set()
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                defined_functions.add(node.name)
+            elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                called_functions.add(node.func.id)
+
+        unused_functions = defined_functions - called_functions
+        for func in unused_functions:
+            self.recommendations.append(
+                {
+                    "rule": "Dead Code",
+                    "message": f"Function '{func}' is defined but never called.",
+                    "line": "unknown",
+                }
+            )
+
+
+    def _check_dependency_inversion(self, tree):
+        """Check for direct dependency violations."""
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id.islower():
+                self.recommendations.append(
+                    {
+                        "rule": "Dependency Inversion Violation",
+                        "message": f"Direct instantiation detected: {node.func.id}. Consider using abstractions or dependency injection.",
+                        "line": getattr(node, "lineno", "unknown"),
+                    }
+                )
+
+
+    def _check_inefficient_complexity(self, tree):
+        """Detect nested loops with potential performance issues."""
+        for node in ast.walk(tree):
+            if isinstance(node, ast.For) or isinstance(node, ast.While):
+                nested_loops = sum(1 for child in ast.walk(node) if isinstance(child, (ast.For, ast.While)))
+                if nested_loops > 2:  # Example threshold
+                    self.recommendations.append(
+                        {
+                            "rule": "Inefficient Algorithmic Complexity",
+                            "message": f"Nested loops detected with depth {nested_loops}. Consider optimizing.",
+                            "line": getattr(node, "lineno", "unknown"),
+                        }
+                    )
+
+    def _check_yagni_violation(self, tree):
+        """Check for unused functions or imports."""
+        defined_functions = {node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)}
+        called_functions = {node.func.id for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)}
+
+        unused_functions = defined_functions - called_functions
+        for func in unused_functions:
+            self.recommendations.append(
+                {
+                    "rule": "YAGNI Violation",
+                    "message": f"Function '{func}' is defined but never used.",
+                    "line": "unknown",
+                }
+            )
+
+
+    def _check_hardcoded_file_paths(self, tree):
+        """Detect hardcoded file paths in the code."""
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                if "/" in node.value or "\\" in node.value:
+                    self.recommendations.append(
+                        {
+                            "rule": "Hardcoded File Path",
+                            "message": f"Hardcoded file path detected: '{node.value}'. Use dynamic path generation instead.",
+                            "line": getattr(node, 'lineno', 'unknown'),
+                        }
+                    )
+
+
 
 
 # Example Usage

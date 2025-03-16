@@ -1,0 +1,49 @@
+control_structure_complexity,nesting_level,compound_condition_weight,label
+1,3,0,Critical refactor: High complexity and if nesting
+1,3,1,Critical refactor: High complexity and if nesting
+1,3,2,Critical refactor: High complexity and if nesting
+1,3,3,Critical refactor: High complexity and if nesting & reduce compound conditional statement
+2,3,0,Critical refactor: High complexity and for loop nesting
+2,3,1,Critical refactor: High complexity and for loop nesting
+2,3,2,Critical refactor: High complexity and for loop nesting
+2,3,3,Critical refactor: High complexity and for loop nesting & reduce compound conditional statement
+3,3,0,Critical refactor: High complexity and switch case nesting
+0,0,0,No action needed
+1,1,4,Consider simplifying compound conditions
+2,2,0,No action needed
+0,2,0,No action needed
+1,1,1,No action needed
+0,1,0,No action needed
+2,1,0,No action needed
+0,3,0,Critical refactor: High complexity and nesting
+1,4,0,Critical refactor: High complexity and if nesting
+1,4,1,Critical refactor: High complexity and if nesting
+1,4,2,Critical refactor: High complexity and if nesting
+1,4,3,Critical refactor: High complexity and if nesting & reduce compound conditional statement
+0,4,0,Critical refactor: High complexity and nesting
+2,4,0,Critical refactor: High complexity and for nesting
+2,4,1,Critical refactor: High complexity and for nesting
+2,4,2,Critical refactor: High complexity and for nesting
+2,4,3,Critical refactor: High complexity and for nesting & reduce compound conditional statement
+0,4,0,Critical refactor: High complexity and nesting
+1,2,2,No action needed
+1,2,4,Consider simplifying compound conditions
+1,1,4,Consider simplifying compound conditions
+0,1,3,No action needed
+1,3,0,Critical refactor: High complexity and switch case nesting
+2,3,0,Critical refactor: High complexity and switch case nesting
+3,3,0,Critical refactor: High complexity and switch case nesting
+4,3,0,Critical refactor: High complexity and switch case nesting
+5,3,0,Critical refactor: High complexity and switch case nesting
+1,4,0,Critical refactor: High complexity and switch case nesting
+2,4,0,Critical refactor: High complexity and switch case nesting
+3,4,0,Critical refactor: High complexity and switch case nesting
+4,4,0,Critical refactor: High complexity and switch case nesting
+5,4,0,Critical refactor: High complexity and switch case nesting
+1,1,2,No action needed
+1,1,2,No action needed
+0,1,1,No action needed
+1,1,0,No action needed
+1,2,1,No action needed
+1,2,1,No action needed
+1,1,3,No action needed
