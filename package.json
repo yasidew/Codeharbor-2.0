@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "axe-core": "^4.10.2",
-    "playwright": "^1.49.0"
+    "axe-core": "^4.10.3",
+    "playwright": "^1.51.0"
   },
   "name": "codeharbor-2.0",
   "version": "1.0.0",

@@ -93,6 +93,56 @@
             max-width: 100%;
             height: auto;
         }
+
+        .complexity-legend {
+            display: flex;
+            justify-content: center; /* Center the legend */
+            gap: 20px; /* Space between legend items */
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            width: fit-content;
+            margin: 0 auto 20px auto; /* Center horizontally & add spacing */
+            border-bottom: 2px solid #c9d1d9; /* Add bottom border to separate */
+        }
+
+        /* 🔹 Legend Items */
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        /* 🔹 Small Colored Boxes */
+        .complexity-box {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        /* 🔹 Color Coding */
+        .high {
+            background-color: red;
+            border: 1px solid #721c24;
+        }
+
+        .medium {
+            background-color: yellow;
+            border: 1px solid #856404;
+        }
+
+        .low {
+            background-color: green;
+            border: 1px solid #155724;
+        }
+
+        /* 🔹 Adjust the Heading */
+        h3 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
     </style>
 
     <h1 class="text-center">Code Complexity Results for C#</h1>
@@ -189,6 +239,20 @@
 
         <div class="container-custom mt-5">
             <h3>Method Complexity Details</h3>
+            <div class="complexity-legend">
+                <div class="legend-item">
+                    <span class="complexity-box high"></span>
+                    <strong style="color: #721c24;">High Complexity</strong>
+                </div>
+                <div class="legend-item">
+                    <span class="complexity-box medium"></span>
+                    <strong style="color: #856404;">Medium Complexity</strong>
+                </div>
+                <div class="legend-item">
+                    <span class="complexity-box low"></span>
+                    <strong style="color: #155724;">Low Complexity</strong>
+                </div>
+            </div>
             <table>
                 <thead>
                 <tr>
