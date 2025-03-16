@@ -286,7 +286,9 @@
                     {#    resourcesSection.style.display = 'block';}#}
 
                 } else {
-                    showToast("❌ Error in refactoring code!", "error");
+                    {#showToast("❌ Error in refactoring code!", "error");#}
+                    showToast(`⚠️ ${data.message}`, "error");
+                    showToast(`Refactoring Blocked: ${data.guideline}`, "warning");
                 }
             } catch (error) {
                 showToast("❌ An error occurred: " + error.message, "error");

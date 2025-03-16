@@ -78,17 +78,29 @@ def refactor_code(request):
             if not code:
                 return JsonResponse({'error': 'No code provided'}, status=400)
 
+            # ✅ Identify the design pattern used in the code
+            detected_pattern = analyze_code_for_pattern(code)
+
+            # ✅ Initialize guidelines_prompt properly
+            guidelines_prompt = ""  # Default empty guidelines
+
+            # ✅ Check for guideline restrictions
+            if use_guidelines:
+                guidelines = Guideline.objects.all()
+                pattern_guidelines = {g.pattern: g.rule for g in guidelines}  # Convert to dict
+
+                if detected_pattern in pattern_guidelines:
+                    guideline_text = pattern_guidelines[detected_pattern]
+                    guidelines_prompt = guideline_text  # ✅ Set guidelines prompt correctly
+                    return JsonResponse({
+                        'message': f"Refactoring blocked. {detected_pattern} pattern is restricted.",
+                        'guideline': guideline_text
+                    }, status=400)  # 🚨 Stop refactoring if the pattern is disallowed
+
+            # ✅ If no guideline restricts it, proceed with refactoring
             # Calculate LOC and Readability for the original code
             original_loc = calculate_loc(code)
             original_readability = calculate_readability(code)
-
-            # Apply guidelines if enabled
-            if use_guidelines:
-                guidelines = Guideline.objects.all()
-                guideline_texts = [f"{g.pattern}: {g.rule}" for g in guidelines]
-                guidelines_prompt = "\n\n".join(guideline_texts)
-            else:
-                guidelines_prompt = ""
 
             # AI Code Refactoring Request
             prompt = f"""
@@ -632,7 +644,8 @@ def get_ai_suggested_pattern(code, patterns):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a software architecture expert specializing in design patterns."},
+                {"role": "system",
+                 "content": "You are a software architecture expert specializing in design patterns."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.2
@@ -649,4 +662,3 @@ def get_ai_suggested_pattern(code, patterns):
 
     except Exception as e:
         return f"Error fetching AI suggestion: {str(e)}"
-
