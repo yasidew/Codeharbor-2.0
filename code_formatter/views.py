@@ -20,11 +20,6 @@ client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # GitHub API Token from environment variable
 GITHUB_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 
-# GUIDELINE_PROMPTS = {
-#     "Factory": "What are the best practices for using the Factory Pattern in software design?",
-#     "Strategy": "What are the best practices for implementing the Strategy Pattern in code?",
-#     "Observer": "What are the best practices for using the Observer Pattern effectively?",
-# }
 GUIDELINE_PROMPTS = {
     "Factory": "What are the best practices for using the Factory Pattern in software design? Please provide your answer in a numbered list without any markdown formatting.",
     "Strategy": "What are the best practices for implementing the Strategy Pattern in code? Please provide your answer in a numbered list without any markdown formatting.",
