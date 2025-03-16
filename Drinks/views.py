@@ -1,35 +1,31 @@
 import csv
 import json
 import os
+import re
+from javalang import parse
 import openpyxl
 from datetime import datetime
 import aiohttp
 import asyncio
-import numpy as np
-import torch
 import pandas as pd
 from django.conf import settings
 from django.core.serializers import serialize
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
-from javalang.parser import JavaSyntaxError
 from matplotlib import pyplot as plt
 from openpyxl.styles import Alignment, Font, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 from scipy.stats import pearsonr, spearmanr
 import seaborn as sns
-from sklearn.cluster import KMeans
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
-
-import analysis
-from Drinks.models import Drink, JavaFile
+from Drinks.models import Drink
 from analysis.code_analyzer import CodeAnalyzer
 from analysis.java_code_analyser import JavaCodeAnalyzer
 from analysis.javascript_code_analyser import JavaScriptCodeAnalyzer
 from analysis.php_code_analyser import PHPCodeAnalyzer
 from analysis.python_code_analyser import PythonCodeAnalyzer
-from code_analysis.models import CodeSnippet, Project, CodeAnalysisHistory
+from code_analysis.models import CodeSnippet, Project, CodeAnalysisHistory, JavaCodeSnippet, JavaProject
 from .serializers import DrinkSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -39,9 +35,11 @@ from .complexity_calculator import calculate_code_complexity_multiple_files, ai_
 from .complexity_calculator import calculate_code_complexity_line_by_line
 from .metrics import analyze_code_complexity, load_guidelines, count_lines_of_code, count_functions_and_length, \
     count_duplicate_code_percentage, calculate_comment_density, calculate_readability_score, calculate_complexity_score, \
-    categorize_value, find_duplicate_code
-from .complexity_calculator_csharp import calculate_code_complexity_multiple_files_csharp
-from django.shortcuts import render
+    categorize_value, find_duplicate_code, java_analyze_code_complexity, java_count_lines_of_code, \
+    java_count_duplicate_code_percentage, java_calculate_comment_density, java_calculate_readability_score, \
+     java_calculate_complexity_score, java_categorize_value, java_load_guidelines, \
+    java_count_classes_and_methods, java_calculate_nesting_depth, java_find_duplicate_code
+
 from prettytable import PrettyTable
 import statsmodels.api as sm
 from transformers import T5ForConditionalGeneration, AutoTokenizer
@@ -218,79 +216,353 @@ def group_recommendations_by_line(recommendations):
         })
     return grouped
 
+################################ java ##############################
+
+JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# ✅ Initialize model & tokenizer globally
+java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
+java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
+java_model.eval()  # Set to evaluation mode for inference
+
+def java_generate_suggestion(code_snippet):
+    """
+    Uses the Java-trained T5 model to generate AI-powered suggestions.
+    """
+    try:
+        inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+
+        with torch.no_grad():
+            output = java_model.generate(**inputs, max_length=128)
+
+        return java_tokenizer.decode(output[0], skip_special_tokens=True)
+
+    except Exception as e:
+        return f"❌ Error generating suggestion: {str(e)}"
+
+
+import javalang
+
+import re
+
+def java_split_code_snippets(code):
+    """
+    Splits Java code into individual methods, logical units, and extracts vulnerable blocks separately.
+    """
+    try:
+        # ✅ Normalize whitespace
+        code = code.strip()
+
+        # ✅ Step 1: Extract method definitions
+        method_pattern = r'(public|private|protected|static|\s)+\s+\w+\s+\w+\s*\(.*?\)\s*\{(?:[^{}]*\{[^{}]*\}[^{}]*|[^{}]*)*\}'
+        method_snippets = re.findall(method_pattern, code, re.DOTALL)
+
+        # ✅ Step 2: Extract class declarations separately
+        class_pattern = r'(public|private|protected)?\s*(class|interface|enum)\s+\w+\s*\{(?:[^{}]*\{[^{}]*\}[^{}]*|[^{}]*)*\}'
+        class_snippets = re.findall(class_pattern, code, re.DOTALL)
+
+        # ✅ Step 3: Extract **only important** logical breaks (Avoid too-large snippets)
+        logical_breaks = [
+            r'Statement stmt',      # SQL Injection
+            r'Runtime\.getRuntime', # Command Injection
+            r'new FileReader',      # Insecure File Handling
+            r'session\.setAttribute', # Session Management
+            r'BufferedReader',      # File Handling
+            r'Cookie\(',            # Cookie issues
+            r'return recursiveFunction' # Infinite Recursion
+        ]
+
+        final_snippets = []
+        for snippet in method_snippets + class_snippets:
+            logical_snippets = re.split("|".join(logical_breaks), snippet)
+            for part in logical_snippets:
+                cleaned_part = part.strip()
+                if len(cleaned_part) > 5:  # Avoid empty snippets
+                    final_snippets.append(cleaned_part)
+
+        return final_snippets
+
+    except Exception as e:
+        print(f"❌ Error splitting Java snippets: {str(e)}")
+        return []
+
+
+def extract_java_block(code, start_line):
+    """
+    Extracts a Java code block (method/class) using balanced braces.
+    """
+    lines = code.splitlines()
+    stack = []
+    extracted = []
+    inside_string = False
+    escape_char = False
+
+    for i in range(start_line, len(lines)):
+        line = lines[i]
+        extracted.append(line)
+
+        for char in line:
+            if char == '"' and not escape_char:
+                inside_string = not inside_string
+            escape_char = (char == '\\') if not escape_char else False
+
+            if not inside_string:
+                if char == '{':
+                    stack.append('{')
+                elif char == '}':
+                    if stack:
+                        stack.pop()
+                    if not stack:
+                        return "\n".join(extracted)
+
+    return "\n".join(extracted)
+
+def extract_logical_block(method_body, keyword):
+    """
+    Extracts a small logical block containing the keyword.
+    """
+    lines = method_body.split("\n")
+    extracted = []
+
+    for line in lines:
+        if keyword in line:
+            start_index = max(0, lines.index(line) - 1)
+            end_index = min(len(lines), lines.index(line) + 2)
+            extracted.extend(lines[start_index:end_index])
+
+    return "\n".join(extracted) if extracted else None
+
+
 
 @api_view(['GET', 'POST'])
 def java_code_analysis(request):
-    recommendations = {"files": {}, "pasted_code": {}}  # Initialize as a dictionary
+    """
+    Handles Java code analysis: Accepts pasted/uploaded/imported code, categorizes vulnerabilities,
+    assigns severity levels, and stores results in PostgreSQL.
+    """
+    suggestions = []
     summary = {
-        "total_vulnerabilities": 0,
+        "total_snippets": 0,
+        "total_suggestions": 0,
+        "total_lines": 0,
         "categories": {},
-        "files_analyzed": 0,
+        "severity": {"Critical": 0, "Medium": 0, "Low": 0},
+        "complexity_metrics": {},
     }
-    code = ""
+    code_snippet = ""
+    final_guideline = ""
+    all_code_snippets = []  # ✅ Store all snippets (pasted, uploaded, GitHub)
 
     if request.method == 'POST':
-        # Handle pasted code
-        code = request.POST.get('code', '').strip()
-        if code:
-            try:
-                analyzer = JavaCodeAnalyzer(code)
-                pasted_results = analyzer.generate_recommendations()
-                # Organize recommendations by line
-                recommendations["pasted_code"] = {}
-                for rec in pasted_results:
-                    line = rec.get('line', 'unknown')
-                    recommendations["pasted_code"].setdefault(line, []).append({
-                        'rule': rec.get('rule'),
-                        'message': rec.get('message'),
+        # ✅ Handle GitHub repository submission (JSON request)
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            github_repo_url = data.get("github_url", "").strip()
+
+            if github_repo_url:
+                files, error = fetch_github_files(github_repo_url)
+                if error:
+                    return JsonResponse({"error": error})
+                if files:
+                    return JsonResponse({"files": files})  # ✅ Return GitHub files to frontend
+
+        # ✅ Handle manually entered code & uploaded files
+        code_snippet = request.POST.get('code', '').strip()
+        project_name = request.POST.get('project_name', '').strip()
+
+        # ✅ Auto-generate project name if none is provided
+        if not project_name:
+            project_name = f"JavaProject_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            print(f"🆕 Auto-generated project name: {project_name}")
+
+        # ✅ Check if project exists, else create
+        project, _ = JavaProject.objects.get_or_create(name=project_name)
+
+        # ✅ Fetch uploaded files
+        uploaded_files = request.FILES.getlist('files')
+
+        # ✅ Process uploaded files
+        if uploaded_files:
+            for uploaded_file in uploaded_files:
+                file_name = uploaded_file.name
+                file_content = uploaded_file.read().decode('utf-8')
+                all_code_snippets.append({"name": file_name, "code": file_content})
+
+        # ✅ Add manually pasted code
+        if code_snippet:
+            all_code_snippets.append({"name": "Pasted Code", "code": code_snippet})
+
+        # ✅ Handle GitHub repository files (if provided)
+        github_repo_url = request.POST.get("github_url", "").strip()
+        if github_repo_url:
+            github_files, error = fetch_github_files(github_repo_url)
+            if github_files:
+                all_code_snippets.extend(github_files)
+
+        if not all_code_snippets:
+            return render(request, 'java_code_analysis.html', {
+                "code": "", "suggestions": [], "summary": summary,"final_guideline": "",
+                "error": "No Java code provided for analysis."
+            })
+
+        # ✅ Process each file/snippet
+        for file_data in all_code_snippets:
+            file_name = file_data["name"]
+            file_code = file_data["code"]
+
+            # ✅ **Split Java code into individual methods or classes (Improved)**
+            snippets = java_split_code_snippets(file_code)  # ✅ Replaced re.split() with structured splitting
+            summary["total_snippets"] += len(snippets)
+            summary["total_lines"] += file_code.count('\n') + 1
+
+            for line_num, snippet in enumerate(snippets, start=1):
+                # ✅ **Check if snippet already analyzed**
+                existing_snippet = JavaCodeSnippet.objects.filter(snippet=snippet).first()
+
+                if existing_snippet:
+                    print(f"✅ Found existing analysis for snippet in {file_name}...")
+
+                    model_suggestion = existing_snippet.model_suggestion
+                    ai_suggestion = existing_snippet.ai_suggestion
+
+                    final_suggestion = f"{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
+                    category = categorize_suggestion(final_suggestion)
+                    severity = determine_severity(final_suggestion)
+
+                    summary["total_suggestions"] += 1
+                    summary["categories"].setdefault(category, 0)
+                    summary["categories"][category] += 1
+                    summary["severity"][severity] += 1
+
+                    suggestions.append({
+                        "file_name": file_name,
+                        "code": existing_snippet.snippet,
+                        "suggestion": final_suggestion,
+                        "category": category,
+                        "severity": severity,
+                        "line": line_num
                     })
-                # Update summary
-                for rec in pasted_results:
-                    summary["total_vulnerabilities"] += 1
-                    rule = rec.get('rule')
-                    if rule:
-                        summary["categories"].setdefault(rule, 0)
-                        summary["categories"][rule] += 1
-            except Exception as e:
-                recommendations["pasted_code"] = {
-                    "error": f"Error analyzing pasted code: {str(e)}"
-                }
+                    continue  # ✅ Skip AI processing for existing snippets
 
-        # Handle uploaded files
-        files = request.FILES.getlist('files')
-        summary["files_analyzed"] = len(files)
-        if files:
-            for file in files:
                 try:
-                    content = file.read().decode('utf-8')  # Assuming UTF-8 encoding
-                    analyzer = JavaCodeAnalyzer(content)
-                    file_results = analyzer.generate_recommendations()
-                    recommendations["files"][file.name] = {}
-                    for rec in file_results:
-                        line = rec.get('line', 'unknown')
-                        recommendations["files"][file.name].setdefault(line, []).append({
-                            'rule': rec.get('rule'),
-                            'message': rec.get('message'),
-                        })
-                    # Update summary
-                    for rec in file_results:
-                        summary["total_vulnerabilities"] += 1
-                        rule = rec.get('rule')
-                        if rule:
-                            summary["categories"].setdefault(rule, 0)
-                            summary["categories"][rule] += 1
-                except Exception as e:
-                    recommendations["files"][file.name] = {
-                        "error": f"Error analyzing file {file.name}: {str(e)}"
-                    }
+                    print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
 
-        return render(
-            request,
-            'java_code_analysis.html',
-            {'recommendations': recommendations, 'summary': summary, 'code': code}
-        )
+                    # ✅ **Generate Model-based Suggestion**
+                    model_suggestion = java_generate_suggestion(snippet)
 
-    return render(request, 'java_code_analysis.html', {'code': code})
+                    # ✅ **Generate AI-based Suggestion**
+                    ai_suggestion = ai_code_analysis(snippet,)
+
+                    final_suggestion = f"Suggestion:\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
+
+                    # ✅ **Categorize & determine severity**
+                    category = categorize_suggestion(final_suggestion)
+                    severity = determine_severity(final_suggestion)
+
+                    summary["total_suggestions"] += 1
+                    summary["categories"].setdefault(category, 0)
+                    summary["categories"][category] += 1
+                    summary["severity"][severity] += 1
+
+                    # ✅ **Store in Java PostgreSQL tables**
+                    JavaCodeSnippet.objects.create(
+                        project=project,
+                        snippet=snippet,
+                        ai_suggestion=ai_suggestion,
+                        model_suggestion=model_suggestion,
+                    )
+
+                    print(f"📌 Stored analysis for {file_name}, Line {line_num} in DB.")
+
+                    suggestions.append({
+                        "file_name": file_name,
+                        "code": snippet,
+                        "category": category,
+                        "suggestion": final_suggestion,
+                        "severity": severity,
+                        "line": line_num
+                    })
+
+                except Exception as snippet_error:
+                    print(f"❌ Error analyzing snippet in {file_name}, Line {line_num}: {str(snippet_error)}")
+                    suggestions.append({
+                        "file_name": file_name,
+                        "code": snippet,
+                        "suggestion": f"Error: {str(snippet_error)}",
+                        "severity": "Low",
+                        "line": line_num
+                    })
+
+        # ✅ **Perform Java Complexity Analysis**
+        print("🔍 Performing Java Complexity Analysis...")
+        summary["complexity_metrics"] = java_analyze_code_complexity(code_snippet)
+        print(f"✅ Java Complexity Results: {summary['complexity_metrics']}")
+        final_guideline = ai_generate_guideline(summary)
+
+        # ✅ **Store the latest analysis in session for PDF generation**
+        request.session["latest_summary"] = summary
+        request.session["latest_suggestions"] = suggestions
+        request.session["latest_guideline"] = final_guideline
+        request.session.modified = True
+
+
+    return render(
+        request,
+        'java_code_analysis.html',
+        {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
+    )
+
+
+
+
+def java_analyze_code_complexity(code):
+    """Analyze Java code complexity using various metrics."""
+    print("🔍 Entering java_analyze_code_complexity function...")  # ✅ Debug
+    guidelines = java_load_guidelines()
+
+    loc, eloc = java_count_lines_of_code(code)
+    num_classes, num_methods, avg_method_length = java_count_classes_and_methods(code)  # ✅ Corrected function
+    # cyclomatic_complexity = java_calculate_cyclomatic_complexity(code)
+    nesting_depth = java_calculate_nesting_depth(code)
+    duplicate_percentage = java_count_duplicate_code_percentage(code)
+    duplicate_code_details = java_find_duplicate_code(code)
+    # **No `java_find_duplicate_code()` function exists, remove this line**
+    # duplicate_code_details = java_find_duplicate_code(code) ❌ REMOVE THIS
+
+    comment_density = java_calculate_comment_density(code)
+    readability_score = java_calculate_readability_score(code)
+    complexity_score = java_calculate_complexity_score(loc, num_methods, duplicate_percentage)
+
+    result = {
+        "lines_of_code": loc,
+        "effective_lines_of_code": eloc,
+        "num_classes": num_classes,  # ✅ Use classes instead of generic functions
+        "num_methods": num_methods,
+        "avg_method_length": avg_method_length,
+        # "cyclomatic_complexity": cyclomatic_complexity,
+        "nesting_depth": nesting_depth,
+        "duplicate_code_percentage": duplicate_percentage,
+        "duplicate_code_details": duplicate_code_details,
+        "comment_density": comment_density,
+        "readability_score": readability_score,
+        "complexity_score": complexity_score,
+        "rating": {
+            "lines_of_code": java_categorize_value(loc, guidelines["lines_of_code"]),
+            "comment_density": java_categorize_value(comment_density, guidelines["code_density"]),
+            "method_length": java_categorize_value(avg_method_length, guidelines["function_length"]),
+            "duplicate_code": java_categorize_value(duplicate_percentage, guidelines["duplicate_code"]),
+            "num_methods": java_categorize_value(num_methods, guidelines["num_functions"]),
+            # "cyclomatic_complexity": java_categorize_value(cyclomatic_complexity, guidelines["cyclomatic_complexity"]),
+            "complexity_score": java_categorize_value(complexity_score, guidelines["complexity_score"]),
+        }
+    }
+
+    print(f"✅ Java Complexity Analysis Output: {result}")  # ✅ Debug
+    return result
+
+
 
 
 @api_view(['GET', 'POST'])
@@ -519,60 +791,7 @@ def split_code_snippets(code_snippet):
         return []  # Return an empty list if parsing fails
 
 
-# def split_code_snippets(code, language="python"):
-#     """
-#     Splits code into logical blocks for analysis.
-#
-#     - Uses AST-based parsing for Python.
-#     - Uses regex-based parsing for other languages (Java, JS, C++, etc.).
-#     """
-#
-#     if language.lower() == "python":
-#         try:
-#             tree = ast.parse(code)
-#             snippets = []
-#
-#             for node in tree.body:
-#                 # Extract source code for each node
-#                 snippet = ast.get_source_segment(code, node) if hasattr(ast, "get_source_segment") else ast.unparse(node)
-#                 snippets.append(snippet)
-#
-#             return snippets
-#         except SyntaxError:
-#             print("Syntax error while parsing Python code.")
-#             return []
-#
-#     # Generic Regex-based splitting for other languages
-#     snippet_list = []
-#     buffer = []
-#     block_starts = re.compile(r"^\s*(def |class |if |elif |else:|try:|except |for |while |public |private |function |var )")
-#
-#     for line in code.split("\n"):
-#         if block_starts.match(line) and buffer:
-#             snippet_list.append("\n".join(buffer))
-#             buffer = []
-#
-#         buffer.append(line)
-#
-#     if buffer:
-#         snippet_list.append("\n".join(buffer))
-#
-#     return snippet_list
-#############################################
-# @lru_cache(maxsize=1000)
-# def cached_prediction(snippet):
-#     """Generate a suggestion with caching for repeated snippets."""
-#     inputs = tokenizer(snippet, truncation=True, padding="max_length", max_length=512, return_tensors="pt")
-#     inputs = {k: v.to(device) for k, v in inputs.items()}
-#     with torch.no_grad():
-#         output = model.generate(inputs["input_ids"], max_length=256, num_beams=5, early_stopping=True)
-#     return tokenizer.decode(output[0], skip_special_tokens=True)
 
-
-# def process_snippets_multithreaded(snippets):
-#     """Parallel processing of code snippets."""
-#     with concurrent.futures.ThreadPoolExecutor() as executor:
-#         return list(executor.map(cached_prediction, snippets))
 
 
 
@@ -686,7 +905,8 @@ def ai_code_analysis(snippet):
                             "Why It's a Problem: Explain the consequences very shortly.\n"
                             "Recommended Fix: Provide a solution."},
                 {"role": "user",
-                 "content": f"Analyze the following Python code and provide structured feedback:\n{snippet}"}
+                 # "content": f"Analyze the following Python code and provide structured feedback:\n{snippet}"}
+                 "content": f"Analyze the following code and provide structured feedback:\n{snippet}"}
             ],
             max_tokens=300,
             temperature=0.2  # Control randomness
@@ -787,6 +1007,30 @@ def ai_generate_guideline(summary):
         return f"Error generating final guideline: {str(e)}"
 
 
+# def is_python_code(code):
+#     """
+#     Determines if the provided code is Python by checking syntax and keywords.
+#     """
+#     python_keywords = [
+#         "import ", "def ", "class ", "lambda ", "yield ", "async ", "await ", "try:", "except ", "finally:", "with ",
+#         "return ", "pass ", "break ", "continue ", "raise ", "global ", "nonlocal ", "assert ", "del ", "from ", "is ", "not "
+#     ]
+#
+#     # Check if at least 2 Python-specific keywords exist
+#     return sum(1 for kw in python_keywords if kw in code) >= 2
+
+
+def is_python_code(code):
+    """
+    Checks if the provided code is valid Python code by attempting to parse it.
+    """
+    try:
+        ast.parse(code)
+        return True
+    except SyntaxError:
+        return False
+
+
 @api_view(['GET', 'POST'])
 def analyze_code_view(request):
     """
@@ -854,6 +1098,16 @@ def analyze_code_view(request):
         for file_data in all_code_snippets:
             file_name = file_data["name"]
             file_code = file_data["code"]
+
+            # ✅ **Check if the code is Python before analysis**
+            if not is_python_code(file_code):
+                return render(request, 'analyze_code.html', {
+                    "code": file_code,
+                    "suggestions": [],
+                    "summary": summary,
+                    "final_guideline": "",
+                    "error": f" Error: The uploaded file `{file_name}` is not valid Python code."
+                })
 
             snippets = split_code_snippets(file_code)
             summary["total_snippets"] += len(snippets)
@@ -950,7 +1204,6 @@ def analyze_code_view(request):
         print("🔍 Performing Complexity Analysis...")
         summary["complexity_metrics"] = analyze_code_complexity(code_snippet)
         print(f"✅ Complexity Results: {summary['complexity_metrics']}")
-        print(f"✅ Categories Assigned: {summary['categories']}")
 
         # ✅ **Store the latest analysis in session for PDF generation**
         request.session["latest_summary"] = summary
