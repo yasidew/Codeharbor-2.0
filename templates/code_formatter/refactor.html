@@ -288,7 +288,7 @@
                 } else {
                     {#showToast("❌ Error in refactoring code!", "error");#}
                     showToast(`⚠️ ${data.message}`, "error");
-                    showToast(`Refactoring Blocked: ${data.guideline}`, "warning");
+                    showToast(`Refactoring Blocked: ${data.guideline}`, "info");
                 }
             } catch (error) {
                 showToast("❌ An error occurred: " + error.message, "error");
@@ -335,10 +335,8 @@
         }
 
         // Simple toast
-        function showToast(msg, type = "info") {
-            console.log(`[${type.toUpperCase()}] ${msg}`);
-            // or integrate your real toast...
-        }
+        {#function showToast(msg, type = "info") {#}
+        {#    console.log(`[${type.toUpperCase()}] ${msg}`)}#}
 
 
         // Function to extract only the code block
