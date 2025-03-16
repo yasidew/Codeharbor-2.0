@@ -65,6 +65,8 @@ node_modules
 code-refactoring/singleton_model/model.safetensors
 code-refactoring/factory_method_model
 code-refactoring/results
+.venv
+venv
 code-refactoring/singleton_model
 
 env/

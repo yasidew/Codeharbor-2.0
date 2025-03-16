@@ -1,84 +1,429 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Complexity Results</title>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Code Complexity Results for C#{% endblock %}
+
+{% block content %}
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: Arial, sans-serif;
         }
 
-        table, th, td {
-            border: 1px solid black;
+        .container-custom {
+            width: 80%;
+            margin: auto;
+            text-align: center;
+        }
+
+        h1, h2, h3, h4 {
+            color: #58a6ff;
+        }
+
+        table {
+            width: 90%;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         th, td {
-            padding: 8px;
-            text-align: left;
+            padding: 12px;
+            border: 1px solid #30363d;
+            text-align: center;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #161b22;
+            color: #c9d1d9;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        button {
+            background-color: #238636;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #2ea043;
+        }
+
+        .metrics, .line-complexity, .method-complexity, .recommendations {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 50%;
+            height: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .modal-content {
+            background-color: #161b22;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .modal img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
-</head>
-<body>
-    <h1>Complexity Results</h1>
+
+    <h1 class="text-center">Code Complexity Results for C#</h1>
+
+    <div class="container-custom mt-4">
+        <h4 class="mt-5">Weighted Code Complexity (WCC) Equation</h4>
+        <h3>
+            <pre><code>WCC<sub>i</sub> = S<sub>i</sub> * (W<sub>c</sub> + W<sub>n</sub> + W<sub>i</sub> + W<sub>tc</sub> + W<sub>cc</sub> + W<sub>th</sub> + (W<sub>cbo</sub>(high) - W<sub>cbo</sub>(loose)))</code></pre>
+        </h3>
+    </div>
+
+    <div class="container-custom mt-4">
+        <h4 class="mt-5">Total WCC for the Class</h4>
+        <h3>
+            <pre><code>WCC<sub>total</sub> = Σ (WCC<sub>i</sub>) for i=1 to N</code></pre>
+        </h3>
+    </div>
+
+    <button class="btn btn-info" onclick="window.location.href='/guidelines/'">View Guidelines</button>
 
     {% for file in complexities %}
-        <h2>Filename: {{ file.filename }}</h2>
-        <!-- MPC and CBO values -->
-        <h3>Overall Metrics</h3>
-        <table>
-            <thead>
+        <div class="container-custom metrics">
+            <h2>Filename: {{ file.filename }}</h2>
+            <h2>Class Complexity</h2>
+            <table>
+                <thead>
                 <tr>
-                    <th>CBO</th>
-                    <th>MPC</th>
+                    <th>Class Name</th>
+                    <th>Complexity Score</th>
+                    <th>Pie Chart</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 <tr>
-                    <td>{{ file.cbo }}</td>
-                    <td>{{ file.mpc }}</td>
+                    <td>{{ file.filename }}</td>
+                    <td>{{ file.total_wcc }}</td>
+                    <td>
+                        <button class="btn btn-primary"
+                                onclick="showPieChart('{{ file.filename }}', '{{ file.pie_chart_path }}')">
+                            View Pie Chart
+                        </button>
+                    </td>
                 </tr>
-            </tbody>
-        </table>
-        
-        <table>
-            <thead>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="line-complexity table-container1 mt-5">
+            <h3>Line Complexity Details</h3>
+            <table>
+                <thead>
                 <tr>
-                    <th>Line Number</th>
+                    <th>Line No</th>
                     <th>Line</th>
-                    <th>Size</th>
-                     <th>Tokens</th>
-                    <th>Control Structure Complexity</th>
-                    <th>Nesting Weight</th>
-                    <th>Inheritance Weight</th>
-                    <th>Compound Condition Weight</th>
-                    <th>Try-Catch Weight</th>
-                    <th>Thread Weight</th>
-                    <th>Total Complexity</th>
+                    <th>S</th>
+                    <th>Tokens</th>
+                    <th>W<sub>c</sub></th> <!-- Wc -->
+                    <th>W<sub>n</sub></th> <!-- Wn -->
+                    <th>W<sub>i</sub></th> <!-- Wi -->
+                    <th>W<sub>cc</sub></th> <!-- Wcp -->
+                    <th>W<sub>tc</sub></th> <!-- Wtc -->
+                    <th>W<sub>tw</sub></th> <!-- Wtw -->
+                    <th>W<sub>cbo</sub></th> <!-- Wcbo -->
+                    <th>S*W</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {% for line in file.complexity_data %}
                     <tr>
                         <td>{{ line.0 }}</td>
                         <td>{{ line.1 }}</td>
-                        <td>{{ line.2 }}</td>
-                        <td>{{ line.3 }}</td>
-                        <td>{{ line.4 }}</td>
-                        <td>{{ line.5 }}</td>
-                        <td>{{ line.6 }}</td>
-                        <td>{{ line.7 }}</td>
-                        <td>{{ line.8 }}</td>
-                        <td>{{ line.9 }}</td>
-                    <td>{{ line.10 }}</td>
+                        <td>{% if line.2 != 0 %}{{ line.2 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.3 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.4 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.5 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.6 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.7 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.8 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.9 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.10 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.11 }}{% endif %}</td>
+                        <td>{% if line.2 != 0 %}{{ line.12 }}{% endif %}</td>
                     </tr>
                 {% endfor %}
-            </tbody>
-        </table>
-        <br>
+
+                <tr>
+                    <td colspan="10" style="text-align: right; font-weight: bold;">Total WCC:</td>
+                    <td></td>
+                    <td style="font-weight: bold;">{{ file.total_wcc }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="container-custom mt-5">
+            <h3>Method Complexity Details</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>Method Name</th>
+                    <th>Size</th>
+                    <th>Control Structure Complexity</th>
+                    <th>Nesting Level</th>
+                    <th>Inheritance Level</th>
+                    <th>Compound Condition Weight</th>
+                    <th>Try-Catch Weight</th>
+                    <th>Thread Weight</th>
+                    <th>CBO</th>
+                    <th>Total Complexity</th>
+                    <th>Category</th>
+                    <th>Bar Chart</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for method in file.method_complexities %}
+                    <tr
+                            style="
+                                    {% if method.category == 'High' %}background-color: #f8d7da; color: #721c24;{% endif %}
+                                    {% if method.category == 'Medium' %}background-color: #fff3cd; color: #856404;{% endif %}
+                                    {% if method.category == 'Low' %}background-color: #d4edda; color: #155724;{% endif %}
+                                    "
+                    >
+                        <td>{{ method.method_name }}</td>
+                        <td>{{ method.size }}</td>
+                        <td>{{ method.control_structure_complexity }}</td>
+                        <td>{{ method.nesting_level }}</td>
+                        <td>{{ method.inheritance_level }}</td>
+                        <td>{{ method.compound_condition_weight }}</td>
+                        <td>{{ method.try_catch_weight }}</td>
+                        <td>{{ method.thread_weight }}</td>
+                        <td>{{ method.cbo_weights }}</td>
+                        <td>{{ method.total_complexity }}</td>
+                        <td>{{ method.category }}</td>
+                        <td class="method-row">
+                            <button class="btn"
+                                    onclick="showBarChart('{{ method.method_name }}', '{{ method.bar_chart }}')">View
+                                Chart
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="container-custom mt-5">
+            <h3>Refactoring Recommendations</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>Line Number</th>
+                    <th>Line Content</th>
+                    <th>Recommendation</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if file.recommendations %}
+                    {% for rec in file.recommendations %}
+                        <tr>
+                            <td>{{ rec.line_number }}</td>
+                            <td>{{ rec.line_content }}</td>
+                            <td>{{ rec.recommendation }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #c9d1d9; font-style: italic;">
+                            No recommendations available
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="container-custom mt-5">
+            <!-- CBO Prediction Results -->
+            <h3>🔍 CBO Analysis</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>CBO Prediction</th>
+                    <th>Recommendations</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for cbo in cbo_predictions %}
+                    {% if cbo.filename == file.filename %}
+                        <tr class="{% if cbo.prediction == 'High CBO (Issue)' %}high-cbo{% else %}low-cbo{% endif %}">
+                            <td>{{ cbo.filename }}</td>
+                            <td>{{ cbo.prediction }}</td>
+                            <td>
+                                {% if cbo.recommendations %}
+                                    <ul>
+                                        {% for rec in cbo.recommendations %}
+                                            <li>{{ rec }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    ✅ No critical issues detected.
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
     {% endfor %}
-</body>
-</html>
+
+    <a href="/">Upload More Files</a>
+
+    <div id="barChartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalMethodName"></h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <img id="modalBarChart" src="" alt="Bar Chart">
+        </div>
+    </div>
+
+    <div id="chartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalChartTitle"></h3>
+                <span class="close" onclick="closePieChartModal()">&times;</span>
+            </div>
+            <img id="modalPieChart" src="" alt="Pie Chart">
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-overlay" style="display: none;">
+        <div class="spinner-container">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-white mt-2">Processing your files, please wait...</p>
+        </div>
+    </div>
+
+    <script>
+
+        const toggle = document.getElementById('toggle');
+        const body = document.body;
+
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            toggle.classList.toggle('dark');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const recommendationRows = document.querySelectorAll('.recommendation-row');
+            recommendationRows.forEach(row => {
+                const recommendationText = row.querySelector('.recommendation-text').textContent;
+                console.log(recommendationText)
+                if (recommendationText.toLowerCase().includes('urgent refactor')) {
+                    console.log("Hi")
+                    alert(`Urgent refactor recommendation found: ${recommendationText}`);
+                }
+            });
+        });
+
+
+        function showBarChart(methodName, chartPath) {
+            // Set the method name and bar chart in the modal
+            document.getElementById('modalMethodName').textContent = `Bar Chart for Method: ${methodName}`;
+            document.getElementById('modalBarChart').src = `/static/images/${chartPath}`;
+
+            // Display the modal
+            document.getElementById('barChartModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            // Hide the modal
+            document.getElementById('barChartModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside the content
+        window.onclick = function (event) {
+            const modal = document.getElementById('barChartModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        function showPieChart(filename, pieChartData) {
+            document.getElementById('modalChartTitle').textContent = `Pie Chart for Class: ${filename}`;
+            document.getElementById('modalPieChart').src = `/static/images/${pieChartData}`;
+
+            // Display the modal
+            document.getElementById('chartModal').style.display = 'flex';
+
+        }
+
+        function closePieChartModal() {
+            document.getElementById('chartModal').style.display = 'none';
+        }
+
+        // Close modal on clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('chartModal');
+            if (event.target === modal) {
+                closeModal1();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const loadingOverlay = document.getElementById("loading-overlay");
+            const body = document.body;
+
+            // Show the loading overlay immediately
+            body.classList.add("loading");
+            loadingOverlay.classList.add("loading-active");
+
+            // Ensure the loading overlay is shown for at least 2 seconds
+            const minLoadingTime = 2000; // 2 seconds
+            const startTime = Date.now();
+
+            window.onload = function () {
+                const elapsedTime = Date.now() - startTime;
+                const remainingTime = Math.max(minLoadingTime - elapsedTime, 0);
+
+                setTimeout(() => {
+                    loadingOverlay.classList.remove("loading-active");
+                    body.classList.remove("loading");
+                }, remainingTime);
+            };
+        });
+    </script>
+
+
+{% endblock %}

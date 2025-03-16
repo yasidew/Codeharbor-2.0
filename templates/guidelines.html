@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}WCC Guidelines{% endblock %}
+
+{% block content %}
+    <style>
+        /* Page Styling */
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: Arial, sans-serif;
+        }
+
+        h1, h2, h3 {
+            color: #58a6ff;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .container-custom {
+            width: 90%;
+            margin: auto;
+            text-align: center;
+        }
+
+        /* Code Block Styling */
+        .code-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            width: 48%;
+            background-color: #161b22;
+            color: #c9d1d9;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: left;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        /* Responsive - Stack in smaller screens */
+        @media (max-width: 768px) {
+            .code-container {
+                flex-direction: column;
+            }
+            .code-block {
+                width: 100%;
+            }
+        }
+
+        /* Cards for Guidelines */
+        .card {
+            background-color: #161b22;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .card h2 {
+            color: #58a6ff;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #30363d;
+            text-align: center;
+        }
+
+        th {
+            background-color: #161b22;
+            color: #c9d1d9;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+    </style>
+
+    <div class="container-custom">
+        <h1>Weighted Class Complexity (WCC) Guidelines</h1>
+
+        <div class="container mt-5">
+            <h2>Line by Line WCC Equation</h2>
+            <p>The extended WCC equation includes additional structural complexities:</p>
+            <h2>WCC<sub>i</sub> = S<sub>i</sub> * (W<sub>c</sub> + W<sub>n</sub> + W<sub>i</sub> + W<sub>tc</sub> + W<sub>cc</sub> + W<sub>th</sub> + W<sub>cbo</sub>(high) - W<sub>cbo</sub>(loose))</h2>
+        </div>
+
+        <div class="container mt-5">
+            <h2>Total WCC for the Class</h2>
+            <p>After computing <code>WCC<sub>i</sub></code> for each line <code>i</code>, sum these values to get the file’s total Weighted Code Complexity:</p>
+            <h2>WCC<sub>total</sub> = Σ (WCC<sub>i</sub>) for i=1 to N</h2>
+            <p>where <code>N</code> is the total number of lines.</p>
+        </div>
+
+        <div class="container mt-5">
+            <h3>Definitions:</h3>
+            <ul class="list-group">
+                <li class="list-group-item bg-dark text-light"><strong>S</strong>: Size factor</li>
+                <li class="list-group-item bg-dark text-light"><strong>W<sub>c</sub></strong>: Weight due to control structures</li>
+                <li class="list-group-item bg-dark text-light"><strong>W<sub>n</sub></strong>: Weight due to nesting level</li>
+                <li class="list-group-item bg-dark text-light"><strong>W<sub>i</sub></strong>: Weight due to inheritance</li>
+                <li class="list-group-item bg-dark text-light"><strong>W<sub>cbo</sub></strong>: Coupling between object classes</li>
+                <li class="list-group-item bg-dark text-light"><strong>W<sub>tc</sub></strong>: Weight due to try-catch-finally blocks</li>
+                <li class="list-group-item bg-dark text-light"><strong>W<sub>cc</sub></strong>: Weight due to compound conditional statements</li>
+                <li class="list-group-item bg-dark text-light"><strong>W<sub>th</sub></strong>: Weight due to threading</li>
+            </ul>
+        </div>
+
+        {% for guide in guidelines %}
+            <div class="card mt-5">
+                <div class="card-body">
+                    <h2>{{ guide.title }}</h2>
+                    <p>{{ guide.description }}</p>
+
+                    <h3>Weightage Table</h3>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Control Structure</th>
+                                <th>Weight</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in guide.table %}
+                            <tr>
+                                <td>{{ row.structure }}</td>
+                                <td>{{ row.weight }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- Code Blocks Side by Side -->
+                    <div class="code-container">
+                        <div class="code-block">
+                            <h3>Java Example</h3>
+                            <pre>{{ guide.examples.Java }}</pre>
+                        </div>
+
+                        <div class="code-block">
+                            <h3>C# Example</h3>
+                            <pre>{{ guide.examples.Csharp }}</pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}
+
