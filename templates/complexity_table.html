@@ -1,459 +1,3 @@
-{#{% load static %}#}
-{#<!DOCTYPE html>#}
-{#<html>#}
-{#<head>#}
-{#    <title>Code Complexity Calculator - Java</title>#}
-{#    <!-- Bootstrap CSS -->#}
-{#    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">#}
-{#    <!-- Custom CSS -->#}
-{#    <link href="{% static 'style.css' %}" rel="stylesheet">#}
-{#    <!-- CodeMirror CSS -->#}
-{#    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css" rel="stylesheet">#}
-{#    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/theme/material-darker.min.css"#}
-{#          rel="stylesheet">#}
-{#    <style>#}
-{#        body {#}
-{#            font-family: 'Arial', sans-serif;#}
-{#            background-color: #f9f9f9;#}
-{#            color: #333;#}
-{#            margin: 0;#}
-{#            padding: 0;#}
-{#        }#}
-{##}
-{#        h1, h2, h3 {#}
-{#            text-align: center;#}
-{#            color: #444;#}
-{#        }#}
-{##}
-{#        h1 {#}
-{#            margin-top: 20px;#}
-{#            margin-bottom: 30px;#}
-{#        }#}
-{##}
-{#        h2 {#}
-{#            margin-top: 20px;#}
-{#            margin-bottom: 10px;#}
-{#        }#}
-{##}
-{#        .metrics, .method-complexity {#}
-{#            margin: 20px auto;#}
-{#            width: 90%;#}
-{#            background: #fff;#}
-{#            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);#}
-{#            border-radius: 8px;#}
-{#            padding: 20px;#}
-{#        }#}
-{##}
-{#        table {#}
-{#            width: 100%;#}
-{#            border-collapse: collapse;#}
-{#            margin-bottom: 20px;#}
-{#        }#}
-{##}
-{#        th, td {#}
-{#            border: 1px solid #ddd;#}
-{#            padding: 12px;#}
-{#            text-align: left;#}
-{#        }#}
-{##}
-{#        th {#}
-{#            background-color: #f4f4f4;#}
-{#            color: #555;#}
-{#        }#}
-{##}
-{#        .high-cbo {#}
-{#            background-color: #f8d7da;#}
-{#            color: #721c24;#}
-{#        }#}
-{##}
-{#        .low-cbo {#}
-{#            background-color: #d4edda;#}
-{#            color: #155724;#}
-{#        }#}
-{##}
-{##}
-{#        /* Button */#}
-{#        .btn {#}
-{#            display: inline-block;#}
-{#            padding: 8px 12px;#}
-{#            font-size: 14px;#}
-{#            color: #fff;#}
-{#            background-color: #007bff;#}
-{#            border: none;#}
-{#            border-radius: 4px;#}
-{#            cursor: pointer;#}
-{#            transition: background-color 0.3s;#}
-{#        }#}
-{##}
-{#        .btn:hover {#}
-{#            background-color: #0056b3;#}
-{#        }#}
-{##}
-{#        /* Modal Styles */#}
-{#        .modal {#}
-{#            display: none;#}
-{#            position: fixed;#}
-{#            top: 0;#}
-{#            left: 0;#}
-{#            width: 100%;#}
-{#            height: 100%;#}
-{#            background: rgba(0, 0, 0, 0.5);#}
-{#            justify-content: center;#}
-{#            align-items: center;#}
-{#            z-index: 1000;#}
-{#        }#}
-{##}
-{#        .modal-content {#}
-{#            background: #fff;#}
-{#            border-radius: 8px;#}
-{#            width: 80%;#}
-{#            max-width: 600px;#}
-{#            padding: 20px;#}
-{#            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);#}
-{#            position: relative;#}
-{#            text-align: center;#}
-{#        }#}
-{##}
-{#        .modal-content img {#}
-{#            max-width: 100%;#}
-{#            height: auto;#}
-{#            margin: 0 auto;#}
-{#        }#}
-{##}
-{#        .modal-header {#}
-{#            display: flex;#}
-{#            justify-content: space-between;#}
-{#            align-items: center;#}
-{#            border-bottom: 1px solid #ddd;#}
-{#            margin-bottom: 10px;#}
-{#        }#}
-{##}
-{#        .close {#}
-{#            font-size: 18px;#}
-{#            font-weight: bold;#}
-{#            cursor: pointer;#}
-{#            color: #444;#}
-{#        }#}
-{##}
-{#        .close:hover {#}
-{#            color: #000;#}
-{#        }#}
-{#    </style>#}
-{#</head>#}
-{#<body class="light-mode">#}
-{#<header id="header" class="bg-primary text-white text-center py-3">#}
-{#    <div class="d-flex align-items-center justify-content-between container">#}
-{#        <div class="d-flex align-items-center">#}
-{#            <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" class="logo-styling">#}
-{#        </div>#}
-{#        <h1 class="mb-0 text-center flex-grow-1" style="color: white">Code Harbor</h1>#}
-{#        <div class="toggle-container">#}
-{#            <span class="text-white me-2">Light</span>#}
-{#            <div id="toggle" class="toggle">#}
-{#                <div class="circle"></div>#}
-{#            </div>#}
-{#            <span class="text-white ms-2">Dark</span>#}
-{#        </div>#}
-{#    </div>#}
-{#    <p>Your tool for code analysis, defect detection, and formatting</p>#}
-{#</header>#}
-{##}
-{#<h1>Code Complexity Results for Java</h1>#}
-{##}
-{#<div class="container mt-4">#}
-{#    <h4 class="mt-5">Weighted Code Complexity (WCC) Equation</h4>#}
-{#    <strong><pre><code>WCC<sub>i</sub> = S<sub>i</sub> * (W<sub>c</sub> + W<sub>n</sub> + W<sub>i</sub> + W<sub>tc</sub> + W<sub>cc</sub> + W<sub>th</sub> + W<sub>cbo</sub>(high coupling) - W<sub>cbo</sub>(loose coupling))</code></pre></strong>#}
-{#</div>#}
-{##}
-{#<div class="container mt-4">#}
-{#    <h4 class="mt-5">Total WCC for the Class</h4>#}
-{#    <strong><pre><code>WCC<sub>total</sub> = Σ (WCC<sub>i</sub>) for i=1 to N</code></pre></strong>#}
-{#</div>#}
-{##}
-{##}
-{#<button class="btn btn-info" onclick="window.location.href='/guidelines/'">View Guidelines</button>#}
-{##}
-{##}
-{#{% for file in complexities %}#}
-{#    <div class="metrics">#}
-{#        <h2>Filename: {{ file.filename }}</h2>#}
-{#        <h2>Class Complexity</h2>#}
-{#        <table>#}
-{#            <thead>#}
-{#            <tr>#}
-{#                <th>Class Name</th>#}
-{#                <th>Complexity Score</th>#}
-{#                <th>Pie Chart</th>#}
-{#            </tr>#}
-{#            </thead>#}
-{#            <tbody>#}
-{#            {% for file in complexities %}#}
-{#                <tr>#}
-{#                    <td>{{ file.filename }}</td>#}
-{#                    <td>{{ file.total_wcc }}</td>#}
-{#                    <td>#}
-{#                        <button class="btn" onclick="showPieChart('{{ file.filename }}', '{{ file.pie_chart_path }}')">#}
-{#                            View Pie Chart#}
-{#                        </button>#}
-{#                    </td>#}
-{#                </tr>#}
-{#            {% endfor %}#}
-{#            </tbody>#}
-{#        </table>#}
-{#    </div>#}
-{##}
-{#    <div class="line-complexity">#}
-{#        <h3>Line Complexity Details</h3>#}
-{#        <table>#}
-{#            <thead>#}
-{#            <tr>#}
-{#                <th>Line Number</th>#}
-{#                <th>Line</th>#}
-{#                <th>S</th>#}
-{#                <th>Tokens</th>#}
-{#                <th>W<sub>c</sub></th>#}
-{#                <th>W<sub>n</sub></th>#}
-{#                <th>W<sub>i</sub></th>#}
-{#                <th>W<sub>cc</sub></th>#}
-{#                <th>W<sub>tc</sub></th>#}
-{#                <th>W<sub>th</sub></th>#}
-{#                <th>W<sub>cbo</sub></th>#}
-{#                        <th>MPC</th>#}
-{#                <th>Total Complexity</th>#}
-{#            </tr>#}
-{#            </thead>#}
-{#            <tbody>#}
-{#            {% for line in file.complexity_data %}#}
-{#                <tr>#}
-{#                    <td>{{ line.0 }}</td>#}
-{#                    <td>{{ line.1 }}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.2 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.3 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.4 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.5 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.6 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.7 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.8 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.9 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.10 }}{% endif %}</td>#}
-{#                    <td>{% if line.2 != 0 %}{{ line.11 }}{% endif %}</td>#}
-{#                        <td>{% if line.2 != 0 %}{{ line.12 }}{% endif %}</td>#}
-{#                </tr>#}
-{#            {% endfor %}#}
-{##}
-{#            <tr>#}
-{#                <td colspan="11" style="text-align: right; font-weight: bold;">Total WCC:</td>#}
-{#                <td style="font-weight: bold;">{{ file.total_wcc }}</td>#}
-{#            </tr>#}
-{#            </tbody>#}
-{#        </table>#}
-{#    </div>#}
-{##}
-{#    <div>#}
-{#        <h3>Complexity Reduction Recommendations</h3>#}
-{#        <table>#}
-{#            <thead>#}
-{#            <tr>#}
-{#                <th>Line Number</th>#}
-{#                <th>Line Content</th>#}
-{#                <th>Recommendation</th>#}
-{#            </tr>#}
-{#            </thead>#}
-{#            <tbody>#}
-{#            {% for rec in file.recommendations %}#}
-{#                <tr class="recommendation-row">#}
-{#                    <td>{{ rec.line_number }}</td>#}
-{#                    <td>{{ rec.line_content }}</td>#}
-{#                    <td class="recommendation-text">{{ rec.recommendation }}</td>#}
-{#                        <td>{{ rec.recommendation1 }}</td>#}
-{#                </tr>#}
-{#            {% endfor %}#}
-{#            </tbody>#}
-{#        </table>#}
-{#    </div>#}
-{##}
-{#    <!-- CBO Prediction Results -->#}
-{#    <h3>🔍 CBO Analysis</h3>#}
-{#    <table>#}
-{#        <thead>#}
-{#        <tr>#}
-{#            <th>File Name</th>#}
-{#            <th>CBO Prediction</th>#}
-{#            <th>Recommendations</th>#}
-{#        </tr>#}
-{#        </thead>#}
-{#        <tbody>#}
-{#        {% for cbo in cbo_predictions %}#}
-{#            {% if cbo.filename == file.filename %}#}
-{#                <tr class="{% if cbo.prediction == 'High CBO (Issue)' %}high-cbo{% else %}low-cbo{% endif %}">#}
-{#                    <td>{{ cbo.filename }}</td>#}
-{#                    <td>{{ cbo.prediction }}</td>#}
-{#                    <td>#}
-{#                        {% if cbo.recommendations %}#}
-{#                            <ul>#}
-{#                                {% for rec in cbo.recommendations %}#}
-{#                                    <li>{{ rec }}</li>#}
-{#                                {% endfor %}#}
-{#                            </ul>#}
-{#                        {% else %}#}
-{#                            ✅ No critical issues detected.#}
-{#                        {% endif %}#}
-{#                    </td>#}
-{#                </tr>#}
-{#            {% endif %}#}
-{#        {% endfor %}#}
-{#        </tbody>#}
-{#    </table>#}
-{##}
-{#    <div class="method-complexity">#}
-{#        <h3>Method Complexity Details</h3>#}
-{#        <table>#}
-{#            <thead>#}
-{#            <tr>#}
-{#                <th>Method Name</th>#}
-{#                <th>S</th>#}
-{#                <th>W<sub>c</sub></th>#}
-{#                <th>W<sub>n</sub></th>#}
-{#                <th>W<sub>i</sub></th>#}
-{#                <th>W<sub>cc</sub></th>#}
-{#                <th>W<sub>tc</sub></th>#}
-{#                <th>W<sub>th</sub></th>#}
-{#                <th>W<sub>cbo</sub></th>#}
-{#                <th>Total Complexity</th>#}
-{#                <th>Category</th>#}
-{#                <th>Bar Chart</th>#}
-{#            </tr>#}
-{#            </thead>#}
-{#            <tbody>#}
-{#            {% for method in file.method_complexities %}#}
-{#                <tr#}
-{#                        style="#}
-{#                                {% if method.category == 'High' %}background-color: #f8d7da; color: #721c24;{% endif %}#}
-{#                                {% if method.category == 'Medium' %}background-color: #fff3cd; color: #856404;{% endif %}#}
-{#                                {% if method.category == 'Low' %}background-color: #d4edda; color: #155724;{% endif %}#}
-{#                                "#}
-{#                >#}
-{#                    <td>{{ method.method_name }}</td>#}
-{#                    <td>{{ method.size }}</td>#}
-{#                    <td>{{ method.control_structure_complexity }}</td>#}
-{#                    <td>{{ method.nesting_level }}</td>#}
-{#                    <td>{{ method.inheritance_level }}</td>#}
-{#                    <td>{{ method.compound_condition_weight }}</td>#}
-{#                    <td>{{ method.try_catch_weight }}</td>#}
-{#                    <td>{{ method.thread_weight }}</td>#}
-{#                    <td>{{ method.cbo_weights }}</td>#}
-{#                    <td>{{ method.total_complexity }}</td>#}
-{#                    <td>{{ method.category }}</td>#}
-{#                    <td>#}
-{#                        <button class="btn"#}
-{#                                onclick="showBarChart('{{ method.method_name }}', '{{ method.bar_chart }}')">View Chart#}
-{#                        </button>#}
-{#                    </td>#}
-{#                </tr>#}
-{#            {% endfor %}#}
-{#            </tbody>#}
-{#        </table>#}
-{#    </div>#}
-{#{% endfor %}#}
-{##}
-{#<a href="/">Upload More Files</a>#}
-{##}
-{#<!-- Footer -->#}
-{#<footer class="bg-dark text-white text-center py-3">#}
-{#    <p>&copy; 2024 Code Harbor. All rights reserved.</p>#}
-{#</footer>#}
-{#<div id="barChartModal" class="modal">#}
-{#    <div class="modal-content">#}
-{#        <div class="modal-header">#}
-{#            <h3 id="modalMethodName"></h3>#}
-{#            <span class="close" onclick="closeModal()">&times;</span>#}
-{#        </div>#}
-{#        <img id="modalBarChart" src="" alt="Bar Chart">#}
-{#    </div>#}
-{#</div>#}
-{##}
-{#<div id="chartModal" class="modal">#}
-{#    <div class="modal-content">#}
-{#        <div class="modal-header">#}
-{#            <h3 id="modalChartTitle"></h3>#}
-{#            <span class="close" onclick="closeModal()">&times;</span>#}
-{#        </div>#}
-{#        <img id="modalPieChart" src="" alt="Pie Chart">#}
-{#    </div>#}
-{#</div>#}
-{##}
-{#<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>#}
-{#<script>#}
-{##}
-{#    const toggle = document.getElementById('toggle');#}
-{#    const body = document.body;#}
-{##}
-{#    toggle.addEventListener('click', () => {#}
-{#        body.classList.toggle('dark-mode');#}
-{#        toggle.classList.toggle('dark');#}
-{#    });#}
-{##}
-{#    document.addEventListener('DOMContentLoaded', () => {#}
-{#        const recommendationRows = document.querySelectorAll('.recommendation-row');#}
-{#        recommendationRows.forEach(row => {#}
-{#            const recommendationText = row.querySelector('.recommendation-text').textContent;#}
-{#            console.log(recommendationText)#}
-{#            if (recommendationText.toLowerCase().includes('urgent refactor')) {#}
-{#                console.log("Hi")#}
-{#                alert(`Urgent refactor recommendation found: ${recommendationText}`);#}
-{#            }#}
-{#        });#}
-{#    });#}
-{##}
-{##}
-{#    function showBarChart(methodName, chartPath) {#}
-{#        // Set the method name and bar chart in the modal#}
-{#        document.getElementById('modalMethodName').textContent = `Bar Chart for Method: ${methodName}`;#}
-{#        document.getElementById('modalBarChart').src = `/static/images/${chartPath}`;#}
-{##}
-{#        // Display the modal#}
-{#        document.getElementById('barChartModal').style.display = 'flex';#}
-{#    }#}
-{##}
-{#    function closeModal() {#}
-{#        // Hide the modal#}
-{#        document.getElementById('barChartModal').style.display = 'none';#}
-{#    }#}
-{##}
-{#    // Close modal when clicking outside the content#}
-{#    window.onclick = function (event) {#}
-{#        const modal = document.getElementById('barChartModal');#}
-{#        if (event.target === modal) {#}
-{#            closeModal();#}
-{#        }#}
-{#    }#}
-{##}
-{#    function showPieChart(filename, pieChartData) {#}
-{#        document.getElementById('modalChartTitle').textContent = `Pie Chart for Class: ${filename}`;#}
-{#        document.getElementById('modalPieChart').src = `/static/images/${pieChartData}`;#}
-{##}
-{#        // Display the modal#}
-{#        document.getElementById('chartModal').style.display = 'flex';#}
-{##}
-{#    }#}
-{##}
-{#    function closeModal1() {#}
-{#        document.getElementById('chartModal').style.display = 'none';#}
-{#    }#}
-{##}
-{#    // Close modal on clicking outside#}
-{#    window.onclick = function (event) {#}
-{#        const modal = document.getElementById('chartModal');#}
-{#        if (event.target === modal) {#}
-{#            closeModal1();#}
-{#        }#}
-{#    }#}
-{#</script>#}
-{##}
-{#</body>#}
-{#</html>#}
-
-
 {% extends 'base.html' %}
 {% load static %}
 
@@ -798,6 +342,57 @@
             font-size: 14px;
             padding-bottom: 5px;
         }
+
+        .complexity-legend {
+            display: flex;
+            justify-content: center; /* Center the legend */
+            gap: 20px; /* Space between legend items */
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            width: fit-content;
+            margin: 0 auto 20px auto; /* Center horizontally & add spacing */
+            border-bottom: 2px solid #c9d1d9; /* Add bottom border to separate */
+        }
+
+        /* 🔹 Legend Items */
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        /* 🔹 Small Colored Boxes */
+        .complexity-box {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        /* 🔹 Color Coding */
+        .high {
+            background-color: red;
+            border: 1px solid #721c24;
+        }
+
+        .medium {
+            background-color: yellow;
+            border: 1px solid #856404;
+        }
+
+        .low {
+            background-color: green;
+            border: 1px solid #155724;
+        }
+
+        /* 🔹 Adjust the Heading */
+        h3 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
     </style>
 
     <h1 class="container">Code Complexity Results for Java</h1>
@@ -893,6 +488,20 @@
 
         <div class="container mt-5">
             <h3>Method Complexity Details</h3>
+            <div class="complexity-legend">
+                <div class="legend-item">
+                    <span class="complexity-box high"></span>
+                    <strong style="color: #721c24;">High Complexity</strong> - Requires Refactoring
+                </div>
+                <div class="legend-item">
+                    <span class="complexity-box medium"></span>
+                    <strong style="color: #856404;">Medium Complexity</strong> - Consider Optimization
+                </div>
+                <div class="legend-item">
+                    <span class="complexity-box low"></span>
+                    <strong style="color: #155724;">Low Complexity</strong> - Optimal Code
+                </div>
+            </div>
             <table class="method-complexity-table">
                 <thead>
                 <tr>
@@ -913,10 +522,10 @@
                 <tbody>
                 {% for method in file.method_complexities %}
                     <tr style="
-                                {% if method.category == 'High' %}background-color: #f8d7da; color: #721c24;{% endif %}
-                                {% if method.category == 'Medium' %}background-color: #fff3cd; color: #856404;{% endif %}
-                                {% if method.category == 'Low' %}background-color: #d4edda; color: #155724;{% endif %}
-                                ">
+                            {% if method.category == 'High' %}background-color: #f8d7da; color: #721c24;{% endif %}
+                            {% if method.category == 'Medium' %}background-color: #fff3cd; color: #856404;{% endif %}
+                            {% if method.category == 'Low' %}background-color: #d4edda; color: #155724;{% endif %}
+                            ">
                         <td>{{ method.method_name }}</td>
                         <td>{{ method.size }}</td>
                         <td>{{ method.control_structure_complexity }}</td>
