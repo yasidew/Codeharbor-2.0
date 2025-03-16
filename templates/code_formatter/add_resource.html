@@ -7,10 +7,10 @@
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
             <div class="logo">
-                <a href="#" class="simple-text logo-mini">
+                <a href="http://127.0.0.1:8000" class="simple-text logo-mini">
                     <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
                 </a>
-                <a href="#" class="simple-text logo-normal">Code Harbor</a>
+                <a href="http://127.0.0.1:8000" class="simple-text logo-normal">Code Harbor</a>
             </div>
             <ul class="nav">
                 <li><a href="{% url 'refactor_view' %}"><i class="bi bi-code-slash"></i>
@@ -56,51 +56,51 @@
 
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-white text-center mb-4">Add a Design Pattern Resource</h2>
+    <div class="container mt-5">
+        <h2 class="text-white text-center mb-4">Add a Design Pattern Resource</h2>
 
-    <div class="card bg-dark text-white p-4">
-        <form method="post">
-            {% csrf_token %}
+        <div class="card bg-dark text-white p-4">
+            <form method="post">
+                {% csrf_token %}
 
-            <!-- Pattern Name -->
-            <div class="form-group mb-3">
-                <label class="text-white">Pattern Name:</label>
-                {{ form.pattern_name }}
-            </div>
+                <!-- Pattern Name -->
+                <div class="form-group mb-3">
+                    <label class="text-white">Pattern Name:</label>
+                    {{ form.pattern_name }}
+                </div>
 
-            <!-- Description -->
-            <div class="form-group mb-3">
-                <label class="text-white">Description:</label>
-                {{ form.description }}
-            </div>
+                <!-- Description -->
+                <div class="form-group mb-3">
+                    <label class="text-white">Description:</label>
+                    {{ form.description }}
+                </div>
 
-            <!-- Link -->
-            <div class="form-group mb-3">
-                <label class="text-white">Resource Link:</label>
-                {{ form.link }}
-            </div>
+                <!-- Link -->
+                <div class="form-group mb-3">
+                    <label class="text-white">Resource Link:</label>
+                    {{ form.link }}
+                </div>
 
-            <!-- Category -->
-            <div class="form-group mb-3">
-                <label class="text-white">Category:</label>
-                {{ form.category }}
-            </div>
+                <!-- Category -->
+                <div class="form-group mb-3">
+                    <label class="text-white">Category:</label>
+                    {{ form.category }}
+                </div>
 
-            <button type="submit" class="btn btn-primary w-100">➕ Save Resource</button>
-        </form>
+                <button type="submit" class="btn btn-primary w-100">➕ Save Resource</button>
+            </form>
 
-        <a href="{% url 'list_resources' %}" class="btn btn-secondary mt-3 w-100">📚 View All Resources</a>
+            <a href="{% url 'list_resources' %}" class="btn btn-secondary mt-3 w-100">📚 View All Resources</a>
+        </div>
     </div>
-</div>
 
-<style>
-    select, textarea, input {
-        background-color: #222 !important;
-        color: white !important;
-        border: 1px solid #666 !important;
-        padding: 10px;
-        width: 100%;
-    }
-</style>
+    <style>
+        select, textarea, input {
+            background-color: #222 !important;
+            color: white !important;
+            border: 1px solid #666 !important;
+            padding: 10px;
+            width: 100%;
+        }
+    </style>
 {% endblock %}
