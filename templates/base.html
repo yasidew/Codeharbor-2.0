@@ -21,7 +21,7 @@
 
     <!-- Toastify CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Toastify JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </head>
@@ -44,7 +44,8 @@
                         <p>Guidelines</p></a></li>
                     <li><a href="{% url 'calculate_complexity_line_by_line' %}"><i class="fa-brands fa-java"></i>
                         <p>Java WCC Calculator</p></a></li>
-                    <li><a href="{% url 'calculate_complexity_line_by_line_csharp' %}"><i class="fa-brands fa-microsoft"></i>
+                    <li><a href="{% url 'calculate_complexity_line_by_line_csharp' %}"><i
+                            class="fa-brands fa-microsoft"></i>
                         <p>C# WCC Calculator</p></a></li>
                     <li><a href="{% url 'calculate_complexity-excel' %}"><i class="bi bi-graph-up"></i>
                         <p>Statical Analysis</p></a></li>
@@ -110,17 +111,16 @@
 <script>
 
     function logoutUser() {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            alert("You have logged out.");
-            window.location.href = '/login'; // Redirect to login page
-        }
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        alert("You have logged out.");
+        window.location.href = '/login'; // Redirect to login page
+    }
 
-        // Logout functionality
-        document.getElementById('logoutButton').addEventListener('click', logoutUser);
+    // Logout functionality
+    document.getElementById('logoutButton').addEventListener('click', logoutUser);
 
     document.getElementById('logoutLink').addEventListener('click', logoutUser);
-
 
 
     function showToast(message, type = "success") {
@@ -135,6 +135,9 @@
                 break;
             case "warning":
                 backgroundColor = "linear-gradient(to right, #FFA500, #FF8C00)"; // Orange ⚠️
+                break;
+            case "info":
+                backgroundColor = "linear-gradient(to right, #2196F3, #1976D2)"; // Blue ℹ️
                 break;
             default:
                 backgroundColor = "linear-gradient(to right, #333, #555)"; // Default Grey
