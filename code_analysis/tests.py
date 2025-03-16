@@ -48,6 +48,27 @@ class CodeAnalysisTest(TestCase):
         self.assertEqual(saved_snippet.ai_suggestion, "Use print() efficiently.")
         self.assertEqual(saved_snippet.model_suggestion, "Refactor using a logger.")
 
+
+    def test_reject_non_python_code(self):
+        """✅ Test if the system rejects non-Python code with an appropriate error message."""
+        non_python_code = "<html><body><h1>Not Python Code</h1></body></html>"
+        response = self.client.post(self.analysis_url, {
+            'code': non_python_code,
+            'project_name': 'Test Project'
+        })
+
+        self.assertEqual(response.status_code, 200)  # View should render the page, not crash
+        self.assertContains(response, "Error: The uploaded file `Pasted Code` is not valid Python code.")
+
+
+    def test_empty_code_submission(self):
+        """✅ Test if the view returns an error when no code is provided."""
+        response = self.client.post(self.analysis_url, {'code': '', 'project_name': 'Test Project'})
+
+        self.assertEqual(response.status_code, 200)  # Should render the page, not fail
+        self.assertContains(response, "No code provided for analysis.")  # Check error message
+
+
     # def test_invalid_code_submission(self):
     #     """❌ Test if the view returns an error when no code is provided."""
     #     response = self.client.post(self.analysis_url, {'code': ''})
