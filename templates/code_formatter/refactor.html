@@ -66,6 +66,12 @@
                 <span class="text-white">Use Guidelines</span>
             </div>
 
+            <!-- Suggested Design Pattern -->
+            <div id="suggested-pattern" class="d-flex align-items-center mb-3" style="display: none;">
+                <span class="badge bg-primary text-white p-2 me-2">Suggested Design Pattern:</span>
+                <span id="pattern-name" class="text-warning fw-bold"></span>
+            </div>
+
             <!-- Monaco Code Editor for Original Code -->
             <div class="card bg-dark p-4">
                 <h5 class="text-white">Original Code</h5>
@@ -169,6 +175,16 @@
             diffEditor = monaco.editor.createDiffEditor(document.getElementById('codeDiffViewer'), {
                 theme: "vs-dark",
                 readOnly: true
+            });
+
+            // Detect when the user enters code and trigger pattern detection
+            editor.onDidChangeModelContent(async () => {
+                const code = editor.getValue();
+                if (code.trim().length > 5) {  // Avoid triggering for empty input
+                    fetchDesignPattern(code);
+                } else {
+                    document.getElementById("suggested-pattern").style.display = "none";
+                }
             });
         });
 
@@ -541,6 +557,32 @@
                 console.error("Modal element not found!");
             }
         }
+
+        async function fetchDesignPattern(code) {
+            try {
+                const response = await fetch('/code-formatter/get-pattern/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({code}),
+                });
+
+                const data = await response.json();
+                if (response.ok && data.pattern) {
+                    document.getElementById("pattern-name").innerText = data.pattern;
+                    document.getElementById("suggested-pattern").style.display = "flex";
+                } else {
+                    document.getElementById("suggested-pattern").style.display = "none";
+                }
+            } catch (error) {
+                console.error("Error fetching design pattern:", error);
+                document.getElementById("suggested-pattern").style.display = "none";
+            }
+        }
+
+
     </script>
     <style>
         /* Monaco Editor Full Size */
@@ -699,6 +741,7 @@
         .clickable-row {
             cursor: pointer;
         }
+
 
 
     </style>
