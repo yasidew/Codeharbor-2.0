@@ -50,3 +50,5 @@ class GitGameScore(models.Model):
         return (
             f"User ID: {self.user.id} | Game ID: {self.game.id} | Challenge ID: {self.github_challenge.id if self.github_challenge else 'None'} | "
             f"Score: {self.score} | Critical: {self.critical_score} | Serious: {self.serious_score} | Moderate: {self.moderate_score} | Minor: {self.minor_score}")
+
+
