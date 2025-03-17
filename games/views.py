@@ -328,3 +328,62 @@ def store_user_badge(request):
         "total_critical_score": total_critical_score,
         "assigned_badge": assigned_badge.name
     })
+
+@api_view(["POST"])
+def store_user_challenge_badge(request):
+    """
+    Assigns a badge based on the number of unique challenges a user has completed.
+    A user can have multiple badges, including challenge-based and critical-score-based badges.
+    """
+
+    # Extract data from request
+    user_id = request.data.get("user_id")
+
+    if not user_id:
+        return Response({"error": "Missing required field: user_id"}, status=400)
+
+    # Get user
+    user = get_object_or_404(User, id=user_id)
+
+    # ✅ Count the number of unique challenges the user has completed
+    total_completed_challenges = (
+        GitGameScore.objects.filter(user=user)
+        .values("github_challenge")  # Get unique challenge IDs
+        .distinct()
+        .count()
+    )
+
+    print(f"🔹 Total Completed Challenges for {user.username}: {total_completed_challenges}")  # Debugging
+
+    # ✅ Define badge criteria based on completed challenges
+    badge_criteria = [
+        ("Master Challenger", 5),
+        ("Expert Challenger", 4),
+        ("Pro Challenger", 3),
+        ("Advanced Challenger", 2),
+        ("Beginner Challenger", 1),
+    ]
+
+    # ✅ Determine which badge the user should receive
+    assigned_badge = None
+    for badge_name, min_challenges in badge_criteria:
+        if total_completed_challenges >= min_challenges:
+            assigned_badge, _ = Badge.objects.get_or_create(
+                name=badge_name,
+                defaults={"description": f"Awarded for completing {min_challenges}+ unique challenges."}
+            )
+            break  # Stop after finding the highest matching badge
+
+    if not assigned_badge:
+        return Response({"error": "No appropriate badge found for the given challenge count."}, status=400)
+
+    # ✅ Assign the new badge without removing any existing ones
+    UserBadge.objects.get_or_create(user=user, badge=assigned_badge)
+
+    return Response({
+        "message": f"Badge '{assigned_badge.name}' assigned to {user.username}.",
+        "user_id": user.id,
+        "username": user.username,
+        "total_completed_challenges": total_completed_challenges,
+        "assigned_badge": assigned_badge.name
+    })
