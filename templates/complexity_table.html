@@ -445,6 +445,50 @@
             opacity: 1;
         }
 
+        {#    model reccomendation #}
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            background-color: #0d1117;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            color: #c9d1d9;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .modal-content {
+            background-color: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        h3, h4 {
+            color: #58a6ff;
+        }
+
+        pre {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            white-space: pre;
+            display: block;
+        }
+
     </style>
 
     <h1 class="container">Code Complexity Results for Java</h1>
@@ -609,6 +653,7 @@
                     <th>Line Number</th>
                     <th>Line Content</th>
                     <th>Recommendation</th>
+                    <th>Refactoring Example</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -618,6 +663,16 @@
                             <td>{{ rec.line_number }}</td>
                             <td>{{ rec.line_content }}</td>
                             <td class="recommendation-text">{{ rec.recommendation }}</td>
+                            <td>
+                                {% if rec.recommendation %}
+                                    <button class="btn btn-info"
+                                            onclick="showRefactorExample('{{ rec.recommendation }}')">
+                                        View Example
+                                    </button>
+                                {% else %}
+                                    No Example Available
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 {% else %}
@@ -687,8 +742,23 @@
 
 
     <a href="/">Upload More Files</a>
+    <div id="refactorModal" class="modal">
+        <div class="modal-content">
+            <h3 id="refactorTitle"></h3>
+
+            <h4>Before Refactoring</h4>
+            <pre><code id="beforeRefactor" class="language-java"></code></pre>
+
+            <h4>After Refactoring</h4>
+            <pre><code id="afterRefactor" class="language-java"></code></pre>
+
+            <button onclick="closeRefactorModal()" class="btn">Close</button>
+        </div>
+    </div>
 
     <div id="customToast" class="custom-toast"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             console.log("✅ DOM fully loaded. Checking for High Complexity methods...");
@@ -729,6 +799,341 @@
                 console.log("✅ No High Complexity methods found.");
             }
         });
+
+        const refactoringExamples = {
+            "Refactor: Optimize loop nesting by breaking logic into smaller functions or using iterators.": {
+                before: `
+public void processData(List<List<Integer>> data) {
+    for (List<Integer> row : data) {
+        for (Integer num : row) {
+            if (num > 0) {
+                System.out.println(num);
+            }
+        }
+    }
+}`,
+                after: `
+public void processData(List<List<Integer>> data) {
+    for (List<Integer> row : data) {
+        processRow(row);
+    }
+}
+
+private void processRow(List<Integer> row) {
+    row.stream().filter(num -> num > 0).forEach(System.out::println);
+}`
+            },
+
+            "Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.": {
+                before: `
+public void processOrder(Order order) {
+    if (order != null) {
+        if (order.isPaid()) {
+            if (order.getItems() != null) {
+                if (!order.getItems().isEmpty()) {
+                    System.out.println("Processing order...");
+                }
+            }
+        }
+    }
+}`,
+                after: `
+public void processOrder(Order order) {
+    if (order == null || order.getItems() == null || order.getItems().isEmpty() || !order.isPaid()) {
+        return;
+    }
+    System.out.println("Processing order...");
+}`
+            },
+            "Refactor: Minimize switch-case complexity by using polymorphism or strategy pattern.": {
+                before: `
+public class PaymentProcessor {
+    public void processPayment(String paymentType) {
+        switch (paymentType) {
+            case "CREDIT_CARD":
+                System.out.println("Processing Credit Card...");
+                break;
+            case "PAYPAL":
+                System.out.println("Processing PayPal...");
+                break;
+            case "BITCOIN":
+                System.out.println("Processing Bitcoin...");
+                break;
+            default:
+                System.out.println("Invalid Payment Type");
+        }
+    }
+}`,
+                after: `
+pinterface Payment {
+    void process();
+}
+
+class CreditCardPayment implements Payment {
+    public void process() {
+        System.out.println("Processing Credit Card...");
+    }
+}
+
+class PayPalPayment implements Payment {
+    public void process() {
+        System.out.println("Processing PayPal...");
+    }
+}
+
+class BitcoinPayment implements Payment {
+    public void process() {
+        System.out.println("Processing Bitcoin...");
+    }
+}
+
+class PaymentProcessor {
+    public void processPayment(Payment payment) {
+        payment.process();
+    }
+}`
+            },
+
+            "Refactor: Reduce excessive try-catch nesting by isolating error-prone logic into separate functions.": {
+                before: `
+public void readFile(String path) {
+    try {
+        FileReader file = new FileReader(path);
+        try {
+            BufferedReader br = new BufferedReader(file);
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading file.");
+        }
+    } catch (FileNotFoundException e) {
+        System.out.println("File not found.");
+    }
+}`,
+                after: `
+public void readFile(String path) {
+    try {
+        BufferedReader br = openFile(path);
+        readLines(br);
+    } catch (FileNotFoundException e) {
+        System.out.println("File not found.");
+    } catch (IOException e) {
+        System.out.println("Error reading file.");
+    }
+}
+
+private BufferedReader openFile(String path) throws FileNotFoundException {
+    return new BufferedReader(new FileReader(path));
+}
+
+private void readLines(BufferedReader br) throws IOException {
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+}`
+            },
+            "Refactor: Simplify complex conditions using boolean variables or encapsulating logic in functions.": {
+                before: `
+public boolean canAccess(User user) {
+    return user != null && user.isActive() && user.getRole().equals("ADMIN") && user.getPermissions().contains("ACCESS");
+}`,
+                after: `
+public boolean canAccess(User user) {
+    if (user == null) return false;
+
+    boolean isAdmin = user.getRole().equals("ADMIN");
+    boolean hasPermission = user.getPermissions().contains("ACCESS");
+
+    return user.isActive() && isAdmin && hasPermission;
+}`
+            },
+
+            "Refactor: Reduce deep inheritance by favoring composition over inheritance.": {
+                before: `
+class Animal {
+    void makeSound() {}
+}
+
+class Mammal extends Animal {
+    void walk() {}
+}
+
+class Dog extends Mammal {
+    void bark() {}
+}
+
+class Labrador extends Dog {
+    void swim() {}
+}`,
+                after: `
+class Sound {
+    void makeSound() { System.out.println("Making sound"); }
+}
+
+class Movement {
+    void walk() { System.out.println("Walking"); }
+}
+
+class Dog {
+    private Sound sound = new Sound();
+    private Movement movement = new Movement();
+
+    void bark() { System.out.println("Barking"); }
+    void walk() { movement.walk(); }
+    void makeSound() { sound.makeSound(); }
+}`
+            },
+            "Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.": {
+                before: `
+class Employee {
+    void work() {}
+}
+
+class Manager extends Employee {
+    void delegate() {}
+}
+
+class Director extends Manager {
+    void makeDecisions() {}
+}
+
+class CEO extends Director {
+    void strategize() {}
+}`,
+                after: `
+interface Workable { void work(); }
+interface Delegator { void delegate(); }
+interface DecisionMaker { void makeDecisions(); }
+interface Strategist { void strategize(); }
+
+class Employee implements Workable {
+    public void work() { System.out.println("Working"); }
+}
+
+class Manager implements Workable, Delegator {
+    public void work() { System.out.println("Managing"); }
+    public void delegate() { System.out.println("Delegating"); }
+}
+
+class CEO implements Workable, Strategist {
+    public void work() { System.out.println("CEO Working"); }
+    public void strategize() { System.out.println("Strategizing"); }
+}`
+            },
+            "Refactor: Reduce nested if-statements and simplify complex conditions using helper functions or early returns.": {
+                before: `
+public boolean isValidUser(User user) {
+    if (user != null) {
+        if (user.getAge() > 18) {
+            if (user.hasValidSubscription()) {
+                return true;
+            }
+        }
+    }
+    return false;
+}`,
+                after: `
+public boolean isValidUser(User user) {
+    if (user == null) return false;
+    if (user.getAge() <= 18) return false;
+    return user.hasValidSubscription();
+}`
+            },
+            "Refactor: Reduce deeply nested for-loops and simplify conditions using helper functions.": {
+                before: `
+public void processOrders(List<List<Order>> orders) {
+    for (List<Order> orderBatch : orders) {
+        for (Order order : orderBatch) {
+            if (order.isPaid()) {
+                if (order.hasValidAddress()) {
+                    if (order.getTotalAmount() > 0) {
+                        System.out.println("Processing Order: " + order.getId());
+                    }
+                }
+            }
+        }
+    }
+}`,
+                after: `
+public void processOrders(List<List<Order>> orders) {
+    for (List<Order> orderBatch : orders) {
+        orderBatch.stream()
+            .filter(this::isValidOrder)
+            .forEach(order -> System.out.println("Processing Order: " + order.getId()));
+    }
+}
+
+private boolean isValidOrder(Order order) {
+    return order.isPaid() && order.hasValidAddress() && order.getTotalAmount() > 0;
+}`
+            },
+            "Refactor: Flatten try-catch blocks by handling specific exceptions separately.": {
+                before: `
+public void readFile(String filePath) {
+    try {
+        File file = new File(filePath);
+        FileReader fileReader = new FileReader(file);
+        BufferedReader reader = new BufferedReader(fileReader);
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        reader.close();
+    } catch (FileNotFoundException e) {
+        System.out.println("Error: File not found - " + e.getMessage());
+    } catch (IOException e) {
+        System.out.println("Error: Unable to read file - " + e.getMessage());
+    } catch (Exception e) {
+        System.out.println("Unexpected Error: " + e.getMessage());
+    }
+}`,
+                after: `
+public void readFile(String filePath) {
+    try (BufferedReader reader = new BufferedReader(new FileReader(new File(filePath)))) {
+        reader.lines().forEach(System.out::println);
+    } catch (FileNotFoundException e) {
+        handleFileNotFound(e);
+    } catch (IOException e) {
+        handleIOException(e);
+    } catch (Exception e) {
+        handleUnexpectedError(e);
+    }
+}
+
+private void handleFileNotFound(FileNotFoundException e) {
+    System.out.println("Error: File not found - " + e.getMessage());
+}
+
+private void handleIOException(IOException e) {
+    System.out.println("Error: Unable to read file - " + e.getMessage());
+}
+
+private void handleUnexpectedError(Exception e) {
+    System.out.println("Unexpected Error: " + e.getMessage());
+}`
+            }
+        };
+
+        function showRefactorExample(refactorLabel) {
+            if (refactoringExamples[refactorLabel]) {
+                document.getElementById('refactorTitle').textContent = `${refactorLabel}`;
+                document.getElementById('beforeRefactor').textContent = refactoringExamples[refactorLabel].before;
+                document.getElementById('afterRefactor').textContent = refactoringExamples[refactorLabel].after;
+                document.getElementById('refactorModal').style.display = 'flex';
+
+                Prism.highlightAll();
+            } else {
+                alert("No refactoring example available for this label.");
+            }
+        }
+
+        function closeRefactorModal() {
+            document.getElementById('refactorModal').style.display = 'none';
+        }
 
     </script>
 

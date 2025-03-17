@@ -74,7 +74,6 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 0,1,1,0,1,No action needed
 1,1,2,0,1,No action needed
 1,1,3,0,1,No action needed
-2,5,0,0,1,Refactor: Optimize loop nesting by breaking logic into smaller functions or using iterators.
 0,3,0,0,1,No action needed
 1,5,1,0,1,Critical refactor: High complexity and if nesting
 0,0,0,5,2,Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity
@@ -150,7 +149,6 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 1,7,2,0,3,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 1,7,2,0,4,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 1,7,2,0,5,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
-1,6,2,0,1,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 1,6,2,0,2,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 1,6,2,0,3,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 1,6,2,0,4,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
@@ -192,9 +190,6 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 1,8,4,0,5,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 2,3,0,0,1,No action needed
 3,2,1,0,1,No action needed
-1,8,2,0,1,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
-1,8,2,0,2,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
-1,8,2,0,3,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 2,4,0,0,1,No action needed
 1,5,4,0,1,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 1,5,4,0,2,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
@@ -211,11 +206,8 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 0,9,0,0,1,No action needed
 6,2,1,0,1,No action needed
 6,1,1,0,1,No action needed
-0,0,0,4,2,Refactor: Flatten try-catch blocks by handling specific exceptions separately.
 0,0,0,3,2,No action needed
-0,0,0,5,3,Refactor: Flatten try-catch blocks by handling specific exceptions separately.
 0,0,0,2,3,No action needed
-0,0,0,4,3,Refactor: Flatten try-catch blocks by handling specific exceptions separately.
 0,0,0,3,3,No action needed
 0,0,0,1,3,No action needed
 1,1,2,0,3,No action needed
@@ -245,12 +237,9 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 1,1,3,0,3,No action needed
 2,5,0,0,3,Refactor: Optimize loop nesting by breaking logic into smaller functions or using iterators.
 0,3,0,0,3,No action needed
-1,5,1,0,3,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 0,1,0,3,2,No action needed
-1,6,2,0,2,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 0,6,0,0,2,No action needed
 0,1,0,3,3,No action needed
-1,6,2,0,3,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 0,6,0,0,3,No action needed
 0,3,1,0,1,No action needed
 5,8,0,0,3,Refactor: Minimize switch-case complexity by using polymorphism or strategy pattern.
@@ -262,9 +251,6 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 3,8,0,0,3,Refactor: Minimize switch-case complexity by using polymorphism or strategy pattern.
 3,8,0,0,2,Refactor: Minimize switch-case complexity by using polymorphism or strategy pattern.
 3,8,0,0,1,Refactor: Minimize switch-case complexity by using polymorphism or strategy pattern.
-0,0,0,6,1,Refactor: Reduce excessive try-catch nesting by isolating error-prone logic into separate functions.
-0,0,0,6,2,Refactor: Reduce excessive try-catch nesting by isolating error-prone logic into separate functions.
-0,0,0,6,3,Refactor: Reduce excessive try-catch nesting by isolating error-prone logic into separate functions.
 4,6,1,0,1,Refactor: Minimize switch-case complexity by using polymorphism or strategy pattern.
 1,7,1,0,1,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
 4,2,1,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
@@ -275,14 +261,9 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 1,1,2,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 0,1,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 1,2,2,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-0,0,0,1,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 0,0,0,2,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-0,0,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 2,1,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-0,1,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-1,2,2,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 0,2,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-2,1,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 0,8,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 1,3,1,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 1,4,1,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
@@ -292,13 +273,9 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 6,2,1,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 6,1,1,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 1,1,1,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-0,2,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 3,1,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-0,1,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 2,2,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-2,1,0,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 1,2,1,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
-1,2,2,0,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 0,2,0,1,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 0,3,0,1,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
 0,1,0,1,4,Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.
@@ -309,18 +286,12 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 0,3,2,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,0,0,3,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,0,0,1,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-0,0,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 1,1,2,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,1,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 1,2,2,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-0,0,0,1,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,0,0,2,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-0,0,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 2,1,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-0,1,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-1,2,2,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,2,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-2,1,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,8,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 1,3,1,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 1,4,1,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
@@ -330,16 +301,13 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 6,2,1,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 6,1,1,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 1,1,1,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-0,2,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 3,1,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-0,1,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 2,2,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-2,1,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 1,2,1,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
-1,2,2,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,2,0,1,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,3,0,1,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 0,1,0,1,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 3,2,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 3,2,0,1,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 5,2,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
+1,5,5,0,1,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
