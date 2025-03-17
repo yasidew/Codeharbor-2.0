@@ -1055,6 +1055,74 @@ def split_code_snippets(code_snippet):
         return []  # Return an empty list if parsing fails
 
 
+# def split_code_snippets(code_snippet):
+#     """
+#     Splits the input code snippet into smaller segments: functions, class methods, or standalone statements.
+#     """
+#     try:
+#         tree = ast.parse(code_snippet)
+#         snippets = []
+#         last_pos = 0
+#
+#         for node in tree.body:
+#             if isinstance(node, ast.FunctionDef):  # ✅ Handle function separately
+#                 function_code = ast.get_source_segment(code_snippet, node)
+#
+#                 # ✅ If function is too long, split by individual statements
+#                 if function_code.count("\n") > 5:  # Threshold for long functions
+#                     function_snippets = extract_statements(function_code)
+#                     snippets.extend(function_snippets)
+#                 else:
+#                     snippets.append(function_code)
+#
+#             elif hasattr(node, "lineno"):
+#                 start_line = node.lineno - 1
+#                 end_line = getattr(node, "end_lineno", start_line)  # Fallback to single-line
+#                 snippet_lines = code_snippet.splitlines()[start_line:end_line]
+#                 snippet = "\n".join(snippet_lines).strip()
+#
+#                 # Ensure no duplicates and empty lines are ignored
+#                 if snippet and snippet not in snippets:
+#                     snippets.append(snippet)
+#
+#                 last_pos = end_line
+#
+#         # Handle remaining trailing code
+#         if last_pos < len(code_snippet.splitlines()):
+#             remaining_code = "\n".join(code_snippet.splitlines()[last_pos:]).strip()
+#             if remaining_code and remaining_code not in snippets:
+#                 snippets.append(remaining_code)
+#
+#         return snippets
+#
+#     except SyntaxError as e:
+#         print(f"Error parsing code snippets: {e}")
+#         return [code_snippet]  # Return full code as a single snippet if parsing fails
+#
+# def extract_statements(function_code):
+#     """
+#     Breaks a large function into individual statements.
+#     """
+#     statements = function_code.split("\n")  # Split by lines
+#     result = []
+#     temp_block = []
+#
+#     for line in statements:
+#         stripped_line = line.strip()
+#         temp_block.append(line)
+#
+#         if stripped_line.endswith(":") or stripped_line == "":  # Function header or empty lines
+#             continue
+#
+#         # Add small blocks as individual snippets
+#         if len(temp_block) > 2:
+#             result.append("\n".join(temp_block))
+#             temp_block = []
+#
+#     if temp_block:
+#         result.append("\n".join(temp_block))
+#
+#     return result
 
 
 
