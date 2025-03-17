@@ -169,8 +169,8 @@ document.getElementById("fetchChallengesBtn").addEventListener("click", function
         let totalCriticalScore = totalCriticalScoreData.total_critical_score || 0;
         console.log("🔹 Total Critical Score:", totalCriticalScore);
 
-        // ✅ Assign Badge Based on Critical Score
-        let badgeResponse = await fetch("http://127.0.0.1:8000/games/store-badge/", {
+        // ✅ Assign Critical Score Badge
+        let criticalBadgeResponse = await fetch("http://127.0.0.1:8000/games/store-badge/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -180,17 +180,35 @@ document.getElementById("fetchChallengesBtn").addEventListener("click", function
             body: JSON.stringify({ user_id: userId })
         });
 
-        let badgeResult = await badgeResponse.json();
-        console.log("🔹 Assigned Badge:", badgeResult.assigned_badge);
+        let criticalBadgeResult = await criticalBadgeResponse.json();
+        console.log("🔹 Assigned Critical Badge:", criticalBadgeResult.assigned_badge);
 
-        if (badgeResponse.ok) {
-            alert(`🎉 New Badge Assigned: ${badgeResult.assigned_badge}`);
-        } else {
-            alert("❌ Error assigning badge: " + badgeResult.error);
+        // ✅ Assign Challenge Completion Badge
+        let challengeBadgeResponse = await fetch("http://127.0.0.1:8000/games/store-challenge-badge/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`,
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ user_id: userId })
+        });
+
+        let challengeBadgeResult = await challengeBadgeResponse.json();
+        console.log("🔹 Assigned Challenge Badge:", challengeBadgeResult.assigned_badge);
+
+        // ✅ Alert the user about assigned badges
+        let alertMessage = `🎉 Badges Assigned:\n`;
+        if (criticalBadgeResponse.ok) {
+            alertMessage += `🏅 Critical Score Badge: ${criticalBadgeResult.assigned_badge}\n`;
         }
+        if (challengeBadgeResponse.ok) {
+            alertMessage += `🎖️ Challenge Badge: ${challengeBadgeResult.assigned_badge}`;
+        }
+        alert(alertMessage);
     } catch (error) {
-        console.error("Error claiming badge:", error);
-        alert("❌ Failed to claim badge.");
+        console.error("Error claiming badges:", error);
+        alert("❌ Failed to claim badges.");
     }
 });
 
@@ -207,6 +225,7 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
 
 </script>
 
