@@ -16,7 +16,9 @@ from scipy.stats import pearsonr, spearmanr
 import seaborn as sns
 from sklearn.cluster import KMeans
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
+import javalang
 
+import re
 import analysis
 from Drinks.models import Drink, MethodComplexity, JavaFile, CSharpFile, CSharpMethodComplexity
 from analysis.code_analyzer import CodeAnalyzer
@@ -288,9 +290,45 @@ def java_generate_suggestion(code_snippet):
         return f"❌ Error generating suggestion: {str(e)}"
 
 
-import javalang
 
-import re
+
+# def java_split_code_snippets(code):
+#     """
+#     Fine-grained Java code splitting: Extracts methods, SQL queries, user input handling,
+#     file operations, session management, and command execution separately.
+#     """
+#     try:
+#         snippets = []
+#         tree = javalang.parse.parse(code)
+#
+#         # ✅ Extract Methods & Logical Blocks
+#         for path, node in tree:
+#             if isinstance(node, javalang.tree.MethodDeclaration):
+#                 method_start = node.position.line - 1
+#                 method_body = extract_java_block(code, method_start)
+#                 snippets.append(f"// METHOD: {node.name}\n{method_body}")
+#
+#                 # ✅ Extract Sensitive Code Patterns within Methods
+#                 if "request.getParameter" in method_body:
+#                     snippets.append(f"// USER INPUT: {node.name}\n{extract_logical_block(method_body, 'request.getParameter')}")
+#
+#                 if "Statement stmt" in method_body or "PreparedStatement" in method_body:
+#                     snippets.append(f"// SQL QUERY: {node.name}\n{extract_logical_block(method_body, 'Statement stmt')}")
+#
+#                 if "Runtime.getRuntime().exec" in method_body:
+#                     snippets.append(f"// COMMAND EXECUTION: {node.name}\n{extract_logical_block(method_body, 'Runtime.getRuntime().exec')}")
+#
+#                 if "new FileReader" in method_body or "new FileWriter" in method_body:
+#                     snippets.append(f"// FILE HANDLING: {node.name}\n{extract_logical_block(method_body, 'new FileReader')}")
+#
+#                 if "session.setAttribute" in method_body:
+#                     snippets.append(f"// SESSION MANAGEMENT: {node.name}\n{extract_logical_block(method_body, 'session.setAttribute')}")
+#
+#         return snippets
+#
+#     except Exception as e:
+#         print(f"❌ Error parsing Java snippets: {str(e)}")
+#         return []
 
 def java_split_code_snippets(code):
     """
@@ -301,28 +339,31 @@ def java_split_code_snippets(code):
         snippets = []
         tree = javalang.parse.parse(code)
 
-        # ✅ Extract Methods & Logical Blocks
+        # ✅ Track extracted method bodies & logical blocks
+        extracted_methods = set()
+        extracted_logical_blocks = set()
+
         for path, node in tree:
             if isinstance(node, javalang.tree.MethodDeclaration):
                 method_start = node.position.line - 1
                 method_body = extract_java_block(code, method_start)
-                snippets.append(f"// METHOD: {node.name}\n{method_body}")
 
-                # ✅ Extract Sensitive Code Patterns within Methods
-                if "request.getParameter" in method_body:
-                    snippets.append(f"// USER INPUT: {node.name}\n{extract_logical_block(method_body, 'request.getParameter')}")
+                if method_body not in extracted_methods:  # ✅ Avoid duplicate method extraction
+                    snippets.append(f"// METHOD: {node.name}\n{method_body}")
+                    extracted_methods.add(method_body)
 
-                if "Statement stmt" in method_body or "PreparedStatement" in method_body:
-                    snippets.append(f"// SQL QUERY: {node.name}\n{extract_logical_block(method_body, 'Statement stmt')}")
+                # ✅ Extract & store unique logical blocks (Prevent duplication)
+                def add_unique_snippet(label, keyword):
+                    snippet = extract_logical_block(method_body, keyword)
+                    if snippet and snippet not in extracted_logical_blocks:
+                        snippets.append(f"// {label}: {node.name}\n{snippet}")
+                        extracted_logical_blocks.add(snippet)
 
-                if "Runtime.getRuntime().exec" in method_body:
-                    snippets.append(f"// COMMAND EXECUTION: {node.name}\n{extract_logical_block(method_body, 'Runtime.getRuntime().exec')}")
-
-                if "new FileReader" in method_body or "new FileWriter" in method_body:
-                    snippets.append(f"// FILE HANDLING: {node.name}\n{extract_logical_block(method_body, 'new FileReader')}")
-
-                if "session.setAttribute" in method_body:
-                    snippets.append(f"// SESSION MANAGEMENT: {node.name}\n{extract_logical_block(method_body, 'session.setAttribute')}")
+                add_unique_snippet("USER INPUT", "request.getParameter")
+                add_unique_snippet("SQL QUERY", "Statement stmt")
+                add_unique_snippet("COMMAND EXECUTION", "Runtime.getRuntime().exec")
+                add_unique_snippet("FILE HANDLING", "new FileReader")
+                add_unique_snippet("SESSION MANAGEMENT", "session.setAttribute")
 
         return snippets
 
@@ -366,17 +407,34 @@ def extract_java_block(code, start_line):
 def extract_logical_block(method_body, keyword):
     """
     Extracts a small logical block containing the keyword (e.g., SQL query, user input handling).
+    Ensures the extracted lines are unique.
     """
     lines = method_body.split("\n")
-    extracted = []
+    extracted = set()  # ✅ Use set to prevent duplicates
 
     for line in lines:
         if keyword in line:
             start_index = max(0, lines.index(line) - 1)
             end_index = min(len(lines), lines.index(line) + 2)
-            extracted.extend(lines[start_index:end_index])
+            extracted.update(lines[start_index:end_index])  # ✅ Use set instead of list
 
-    return "\n".join(extracted)
+    return "\n".join(sorted(extracted))  # ✅ Sort to maintain order
+
+
+# def extract_logical_block(method_body, keyword):
+#     """
+#     Extracts a small logical block containing the keyword (e.g., SQL query, user input handling).
+#     """
+#     lines = method_body.split("\n")
+#     extracted = []
+#
+#     for line in lines:
+#         if keyword in line:
+#             start_index = max(0, lines.index(line) - 1)
+#             end_index = min(len(lines), lines.index(line) + 2)
+#             extracted.extend(lines[start_index:end_index])
+#
+#     return "\n".join(extracted)
 
 
 def is_java_code(code):
@@ -606,15 +664,15 @@ def java_analyze_code_complexity(code):
     loc, eloc = java_count_lines_of_code(code)
     num_classes, num_methods, avg_method_length = java_count_classes_and_methods(code)  # ✅ Corrected function
     # cyclomatic_complexity = java_calculate_cyclomatic_complexity(code)
-    nesting_depth = java_calculate_nesting_depth(code)
-    duplicate_percentage = java_count_duplicate_code_percentage(code)
+    nesting_depth = round(java_calculate_nesting_depth(code), 2)
+    duplicate_percentage = round(java_count_duplicate_code_percentage(code), 2)
     duplicate_code_details = java_find_duplicate_code(code)
     # **No `java_find_duplicate_code()` function exists, remove this line**
     # duplicate_code_details = java_find_duplicate_code(code) ❌ REMOVE THIS
 
-    comment_density = java_calculate_comment_density(code)
-    readability_score = java_calculate_readability_score(code)
-    complexity_score = java_calculate_complexity_score(loc, num_methods, duplicate_percentage)
+    comment_density = round(java_calculate_comment_density(code), 2)
+    readability_score = round(java_calculate_readability_score(code), 2)
+    complexity_score = round(java_calculate_complexity_score(loc, num_methods, duplicate_percentage), 2)
 
     result = {
         "lines_of_code": loc,
@@ -1018,20 +1076,20 @@ def analyze_code_complexity(code):
     duplicate_percentage = count_duplicate_code_percentage(code)
     duplicate_code_details = find_duplicate_code(code)  # ✅ Get duplicate lines & locations
 
-    comment_density = calculate_comment_density(code)
-    readability_score = calculate_readability_score(code)
-    complexity_score = calculate_complexity_score(loc, num_functions, duplicate_percentage)
+    comment_density = round(calculate_comment_density(code), 2)
+    readability_score = round(calculate_readability_score(code), 2)
+    complexity_score = round(calculate_complexity_score(loc, num_functions, duplicate_percentage), 2)
 
     result = {
         "lines_of_code": loc,
         "effective_lines_of_code": eloc,
         "num_functions": num_functions,
-        "avg_function_length": avg_function_length,
-        "duplicate_code_percentage": duplicate_percentage,
+        "avg_function_length": round(avg_function_length, 2),
+        "duplicate_code_percentage": round(duplicate_percentage, 2),
         "duplicate_code_details": duplicate_code_details,  # ✅ Include duplicate details
         "comment_density": comment_density,
-        "readability_score": readability_score,
-        "complexity_score": complexity_score,
+        "readability_score": round(readability_score, 2),
+        "complexity_score": round(complexity_score, 2),
         "rating": {
             "lines_of_code": categorize_value(loc, guidelines["lines_of_code"]),
             "comment_density": categorize_value(comment_density, guidelines["code_density"]),

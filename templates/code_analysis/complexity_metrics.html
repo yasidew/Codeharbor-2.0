@@ -24,13 +24,13 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-expand-arrows-alt"></i> Avg Function Length:</strong>
                     <span>{{ summary.complexity_metrics.avg_function_length }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.function_length }}</span>
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.function_length |floatformat:2 }}</span>
                     </span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-clone"></i> Duplicate Code Percentage:</strong>
                     <span>{{ summary.complexity_metrics.duplicate_code_percentage }}%
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.duplicate_code }}</span>
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.duplicate_code |floatformat:2}}</span>
                     </span>
                 </li>
                 {% if summary.complexity_metrics.duplicate_code_details %}
@@ -61,7 +61,7 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-comments"></i> Comment Density:</strong>
                     <span>{{ summary.complexity_metrics.comment_density }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.comment_density }}</span>
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.comment_density |floatformat:2 }}</span>
                     </span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -71,7 +71,7 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-brain"></i> Complexity Score:</strong>
                     <span>{{ summary.complexity_metrics.complexity_score }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score }}</span>
+                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score |floatformat:2 }}</span>
                     </span>
                 </li>
             </ul>
