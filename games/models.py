@@ -52,3 +52,23 @@ class GitGameScore(models.Model):
             f"Score: {self.score} | Critical: {self.critical_score} | Serious: {self.serious_score} | Moderate: {self.moderate_score} | Minor: {self.minor_score}")
 
 
+
+class Badge(models.Model):
+    """Defines different badge types."""
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+class UserBadge(models.Model):
+    """Links users to their earned badges."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    awarded_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'badge')  # Prevents duplicate badges
+
+    def __str__(self):
+        return f"{self.user.username} - {self.badge.name}"
