@@ -901,6 +901,17 @@
         border-radius: 6px;
         box-shadow: 0px 0px 5px rgba(40, 167, 69, 0.3); /* Subtle green glow */
     }
+    .suggestion-block pre {
+        white-space: pre-wrap; /* Ensures wrapping */
+        word-wrap: break-word; /* Break long words if necessary */
+        overflow-wrap: break-word; /* Ensures content breaks properly */
+        max-width: 100%; /* Prevents it from exceeding the parent container */
+        background-color: transparent; /* Keep same background as parent */
+        padding: 10px;
+        border-radius: 5px;
+        font-family: monospace;
+        overflow-x: auto; /* Allows horizontal scrolling if needed */
+    }
 
     /* Ensure Toggle Elements are Readable */
     .category-toggle,
