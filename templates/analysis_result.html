@@ -48,6 +48,22 @@
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
         }
 
+        .custom-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: green;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .show-toast {
+            opacity: 1;
+        }
+
     </style>
 
     <div class="container mt-5">
@@ -153,4 +169,56 @@
                 groups. The **dashed lines** indicate the threshold values determined from clustering.</p>
         </section>
     </div>
+
+    <div id="customToast" class="custom-toast"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("🔥 DOM fully loaded. Checking for content...");
+
+            // Check if complexities exist in the DOM
+            const complexitiesContainer = document.querySelector(".container");
+            if (complexitiesContainer) {
+                console.log("✅ Complexity details found!");
+
+                // Call the toast function when all details are loaded
+                setTimeout(() => {
+                    console.log("⏳ Calling showCustomToast()...");
+                    showCustomToast("✅ Statistical Analysis Successfully!");
+                }, 1000); // Add a small delay to simulate loading
+            } else {
+                console.warn("⚠️ No complexity details found. Skipping toast.");
+            }
+        });
+
+        function showCustomToast(message) {
+            console.log("🔥 showCustomToast() function called!");
+
+            const toast = document.getElementById('customToast');
+            if (!toast) {
+                console.error("❌ ERROR: Toast element not found!");
+                return;
+            }
+
+            console.log("✅ Toast element found!");
+
+            // Ensure it's visible before applying animation
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.textContent = message;
+                toast.classList.add('show-toast');
+                console.log("🎉 Toast is now visible!");
+            }, 10); // Small delay to trigger animation
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show-toast');
+                console.log("⌛ Hiding toast...");
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                    console.log("❌ Toast is now hidden.");
+                }, 500); // Matches the CSS transition
+            }, 3000);
+        }
+    </script>
 {% endblock %}

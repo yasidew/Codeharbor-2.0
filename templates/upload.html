@@ -109,6 +109,46 @@
                 transform: scale(1);
             }
         }
+
+        .file-upload-container {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+
+        .upload-label {
+            display: block;
+            font-size: 16px;
+            color: #c9d1d9;
+            margin-bottom: 10px;
+        }
+
+        /* Drag-and-Drop Area */
+        .drop-area {
+            border: 2px dashed #58a6ff;
+            background-color: #161b22;
+            padding: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s ease-in-out;
+        }
+
+        .drop-area:hover {
+            background-color: #21262d;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            color: #58a6ff;
+            margin-bottom: 10px;
+        }
+
+        /* File List */
+        #file-list {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #c9d1d9;
+        }
     </style>
 
     <div class="d-flex justify-content-center align-items-center ">
@@ -139,7 +179,18 @@
                 Complexity, Readability, and Maintainability.</p>
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                <input type="file" name="file" accept=".csv" required>
+                {#                <input type="file" name="file" accept=".csv" required>#}
+                <div class="file-upload-container">
+                    <label class="upload-label">📂 <b>Upload File(s):</b></label>
+
+                    <div id="drop-area" class="drop-area">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <p>Click or Drag & Drop files here</p>
+                        <input type="file" id="fileInput" name="file" accept=".csv" required>
+                    </div>
+
+                    <div id="file-list"></div>
+                </div>
                 <button type="submit" onclick="showLoading()">Upload & Analyze</button>
             </form>
         </div>
@@ -164,5 +215,49 @@
         window.onload = function () {
             hideLoading();
         };
+
+        const dropArea = document.getElementById("drop-area");
+        const fileInput = document.getElementById("fileInput");
+        const fileList = document.getElementById("file-list");
+
+        // Open file dialog on click
+        dropArea.addEventListener("click", () => {
+            fileInput.click();
+        });
+
+        // Update file list on selection
+        fileInput.addEventListener("change", function () {
+            updateFileList(fileInput.files);
+        });
+
+        // Drag over effect
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.classList.add("drag-over");
+        });
+
+        // Drag leave effect
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("drag-over");
+        });
+
+        // Drop event handler
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.classList.remove("drag-over");
+            fileInput.files = e.dataTransfer.files;
+            updateFileList(fileInput.files);
+        });
+
+        function updateFileList(files) {
+            fileList.innerHTML = "";
+            if (files.length > 0) {
+                for (let file of files) {
+                    fileList.innerHTML += `<p>✔️ ${file.name}</p>`;
+                }
+            } else {
+                fileList.innerHTML = `<p>No files selected</p>`;
+            }
+        }
     </script>
 {% endblock %}

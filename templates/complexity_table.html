@@ -393,19 +393,71 @@
             margin-bottom: 15px;
         }
 
+        .cbo-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .low-cbo-circle {
+            background: green;
+            border: 2px solid #856404;
+        }
+
+        .high-cbo-circle {
+            background: red;
+            border: 2px solid #721c24;
+        }
+
+        /* Table Row Styling */
+        .high-cbo {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .low-cbo {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .low-p {
+            color: green;
+        }
+
+        .high-p {
+            color: red;
+        }
+
+        .custom-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: green;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .show-toast {
+            opacity: 1;
+        }
+
     </style>
 
     <h1 class="container">Code Complexity Results for Java</h1>
 
     <div class="container mt-4">
-        <h4 class="mt-5">Weighted Code Complexity (WCC) Equation</h4>
+        <h4 class="mt-5">New Weighted Code Complexity (WCC) Equation</h4>
         <h3>
             <pre><code>WCC<sub>i</sub> = S<sub>i</sub> * (W<sub>c</sub> + W<sub>n</sub> + W<sub>i</sub> + W<sub>tc</sub> + W<sub>cc</sub> + W<sub>th</sub> +( W<sub>cbo</sub>(high coupling) - W<sub>cbo</sub>(loose coupling)))</code></pre>
         </h3>
     </div>
 
     <div class="container mt-4">
-        <h4 class="mt-5">Total WCC for the Class</h4>
+        <h4 class="mt-5">Equation of Total WCC for the Class</h4>
         <h3>
             <pre><code>WCC<sub>total</sub> = Σ (WCC<sub>i</sub>) for i=1 to N</code></pre>
         </h3>
@@ -487,7 +539,7 @@
         </div>
 
         <div class="container mt-5">
-            <h3>Method Complexity Details</h3>
+            <h3 class="method-complexity">Method Complexity Details</h3>
             <div class="complexity-legend">
                 <div class="legend-item">
                     <span class="complexity-box high"></span>
@@ -581,6 +633,18 @@
 
         <div class="container mt-5">
             <h3>🔍 CBO Analysis</h3>
+            <div class="complexity-legend">
+                <div class="legend-item">
+                    <span class="complexity-box low"></span>
+                    <strong style="color: #155724;">Low CBO</strong>
+                    <p class="low-p">(A class has few dependencies on other classes.)</p>
+                </div>
+                <div class="legend-item">
+                    <span class="complexity-box high"></span>
+                    <strong style="color: #721c24">High CBO</strong>
+                    <p class="high-p">(A class has many dependencies on other classes.)</p>
+                </div>
+            </div>
             <table class="cbo-analysis-table">
                 <thead>
                 <tr>
@@ -594,12 +658,18 @@
                     {% if cbo.filename == file.filename %}
                         <tr class="{% if cbo.prediction == 'High CBO (Issue)' %}high-cbo{% else %}low-cbo{% endif %}">
                             <td>{{ cbo.filename }}</td>
-                            <td>{{ cbo.prediction }}</td>
+                            <td>
+                                {% if cbo.prediction == 'High CBO (Issue)' %}
+                                    <span class="cbo-indicator high-cbo-circle"></span> {{ cbo.prediction }}
+                                {% else %}
+                                    <span class="cbo-indicator low-cbo-circle"></span> {{ cbo.prediction }}
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if cbo.recommendations %}
                                     <ul>
                                         {% for rec in cbo.recommendations %}
-                                            <li>⚠️ {{ rec }}</li>
+                                            <li>{{ rec }}</li>
                                         {% endfor %}
                                     </ul>
                                 {% else %}
@@ -615,7 +685,102 @@
 
     {% endfor %}
 
+
     <a href="/">Upload More Files</a>
+
+    <div id="customToast" class="custom-toast"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("✅ DOM fully loaded. Checking for High Complexity methods...");
+
+            // Find the method complexity table rows
+            const methodRows = document.querySelectorAll(".method-complexity-table tbody tr");
+
+            let foundHighComplexity = false; // Flag to check if a high complexity method exists
+
+            methodRows.forEach(row => {
+                const cells = row.querySelectorAll("td"); // Get all cells in the row
+                if (cells.length > 0) {
+                    const categoryCell = cells[cells.length - 2]; // Second last cell (Category)
+                    if (categoryCell && categoryCell.textContent.trim() === "High") {
+                        foundHighComplexity = true; // Found a High Complexity method
+                        console.log("⚠️ High Complexity method detected:", row);
+                    }
+                }
+            });
+
+            if (foundHighComplexity) {
+                // Scroll smoothly to the "Method Complexity Details" section
+                const methodComplexitySection = document.querySelector(".method-complexity"); // First H3 tag for section
+                if (methodComplexitySection) {
+                    console.log("📜 Scrolling to Method Complexity Details section...");
+                    methodComplexitySection.scrollIntoView({behavior: "smooth", block: "center"});
+
+                    // Highlight the section temporarily
+                    methodComplexitySection.style.transition = "background 0.5s ease-in-out";
+                    methodComplexitySection.style.background = "#ffcc00"; // Highlight
+                    setTimeout(() => {
+                        methodComplexitySection.style.background = "transparent";
+                    }, 2000);
+                } else {
+                    console.warn("❌ Method Complexity Section not found!");
+                }
+            } else {
+                console.log("✅ No High Complexity methods found.");
+            }
+        });
+
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("🔥 DOM fully loaded. Checking for content...");
+
+            // Check if complexities exist in the DOM
+            const complexitiesContainer = document.querySelector(".metrics");
+            if (complexitiesContainer) {
+                console.log("✅ Complexity details found!");
+
+                // Call the toast function when all details are loaded
+                setTimeout(() => {
+                    console.log("⏳ Calling showCustomToast()...");
+                    showCustomToast("✅ Java Code Complexity Calculated Successfully!");
+                }, 1000); // Add a small delay to simulate loading
+            } else {
+                console.warn("⚠️ No complexity details found. Skipping toast.");
+            }
+        });
+
+        function showCustomToast(message) {
+            console.log("🔥 showCustomToast() function called!");
+
+            const toast = document.getElementById('customToast');
+            if (!toast) {
+                console.error("❌ ERROR: Toast element not found!");
+                return;
+            }
+
+            console.log("✅ Toast element found!");
+
+            // Ensure it's visible before applying animation
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.textContent = message;
+                toast.classList.add('show-toast');
+                console.log("🎉 Toast is now visible!");
+            }, 10); // Small delay to trigger animation
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show-toast');
+                console.log("⌛ Hiding toast...");
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                    console.log("❌ Toast is now hidden.");
+                }, 500); // Matches the CSS transition
+            }, 3000);
+        }
+    </script>
 
     <div id="barChartModal" class="modal">
         <div class="modal-content">
@@ -664,6 +829,46 @@
             });
         });
 
+        function showCustomToast(message) {
+            console.log("🔥 showCustomToast() function called!");
+
+            const toast = document.getElementById('customToast');
+            if (!toast) {
+                console.error("❌ ERROR: Toast element not found!");
+                return;
+            }
+
+            console.log("✅ Toast element found!");
+
+            // Ensure it's visible before applying animation
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.textContent = message;
+                toast.classList.add('show-toast');
+                console.log("🎉 Toast is now visible!");
+            }, 10); // Small delay to trigger animation
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show-toast');
+                console.log("⌛ Hiding toast...");
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                    console.log("❌ Toast is now hidden.");
+                }, 500); // Matches the CSS transition
+            }, 3000);
+        }
+
+        // Ensure toast appears on page load (simulating successful retrieval)
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("🔥 DOM is fully loaded!");
+            setTimeout(() => {
+                console.log("⏳ Calling showCustomToast()...");
+                showCustomToast("✅ Details retrieved successfully!");
+            }, 1000);
+        });
+
+
         function showBarChart(methodName, chartPath) {
             // Set the method name and bar chart in the modal
             document.getElementById('modalMethodName').textContent = `Bar Chart for Method: ${methodName}`;
@@ -699,6 +904,7 @@
                 closePieChartModal();
             }
         }
+
     </script>
 
 {% endblock %}
