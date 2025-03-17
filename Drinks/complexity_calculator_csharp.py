@@ -1628,38 +1628,71 @@ def update_dataset_and_model(new_data):
     model = train_model(dataset)
 
 
+# def recommend_action(metrics):
+#     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
+#
+#     if control_structure_complexity == 1 and nesting_level >= 5:
+#         if compound_condition_weight > 5:
+#             return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
+#         return "Critical refactor: High complexity and if nesting"
+#
+#     if control_structure_complexity == 2 and nesting_level >= 5:
+#         if compound_condition_weight > 5:
+#             return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
+#         return "Critical refactor: High complexity and for loop nesting"
+#
+#     if control_structure_complexity >= 3 and nesting_level >= 5:
+#         return "Critical refactor: High complexity and switch case nesting"
+#
+#     if try_catch_weight > 5:
+#         return "Critical refactor: High complexity due to try-catch nesting"
+#
+#     if current_inheritance == 5:
+#         return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
+#
+#     if current_inheritance > 3:
+#         return "Consider reducing inheritance levels to improve maintainability"
+#
+#     if compound_condition_weight > 5:
+#         return "Critical refactor: Excessive compound conditions, simplify conditional logic"
+#
+#     if try_catch_weight > 3 and try_catch_weight <= 5:
+#         return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
+#
+#     return "No action needed"
+
 def recommend_action(metrics):
     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
 
     if control_structure_complexity == 1 and nesting_level >= 5:
         if compound_condition_weight > 5:
-            return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
-        return "Critical refactor: High complexity and if nesting"
+            return "Refactor: Reduce nested if-statements and simplify complex conditions using helper functions or early returns."
+        return "Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses."
 
     if control_structure_complexity == 2 and nesting_level >= 5:
         if compound_condition_weight > 5:
-            return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
-        return "Critical refactor: High complexity and for loop nesting"
+            return "Refactor: Reduce deeply nested for-loops and simplify conditions using helper functions."
+        return "Refactor: Optimize loop nesting by breaking logic into smaller functions or using iterators."
 
     if control_structure_complexity >= 3 and nesting_level >= 5:
-        return "Critical refactor: High complexity and switch case nesting"
+        return "Refactor: Minimize switch-case complexity by using polymorphism or strategy pattern."
 
     if try_catch_weight > 5:
-        return "Critical refactor: High complexity due to try-catch nesting"
-
-    if current_inheritance == 5:
-        return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
-
-    if current_inheritance > 3:
-        return "Consider reducing inheritance levels to improve maintainability"
+        return "Refactor: Reduce excessive try-catch nesting by isolating error-prone logic into separate functions."
 
     if compound_condition_weight > 5:
-        return "Critical refactor: Excessive compound conditions, simplify conditional logic"
+        return "Refactor: Simplify complex conditions using boolean variables or encapsulating logic in functions."
 
     if try_catch_weight > 3 and try_catch_weight <= 5:
-        return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
+        return "Refactor: Flatten try-catch blocks by handling specific exceptions separately."
 
-    return "No action needed"
+    if current_inheritance == 5:
+        return "Refactor: Reduce deep inheritance by favoring composition over inheritance."
+
+    if current_inheritance > 3:
+        return "Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures."
+
+    return "No refactoring needed."
 
 
 def ai_recommend_refactoring(new_data):
