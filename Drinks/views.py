@@ -1814,7 +1814,10 @@ def categorize_suggestion(suggestion):
     if any(term in suggestion_lower for term in [
         "sql injection", "command injection", "hardcoded secret",
         "authentication", "authorization", "xss", "csrf", "security",
-        "data exposure", "encryption", "password hashing", "secret key"
+        "data exposure", "encryption", "password hashing", "secret key",
+        "insecure deserialization", "java deserialization", "rmi security",
+        "reflection security", "unvalidated redirect", "open redirect",
+        "unsafe xml parsing", "unsafe JNI"
     ]):
         return "Security Vulnerabilities"
 
@@ -1822,7 +1825,9 @@ def categorize_suggestion(suggestion):
     elif any(term in suggestion_lower for term in [
         "optimize", "performance", "efficiency", "redundant code",
         "slow database query", "memory leak", "loop optimization",
-        "batch processing", "unnecessary computation"
+        "batch processing", "unnecessary computation",
+        "string concatenation in loop", "stringbuilder instead of +",
+        "poor garbage collection", "inefficient thread pooling"
     ]):
         return "Performance Enhancements"
 
@@ -1831,7 +1836,8 @@ def categorize_suggestion(suggestion):
         "refactor", "code quality", "readability", "maintainability",
         "magic numbers", "naming conventions", "global variables",
         "long function", "long class", "duplicate code", "function too complex",
-        "dead code", "improve clarity"
+        "dead code", "improve clarity", "bad format", "poor formatting",
+        "bad indentation", "spacing issues"
     ]):
         return "Code Readability and Maintainability"
 
@@ -1839,7 +1845,8 @@ def categorize_suggestion(suggestion):
     elif any(term in suggestion_lower for term in [
         "resource leak", "memory management", "insecure file handling",
         "open file without closing", "socket not closed",
-        "unclosed connection", "improper resource release"
+        "unclosed connection", "improper resource release",
+        "missing try-with-resources", "poor garbage collection"
     ]):
         return "Resource and Memory Management"
 
@@ -1847,7 +1854,8 @@ def categorize_suggestion(suggestion):
     elif any(term in suggestion_lower for term in [
         "empty exception handling", "broad exception handling",
         "unhandled exception", "try except pass", "error handling",
-        "catch generic exception", "silent failure"
+        "catch generic exception", "silent failure", "missing finally block",
+        "logging exception incorrectly", "throwable instead of exception"
     ]):
         return "Exception Handling Issues"
 
@@ -1863,7 +1871,8 @@ def categorize_suggestion(suggestion):
     elif any(term in suggestion_lower for term in [
         "inheritance misuse", "misuse of polymorphism", "encapsulation violation",
         "tight coupling", "improper abstraction", "large class",
-        "single responsibility principle violation"
+        "single responsibility principle violation","violation of SOLID principles",
+        "deep inheritance chain"
     ]):
         return "Object-Oriented Design Issues"
 
@@ -1900,7 +1909,9 @@ def categorize_suggestion(suggestion):
     # Multithreading & Concurrency Issues
     elif any(term in suggestion_lower for term in [
         "race condition", "deadlock", "thread safety", "improper synchronization",
-        "mutex missing", "concurrent modification"
+        "mutex missing", "concurrent modification","synchronized misuse",
+        "volatile misuse", "executor service not shut down",
+        "concurrent hashmap instead of hashmap"
     ]):
         return "Multithreading & Concurrency Issues"
 
@@ -1914,7 +1925,9 @@ def determine_severity(suggestion):
     # Critical Severity
     if any(term in suggestion_lower for term in [
         "sql injection", "command injection", "hardcoded secret", "secret key",
-        "weak cryptography", "directory traversal", "resource leak"
+        "weak cryptography", "directory traversal", "resource leak",
+        "insecure deserialization", "reflection security", "rmi security",
+        "unsafe xml parsing", "exposed api key"
     ]):
         return "Critical"
 
@@ -1922,14 +1935,18 @@ def determine_severity(suggestion):
     if any(term in suggestion_lower for term in [
         "should fix", "deep nesting", "global variables",
         "deprecated libraries", "variable shadowing", "magic numbers",
-        "unreachable code", "empty exception handling"
+        "unreachable code", "empty exception handling",
+        "deep inheritance chain", "complex constructor", "improper abstraction"
+
     ]):
         return "Medium"
 
     # Low Severity
     if any(term in suggestion_lower for term in [
         "consistent naming", "consistent return types",
-        "unused imports", "excessive comments", "consistent whitespace"
+        "unused imports", "excessive comments", "consistent whitespace",
+        "log statements format",
+        "unused method parameters"
     ]):
         return "Low"
 

@@ -297,22 +297,32 @@ def java_count_duplicate_code_percentage(code):
 
 def java_find_duplicate_code(code, block_size=3):
     """
-    Find duplicate multi-line code snippets in Java.
-    Uses a sliding window approach to detect repeated blocks of 'block_size' lines.
+    Improved duplicate code detection in Java.
+    Uses structured splitting and filters incomplete statements.
     """
     lines = code.split("\n")
+    cleaned_lines = [line.strip() for line in lines if line.strip()]  # ✅ Remove blank lines
+
     block_counts = Counter()
     duplicate_map = {}
 
-    # Create a dictionary to track occurrences of code blocks
-    for i in range(len(lines) - block_size + 1):
-        block = "\n".join(lines[i:i + block_size])  # Extract multi-line block
+    # ✅ Track extracted duplicates to prevent redundancy
+    extracted_blocks = set()
+
+    for i in range(len(cleaned_lines) - block_size + 1):
+        block = "\n".join(cleaned_lines[i:i + block_size])  # Extract multi-line block
+
+        # ✅ Ignore tiny fragments (e.g., single braces, empty lines)
+        if len(re.findall(r'\w+', block)) < 2:  # ✅ Ensure at least 2 meaningful words
+            continue
+
         block_counts[block] += 1
 
-        if block_counts[block] > 1:  # ✅ Only store if it's a duplicate
+        if block_counts[block] > 1 and block not in extracted_blocks:  # ✅ Avoid redundant detections
             if block not in duplicate_map:
                 duplicate_map[block] = []
             duplicate_map[block].append(i + 1)  # Store line number of first occurrence
+            extracted_blocks.add(block)  # ✅ Store extracted block to prevent duplicates
 
     return duplicate_map
 
