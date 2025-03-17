@@ -13,6 +13,7 @@ import re
 import requests
 import base64
 from django.contrib import messages
+import difflib
 
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -519,26 +520,37 @@ def list_resources(request):
 
 @csrf_exempt
 def fetch_snippet_diff(request):
-    """Return snippet diff for a given refactoring record from DB or AI."""
+    """Return the code difference between original and refactored code."""
     record_id = request.GET.get("record_id")
+
     if not record_id:
         return JsonResponse({"success": False, "error": "Missing record_id"})
 
     try:
-        record = CodeRefactoringRecord.objects.get(id=record_id)
-        # For a real line-based diff, you'd do something like:
-        # snippet_diff = compute_diff(record.original_code, record.refactored_code)
-        # But let's just pretend we have short placeholders:
-        original_snippet = "public static void main(String[] args) { ... }"
-        refactored_snippet = "public static void runApp(String[] args) { ... }"
+        record = get_object_or_404(CodeRefactoringRecord, id=record_id)
+        original_code = record.original_code  # Keep as a string
+        refactored_code = record.refactored_code  # Keep as a string
+
+        # Generate diff using difflib
+        original_lines = original_code.splitlines()
+        refactored_lines = refactored_code.splitlines()
+
+        diff = difflib.unified_diff(
+            original_lines,
+            refactored_lines,
+            fromfile="Original Code",
+            tofile="Refactored Code",
+            lineterm=""
+        )
+
+        diff_result = "\n".join(diff)
 
         return JsonResponse({
             "success": True,
-            "original_snippet": original_snippet,
-            "refactored_snippet": refactored_snippet
+            "original_code": original_code,  # Add original code
+            "refactored_code": refactored_code,  # Add refactored code
+            "diff": diff_result
         })
-    except CodeRefactoringRecord.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Record not found"})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
 
