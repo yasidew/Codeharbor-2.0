@@ -94,6 +94,138 @@
 
 
 
+{#{% extends "base.html" %}#}
+{#{% load static %}#}
+{##}
+{#{% block title %}{{ user_profile.user.username }}'s Profile{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#<div class="profile-container">#}
+{#    <div class="profile-header">#}
+{#        <img src="{{ user_profile.avatar.url }}" alt="Profile Picture" class="profile-avatar">#}
+{##}
+{#        <h2>{{ user_profile.user.username }}</h2>#}
+{#        <p id="bio-text">{{ user_profile.bio }}</p>#}
+{##}
+{#        <!-- Profile Update Form -->#}
+{#        {% if request.user == user_profile.user %}#}
+{#        <form method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data" class="profile-update-form">#}
+{#            {% csrf_token %}#}
+{#            <label for="avatar">Change Profile Picture:</label>#}
+{#            <input type="file" name="avatar" id="avatar" accept=".png, .jpg, .jpeg">#}
+{##}
+{#            <label for="bio">Update Bio:</label>#}
+{#            <textarea name="bio" id="bio" rows="3">{{ user_profile.bio }}</textarea>#}
+{##}
+{#            <button type="submit">Save Changes</button>#}
+{#        </form>#}
+{#        {% endif %}#}
+{#    </div>#}
+{##}
+{#    <div class="profile-stats">#}
+{#        <h3>📊 Stats</h3>#}
+{#        <ul>#}
+{#            <li>🏅 <strong>Rank:</strong> {{ rank }}</li>#}
+{#            <li>🔥 <strong>Current Streak:</strong> {{ user_profile.current_streak }} Days</li>#}
+{#            <li>🏆 <strong>Longest Streak:</strong> {{ user_profile.longest_streak }} Days</li>#}
+{#            <li>📈 <strong>Completed Challenges:</strong> {{ completed_challenges }}</li>#}
+{#            <li>⭐ <strong>Average Score:</strong> {{ avg_score|floatformat:2 }}</li>#}
+{#        </ul>#}
+{#    </div>#}
+{##}
+{#    <div class="profile-badges">#}
+{#        <h3>🏅 Badges</h3>#}
+{#        <div class="badge-container">#}
+{#            {% for badge in user_profile.badges %}#}
+{#                <span class="badge">{{ badge }}</span>#}
+{#            {% empty %}#}
+{#                <p>No badges yet. Start playing to earn some! 🎯</p>#}
+{#            {% endfor %}#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#<style>#}
+{#    .profile-container {#}
+{#        max-width: 600px;#}
+{#        margin: auto;#}
+{#        text-align: center;#}
+{#        background: linear-gradient(135deg, #221b44, #6a0572);#}
+{#        padding: 20px;#}
+{#        border-radius: 15px;#}
+{#        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);#}
+{#        color: white;#}
+{#    }#}
+{##}
+{#    .profile-header {#}
+{#        margin-bottom: 20px;#}
+{#    }#}
+{##}
+{#    .profile-avatar {#}
+{#        width: 120px;#}
+{#        height: 120px;#}
+{#        border-radius: 50%;#}
+{#        border: 3px solid white;#}
+{#    }#}
+{##}
+{#    .profile-update-form {#}
+{#        margin-top: 15px;#}
+{#    }#}
+{##}
+{#    .profile-update-form input,#}
+{#    .profile-update-form textarea {#}
+{#        display: block;#}
+{#        width: 100%;#}
+{#        margin: 8px 0;#}
+{#        padding: 8px;#}
+{#        border-radius: 8px;#}
+{#    }#}
+{##}
+{#    .profile-update-form button {#}
+{#        background-color: gold;#}
+{#        padding: 8px 15px;#}
+{#        border: none;#}
+{#        border-radius: 8px;#}
+{#        font-weight: bold;#}
+{#        cursor: pointer;#}
+{#        margin-top: 10px;#}
+{#    }#}
+{##}
+{#    .profile-update-form button:hover {#}
+{#        background-color: #d4af37;#}
+{#    }#}
+{##}
+{#    .profile-stats ul {#}
+{#        list-style: none;#}
+{#        padding: 0;#}
+{#    }#}
+{##}
+{#    .profile-stats li {#}
+{#        margin: 10px 0;#}
+{#        font-size: 18px;#}
+{#    }#}
+{##}
+{#    .profile-badges {#}
+{#        margin-top: 20px;#}
+{#    }#}
+{##}
+{#    .badge-container {#}
+{#        display: flex;#}
+{#        justify-content: center;#}
+{#        gap: 10px;#}
+{#        flex-wrap: wrap;#}
+{#    }#}
+{##}
+{#    .badge {#}
+{#        background: gold;#}
+{#        padding: 8px 15px;#}
+{#        border-radius: 8px;#}
+{#        font-weight: bold;#}
+{#        color: black;#}
+{#        box-shadow: 2px 2px 5px rgba(255, 215, 0, 0.5);#}
+{#    }#}
+{#</style>#}
+{#{% endblock %}#}
 {% extends "base.html" %}
 {% load static %}
 
@@ -102,15 +234,14 @@
 {% block content %}
 <div class="profile-container">
     <div class="profile-header">
-        <img src="{{ user_profile.avatar.url }}" alt="Profile Picture" class="profile-avatar">
+        <img id="profile-avatar" src="{{ user_profile.avatar.url }}" alt="Profile Picture" class="profile-avatar">
 
-        <h2>{{ user_profile.user.username }}</h2>
+        <h2 id="username">{{ user_profile.user.username }}</h2>
         <p id="bio-text">{{ user_profile.bio }}</p>
 
         <!-- Profile Update Form -->
         {% if request.user == user_profile.user %}
-        <form method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data" class="profile-update-form">
-            {% csrf_token %}
+        <form id="profile-update-form" enctype="multipart/form-data" class="profile-update-form">
             <label for="avatar">Change Profile Picture:</label>
             <input type="file" name="avatar" id="avatar" accept=".png, .jpg, .jpeg">
 
@@ -119,23 +250,24 @@
 
             <button type="submit">Save Changes</button>
         </form>
+        <p id="update-status"></p>
         {% endif %}
     </div>
 
     <div class="profile-stats">
         <h3>📊 Stats</h3>
         <ul>
-            <li>🏅 <strong>Rank:</strong> {{ rank }}</li>
-            <li>🔥 <strong>Current Streak:</strong> {{ user_profile.current_streak }} Days</li>
-            <li>🏆 <strong>Longest Streak:</strong> {{ user_profile.longest_streak }} Days</li>
-            <li>📈 <strong>Completed Challenges:</strong> {{ completed_challenges }}</li>
-            <li>⭐ <strong>Average Score:</strong> {{ avg_score|floatformat:2 }}</li>
+            <li>🏅 <strong>Rank:</strong> <span id="rank">{{ rank }}</span></li>
+            <li>🔥 <strong>Current Streak:</strong> <span id="current-streak">{{ user_profile.current_streak }}</span> Days</li>
+            <li>🏆 <strong>Longest Streak:</strong> <span id="longest-streak">{{ user_profile.longest_streak }}</span> Days</li>
+            <li>📈 <strong>Completed Challenges:</strong> <span id="completed-challenges">{{ completed_challenges }}</span></li>
+            <li>⭐ <strong>Average Score:</strong> <span id="avg-score">{{ avg_score|floatformat:2 }}</span></li>
         </ul>
     </div>
 
     <div class="profile-badges">
         <h3>🏅 Badges</h3>
-        <div class="badge-container">
+        <div id="badge-container" class="badge-container">
             {% for badge in user_profile.badges %}
                 <span class="badge">{{ badge }}</span>
             {% empty %}
@@ -225,4 +357,75 @@
         box-shadow: 2px 2px 5px rgba(255, 215, 0, 0.5);
     }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const username = document.getElementById("username").innerText;
+    const token = localStorage.getItem("access_token");
+
+    // Fetch user profile data dynamically
+    fetch(`profile/${username}/`, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("profile-avatar").src = data.avatar;
+        document.getElementById("bio-text").textContent = data.bio;
+        document.getElementById("rank").textContent = data.rank;
+        document.getElementById("current-streak").textContent = data.current_streak;
+        document.getElementById("longest-streak").textContent = data.longest_streak;
+        document.getElementById("completed-challenges").textContent = data.completed_challenges;
+        document.getElementById("avg-score").textContent = data.avg_score;
+
+        const badgeContainer = document.getElementById("badge-container");
+        badgeContainer.innerHTML = "";  // Clear existing badges
+        if (data.badges.length > 0) {
+            data.badges.forEach(badge => {
+                let badgeElement = document.createElement("span");
+                badgeElement.className = "badge";
+                badgeElement.textContent = badge;
+                badgeContainer.appendChild(badgeElement);
+            });
+        } else {
+            badgeContainer.innerHTML = "<p>No badges yet. Start playing to earn some! 🎯</p>";
+        }
+    })
+    .catch(error => console.error("Error fetching profile:", error));
+
+    // Handle profile updates via AJAX
+    document.getElementById("profile-update-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        let formData = new FormData();
+        const bioInput = document.getElementById("bio").value;
+        const avatarInput = document.getElementById("avatar").files[0];
+
+        if (bioInput) formData.append("bio", bioInput);
+        if (avatarInput) formData.append("avatar", avatarInput);
+
+        fetch(`profile/${username}/`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("update-status").textContent = "Profile updated successfully!";
+            document.getElementById("update-status").style.color = "lightgreen";
+
+            if (data.avatar) {
+                document.getElementById("profile-avatar").src = data.avatar;
+            }
+            document.getElementById("bio-text").textContent = bioInput;
+        })
+        .catch(error => {
+            document.getElementById("update-status").textContent = "Failed to update profile!";
+            document.getElementById("update-status").style.color = "red";
+            console.error("Error updating profile:", error);
+        });
+    });
+});
+</script>
+
 {% endblock %}
