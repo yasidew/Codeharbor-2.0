@@ -80,7 +80,12 @@
 
             <!-- Refactor Button -->
             <div class="text-center mt-3">
-                <button id="refactor-btn" class="btn btn-info">Refactor Code</button>
+                <button id="refactor-btn"
+                        class="btn btn-info btn-lg fw-bold text-white shadow-lg border-0"
+                        style="background: linear-gradient(90deg, #007bff, #0056b3);
+               transition: all 0.3s ease;">
+                    Refactor Code
+                </button>
             </div>
 
             <!-- Loading Spinner -->
@@ -94,9 +99,8 @@
             <!-- Before-After Code Diff View -->
             <div id="diff-section" class="mt-5" style="display: none;">
                 <h3 class="text-center text-white">Before & After Code Comparison</h3>
-                <div class="card bg-dark p-3">
-                    <div id="codeDiffViewer" class="editor-container"></div>
-                </div>
+                <div id="monacoDiffEditor" style="height: 500px; width: 100%;"></div>
+                ¶
             </div>
 
             <!-- Refactored Code Output -->
@@ -149,6 +153,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Include diff2html CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css">
+    <!-- Include diff2html JS -->
+    <script src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js" defer></script>
+
     <script>
         let editor, refactoredEditor, diffEditor;
 
@@ -188,6 +197,53 @@
             });
         });
 
+        let monacoDiffEditor;
+        require(['vs/editor/editor.main'], function () {
+            monacoDiffEditor = monaco.editor.createDiffEditor(document.getElementById('monacoDiffEditor'), {
+                theme: "vs-dark",
+                readOnly: true,
+                automaticLayout: true
+            });
+        });
+
+        async function showCodeDiff(recordId) {
+            try {
+                const response = await fetch(`/code-formatter/fetch-snippet-diff/?record_id=${recordId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const originalCode = result.original_code || "No original code available.";
+                    const refactoredCode = result.refactored_code || "No refactored code available.";
+
+                    // Ensure Monaco models are created properly
+                    const originalModel = monaco.editor.createModel(originalCode, "java");
+                    const modifiedModel = monaco.editor.createModel(refactoredCode, "java");
+
+                    // Initialize Monaco Diff Editor if not already done
+                    if (!monacoDiffEditor) {
+                        monacoDiffEditor = monaco.editor.createDiffEditor(document.getElementById('monacoDiffEditor'), {
+                            theme: "vs-dark",
+                            readOnly: true,
+                            automaticLayout: true
+                        });
+                    }
+
+                    // Set the models in the diff editor
+                    monacoDiffEditor.setModel({
+                        original: originalModel,
+                        modified: modifiedModel
+                    });
+
+                    document.getElementById("diff-section").style.display = "block";
+                } else {
+                    console.error("Error fetching diff:", result.error);
+                }
+            } catch (err) {
+                console.error("Error fetching diff:", err.message);
+            }
+        }
+
+
         document.getElementById('refactor-btn').addEventListener('click', async () => {
             const code = editor.getValue();
             const useGuidelines = document.getElementById('guideline-toggle').checked;
@@ -226,6 +282,7 @@
                 if (response.ok) {
                     refactoredEditor.setValue(data.refactored_code);
                     refactoredSection.style.display = 'block';
+                    showCodeDiff(data.id);
 
                     // Build collapsible "cards" for each change
                     if (data.changes_made && data.changes_made.length > 0) {
