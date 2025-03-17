@@ -61,14 +61,32 @@ class Badge(models.Model):
     def __str__(self):
         return self.name
 
+# class UserBadge(models.Model):
+#     """Links users to their earned badges."""
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+#     awarded_on = models.DateTimeField(auto_now_add=True)
+#
+#     class Meta:
+#         unique_together = ('user', 'badge')  # Prevents duplicate badges
+#
+#     def __str__(self):
+#         return f"{self.user.username} - {self.badge.name}"
+
 class UserBadge(models.Model):
     """Links users to their earned badges."""
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    badge_name = models.CharField(max_length=100, blank=True, null=True)  # ✅ Store badge name explicitly
     awarded_on = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'badge')  # Prevents duplicate badges
+
+    def save(self, *args, **kwargs):
+        if self.badge:
+            self.badge_name = self.badge.name  # Ensure badge name is stored
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - {self.badge.name}"

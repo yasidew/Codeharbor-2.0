@@ -197,12 +197,80 @@ def user_assigned_badges(request, user_id):
 
 
 
+# @api_view(["POST"])
+# def store_user_badge(request):
+#     """
+#     Stores (assigns) a single critical-score-based badge to a user.
+#     A user can only have ONE badge from this category at a time.
+#     """
+#     # Extract data from request
+#     user_id = request.data.get("user_id")
+#
+#     if not user_id:
+#         return Response({"error": "Missing required field: user_id"}, status=400)
+#
+#     # Get user
+#     user = get_object_or_404(User, id=user_id)
+#
+#     # ✅ Fetch the total critical score
+#     total_critical_score = (
+#         GitGameScore.objects.filter(user=user)
+#         .aggregate(Sum('critical_score'))['critical_score__sum']
+#     ) or 0  # Default to 0 if None
+#
+#     print(f"🔹 Total Critical Score for {user.username}: {total_critical_score}")  # Debugging
+#
+#     # ✅ Define badge criteria based on critical score
+#     badge_criteria = [
+#         ("Platinum", 0),
+#         ("Gold", 10),
+#         ("Silver", 20),
+#         ("Bronze", 40),
+#         ("Participant", 100)
+#     ]
+#
+#     # ✅ Determine which badge the user should receive
+#     assigned_badge = None
+#     for badge_name, max_critical_score in badge_criteria:
+#         if total_critical_score <= max_critical_score:
+#             assigned_badge, _ = Badge.objects.get_or_create(
+#                 name=badge_name,
+#                 defaults={"description": f"Awarded for having ≤ {max_critical_score} total critical issues."}
+#             )
+#             break  # Stop after assigning the first matching badge
+#
+#     if not assigned_badge:
+#         return Response({"error": "No appropriate badge found for the given score."}, status=400)
+#
+#     # ✅ Remove any existing critical-score-related badge
+#     critical_badges = ["Platinum", "Gold", "Silver", "Bronze", "Participant"]
+#     UserBadge.objects.filter(user=user, badge__name__in=critical_badges).delete()
+#
+#     # ✅ Assign the new badge
+#     UserBadge.objects.create(user=user, badge=assigned_badge)
+#
+#     return Response({
+#         "message": f"Badge '{assigned_badge.name}' assigned to {user.username}.",
+#         "user": user.username,
+#         "total_critical_score": total_critical_score,
+#         "assigned_badge": assigned_badge.name
+#     })
+
+
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+from django.db.models import Sum
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from games.models import UserBadge, Badge, GitGameScore
+
 @api_view(["POST"])
 def store_user_badge(request):
     """
     Stores (assigns) a single critical-score-based badge to a user.
     A user can only have ONE badge from this category at a time.
     """
+
     # Extract data from request
     user_id = request.data.get("user_id")
 
@@ -246,12 +314,17 @@ def store_user_badge(request):
     critical_badges = ["Platinum", "Gold", "Silver", "Bronze", "Participant"]
     UserBadge.objects.filter(user=user, badge__name__in=critical_badges).delete()
 
-    # ✅ Assign the new badge
-    UserBadge.objects.create(user=user, badge=assigned_badge)
+    # ✅ Assign the new badge and store its name
+    user_badge = UserBadge.objects.create(user=user, badge=assigned_badge)
+
+    # ✅ Store the badge name separately (optional, for analytics or UI display)
+    user_badge.badge_name = assigned_badge.name  # Store badge name
+    user_badge.save()
 
     return Response({
         "message": f"Badge '{assigned_badge.name}' assigned to {user.username}.",
-        "user": user.username,
+        "user_id": user.id,
+        "username": user.username,
         "total_critical_score": total_critical_score,
         "assigned_badge": assigned_badge.name
     })
