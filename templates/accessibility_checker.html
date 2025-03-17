@@ -247,160 +247,108 @@
             }
         });
 
-
-
         // Submit score
-        {#document.getElementById('submit-score').addEventListener('click', async function () {#}
-        {#    let score = sessionStorage.getItem("accessibilityScore");#}
-        {##}
-        {#    if (!score) {#}
-        {#        alert("No score available to submit!");#}
-        {#        return;#}
-        {#    }#}
-        {##}
-        {#    const accessToken = localStorage.getItem('accessToken');#}
-        {#    if (!accessToken) {#}
-        {#        alert("You are not logged in! Redirecting to login...");#}
-        {#        window.location.href = '/login';#}
-        {#        return;#}
-        {#    }#}
-        {##}
-        {#    let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;#}
-        {#    let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;#}
-        {#    let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;#}
-        {#    let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;#}
-        {##}
-        {##}
-        {#    let submissionData = {#}
-        {#        game_name: queryParams.game_name,#}
-        {#        challenge_id: queryParams.challenge_id,#}
-        {#        score: parseFloat(score),#}
-        {#        critical_score: criticalCount,#}
-        {#        serious_score: seriousCount,#}
-        {#        moderate_score: moderateCount,#}
-        {#        minor_score: minorCount#}
-        {#    };#}
-        {##}
-        {##}
-        {#    console.log("Submitting Score:", submissionData);#}
-        {##}
-        {#    try {#}
-        {#        const response = await fetch("http://127.0.0.1:8000/checker/submit_score/", {#}
-        {#            method: "POST",#}
-        {#            headers: {#}
-        {#                "Content-Type": "application/json",#}
-        {#                "Authorization": `Bearer ${accessToken}`,#}
-        {#                "X-CSRFToken": "{{ csrf_token }}"#}
-        {#            },#}
-        {#            body: JSON.stringify(submissionData)#}
-        {#        });#}
-        {##}
-        {#        const result = await response.json();#}
-        {#        console.log("🔹 Server Response:", result);#}
-        {##}
-        {#        if (response.ok) {#}
-        {#            alert(`Score submitted successfully! User ID: ${result.user_id}`);#}
-        {##}
-        {#            // ✅ Ensure user_id is stored correctly#}
-        {#            sessionStorage.setItem("user_id", result.user_id);#}
-        {#            localStorage.setItem("user_id", result.user_id);  // Also store in localStorage for persistence#}
-        {##}
-        {#            console.log("🔹 Stored User ID in sessionStorage:", sessionStorage.getItem("user_id"));#}
-        {#            console.log("🔹 Stored User ID in localStorage:", localStorage.getItem("user_id"));#}
-        {#        } else {#}
-        {#            alert("❌ Error submitting score: " + result.error);#}
-        {#        }#}
-        {#    } catch (error) {#}
-        {#        console.error("Error submitting score:", error);#}
-        {#        alert("Failed to submit score.");#}
-        {#    }#}
-        {#});#}
+        document.getElementById('submit-score').addEventListener('click', async function () {
+            let score = sessionStorage.getItem("accessibilityScore");
 
-            // Submit score
-document.getElementById('submit-score').addEventListener('click', async function () {
-    let score = sessionStorage.getItem("accessibilityScore");
+            if (!score) {
+                alert("No score available to submit!");
+                return;
+            }
 
-    if (!score) {
-        alert("No score available to submit!");
-        return;
-    }
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                alert("You are not logged in! Redirecting to login...");
+                window.location.href = '/login';
+                return;
+            }
 
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-        alert("You are not logged in! Redirecting to login...");
-        window.location.href = '/login';
-        return;
-    }
+            let userId = sessionStorage.getItem("user_id") || localStorage.getItem("user_id");
 
-    let userId = sessionStorage.getItem("user_id") || localStorage.getItem("user_id");
+            let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;
+            let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;
+            let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;
+            let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;
 
-    let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;
-    let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;
-    let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;
-    let minorCount = parseInt(sessionStorage.getItem("minor-count")) || 0;
+            let submissionData = {
+                game_name: queryParams.game_name,
+                challenge_id: queryParams.challenge_id,
+                score: parseFloat(score),
+                critical_score: criticalCount,
+                serious_score: seriousCount,
+                moderate_score: moderateCount,
+                minor_score: minorCount
+            };
 
-    let submissionData = {
-        game_name: queryParams.game_name,
-        challenge_id: queryParams.challenge_id,
-        score: parseFloat(score),
-        critical_score: criticalCount,
-        serious_score: seriousCount,
-        moderate_score: moderateCount,
-        minor_score: minorCount
-    };
+            console.log("🔹 Submitting Score:", submissionData);
 
-    console.log("🔹 Submitting Score:", submissionData);
+            try {
+                const response = await fetch("http://127.0.0.1:8000/checker/submit_score/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${accessToken}`,
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify(submissionData)
+                });
 
-    try {
-        const response = await fetch("http://127.0.0.1:8000/checker/submit_score/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`,
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: JSON.stringify(submissionData)
-        });
+                const result = await response.json();
+                console.log("🔹 Server Response:", result);
 
-        const result = await response.json();
-        console.log("🔹 Server Response:", result);
+                if (response.ok) {
+                    alert(`Score submitted successfully! User ID: ${result.user_id}`);
 
-        if (response.ok) {
-            alert(`Score submitted successfully! User ID: ${result.user_id}`);
+                    // ✅ Store user ID
+                    sessionStorage.setItem("user_id", result.user_id);
+                    localStorage.setItem("user_id", result.user_id);
+                    console.log("🔹 Stored User ID in sessionStorage:", sessionStorage.getItem("user_id"));
 
-            // ✅ Store user ID
-            sessionStorage.setItem("user_id", result.user_id);
-            localStorage.setItem("user_id", result.user_id);
-            console.log("🔹 Stored User ID in sessionStorage:", sessionStorage.getItem("user_id"));
 
-            // ✅ Fetch the updated Critical Score AFTER submission
-            let updatedCriticalScoreResponse = await fetch(`http://127.0.0.1:8000/games/total-critical-score/${userId}/`, {
-                method: "GET",
+                    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    // ✅ Fetch updated Critical Score and Assign Badge
+            await fetch(`http://127.0.0.1:8000/games/store-badge/`, {
+                method: "POST",
                 headers: {
+                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${accessToken}`,
                     "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ user_id: result.user_id })
+            })
+            .then(response => response.json())
+            .then(badgeResult => {
+                console.log("🔹 Assigned Badge:", badgeResult.assigned_badge);
+                alert(`New Badge Assigned: ${badgeResult.assigned_badge}`);
+            })
+                    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                    // ✅ Fetch the updated Critical Score AFTER submission
+                    let updatedCriticalScoreResponse = await fetch(`http://127.0.0.1:8000/games/total-critical-score/${userId}/`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${accessToken}`,
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        }
+                    });
+
+                    let updatedCriticalScoreData = await updatedCriticalScoreResponse.json();
+                    let updatedCriticalScore = updatedCriticalScoreData.total_critical_score || 0;
+
+                    console.log("🔹 Total Critical Score AFTER Submission:", updatedCriticalScore); // ✅ Print latest value
+
+                    // ✅ Update `critical_count` in sessionStorage
+                    sessionStorage.setItem("critical-count", updatedCriticalScore);
+                    console.log("🔹 Updated critical-count in sessionStorage:", sessionStorage.getItem("critical-count"));
+
+                } else {
+                    alert("❌ Error submitting score: " + result.error);
                 }
-            });
-
-            let updatedCriticalScoreData = await updatedCriticalScoreResponse.json();
-            let updatedCriticalScore = updatedCriticalScoreData.total_critical_score || 0;
-
-            console.log("🔹 Total Critical Score AFTER Submission:", updatedCriticalScore); // ✅ Print latest value
-
-            // ✅ Update `critical_count` in sessionStorage
-            sessionStorage.setItem("critical-count", updatedCriticalScore);
-            console.log("🔹 Updated critical-count in sessionStorage:", sessionStorage.getItem("critical-count"));
-
-        } else {
-            alert("❌ Error submitting score: " + result.error);
-        }
-    } catch (error) {
-        console.error("Error submitting score:", error);
-        alert("Failed to submit score.");
-    }
-});
-
-
+            } catch (error) {
+                console.error("Error submitting score:", error);
+                alert("Failed to submit score.");
+            }
+        });
 
 
         // Chart Button
@@ -426,8 +374,6 @@ document.getElementById('submit-score').addEventListener('click', async function
             // ✅ Navigate to severity chart page with user ID and challenge ID
             window.location.href = `http://127.0.0.1:8000/games/severity-chart/${userId}/${challengeId}/`;
         });
-
-
 
 
         // Editor Button

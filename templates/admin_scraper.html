@@ -139,6 +139,75 @@ document.getElementById("fetchChallengesBtn").addEventListener("click", function
         let queryString = new URLSearchParams(data).toString();
         window.location.href = `http://127.0.0.1:8000/checker/?${queryString}`;
     });
+
+
+    document.getElementById("claimBadges").addEventListener("click", async function () {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+        alert("You are not logged in! Redirecting to login...");
+        window.location.href = '/login';
+        return;
+    }
+
+    let userId = sessionStorage.getItem("user_id") || localStorage.getItem("user_id");
+    if (!userId) {
+        alert("❌ User ID not found! Please submit your score first.");
+        return;
+    }
+
+    try {
+        // ✅ Fetch Total Critical Score BEFORE assigning badge
+        let totalCriticalScoreResponse = await fetch(`http://127.0.0.1:8000/games/total-critical-score/${userId}/`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${accessToken}`,
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        });
+
+        let totalCriticalScoreData = await totalCriticalScoreResponse.json();
+        let totalCriticalScore = totalCriticalScoreData.total_critical_score || 0;
+        console.log("🔹 Total Critical Score:", totalCriticalScore);
+
+        // ✅ Assign Badge Based on Critical Score
+        let badgeResponse = await fetch("http://127.0.0.1:8000/games/store-badge/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`,
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ user_id: userId })
+        });
+
+        let badgeResult = await badgeResponse.json();
+        console.log("🔹 Assigned Badge:", badgeResult.assigned_badge);
+
+        if (badgeResponse.ok) {
+            alert(`🎉 New Badge Assigned: ${badgeResult.assigned_badge}`);
+        } else {
+            alert("❌ Error assigning badge: " + badgeResult.error);
+        }
+    } catch (error) {
+        console.error("Error claiming badge:", error);
+        alert("❌ Failed to claim badge.");
+    }
+});
+
+// ✅ Function to Get CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        document.cookie.split(";").forEach(cookie => {
+            let trimmedCookie = cookie.trim();
+            if (trimmedCookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(trimmedCookie.substring(name.length + 1));
+            }
+        });
+    }
+    return cookieValue;
+}
+
 </script>
 
 {% endblock %}
