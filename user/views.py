@@ -27,6 +27,7 @@ class UserAPI(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
 
+
     def get(self, request):
         user = request.user
         if not user.is_authenticated:
@@ -140,7 +141,7 @@ def logout_all(request):
 #     user_profile.save()
 
 
-# @api_view(['POST'])
+# @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def user_profile_view(request, username):
     """Display the user profile."""
@@ -171,14 +172,3 @@ def user_profile_view(request, username):
     )
 
 
-# def update_profile(request):
-#     """Allows the user to update their profile picture and bio."""
-#     user_profile = get_object_or_404(UserProfile, user=request.user)
-#
-#     if request.method == "POST":
-#         form = ProfileUpdateForm(request.POST, request.FILES, instance=user_profile)
-#         if form.is_valid():
-#             form.save()
-#             return redirect("user_profile", username=request.user.username)
-#
-#     return render(request, "profile.html", {"user_profile": user_profile})
