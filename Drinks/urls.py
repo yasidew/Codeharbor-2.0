@@ -9,7 +9,7 @@ from games.views import editor_view
 from user.views import UserAPI, logout, logout_all, user_profile_view
 import model
 from . import views
-from .views import export_excel
+from .views import export_excel, export_java_excel
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
@@ -33,6 +33,7 @@ path('guidelines/', views.guidelines_view, name='guidelines'),
     path('java_code_analysis/', views.java_code_analysis, name='java_code_analysis'),
     path('analyze-code/', views.analyze_code_view, name='analyze_code'),
     path("export-excel/", export_excel, name="export_excel"),
+    path("export_java_excel/", export_java_excel, name="export_java_excel"),
     path('js_code_analyser/', views.js_code_analyser, name='js_code_analyser'),
 
                   path("detect-defects/", views.detect_defects_view, name="detect_defects"),

@@ -702,6 +702,131 @@ def java_analyze_code_complexity(code):
     return result
 
 
+def export_java_excel(request):
+    """Generate and download the Excel report for Java code analysis."""
+    summary = request.session.get("latest_summary", {})  # Get latest analysis
+    suggestions = request.session.get("latest_suggestions", [])  # Get latest suggestions
+
+    # Create Excel response
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f'attachment; filename="java_code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+
+    # Create Workbook and Worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Java Code Analysis Report"
+
+    # Define Styles
+    bold_font = Font(bold=True)
+    title_font = Font(bold=True, size=14)
+    header_fill = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")  # Gray for headers
+    table_fill = PatternFill(start_color="F8F9FA", end_color="F8F9FA", fill_type="solid")  # Light gray for tables
+    wrap_alignment = Alignment(wrap_text=True, vertical="top")  # ✅ Enable wrapping
+    thin_border = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin")
+    )  # ✅ Add cell borders
+
+    # ✅ Add Report Title and Timestamp
+    ws.append(["Java Code Analysis Report"])
+    ws.append(["Generated On", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    ws.append([])
+
+    # Apply Bold Style to Title and Date
+    ws["A1"].font = title_font
+    ws["A2"].font = bold_font
+    ws["B2"].font = bold_font
+
+    # ✅ Add Summary Metrics for Java
+    ws.append(["Metric", "Value"])
+    ws.append(["Total Code Segments Analyzed", summary.get("total_snippets", 0)])
+    ws.append(["Total Suggestions", summary.get("total_suggestions", 0)])
+    ws.append(["Total Issues Identified", summary.get("total_suggestions", 0)])
+    ws.append(["Total Lines of Code", summary.get("total_lines", 0)])
+    ws.append(["Number of Classes", summary.get("complexity_metrics", {}).get("num_classes", "N/A")])
+    ws.append(["Number of Methods", summary.get("complexity_metrics", {}).get("num_methods", "N/A")])
+    ws.append(["Average Method Length", summary.get("complexity_metrics", {}).get("avg_method_length", "N/A")])
+    ws.append(["Nesting Depth", summary.get("complexity_metrics", {}).get("nesting_depth", "N/A")])
+    ws.append(["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
+    ws.append(["Comment Density", summary.get("complexity_metrics", {}).get("comment_density", "N/A")])
+    ws.append(["Complexity Score", summary.get("complexity_metrics", {}).get("complexity_score", "N/A")])
+    ws.append(["Readability Score", summary.get("complexity_metrics", {}).get("readability_score", "N/A")])
+    ws.append([])
+
+    # ✅ Add Severity Levels
+    ws.append(["Severity Level", "Count"])
+    ws.append(["Critical Issues", summary.get("severity", {}).get("Critical", 0)])
+    ws.append(["Medium Issues", summary.get("severity", {}).get("Medium", 0)])
+    ws.append(["Low Issues", summary.get("severity", {}).get("Low", 0)])
+    ws.append([])
+
+    # ✅ Add Category Breakdown
+    ws.append(["Category", "Count"])
+    for category, count in summary.get("categories", {}).items():
+        ws.append([category, count])
+    ws.append([])
+
+    # ✅ Add Code Snippets with Issues & Suggestions (Table Formatting)
+    header_row = ["Code Snippet", "Suggested Fix", "Category", "Severity", "Line Number"]
+    ws.append(header_row)
+
+    # ✅ Apply Styling to Headers
+    for col_num, cell in enumerate(ws[ws.max_row], start=1):
+        cell.font = bold_font
+        cell.fill = header_fill  # Apply background color
+        cell.alignment = wrap_alignment
+        cell.border = thin_border  # ✅ Apply borders to header
+
+    # ✅ Process & Add Data to Table
+    if suggestions:
+        for suggestion in suggestions:
+            row_data = [
+                suggestion.get("code", "").replace("\n", " "),  # ✅ Ensure inline format
+                suggestion.get("suggestion", "N/A"),  # ✅ Full Suggested Fix
+                suggestion.get("category", "N/A"),
+                suggestion.get("severity", "N/A"),
+                suggestion.get("line", "N/A"),
+            ]
+            ws.append(row_data)
+
+        # ✅ Enable text wrapping and apply borders to data rows
+        for row in ws.iter_rows(min_row=ws.max_row - len(suggestions) + 1, max_row=ws.max_row):
+            for cell in row:
+                cell.alignment = wrap_alignment
+                cell.border = thin_border  # ✅ Add borders for each cell
+                cell.fill = table_fill  # ✅ Apply background color for readability
+
+    else:
+        ws.append(["No analyzed code snippets available."])
+
+    # ✅ Adjust Column Widths Dynamically for Better Readability
+    for col in ws.columns:
+        max_length = 0
+        col_letter = get_column_letter(col[0].column)  # Get column letter (A, B, C, etc.)
+
+        for cell in col:
+            try:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            except:
+                pass
+
+        # ✅ Adjust width dynamically while setting a maximum width
+        if col_letter == "A":  # ✅ Code Snippet Column
+            adjusted_width = min(max_length + 10, 80)  # ✅ Increase for better readability
+        elif col_letter == "B":  # ✅ Suggested Fix Column
+            adjusted_width = min(max_length + 10, 80)  # ✅ Allow space for suggestions
+        else:
+            adjusted_width = min(max_length + 5, 30)  # ✅ Keep other columns readable
+
+        ws.column_dimensions[col_letter].width = adjusted_width
+
+    # ✅ Save workbook to response
+    wb.save(response)
+    return response
+
 
 
 @api_view(['GET', 'POST'])
