@@ -69,9 +69,9 @@
     <div class="container mt-5">
         <h1 class="text-center">Statistical Analysis Results</h1>
 
-        <p>This table presents the **Pearson Correlation** and **Spearman Correlation** results. These correlations
-            measure the relationship between Weighted Code Complexity (WCC) and various software metrics, such as
-            complexity, maintainability, and readability.</p>
+        <p>This page presents the statistical analysis of Weighted Code Complexity (WCC) and its relationship with
+            various software quality metrics such as Complexity, Maintainability, and Readability. The analysis includes
+            correlation coefficients, scatter plots, clustering, and boxplots.</p>
 
         <!-- Correlation Analysis -->
         <section class="my-5">
@@ -98,9 +98,6 @@
                 </table>
             </div>
 
-            <p>**Pearson Correlation** measures the linear relationship between WCC and the given metrics. A positive
-                value means a direct correlation, while a negative value indicates an inverse relationship.</p>
-
             <div class="table-responsive mt-4">
                 <table class="table table-bordered text-white">
                     <thead>
@@ -122,23 +119,59 @@
                 </table>
             </div>
 
-            <p>**Spearman Correlation** is a rank-based correlation method that measures how well the relationship
-                between WCC and the metrics can be described using a monotonic function.</p>
+            <p>These tables display the Pearson Correlation and Spearman Correlation between WCC and other software
+                quality metrics.</p>
+            <h4>📌 Pearson Correlation Table</h4>
+            <ul>
+                <li>Pearson Correlation measures the linear relationship between WCC and the given metrics.</li>
+                <li>Complexity (0.7209) → WCC increases as Complexity increases (positive correlation).</li>
+                <li>Maintainability (-0.5285) → WCC increases as Maintainability decreases (negative correlation).</li>
+                <li>Readability (-0.4532) → WCC increases as Readability decreases (negative correlation).</li>
+            </ul>
+            <h4>📌 Spearman Correlation Table</h4>
+            <ul>
+                <li>Spearman Correlation is a rank-based correlation that measures relationships using a monotonic
+                    function.
+                </li>
+                <li>Complexity (0.7689) has a strong positive monotonic correlation with WCC.</li>
+                <li>Maintainability (-0.5261) and Readability (-0.5670) show negative monotonic relationships.</li>
+            </ul>
         </section>
 
         <!-- Scatter Plots -->
         <section class="my-5">
             <h2>Scatter Plots</h2>
-            <p>These scatter plots visualize the relationship between WCC and different software quality metrics.</p>
+            <h4>Scatter plots visualize the relationship between WCC and various software quality metrics.</h4>
             {% for column, plot_path in scatter_plots.items %}
                 <div class="mb-4">
                     <h3 class="text-muted" style="color: blueviolet">{{ column }} vs WCC</h3>
                     <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}"
                          class="analysis-img">
-                    <p>🔹 This scatter plot shows how **{{ column }}** changes as WCC increases. The red trendline
-                        helps visualize whether the relationship is positive or negative.</p>
                 </div>
             {% endfor %}
+            <h4>📌 Complexity vs WCC (First Scatter Plot)</h4>
+            <ul>
+                <li>Shows how Complexity changes as WCC increases.
+                </li>
+                <li>Red trendline indicates a positive correlation (higher WCC tends to have higher Complexity).</li>
+                <li>The distribution of points shows a strong relationship, confirming the correlation table results.
+                </li>
+            </ul>
+
+            <h4>📌 Maintainability vs WCC (Second Scatter Plot)</h4>
+            <ul>
+                <li>Shows how Maintainability changes as WCC increases.
+                </li>
+                <li>Red trendline shows a negative correlation (higher WCC tends to have lower Maintainability).</li>
+                <li>This means complex code is generally harder to maintain.</li>
+            </ul>
+            <h4>📌 Readability vs WCC (Third Scatter Plot)</h4>
+            <ul>
+                <li>Shows how Readability changes as WCC increases.
+                </li>
+                <li>Red trendline shows a negative correlation (higher WCC tends to have lower Readability).</li>
+                <li>Complex code is harder to read and understand.</li>
+            </ul>
         </section>
 
         <!-- Cluster Centers -->
@@ -146,27 +179,35 @@
             <h2>Cluster Centers (Thresholds)</h2>
             <p>Clustering was performed to determine two complexity levels: **Low Complexity** and **High Complexity**.
             </p>
-            <p><strong>Low Complexity:</strong> {{ low_center }}</p>
-            <p><strong>High Complexity:</strong> {{ high_center }}</p>
-            <p>🔹 These threshold values can help categorize class methods(Low, Medium, High) into different complexity
-                levels.</p>
+            <h4 style="color: green"><strong>Low Complexity:</strong> {{ low_center }}</h4>
+            <h4 style="color: red"><strong>High Complexity:</strong> {{ high_center }}</h4>
+            <p>These values help define complexity levels and categorize methods into <b>Low, Medium, and High
+                Complexity.</b></p>
         </section>
 
         <section class="my-5">
             <h2>WCC Clustering and Thresholds Graph </h2>
+            <ul>
+                <li>This scatter plot clusters methods based on their WCC values.</li>
+                <li>Orange and blue dots represent two clusters (Low & High complexity).</li>
+                <li>The dotted lines represent threshold values, visually separating low and high complexity
+                    components.
+                </li>
+            </ul>
             <img src="{{ MEDIA_URL }}/media/wcc_clustering.png" alt="Boxplot of WCC by Complexity Level"
                  class="analysis-img">
-            <p>🔹 This visualization uses **K-Means Clustering** to separate high-complexity and low-complexity
-                components based on WCC values.</p>
         </section>
 
         <!-- Boxplot -->
         <section class="my-5">
             <h2>Boxplot of WCC by Complexity Level</h2>
+            <ul>
+                <li>A boxplot represents the distribution of WCC values for high and low complexity groups.</li>
+                <li>The High Complexity group has higher WCC values with a larger spread.</li>
+                <li>The Low Complexity group has lower WCC values with a more compact distribution.</li>
+            </ul>
             <img src="{{ MEDIA_URL }}/media/boxplot_with_thresholds.png" alt="Boxplot of WCC by Complexity Level"
                  class="analysis-img">
-            <p>🔹 This boxplot represents the distribution of WCC values for **High Complexity** and **Low Complexity**
-                groups. The **dashed lines** indicate the threshold values determined from clustering.</p>
         </section>
     </div>
 
