@@ -1473,7 +1473,7 @@ def ai_generate_guideline(summary):
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # Upgrade for better contextual understanding
+            model="gpt-4o",  # Upgrade for better contextual understanding
             messages=[
                 {"role": "system",
                  "content": "You are an expert AI code reviewer. Based on the analysis summary, provide a concise final"
