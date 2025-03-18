@@ -126,13 +126,13 @@ load_dotenv()
 # client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Initialize model and tokenizer once
-MODEL_PATH = "./models/custom_seq2seq_model"
+# MODEL_PATH = "./models/custom_seq2seq_model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Global instances for reuse
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH).to(device)
-model.eval()
+# tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+# model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH).to(device)
+# model.eval()
 
 # Optimize PyTorch performance
 torch.backends.cudnn.benchmark = True
@@ -265,29 +265,29 @@ def group_recommendations_by_line(recommendations):
 
 ################################ java ##############################
 
-JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
+# JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ✅ Initialize model & tokenizer globally
-java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
-java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
-java_model.eval()  # Set to evaluation mode for inference
+# java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
+# java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
+# java_model.eval()  # Set to evaluation mode for inference
 
-def java_generate_suggestion(code_snippet):
-    """
-    Uses the Java-trained T5 model to generate AI-powered suggestions.
-    """
-    try:
-        inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
-        inputs = {k: v.to(device) for k, v in inputs.items()}
-
-        with torch.no_grad():
-            output = java_model.generate(**inputs, max_length=128)
-
-        return java_tokenizer.decode(output[0], skip_special_tokens=True)
-
-    except Exception as e:
-        return f"❌ Error generating suggestion: {str(e)}"
+# def java_generate_suggestion(code_snippet):
+#     """
+#     Uses the Java-trained T5 model to generate AI-powered suggestions.
+#     """
+#     try:
+#         inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
+#         inputs = {k: v.to(device) for k, v in inputs.items()}
+#
+#         with torch.no_grad():
+#             output = java_model.generate(**inputs, max_length=128)
+#
+#         return java_tokenizer.decode(output[0], skip_special_tokens=True)
+#
+#     except Exception as e:
+#         return f"❌ Error generating suggestion: {str(e)}"
 
 
 
