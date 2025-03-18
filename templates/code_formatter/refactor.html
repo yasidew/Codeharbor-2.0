@@ -135,25 +135,54 @@
             {#                <h3 class="text-center text-white">Code Metrics Visualization</h3>#}
             {#                <canvas id="metricsChart" width="400" height="200"></canvas>#}
             {#            </div>#}
-            <div class="content d-flex align-items-center justify-content-center min-vh-100">
-                <div class="container">
-                    <h2 class="text-center text-white mb-4">Code Refactoring Analysis</h2>
+            {#            <div class="content d-flex align-items-center justify-content-center min-vh-100">#}
+            {#                <div class="container">#}
+            {#                    <h2 class="text-center text-white mb-4">Code Refactoring Analysis</h2>#}
+            {##}
+            {#                    <!-- Code Metrics Section -->#}
+            {#                    <div id="metrics-section" class="mt-5">#}
+            {#                        <h3 class="text-center text-white">Code Metrics Visualization</h3>#}
+            {#                        <div class="row">#}
+            {#                            <div class="col-md-6">#}
+            {#                                <canvas id="barChart"></canvas>#}
+            {#                            </div>#}
+            {#                            <div class="col-md-6">#}
+            {#                                <canvas id="pieChart"></canvas>#}
+            {#                            </div>#}
+            {#                        </div>#}
+            {#                        <div class="row mt-4">#}
+            {#                            <div class="col-md-12 text-center">#}
+            {#                                <canvas id="gaugeChart"></canvas>#}
+            {#                            </div>#}
+            {#                        </div>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
+            <!-- Code Metrics Section - Hidden until Refactoring is Done -->
+            <div id="metrics-section" class="mt-5" style="display: none;">
+                <h3 class="text-center text-white">Code Refactoring Analysis</h3>
+                <p class="text-muted text-center">A visual comparison of refactoring improvements.</p>
 
-                    <!-- Code Metrics Section -->
-                    <div id="metrics-section" class="mt-5">
-                        <h3 class="text-center text-white">Code Metrics Visualization</h3>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <canvas id="barChart"></canvas>
-                            </div>
-                            <div class="col-md-6">
-                                <canvas id="pieChart"></canvas>
-                            </div>
+                <div class="row gx-4 gy-4 mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-dark p-3 shadow-lg rounded">
+                            <h5 class="text-center text-white">Code Metrics Comparison</h5>
+                            <canvas id="barChart"></canvas>
                         </div>
-                        <div class="row mt-4">
-                            <div class="col-md-12 text-center">
-                                <canvas id="gaugeChart"></canvas>
-                            </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark p-3 shadow-lg rounded">
+                            <h5 class="text-center text-white">Improvement Breakdown</h5>
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card bg-dark p-3 shadow-lg rounded text-center">
+                            <h5 class="text-white">Maintainability Index</h5>
+                            <canvas id="gaugeChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -273,6 +302,7 @@
             const loadingBar = document.getElementById('loading-bar');
             const refactoredSection = document.getElementById('refactored-section');
             const changesSection = document.getElementById('changes-section');
+            const metricsSection = document.getElementById('metrics-section');
             {#const changesList = document.getElementById('changes-list');#}
             // CHANGED #2: We'll target "changesContainer" for collapsible cards
             const changesContainer = document.getElementById('changesContainer');
@@ -283,6 +313,7 @@
             loadingBar.style.display = 'block';
             refactoredSection.style.display = 'none';
             changesSection.style.display = 'none';
+            metricsSection.style.display = 'none';
             resourcesSection.style.display = 'none';
 
             changesContainer.innerHTML = "";// Clear previous changes
@@ -345,6 +376,7 @@
                             changesContainer.appendChild(cardDiv);
                         });
                         changesSection.style.display = 'block';
+                        metricsSection.style.display = 'block';
                         attachCardExpandHandlers(data.id); // attach snippet fetch on expand
                     }
 
@@ -1054,6 +1086,21 @@
             font-weight: bold;
             color: #ffeb3b; /* Bright gold for contrast */
             font-size: 18px;
+        }
+
+        #metrics-section {
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        canvas {
+            max-height: 400px;
         }
 
 
