@@ -131,9 +131,32 @@
             </div>
 
             <!-- Code Metrics -->
-            <div id="metrics-section" class="mt-5" style="display: none;">
-                <h3 class="text-center text-white">Code Metrics Visualization</h3>
-                <canvas id="metricsChart" width="400" height="200"></canvas>
+            {#            <div id="metrics-section" class="mt-5" style="display: none;">#}
+            {#                <h3 class="text-center text-white">Code Metrics Visualization</h3>#}
+            {#                <canvas id="metricsChart" width="400" height="200"></canvas>#}
+            {#            </div>#}
+            <div class="content d-flex align-items-center justify-content-center min-vh-100">
+                <div class="container">
+                    <h2 class="text-center text-white mb-4">Code Refactoring Analysis</h2>
+
+                    <!-- Code Metrics Section -->
+                    <div id="metrics-section" class="mt-5">
+                        <h3 class="text-center text-white">Code Metrics Visualization</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <canvas id="barChart"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-md-12 text-center">
+                                <canvas id="gaugeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -157,6 +180,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css">
     <!-- Include diff2html JS -->
     <script src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         let editor, refactoredEditor, diffEditor, monacoDiffEditor;
@@ -185,7 +209,7 @@
             {#    theme: "vs-dark",#}
             {#    readOnly: true});#}
 
-           
+
             monacoDiffEditor = monaco.editor.createDiffEditor(document.getElementById('monacoDiffEditor'), {
                 theme: "vs-dark",
                 readOnly: true,
@@ -281,6 +305,7 @@
                     refactoredEditor.setValue(data.refactored_code);
                     refactoredSection.style.display = 'block';
                     showCodeDiff(data.id);
+                    fetchMetrics(data.id);
 
                     // Build collapsible "cards" for each change
                     if (data.changes_made && data.changes_made.length > 0) {
@@ -635,6 +660,117 @@
                 console.error("Error fetching design pattern:", error);
                 document.getElementById("suggested-pattern").style.display = "none";
             }
+        }
+
+        async function fetchMetrics(recordId) {
+            try {
+                const response = await fetch(`/code-formatter/get-metrics/?record_id=${recordId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    generateBarChart(result.metrics);
+                    generatePieChart(result.metrics);
+                    generateGaugeChart(result.metrics);
+                } else {
+                    console.error("Error fetching metrics:", result.error);
+                }
+            } catch (err) {
+                console.error("Error fetching metrics:", err.message);
+            }
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('/code-formatter/get-metrics/')
+                .then(response => response.json())
+                .then(data => {
+                    const metrics = data.metrics;
+                    generateBarChart(metrics);
+                    generatePieChart(metrics);
+                    generateGaugeChart(metrics);
+                })
+                .catch(error => console.error('Error fetching metrics:', error));
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('/code-formatter/get-metrics/')
+                .then(response => response.json())
+                .then(data => {
+                    const metrics = data.metrics;
+                    generateBarChart(metrics);
+                    generatePieChart(metrics);
+                    generateGaugeChart(metrics);
+                })
+                .catch(error => console.error('Error fetching metrics:', error));
+        });
+
+        function generateBarChart(metrics) {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Lines of Code (LOC)', 'Cyclomatic Complexity', 'Maintainability Index', 'Readability Score'],
+                    datasets: [
+                        {
+                            label: 'Before Refactoring',
+                            data: [metrics.before.loc, metrics.before.complexity, metrics.before.maintainability, metrics.before.readability],
+                            backgroundColor: '#ff6384',
+                        },
+                        {
+                            label: 'After Refactoring',
+                            data: [metrics.after.loc, metrics.after.complexity, metrics.after.maintainability, metrics.after.readability],
+                            backgroundColor: '#36a2eb',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function generatePieChart(metrics) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Code Reduction (%)', 'Readability Improvement (%)', 'Maintainability Boost (%)'],
+                    datasets: [{
+                        data: [
+                            metrics.improvement.reduction,
+                            metrics.improvement.readability,
+                            metrics.improvement.maintainability
+                        ],
+                        backgroundColor: ['#ffce56', '#4bc0c0', '#9966ff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function generateGaugeChart(metrics) {
+            const ctx = document.getElementById('gaugeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Maintainability Index'],
+                    datasets: [{
+                        data: [metrics.after.maintainability, 100 - metrics.after.maintainability],
+                        backgroundColor: ['#4CAF50', '#ddd']
+                    }]
+                },
+                options: {
+                    circumference: 180,
+                    rotation: 270,
+                    cutoutPercentage: 70,
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
         }
 
 

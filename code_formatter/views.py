@@ -674,3 +674,39 @@ def get_ai_suggested_pattern(code, patterns):
 
     except Exception as e:
         return f"Error fetching AI suggestion: {str(e)}"
+
+
+def get_metrics(request):
+    """Fetch code metrics for a specific refactoring record using record_id."""
+    record_id = request.GET.get("record_id")
+
+    if not record_id:
+        return JsonResponse({"success": False, "error": "Missing record_id"}, status=400)
+
+    try:
+        record = get_object_or_404(CodeRefactoringRecord, id=record_id)
+
+        metrics = {
+            "before": {
+                "loc": record.original_complexity,
+                "complexity": record.original_complexity,
+                "maintainability": record.original_readability,
+                "readability": record.original_readability
+            },
+            "after": {
+                "loc": record.refactored_complexity,
+                "complexity": record.refactored_complexity,
+                "maintainability": record.refactored_readability,
+                "readability": record.refactored_readability
+            },
+            "improvement": {
+                "reduction": round((1 - (record.refactored_complexity / record.original_complexity)) * 100, 2),
+                "readability": round((record.refactored_readability - record.original_readability), 2),
+                "maintainability": round((record.refactored_readability - record.original_readability), 2),
+            }
+        }
+
+        return JsonResponse({"success": True, "metrics": metrics})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
