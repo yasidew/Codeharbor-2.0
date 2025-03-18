@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 
 # Create your views here.
 from django.shortcuts import render
@@ -19,12 +19,14 @@ from rest_framework.exceptions import NotAuthenticated
 from django.core.exceptions import ValidationError
 
 from games.models import GitGameScore
+from user.forms import ProfileUpdateForm
 from user.models import UserProfile
 
 
 class UserAPI(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [AllowAny]
+
 
     def get(self, request):
         user = request.user
@@ -120,26 +122,27 @@ def logout_all(request):
     return Response({'message': 'Successfully logged out from all sessions.'}, status=200)
 
 
-def update_user_streak(user):
-    """Ensure the user's streak is updated when they play."""
-    today = date.today()
-    user_profile, created = UserProfile.objects.get_or_create(user=user)
+# def update_user_streak(user):
+#     """Ensure the user's streak is updated when they play."""
+#     today = date.today()
+#     user_profile, created = UserProfile.objects.get_or_create(user=user)
+#
+#     latest_score = GitGameScore.objects.filter(user=user).order_by("-last_played").first()
+#
+#     if latest_score and latest_score.last_played:
+#         if latest_score.last_played == today - timedelta(days=1):
+#             user_profile.current_streak += 1
+#         else:
+#             user_profile.current_streak = 1
+#
+#     if user_profile.current_streak > user_profile.longest_streak:
+#         user_profile.longest_streak = user_profile.current_streak
+#
+#     user_profile.save()
 
-    latest_score = GitGameScore.objects.filter(user=user).order_by("-last_played").first()
 
-    if latest_score and latest_score.last_played:
-        if latest_score.last_played == today - timedelta(days=1):
-            user_profile.current_streak += 1
-        else:
-            user_profile.current_streak = 1
-
-    if user_profile.current_streak > user_profile.longest_streak:
-        user_profile.longest_streak = user_profile.current_streak
-
-    user_profile.save()
-
-
-
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
 def user_profile_view(request, username):
     """Display the user profile."""
     user = get_object_or_404(User, username=username)
@@ -167,4 +170,5 @@ def user_profile_view(request, username):
             "avg_score": avg_score,
         },
     )
+
 
