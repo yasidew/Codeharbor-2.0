@@ -421,20 +421,7 @@ def extract_logical_block(method_body, keyword):
     return "\n".join(sorted(extracted))  # ✅ Sort to maintain order
 
 
-# def extract_logical_block(method_body, keyword):
-#     """
-#     Extracts a small logical block containing the keyword (e.g., SQL query, user input handling).
-#     """
-#     lines = method_body.split("\n")
-#     extracted = []
-#
-#     for line in lines:
-#         if keyword in line:
-#             start_index = max(0, lines.index(line) - 1)
-#             end_index = min(len(lines), lines.index(line) + 2)
-#             extracted.extend(lines[start_index:end_index])
-#
-#     return "\n".join(extracted)
+
 
 
 def is_java_code(code):
@@ -455,6 +442,7 @@ def is_java_code(code):
         return True
     except (javalang.parser.JavaSyntaxError, javalang.tokenizer.LexerError):
         return False
+
 
 @api_view(['GET', 'POST'])
 def java_code_analysis(request):
@@ -508,7 +496,8 @@ def java_code_analysis(request):
             for uploaded_file in uploaded_files:
                 file_name = uploaded_file.name
                 file_content = uploaded_file.read().decode('utf-8')
-                # ✅ If the file is not Java, render error on the same page
+
+                # ✅ If the file is not Java, render an error message
                 if not is_java_code(file_content):
                     return render(request, 'java_code_analysis.html', {
                         "error": f"🚨 The uploaded file `{file_name}` is not valid Java!",
@@ -531,16 +520,9 @@ def java_code_analysis(request):
                 })
             all_code_snippets.append({"name": "Pasted Code", "code": code_snippet})
 
-        # ✅ Handle GitHub repository files (if provided)
-        github_repo_url = request.POST.get("github_url", "").strip()
-        if github_repo_url:
-            github_files, error = fetch_github_files(github_repo_url)
-            if github_files:
-                all_code_snippets.extend(github_files)
-
         if not all_code_snippets:
             return render(request, 'java_code_analysis.html', {
-                "code": "", "suggestions": [], "summary": summary,"final_guideline": "",
+                "code": "", "suggestions": [], "summary": summary, "final_guideline": "",
                 "error": "No Java code provided for analysis."
             })
 
@@ -549,8 +531,8 @@ def java_code_analysis(request):
             file_name = file_data["name"]
             file_code = file_data["code"]
 
-            # ✅ **Split Java code into individual methods or classes (Improved)**
-            snippets = java_split_code_snippets(file_code)  # ✅ Replaced re.split() with structured splitting
+            # ✅ **Split Java code into individual methods or classes**
+            snippets = java_split_code_snippets(file_code)
             summary["total_snippets"] += len(snippets)
             summary["total_lines"] += file_code.count('\n') + 1
 
@@ -559,80 +541,56 @@ def java_code_analysis(request):
                 existing_snippet = JavaCodeSnippet.objects.filter(snippet=snippet).first()
 
                 if existing_snippet:
-                    print(f"✅ Found existing analysis for snippet in {file_name}...")
+                    print(f"✅ Found existing analysis for snippet in {file_name}, Line {line_num}...")
 
                     model_suggestion = existing_snippet.model_suggestion
                     ai_suggestion = existing_snippet.ai_suggestion
 
-                    final_suggestion = f"{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
-                    category = categorize_suggestion(final_suggestion)
-                    severity = determine_severity(final_suggestion)
+                    # ✅ **Skip processing if AI found no issue**
+                    if not ai_suggestion:
+                        print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
+                        continue
 
-                    summary["total_suggestions"] += 1
-                    summary["categories"].setdefault(category, 0)
-                    summary["categories"][category] += 1
-                    summary["severity"][severity] += 1
+                    final_suggestion = f"Suggestion:\n{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
 
-                    suggestions.append({
-                        "file_name": file_name,
-                        "code": existing_snippet.snippet,
-                        "suggestion": final_suggestion,
-                        "category": category,
-                        "severity": severity,
-                        "line": line_num
-                    })
-                    continue  # ✅ Skip AI processing for existing snippets
-
-                try:
+                else:
                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
+                    ai_suggestion = ai_code_analysis(snippet)
 
-                    # ✅ **Generate Model-based Suggestion**
+                    if not ai_suggestion:  # ✅ Skip if AI finds no issue
+                        print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
+                        continue
+
                     model_suggestion = java_generate_suggestion(snippet)
-
-                    # ✅ **Generate AI-based Suggestion**
-                    ai_suggestion = ai_code_analysis(snippet,)
-
                     final_suggestion = f"Suggestion:\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
 
-                    # ✅ **Categorize & determine severity**
-                    category = categorize_suggestion(final_suggestion)
-                    severity = determine_severity(final_suggestion)
+                    # ✅ **Prevent duplicate storage**
+                    if not JavaCodeSnippet.objects.filter(snippet=snippet).exists():
+                        JavaCodeSnippet.objects.create(
+                            project=project,
+                            snippet=snippet,
+                            ai_suggestion=ai_suggestion,
+                            model_suggestion=model_suggestion,
+                        )
 
-                    summary["total_suggestions"] += 1
-                    summary["categories"].setdefault(category, 0)
-                    summary["categories"][category] += 1
-                    summary["severity"][severity] += 1
+                # ✅ **Categorize & determine severity**
+                category = categorize_suggestion(final_suggestion)
+                severity = determine_severity(final_suggestion)
 
-                    # ✅ **Store in Java PostgreSQL tables**
-                    JavaCodeSnippet.objects.create(
-                        project=project,
-                        snippet=snippet,
-                        ai_suggestion=ai_suggestion,
-                        model_suggestion=model_suggestion,
-                    )
+                summary["total_suggestions"] += 1
+                summary["categories"].setdefault(category, 0)
+                summary["categories"][category] += 1
+                summary["severity"][severity] += 1
 
-                    print(f"📌 Stored analysis for {file_name}, Line {line_num} in DB.")
-
-                    # ✅ **Check if this snippet already exists in suggestions before appending**
-                    if not any(s["code"] == snippet and s["suggestion"] == final_suggestion for s in suggestions):
-                        suggestions.append({
-                            "file_name": file_name,
-                            "code": snippet,
-                            "category": category,
-                            "suggestion": final_suggestion,
-                            "severity": severity,
-                            "line": line_num
-                        })
-
-                except Exception as snippet_error:
-                    print(f"❌ Error analyzing snippet in {file_name}, Line {line_num}: {str(snippet_error)}")
-                    suggestions.append({
-                        "file_name": file_name,
-                        "code": snippet,
-                        "suggestion": f"Error: {str(snippet_error)}",
-                        "severity": "Low",
-                        "line": line_num
-                    })
+                # ✅ **Store combined suggestions in the results**
+                suggestions.append({
+                    "file_name": file_name,
+                    "code": snippet,
+                    "suggestion": final_suggestion,
+                    "category": category,
+                    "severity": severity,
+                    "line": line_num
+                })
 
         # ✅ **Perform Java Complexity Analysis**
         print("🔍 Performing Java Complexity Analysis...")
@@ -646,12 +604,209 @@ def java_code_analysis(request):
         request.session["latest_guideline"] = final_guideline
         request.session.modified = True
 
-
     return render(
         request,
         'java_code_analysis.html',
         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
     )
+
+
+# @api_view(['GET', 'POST'])
+# def java_code_analysis(request):
+#     """
+#     Handles Java code analysis: Accepts pasted/uploaded/imported code, categorizes vulnerabilities,
+#     assigns severity levels, and stores results in PostgreSQL.
+#     """
+#     suggestions = []
+#     summary = {
+#         "total_snippets": 0,
+#         "total_suggestions": 0,
+#         "total_lines": 0,
+#         "categories": {},
+#         "severity": {"Critical": 0, "Medium": 0, "Low": 0},
+#         "complexity_metrics": {},
+#     }
+#     code_snippet = ""
+#     final_guideline = ""
+#     all_code_snippets = []  # ✅ Store all snippets (pasted, uploaded, GitHub)
+#
+#     if request.method == 'POST':
+#         # ✅ Handle GitHub repository submission (JSON request)
+#         if request.content_type == 'application/json':
+#             data = json.loads(request.body)
+#             github_repo_url = data.get("github_url", "").strip()
+#
+#             if github_repo_url:
+#                 files, error = fetch_github_files(github_repo_url)
+#                 if error:
+#                     return JsonResponse({"error": error})
+#                 if files:
+#                     return JsonResponse({"files": files})  # ✅ Return GitHub files to frontend
+#
+#         # ✅ Handle manually entered code & uploaded files
+#         code_snippet = request.POST.get('code', '').strip()
+#         project_name = request.POST.get('project_name', '').strip()
+#
+#         # ✅ Auto-generate project name if none is provided
+#         if not project_name:
+#             project_name = f"JavaProject_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+#             print(f"🆕 Auto-generated project name: {project_name}")
+#
+#         # ✅ Check if project exists, else create
+#         project, _ = JavaProject.objects.get_or_create(name=project_name)
+#
+#         # ✅ Fetch uploaded files
+#         uploaded_files = request.FILES.getlist('files')
+#
+#         # ✅ Process uploaded files
+#         if uploaded_files:
+#             for uploaded_file in uploaded_files:
+#                 file_name = uploaded_file.name
+#                 file_content = uploaded_file.read().decode('utf-8')
+#                 # ✅ If the file is not Java, render error on the same page
+#                 if not is_java_code(file_content):
+#                     return render(request, 'java_code_analysis.html', {
+#                         "error": f"🚨 The uploaded file `{file_name}` is not valid Java!",
+#                         "code": "",  # ✅ No code shown in the editor
+#                         "suggestions": [],
+#                         "summary": summary,
+#                         "final_guideline": ""
+#                     })
+#                 all_code_snippets.append({"name": file_name, "code": file_content})
+#
+#         # ✅ Add manually pasted code
+#         if code_snippet:
+#             if not is_java_code(code_snippet):
+#                 return render(request, 'java_code_analysis.html', {
+#                     "error": "🚨 The pasted code is not valid Java!",
+#                     "code": code_snippet,  # ✅ Keep invalid code in the editor
+#                     "suggestions": [],
+#                     "summary": summary,
+#                     "final_guideline": ""
+#                 })
+#             all_code_snippets.append({"name": "Pasted Code", "code": code_snippet})
+#
+#         # ✅ Handle GitHub repository files (if provided)
+#         github_repo_url = request.POST.get("github_url", "").strip()
+#         if github_repo_url:
+#             github_files, error = fetch_github_files(github_repo_url)
+#             if github_files:
+#                 all_code_snippets.extend(github_files)
+#
+#         if not all_code_snippets:
+#             return render(request, 'java_code_analysis.html', {
+#                 "code": "", "suggestions": [], "summary": summary,"final_guideline": "",
+#                 "error": "No Java code provided for analysis."
+#             })
+#
+#         # ✅ Process each file/snippet
+#         for file_data in all_code_snippets:
+#             file_name = file_data["name"]
+#             file_code = file_data["code"]
+#
+#             # ✅ **Split Java code into individual methods or classes (Improved)**
+#             snippets = java_split_code_snippets(file_code)  # ✅ Replaced re.split() with structured splitting
+#             summary["total_snippets"] += len(snippets)
+#             summary["total_lines"] += file_code.count('\n') + 1
+#
+#             for line_num, snippet in enumerate(snippets, start=1):
+#                 # ✅ **Check if snippet already analyzed**
+#                 existing_snippet = JavaCodeSnippet.objects.filter(snippet=snippet).first()
+#
+#                 if existing_snippet:
+#                     print(f"✅ Found existing analysis for snippet in {file_name}...")
+#
+#                     model_suggestion = existing_snippet.model_suggestion
+#                     ai_suggestion = existing_snippet.ai_suggestion
+#
+#                     final_suggestion = f"{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
+#                     category = categorize_suggestion(final_suggestion)
+#                     severity = determine_severity(final_suggestion)
+#
+#                     summary["total_suggestions"] += 1
+#                     summary["categories"].setdefault(category, 0)
+#                     summary["categories"][category] += 1
+#                     summary["severity"][severity] += 1
+#
+#                     suggestions.append({
+#                         "file_name": file_name,
+#                         "code": existing_snippet.snippet,
+#                         "suggestion": final_suggestion,
+#                         "category": category,
+#                         "severity": severity,
+#                         "line": line_num
+#                     })
+#                     continue  # ✅ Skip AI processing for existing snippets
+#
+#                 try:
+#                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
+#
+#                     # ✅ **Generate Model-based Suggestion**
+#                     model_suggestion = java_generate_suggestion(snippet)
+#
+#                     # ✅ **Generate AI-based Suggestion**
+#                     ai_suggestion = ai_code_analysis(snippet,)
+#
+#                     final_suggestion = f"Suggestion:\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
+#
+#                     # ✅ **Categorize & determine severity**
+#                     category = categorize_suggestion(final_suggestion)
+#                     severity = determine_severity(final_suggestion)
+#
+#                     summary["total_suggestions"] += 1
+#                     summary["categories"].setdefault(category, 0)
+#                     summary["categories"][category] += 1
+#                     summary["severity"][severity] += 1
+#
+#                     # ✅ **Store in Java PostgreSQL tables**
+#                     JavaCodeSnippet.objects.create(
+#                         project=project,
+#                         snippet=snippet,
+#                         ai_suggestion=ai_suggestion,
+#                         model_suggestion=model_suggestion,
+#                     )
+#
+#                     print(f"📌 Stored analysis for {file_name}, Line {line_num} in DB.")
+#
+#                     # ✅ **Check if this snippet already exists in suggestions before appending**
+#                     if not any(s["code"] == snippet and s["suggestion"] == final_suggestion for s in suggestions):
+#                         suggestions.append({
+#                             "file_name": file_name,
+#                             "code": snippet,
+#                             "category": category,
+#                             "suggestion": final_suggestion,
+#                             "severity": severity,
+#                             "line": line_num
+#                         })
+#
+#                 except Exception as snippet_error:
+#                     print(f"❌ Error analyzing snippet in {file_name}, Line {line_num}: {str(snippet_error)}")
+#                     suggestions.append({
+#                         "file_name": file_name,
+#                         "code": snippet,
+#                         "suggestion": f"Error: {str(snippet_error)}",
+#                         "severity": "Low",
+#                         "line": line_num
+#                     })
+#
+#         # ✅ **Perform Java Complexity Analysis**
+#         print("🔍 Performing Java Complexity Analysis...")
+#         summary["complexity_metrics"] = java_analyze_code_complexity(code_snippet)
+#         print(f"✅ Java Complexity Results: {summary['complexity_metrics']}")
+#         final_guideline = ai_generate_guideline(summary)
+#
+#         # ✅ **Store the latest analysis in session for PDF generation**
+#         request.session["latest_summary"] = summary
+#         request.session["latest_suggestions"] = suggestions
+#         request.session["latest_guideline"] = final_guideline
+#         request.session.modified = True
+#
+#
+#     return render(
+#         request,
+#         'java_code_analysis.html',
+#         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
+#     )
 
 
 
