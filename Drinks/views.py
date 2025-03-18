@@ -1017,112 +1017,122 @@ def ensure_blocks_have_bodies(code_snippet):
     return "\n".join(corrected_lines)
 
 
+def split_code_snippets(code_snippet):
+    """
+    Split the input code snippet into individual Python functions or top-level blocks.
+    """
+    try:
+        # Normalize and validate indentation
+        normalized_code = normalize_and_validate_indentation(code_snippet)
+
+        # Parse the normalized code into an Abstract Syntax Tree (AST)
+        tree = ast.parse(normalized_code)
+        snippets = []
+
+        # Extract top-level nodes
+        for node in tree.body:
+            # Extract source code for each node
+            if hasattr(ast, "get_source_segment"):
+                snippet = ast.get_source_segment(normalized_code, node)
+                print(f"Snippet: {snippet}")
+            else:
+                # Fallback: Use line numbers if available
+                start_line = getattr(node, "lineno", None)
+                end_line = getattr(node, "end_lineno", None)
+
+                if start_line and end_line:
+                    snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
+                    snippet = "\n".join(snippet_lines)
+                else:
+                    # Fallback for cases where neither method works
+                    snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
+
+            # ✅ Prevent duplicates
+            if snippet and snippet not in snippets:
+                snippets.append(snippet)
+
+        return snippets
+    except SyntaxError as e:
+        print(f"Error parsing code snippets: {e}")
+        return [code_snippet]  # Return full code as a single snippet if parsing fails
+#
+#
+#
+# def extract_python_function(code, start_line):
+#     """
+#     Extracts a Python function or class block from a given start line.
+#     Uses indentation levels to determine block boundaries.
+#     """
+#     lines = code.splitlines()
+#     extracted = []
+#     base_indent = len(lines[start_line]) - len(lines[start_line].lstrip())
+#     inside_block = False
+#
+#     for i in range(start_line, len(lines)):
+#         line = lines[i]
+#         current_indent = len(line) - len(line.lstrip())
+#
+#         if not inside_block:
+#             extracted.append(line)
+#             inside_block = True
+#         elif line.strip() and current_indent > base_indent:
+#             extracted.append(line)
+#         elif inside_block and current_indent <= base_indent and line.strip():
+#             break  # Stop when indentation goes back
+#
+#     return "\n".join(extracted)
+#
+#
+# def extract_python_logical_block(function_body, keywords):
+#     """
+#     Extracts logical blocks containing specific security keywords from function body.
+#     Ensures extracted lines are unique.
+#     """
+#     lines = function_body.split("\n")
+#     extracted = set()  # ✅ Use set to prevent duplicates
+#
+#     for keyword in keywords:
+#         for i, line in enumerate(lines):
+#             if keyword in line:
+#                 start_index = max(0, i - 1)
+#                 end_index = min(len(lines), i + 2)
+#                 extracted.update(lines[start_index:end_index])  # ✅ Use set to prevent duplicates
+#
+#     return "\n".join(sorted(extracted))  # ✅ Sort to maintain order
+#
+#
 # def split_code_snippets(code_snippet):
 #     """
-#     Split the input code snippet into individual Python functions or top-level blocks.
+#     Splits Python code into:
+#     - Full function/class blocks
+#     - Individual vulnerable logical blocks inside functions
+#     - Avoids redundant full-code inclusion at the end
 #     """
 #     try:
-#         # Normalize and validate indentation
-#         normalized_code = normalize_and_validate_indentation(code_snippet)
-#
-#         # Parse the normalized code into an Abstract Syntax Tree (AST)
-#         tree = ast.parse(normalized_code)
+#         tree = ast.parse(code_snippet)
 #         snippets = []
+#         keywords = ["input(", "eval(", "exec(", "pickle.loads(", "subprocess.call(", "os.system("]  # Expand as needed
 #
-#         # Extract top-level nodes
 #         for node in tree.body:
-#             # Extract source code for each node
-#             if hasattr(ast, "get_source_segment"):
-#                 snippet = ast.get_source_segment(normalized_code, node)
-#                 print(f"Snippet: {snippet}")
-#             else:
-#                 # Fallback: Use line numbers if available
-#                 start_line = getattr(node, "lineno", None)
-#                 end_line = getattr(node, "end_lineno", None)
+#             if isinstance(node, (ast.FunctionDef, ast.ClassDef)):  # ✅ Extract full functions/classes
+#                 start_line = node.lineno - 1
+#                 function_code = extract_python_function(code_snippet, start_line)
+#                 snippets.append(function_code)
 #
-#                 if start_line and end_line:
-#                     snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
-#                     snippet = "\n".join(snippet_lines)
-#                 else:
-#                     # Fallback for cases where neither method works
-#                     snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
+#                 # ✅ Extract logical vulnerability blocks inside the function
+#                 logical_blocks = extract_python_logical_block(function_code, keywords)
+#                 if logical_blocks:
+#                     snippets.append(logical_blocks)
 #
-#             snippets.append(snippet)
+#             else:  # ✅ Handle top-level statements (not inside functions)
+#                 snippet = ast.get_source_segment(code_snippet, node)
+#                 if snippet:
+#                     snippets.append(snippet)
 #
 #         return snippets
 #     except SyntaxError as e:
 #         print(f"Error parsing code snippets: {e}")
-#         return []  # Return an empty list if parsing fails
-
-
-def split_code_snippets(code_snippet):
-    """
-    Splits the input code snippet into smaller segments: functions, class methods, or standalone statements.
-    """
-    try:
-        tree = ast.parse(code_snippet)
-        snippets = []
-        last_pos = 0
-
-        for node in tree.body:
-            if isinstance(node, ast.FunctionDef):  # ✅ Handle function separately
-                function_code = ast.get_source_segment(code_snippet, node)
-
-                # ✅ If function is too long, split by individual statements
-                if function_code.count("\n") > 5:  # Threshold for long functions
-                    function_snippets = extract_statements(function_code)
-                    snippets.extend(function_snippets)
-                else:
-                    snippets.append(function_code)
-
-            elif hasattr(node, "lineno"):
-                start_line = node.lineno - 1
-                end_line = getattr(node, "end_lineno", start_line)  # Fallback to single-line
-                snippet_lines = code_snippet.splitlines()[start_line:end_line]
-                snippet = "\n".join(snippet_lines).strip()
-
-                # Ensure no duplicates and empty lines are ignored
-                if snippet and snippet not in snippets:
-                    snippets.append(snippet)
-
-                last_pos = end_line
-
-        # Handle remaining trailing code
-        if last_pos < len(code_snippet.splitlines()):
-            remaining_code = "\n".join(code_snippet.splitlines()[last_pos:]).strip()
-            if remaining_code and remaining_code not in snippets:
-                snippets.append(remaining_code)
-
-        return snippets
-
-    except SyntaxError as e:
-        print(f"Error parsing code snippets: {e}")
-        return [code_snippet]  # Return full code as a single snippet if parsing fails
-
-def extract_statements(function_code):
-    """
-    Breaks a large function into individual statements.
-    """
-    statements = function_code.split("\n")  # Split by lines
-    result = []
-    temp_block = []
-
-    for line in statements:
-        stripped_line = line.strip()
-        temp_block.append(line)
-
-        if stripped_line.endswith(":") or stripped_line == "":  # Function header or empty lines
-            continue
-
-        # Add small blocks as individual snippets
-        if len(temp_block) > 2:
-            result.append("\n".join(temp_block))
-            temp_block = []
-
-    if temp_block:
-        result.append("\n".join(temp_block))
-
-    return result
+#         return [code_snippet]  # Return full code if parsing fails
 
 
 
