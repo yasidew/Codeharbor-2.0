@@ -364,6 +364,11 @@ def java_split_code_snippets(code):
                 add_unique_snippet("COMMAND EXECUTION", "Runtime.getRuntime().exec")
                 add_unique_snippet("FILE HANDLING", "new FileReader")
                 add_unique_snippet("SESSION MANAGEMENT", "session.setAttribute")
+                add_unique_snippet("UNUSED OBJECT CREATION", "new Object()")
+                add_unique_snippet("UNNECESSARY SYNCHRONIZATION", "synchronized void method()")
+                add_unique_snippet("RESOURCE LEAK", "new BufferedReader(new FileReader(file))")
+                add_unique_snippet("LONG PARAMETER LIST", "public void method(int a, int b, int c, int d, int e, int f)")
+                add_unique_snippet("THROWING GENERIC EXCEPTION", "throw new Exception()")
 
         return snippets
 
@@ -1210,84 +1215,78 @@ def split_code_snippets(code_snippet):
     except SyntaxError as e:
         print(f"Error parsing code snippets: {e}")
         return [code_snippet]  # Return full code as a single snippet if parsing fails
+
 #
-#
-#
-# def extract_python_function(code, start_line):
-#     """
-#     Extracts a Python function or class block from a given start line.
-#     Uses indentation levels to determine block boundaries.
-#     """
-#     lines = code.splitlines()
-#     extracted = []
-#     base_indent = len(lines[start_line]) - len(lines[start_line].lstrip())
-#     inside_block = False
-#
-#     for i in range(start_line, len(lines)):
-#         line = lines[i]
-#         current_indent = len(line) - len(line.lstrip())
-#
-#         if not inside_block:
-#             extracted.append(line)
-#             inside_block = True
-#         elif line.strip() and current_indent > base_indent:
-#             extracted.append(line)
-#         elif inside_block and current_indent <= base_indent and line.strip():
-#             break  # Stop when indentation goes back
-#
-#     return "\n".join(extracted)
-#
-#
-# def extract_python_logical_block(function_body, keywords):
-#     """
-#     Extracts logical blocks containing specific security keywords from function body.
-#     Ensures extracted lines are unique.
-#     """
-#     lines = function_body.split("\n")
-#     extracted = set()  # ✅ Use set to prevent duplicates
-#
-#     for keyword in keywords:
-#         for i, line in enumerate(lines):
-#             if keyword in line:
-#                 start_index = max(0, i - 1)
-#                 end_index = min(len(lines), i + 2)
-#                 extracted.update(lines[start_index:end_index])  # ✅ Use set to prevent duplicates
-#
-#     return "\n".join(sorted(extracted))  # ✅ Sort to maintain order
+# ✅ Define vulnerability categories & related risky function calls
+# VULNERABLE_PATTERNS = {
+#     "User Input Handling": ["input"],
+#     "SQL Query Execution": ["execute", "executemany"],
+#     "Command Execution": ["subprocess.call", "os.system"],
+#     "File Handling": ["open"],
+#     "Hardcoded Secrets": ["api_key", "password"],
+#     "Insecure Hashing": ["md5", "sha1"],
+#     "Generic Exception Handling": ["Exception"],
+# }
 #
 #
 # def split_code_snippets(code_snippet):
 #     """
-#     Splits Python code into:
-#     - Full function/class blocks
-#     - Individual vulnerable logical blocks inside functions
-#     - Avoids redundant full-code inclusion at the end
+#     Splits the input code snippet into individual functions or logical blocks for better analysis.
+#     - Extracts function definitions & class methods.
+#     - Detects security-related code patterns dynamically.
+#     - Prevents duplicate snippets.
 #     """
 #     try:
-#         tree = ast.parse(code_snippet)
+#         # Normalize and validate indentation
+#         normalized_code = normalize_and_validate_indentation(code_snippet)
+#
+#         # Parse the code into an AST (Abstract Syntax Tree)
+#         tree = ast.parse(normalized_code)
 #         snippets = []
-#         keywords = ["input(", "eval(", "exec(", "pickle.loads(", "subprocess.call(", "os.system("]  # Expand as needed
+#         extracted_snippets = set()  # ✅ Avoid duplicate extraction
 #
+#         # ✅ Extract functions & class methods
 #         for node in tree.body:
-#             if isinstance(node, (ast.FunctionDef, ast.ClassDef)):  # ✅ Extract full functions/classes
-#                 start_line = node.lineno - 1
-#                 function_code = extract_python_function(code_snippet, start_line)
-#                 snippets.append(function_code)
-#
-#                 # ✅ Extract logical vulnerability blocks inside the function
-#                 logical_blocks = extract_python_logical_block(function_code, keywords)
-#                 if logical_blocks:
-#                     snippets.append(logical_blocks)
-#
-#             else:  # ✅ Handle top-level statements (not inside functions)
-#                 snippet = ast.get_source_segment(code_snippet, node)
-#                 if snippet:
+#             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+#                 snippet = ast.get_source_segment(normalized_code, node)
+#                 if snippet and snippet not in extracted_snippets:
 #                     snippets.append(snippet)
+#                     extracted_snippets.add(snippet)
+#
+#         # ✅ Extract logical blocks based on vulnerable patterns
+#         for node in ast.walk(tree):
+#             # ✅ Detect function calls dynamically
+#             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+#                 function_name = node.func.id
+#                 for category, risky_functions in VULNERABLE_PATTERNS.items():
+#                     if function_name in risky_functions:
+#                         snippet = ast.get_source_segment(normalized_code, node)
+#                         if snippet and snippet not in extracted_snippets:
+#                             snippets.append(f"# {category}\n{snippet}")
+#                             extracted_snippets.add(snippet)
+#
+#             # ✅ Detect hardcoded strings (e.g., API keys, passwords)
+#             if isinstance(node, ast.Assign):
+#                 for target in node.targets:
+#                     if isinstance(target, ast.Name) and target.id in VULNERABLE_PATTERNS["Hardcoded Secrets"]:
+#                         snippet = ast.get_source_segment(normalized_code, node)
+#                         if snippet and snippet not in extracted_snippets:
+#                             snippets.append(f"# Hardcoded Secrets\n{snippet}")
+#                             extracted_snippets.add(snippet)
+#
+#             # ✅ Detect generic exception handling
+#             if isinstance(node, ast.ExceptHandler):
+#                 if isinstance(node.type, ast.Name) and node.type.id in VULNERABLE_PATTERNS["Generic Exception Handling"]:
+#                     snippet = ast.get_source_segment(normalized_code, node)
+#                     if snippet and snippet not in extracted_snippets:
+#                         snippets.append(f"# Generic Exception Handling\n{snippet}")
+#                         extracted_snippets.add(snippet)
 #
 #         return snippets
+#
 #     except SyntaxError as e:
 #         print(f"Error parsing code snippets: {e}")
-#         return [code_snippet]  # Return full code if parsing fails
+#         return [code_snippet]  # Return full code as a single snippet if parsing fails
 
 
 
@@ -1625,7 +1624,7 @@ def analyze_code_view(request):
                     model_suggestion = existing_snippet.model_suggestion
                     ai_suggestion = existing_snippet.ai_suggestion
 
-                    if not ai_suggestion:  # ✅ Skip if AI found no issue
+                    if not ai_suggestion :  # ✅ Skip if AI found no issue
                         print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
                         continue
 
