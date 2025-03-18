@@ -195,6 +195,50 @@
         .show-toast {
             opacity: 1;
         }
+
+        {#    model reccomendation #}
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            background-color: #0d1117;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            color: #c9d1d9;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .modal-content {
+            background-color: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        h3, h4 {
+            color: #58a6ff;
+        }
+
+        pre {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            white-space: pre;
+            display: block;
+        }
     </style>
 
     <h1 class="text-center">Code Complexity Results for C#</h1>
@@ -362,6 +406,7 @@
                     <th>Line Number</th>
                     <th>Line Content</th>
                     <th>Recommendation</th>
+                    <th>Refactoring Example</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -371,6 +416,16 @@
                             <td>{{ rec.line_number }}</td>
                             <td>{{ rec.line_content }}</td>
                             <td>{{ rec.recommendation }}</td>
+                            <td>
+                                {% if rec.recommendation %}
+                                    <button class="btn btn-info"
+                                            onclick="showRefactorExample('{{ rec.recommendation }}')">
+                                        View Example
+                                    </button>
+                                {% else %}
+                                    No Example Available
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 {% else %}
@@ -439,8 +494,36 @@
     {% endfor %}
 
     <a href="/">Upload More Files</a>
+    <div id="refactorModal" class="modal">
+        <div class="modal-content">
+            <h3 id="refactorTitle"></h3>
+
+            <h4>Before Refactoring</h4>
+            <pre><code id="beforeRefactor" class="language-java"></code></pre>
+
+            <h4>After Refactoring</h4>
+            <pre><code id="afterRefactor" class="language-java"></code></pre>
+
+            <button onclick="closeRefactorModal()" class="btn">Close</button>
+        </div>
+    </div>
 
     <div id="customToast" class="custom-toast"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <div id="refactorModal" class="modal">
+        <div class="modal-content">
+            <h3 id="refactorTitle"></h3>
+
+            <h4>Before Refactoring</h4>
+            <pre><code id="beforeRefactor" class="language-java"></code></pre>
+
+            <h4>After Refactoring</h4>
+            <pre><code id="afterRefactor" class="language-java"></code></pre>
+
+            <button onclick="closeRefactorModal()" class="btn">Close</button>
+        </div>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -482,6 +565,464 @@
                 console.log("✅ No High Complexity methods found.");
             }
         });
+
+        const refactoringExamples = {
+            "Refactor: Optimize loop nesting by breaking logic into smaller functions or using iterators.": {
+                before: `
+public void ProcessData(List<List<int>> data)
+{
+    foreach (var row in data)
+    {
+        foreach (var num in row)
+        {
+            if (num > 0)
+            {
+                Console.WriteLine(num);
+            }
+        }
+    }
+}`,
+                after: `
+public void ProcessData(List<List<int>> data)
+{
+    foreach (var row in data)
+    {
+        ProcessRow(row);
+    }
+}
+
+private void ProcessRow(List<int> row)
+{
+    row.Where(num => num > 0).ToList().ForEach(Console.WriteLine);
+}
+`
+            },
+
+            "Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.": {
+                before: `
+public void ProcessOrder(Order order)
+{
+    if (order != null)
+    {
+        if (order.IsPaid)
+        {
+            if (order.Items != null)
+            {
+                if (order.Items.Count > 0)
+                {
+                    Console.WriteLine("Processing order...");
+                }
+            }
+        }
+    }
+}`,
+                after: `
+public void ProcessOrder(Order order)
+{
+    if (order == null || order.Items == null || order.Items.Count == 0 || !order.IsPaid)
+    {
+        return;
+    }
+    Console.WriteLine("Processing order...");
+}`
+            },
+            "Refactor: Minimize switch-case complexity by using polymorphism or strategy pattern.": {
+                before: `
+public class PaymentProcessor
+{
+    public void ProcessPayment(string paymentType)
+    {
+        switch (paymentType)
+        {
+            case "CREDIT_CARD":
+                Console.WriteLine("Processing Credit Card...");
+                break;
+            case "PAYPAL":
+                Console.WriteLine("Processing PayPal...");
+                break;
+            case "BITCOIN":
+                Console.WriteLine("Processing Bitcoin...");
+                break;
+            default:
+                Console.WriteLine("Invalid Payment Type");
+                break;
+        }
+    }
+}`,
+                after: `
+// Define the Payment interface
+public interface IPayment
+{
+    void Process();
+}
+
+// Concrete Payment Strategies
+public class CreditCardPayment : IPayment
+{
+    public void Process()
+    {
+        Console.WriteLine("Processing Credit Card...");
+    }
+}
+
+public class PayPalPayment : IPayment
+{
+    public void Process()
+    {
+        Console.WriteLine("Processing PayPal...");
+    }
+}
+
+public class BitcoinPayment : IPayment
+{
+    public void Process()
+    {
+        Console.WriteLine("Processing Bitcoin...");
+    }
+}
+
+// Payment Processor class that uses Strategy Pattern
+public class PaymentProcessor
+{
+    public void ProcessPayment(IPayment payment)
+    {
+        payment.Process();
+    }
+}
+`
+            },
+
+            "Refactor: Reduce excessive try-catch nesting by isolating error-prone logic into separate functions.": {
+                before: `
+public void ReadFile(string path)
+{
+    try
+    {
+        StreamReader file = new StreamReader(path);
+        try
+        {
+            string line;
+            while ((line = file.ReadLine()) != null)
+            {
+                Console.WriteLine(line);
+            }
+        }
+        catch (IOException)
+        {
+            Console.WriteLine("Error reading file.");
+        }
+    }
+    catch (FileNotFoundException)
+    {
+        Console.WriteLine("File not found.");
+    }
+}
+`,
+                after: `
+public void readFile(String path) {
+    try {
+        BufferedReader br = openFile(path);
+        readLines(br);
+    } catch (FileNotFoundException e) {
+        System.out.println("File not found.");
+    } catch (IOException e) {
+        System.out.println("Error reading file.");
+    }
+}
+
+private BufferedReader openFile(String path) throws FileNotFoundException {
+    return new BufferedReader(new FileReader(path));
+}
+
+private void readLines(BufferedReader br) throws IOException {
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+}`
+            },
+            "Refactor: Simplify complex conditions using boolean variables or encapsulating logic in functions.": {
+                before: `
+public void ReadFile(string path)
+{
+    try
+    {
+        using (StreamReader reader = OpenFile(path))
+        {
+            ReadLines(reader);
+        }
+    }
+    catch (FileNotFoundException)
+    {
+        Console.WriteLine("File not found.");
+    }
+    catch (IOException)
+    {
+        Console.WriteLine("Error reading file.");
+    }
+}
+
+private StreamReader OpenFile(string path)
+{
+    return new StreamReader(path);
+}
+
+private void ReadLines(StreamReader reader)
+{
+    string line;
+    while ((line = reader.ReadLine()) != null)
+    {
+        Console.WriteLine(line);
+    }
+}
+`
+            },
+
+            "Refactor: Reduce deep inheritance by favoring composition over inheritance.": {
+                before: `
+class Animal
+{
+    public void MakeSound() {}
+}
+
+class Mammal : Animal
+{
+    public void Walk() {}
+}
+
+class Dog : Mammal
+{
+    public void Bark() {}
+}
+
+class Labrador : Dog
+{
+    public void Swim() {}
+}`,
+                after: `
+class Sound
+{
+    public void MakeSound() => Console.WriteLine("Making sound");
+}
+
+class Movement
+{
+    public void Walk() => Console.WriteLine("Walking");
+}
+
+class Dog
+{
+    private Sound _sound = new Sound();
+    private Movement _movement = new Movement();
+
+    public void Bark() => Console.WriteLine("Barking");
+    public void Walk() => _movement.Walk();
+    public void MakeSound() => _sound.MakeSound();
+}`
+            },
+            "Refactor: Simplify class hierarchy by breaking down large inheritance chains into composition-based structures.": {
+                before: `
+class Employee
+{
+    public void Work() {}
+}
+
+class Manager : Employee
+{
+    public void Delegate() {}
+}
+
+class Director : Manager
+{
+    public void MakeDecisions() {}
+}
+
+class CEO : Director
+{
+    public void Strategize() {}
+}
+`,
+                after: `
+interface IWorkable { void Work(); }
+interface IDelegator { void Delegate(); }
+interface IDecisionMaker { void MakeDecisions(); }
+interface IStrategist { void Strategize(); }
+
+class Employee : IWorkable
+{
+    public void Work() => Console.WriteLine("Working");
+}
+
+class Manager : IWorkable, IDelegator
+{
+    public void Work() => Console.WriteLine("Managing");
+    public void Delegate() => Console.WriteLine("Delegating");
+}
+
+class CEO : IWorkable, IStrategist
+{
+    public void Work() => Console.WriteLine("CEO Working");
+    public void Strategize() => Console.WriteLine("Strategizing");
+}`
+            },
+            "Refactor: Reduce nested if-statements and simplify complex conditions using helper functions or early returns.": {
+                before: `
+public bool IsValidUser(User user)
+{
+    if (user != null)
+    {
+        if (user.Age > 18)
+        {
+            if (user.HasValidSubscription())
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+`,
+                after: `
+public bool IsValidUser(User user)
+{
+    if (user == null) return false;
+    if (user.Age <= 18) return false;
+    return user.HasValidSubscription();
+}
+`
+            },
+            "Refactor: Reduce deeply nested for-loops and simplify conditions using helper functions.": {
+                before: `
+public void ProcessOrders(List<List<Order>> orders)
+{
+    foreach (var orderBatch in orders)
+    {
+        foreach (var order in orderBatch)
+        {
+            if (order.IsPaid())
+            {
+                if (order.HasValidAddress())
+                {
+                    if (order.GetTotalAmount() > 0)
+                    {
+                        Console.WriteLine($"Processing Order: {order.GetId()}");
+                    }
+                }
+            }
+        }
+    }
+}
+`,
+                after: `
+public void ProcessOrders(List<List<Order>> orders)
+{
+    foreach (var orderBatch in orders)
+    {
+        orderBatch
+            .Where(IsValidOrder)
+            .ToList()
+            .ForEach(order => Console.WriteLine($"Processing Order: {order.GetId()}"));
+    }
+}
+
+private bool IsValidOrder(Order order)
+{
+    return order.IsPaid() && order.HasValidAddress() && order.GetTotalAmount() > 0;
+}
+`
+            },
+            "Refactor: Flatten try-catch blocks by handling specific exceptions separately.": {
+                before: `
+public void ReadFile(string filePath)
+{
+    try
+    {
+        FileInfo file = new FileInfo(filePath);
+        StreamReader reader = new StreamReader(file.OpenRead());
+
+        string line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            Console.WriteLine(line);
+        }
+        reader.Close();
+    }
+    catch (FileNotFoundException e)
+    {
+        Console.WriteLine("Error: File not found - " + e.Message);
+    }
+    catch (IOException e)
+    {
+        Console.WriteLine("Error: Unable to read file - " + e.Message);
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine("Unexpected Error: " + e.Message);
+    }
+}
+`,
+                after: `
+public void ReadFile(string filePath)
+{
+    try
+    {
+        using (StreamReader reader = new StreamReader(new FileStream(filePath, FileMode.Open, FileAccess.Read)))
+        {
+            reader.BaseStream.Seek(0, SeekOrigin.Begin);
+            while (!reader.EndOfStream)
+            {
+                Console.WriteLine(reader.ReadLine());
+            }
+        }
+    }
+    catch (FileNotFoundException e)
+    {
+        HandleFileNotFound(e);
+    }
+    catch (IOException e)
+    {
+        HandleIOException(e);
+    }
+    catch (Exception e)
+    {
+        HandleUnexpectedError(e);
+    }
+}
+
+private void HandleFileNotFound(FileNotFoundException e)
+{
+    Console.WriteLine("Error: File not found - " + e.Message);
+}
+
+private void HandleIOException(IOException e)
+{
+    Console.WriteLine("Error: Unable to read file - " + e.Message);
+}
+
+private void HandleUnexpectedError(Exception e)
+{
+    Console.WriteLine("Unexpected Error: " + e.Message);
+}
+`
+            }
+        };
+
+        function showRefactorExample(refactorLabel) {
+            if (refactoringExamples[refactorLabel]) {
+                document.getElementById('refactorTitle').textContent = `${refactorLabel}`;
+                document.getElementById('beforeRefactor').textContent = refactoringExamples[refactorLabel].before;
+                document.getElementById('afterRefactor').textContent = refactoringExamples[refactorLabel].after;
+                document.getElementById('refactorModal').style.display = 'flex';
+
+                Prism.highlightAll();
+            } else {
+                alert("No refactoring example available for this label.");
+            }
+        }
+
+        function closeRefactorModal() {
+            document.getElementById('refactorModal').style.display = 'none';
+        }
 
     </script>
 
