@@ -1245,7 +1245,8 @@ def ai_code_analysis(snippet):
                  "content": "You are an expert AI code reviewer. Follow this structure:\n"
                             "Issue Identified: Describe the issue concisely.\n"
                             "Why It's a Problem: Explain the consequences very shortly.\n"
-                            "Recommended Fix: Provide a solution."},
+                            "Recommended Fix: Provide a solution."
+                            "If no issue is found, simply reply with 'No Issue Found'."},
                 {"role": "user",
                  # "content": f"Analyze the following Python code and provide structured feedback:\n{snippet}"}
                  "content": f"Analyze the following code and provide structured feedback:\n{snippet}"}
@@ -1256,6 +1257,9 @@ def ai_code_analysis(snippet):
 
         # Extract AI response
         ai_response = response.choices[0].message.content
+        # ✅ If AI detects no issue, return None
+        if ai_response == "No Issue Found":
+            return None
 
         # Format the response for HTML
         formatted_response = ai_response.replace("Issue Identified:", "<b>Issue Identified:</b>") \
@@ -1373,6 +1377,7 @@ def is_python_code(code):
         return False
 
 
+
 @api_view(['GET', 'POST'])
 def analyze_code_view(request):
     """
@@ -1456,91 +1461,60 @@ def analyze_code_view(request):
             summary["total_lines"] += file_code.count('\n') + 1
 
             for line_num, snippet in enumerate(snippets, start=1):
-                # ✅ **Check if this snippet has already been analyzed**
+                # ✅ **Check if snippet already exists**
                 existing_snippet = CodeSnippet.objects.filter(snippet=snippet).first()
 
                 if existing_snippet:
-                    print(f"✅ Found existing analysis for snippet in {file_name}...")
+                    print(f"✅ Found existing analysis for snippet in {file_name}, Line {line_num}...")
 
-                    # ✅ **Retrieve stored model and AI suggestions**
                     model_suggestion = existing_snippet.model_suggestion
                     ai_suggestion = existing_snippet.ai_suggestion
 
-                    # ✅ **Combine previous model & AI suggestions for display**
-                    final_suggestion = (
-                        f"\n{model_suggestion}\n\n"
-                        f"💡Detail Suggestion :\n{ai_suggestion}"
-                    )
+                    if not ai_suggestion:  # ✅ Skip if AI found no issue
+                        print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
+                        continue
 
-                    # ✅ **Ensure categories & severity are updated from DB suggestions**
-                    category = categorize_suggestion(final_suggestion)
-                    severity = determine_severity(final_suggestion)
+                    # ✅ **Use stored suggestions**
+                    final_suggestion = f"Suggestion:\n{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
 
-                    summary["total_suggestions"] += 1
-                    summary["categories"].setdefault(category, 0)
-                    summary["categories"][category] += 1
-                    summary["severity"][severity] += 1
-
-                    # ✅ **Store combined suggestions in the results**
-                    suggestions.append({
-                        "file_name": file_name,  # ✅ Associate file name
-                        "code": existing_snippet.snippet,
-                        "suggestion": final_suggestion,  # ✅ Use combined suggestion
-                        "category": category,
-                        "severity": severity,
-                        "line": line_num
-                    })
-                    continue  # ✅ Skip AI & Model processing for existing snippets
-
-                try:
+                else:
                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
+                    ai_suggestion = ai_code_analysis(snippet)
 
-                    # ✅ **Perform AI-based Model Analysis**
-                    t5_suggestion = call_flask_model(snippet)  # Calls Flask API
-                    gpt_suggestion = ai_code_analysis(snippet)
+                    if not ai_suggestion:  # ✅ Skip if AI finds no issue
+                        print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
+                        continue
 
-                    # ✅ **Combine AI-generated suggestions**
-                    final_suggestion = f"Suggestion:\n{t5_suggestion}\n\nDetailed Analysis:\n{gpt_suggestion}"
+                    model_suggestion = call_flask_model(snippet)
+                    final_suggestion = f"Suggestion:\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
 
-                    # ✅ **Categorize and determine severity**
-                    category = categorize_suggestion(final_suggestion)
-                    severity = determine_severity(final_suggestion)
+                    # ✅ **Prevent duplicate storage before saving**
+                    if not CodeSnippet.objects.filter(snippet=snippet).exists():
+                        CodeSnippet.objects.create(
+                            project=project,
+                            snippet=snippet,
+                            ai_suggestion=ai_suggestion,
+                            model_suggestion=model_suggestion,
+                        )
 
-                    # ✅ **Update summary**
-                    summary["total_suggestions"] += 1
-                    summary["categories"].setdefault(category, 0)
-                    summary["categories"][category] += 1
-                    summary["severity"][severity] += 1
+                # ✅ **Ensure categories & severity are updated from DB suggestions**
+                category = categorize_suggestion(final_suggestion)
+                severity = determine_severity(final_suggestion)
 
-                    # ✅ **Store the snippet analysis in PostgreSQL**
-                    CodeSnippet.objects.create(
-                        project=project,
-                        snippet=snippet,
-                        ai_suggestion=gpt_suggestion,
-                        model_suggestion=t5_suggestion,
-                    )
+                summary["total_suggestions"] += 1
+                summary["categories"].setdefault(category, 0)
+                summary["categories"][category] += 1
+                summary["severity"][severity] += 1
 
-                    print(f"📌 Stored analysis for {file_name}, Line {line_num} in DB.")
-
-                    # ✅ **Store the suggestion in results**
-                    suggestions.append({
-                        "file_name": file_name,  # ✅ Track filename here
-                        "code": snippet,
-                        "category": category,
-                        "suggestion": final_suggestion,  # ✅ Store full AI + Model suggestion
-                        "severity": severity,
-                        "line": line_num
-                    })
-
-                except Exception as snippet_error:
-                    print(f"❌ Error analyzing snippet in {file_name}, Line {line_num}: {str(snippet_error)}")
-                    suggestions.append({
-                        "file_name": file_name,  # ✅ Ensure errors also show filename
-                        "code": snippet,
-                        "suggestion": f"Error: {str(snippet_error)}",
-                        "severity": "Low",
-                        "line": line_num
-                    })
+                # ✅ **Store combined suggestions in the results**
+                suggestions.append({
+                    "file_name": file_name,
+                    "code": snippet,
+                    "suggestion": final_suggestion,
+                    "category": category,
+                    "severity": severity,
+                    "line": line_num
+                })
 
         # ✅ **Perform Complexity Analysis**
         print("🔍 Performing Complexity Analysis...")
@@ -1563,7 +1537,6 @@ def analyze_code_view(request):
 
 
 
-
 # @api_view(['GET', 'POST'])
 # def analyze_code_view(request):
 #     """
@@ -1580,6 +1553,7 @@ def analyze_code_view(request):
 #     }
 #     code_snippet = ""
 #     final_guideline = ""
+#     all_code_snippets = []  # Store all code snippets from GitHub, uploaded files, and pasted code
 #
 #     if request.method == 'POST':
 #         # ✅ Handle GitHub repository submission
@@ -1593,9 +1567,9 @@ def analyze_code_view(request):
 #                     return JsonResponse({"error": error})
 #
 #                 if files:
-#                     return JsonResponse({"files": files})  # ✅ Return fetched GitHub files
+#                     return JsonResponse({"files": files})  # ✅ Send GitHub files to frontend
 #
-#         # ✅ Handle normal code submission
+#         # ✅ Handle manually entered code & uploaded files
 #         code_snippet = request.POST.get('code', '').strip()
 #         project_name = request.POST.get('project_name', '').strip()
 #
@@ -1607,62 +1581,86 @@ def analyze_code_view(request):
 #         # ✅ Check if project already exists, else create it
 #         project, _ = Project.objects.get_or_create(name=project_name)
 #
-#         if not code_snippet:
+#         # ✅ Fetch uploaded files
+#         uploaded_files = request.FILES.getlist('files')
+#
+#         # ✅ Process uploaded files
+#         if uploaded_files:
+#             for uploaded_file in uploaded_files:
+#                 file_name = uploaded_file.name
+#                 file_content = uploaded_file.read().decode('utf-8')
+#                 all_code_snippets.append({"name": file_name, "code": file_content})
+#         else:
+#             # Handle code pasted directly in the editor
+#             if code_snippet:
+#                 all_code_snippets.append({"name": "Pasted Code", "code": code_snippet})
+#
+#         if not all_code_snippets:
 #             return render(request, 'analyze_code.html', {
 #                 "code": "", "suggestions": [], "summary": summary, "final_guideline": "",
 #                 "error": "No code provided for analysis."
 #             })
 #
-#         try:
-#             print(f"📥 Received Code Snippet: {code_snippet[:100]}...")  # ✅ DEBUG: Verify input
-#             snippets = split_code_snippets(code_snippet)
-#             summary["total_snippets"] = len(snippets)
-#             summary["total_lines"] = code_snippet.count('\n') + 1
+#         for file_data in all_code_snippets:
+#             file_name = file_data["name"]
+#             file_code = file_data["code"]
+#
+#             # ✅ **Check if the code is Python before analysis**
+#             if not is_python_code(file_code):
+#                 return render(request, 'analyze_code.html', {
+#                     "code": file_code,
+#                     "suggestions": [],
+#                     "summary": summary,
+#                     "final_guideline": "",
+#                     "error": f" Error: The uploaded file `{file_name}` is not valid Python code."
+#                 })
+#
+#             snippets = split_code_snippets(file_code)
+#             summary["total_snippets"] += len(snippets)
+#             summary["total_lines"] += file_code.count('\n') + 1
 #
 #             for line_num, snippet in enumerate(snippets, start=1):
 #                 # ✅ **Check if this snippet has already been analyzed**
 #                 existing_snippet = CodeSnippet.objects.filter(snippet=snippet).first()
 #
 #                 if existing_snippet:
-#                     print(f"✅ Found existing analysis for snippet: {snippet[:50]}...")
+#                     print(f"✅ Found existing analysis for snippet in {file_name}...")
+#
+#                     # ✅ **Retrieve stored model and AI suggestions**
+#                     model_suggestion = existing_snippet.model_suggestion
+#                     ai_suggestion = existing_snippet.ai_suggestion
+#
+#                     # ✅ **Combine previous model & AI suggestions for display**
+#                     final_suggestion = (
+#                         f"\n{model_suggestion}\n\n"
+#                         f"💡Detail Suggestion :\n{ai_suggestion}"
+#                     )
 #
 #                     # ✅ **Ensure categories & severity are updated from DB suggestions**
-#                     category = categorize_suggestion(existing_snippet.model_suggestion)
-#                     severity = determine_severity(existing_snippet.model_suggestion)
+#                     category = categorize_suggestion(final_suggestion)
+#                     severity = determine_severity(final_suggestion)
 #
 #                     summary["total_suggestions"] += 1
 #                     summary["categories"].setdefault(category, 0)
 #                     summary["categories"][category] += 1
 #                     summary["severity"][severity] += 1
 #
+#                     # ✅ **Store combined suggestions in the results**
 #                     suggestions.append({
+#                         "file_name": file_name,  # ✅ Associate file name
 #                         "code": existing_snippet.snippet,
-#                         "suggestion": existing_snippet.model_suggestion,
+#                         "suggestion": final_suggestion,  # ✅ Use combined suggestion
 #                         "category": category,
 #                         "severity": severity,
 #                         "line": line_num
 #                     })
-#                     continue  # Skip AI & Model processing for existing snippets
+#                     continue  # ✅ Skip AI & Model processing for existing snippets
 #
 #                 try:
-#                     print(f"🚀 No previous analysis found. Running AI and Model analysis for snippet {line_num}")
+#                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
 #
-#                     # ✅ **Perform AI-based T5 Model Analysis**
-#                     # inputs = tokenizer(
-#                     #     snippet, truncation=True, padding="max_length", max_length=512, return_tensors="pt"
-#                     # )
-#                     # inputs = {key: value.to(device) for key, value in inputs.items()}
-#                     # model.eval()
-#                     #
-#                     # with torch.no_grad():
-#                     #     outputs = model.generate(
-#                     #         inputs["input_ids"], max_length=256, num_beams=5, early_stopping=True
-#                     #     )
-#                     #     t5_suggestion = tokenizer.decode(outputs[0], skip_special_tokens=True)
-#                     print(f"🚀 Calling Flask model for snippet {line_num}...")
+#                     # ✅ **Perform AI-based Model Analysis**
 #                     t5_suggestion = call_flask_model(snippet)  # Calls Flask API
-#
-#                     # ✅ **Generate AI-based GPT analysis**
 #                     gpt_suggestion = ai_code_analysis(snippet)
 #
 #                     # ✅ **Combine AI-generated suggestions**
@@ -1686,55 +1684,46 @@ def analyze_code_view(request):
 #                         model_suggestion=t5_suggestion,
 #                     )
 #
-#                     print(f"📌 Stored analysis for new snippet {line_num} in DB.")
+#                     print(f"📌 Stored analysis for {file_name}, Line {line_num} in DB.")
 #
 #                     # ✅ **Store the suggestion in results**
 #                     suggestions.append({
+#                         "file_name": file_name,  # ✅ Track filename here
 #                         "code": snippet,
 #                         "category": category,
-#                         "suggestion": final_suggestion,
+#                         "suggestion": final_suggestion,  # ✅ Store full AI + Model suggestion
 #                         "severity": severity,
 #                         "line": line_num
 #                     })
 #
 #                 except Exception as snippet_error:
-#                     print(f"❌ Error analyzing snippet {line_num}: {str(snippet_error)}")
+#                     print(f"❌ Error analyzing snippet in {file_name}, Line {line_num}: {str(snippet_error)}")
 #                     suggestions.append({
+#                         "file_name": file_name,  # ✅ Ensure errors also show filename
 #                         "code": snippet,
 #                         "suggestion": f"Error: {str(snippet_error)}",
 #                         "severity": "Low",
 #                         "line": line_num
 #                     })
 #
-#             # ✅ **Perform Complexity Analysis**
-#             print("🔍 Performing Complexity Analysis...")
-#             summary["complexity_metrics"] = analyze_code_complexity(code_snippet)
-#             print(f"✅ Complexity Results: {summary['complexity_metrics']}")
-#             print(f"✅ Categories Assigned: {summary['categories']}")
+#         # ✅ **Perform Complexity Analysis**
+#         print("🔍 Performing Complexity Analysis...")
+#         summary["complexity_metrics"] = analyze_code_complexity(code_snippet)
+#         print(f"✅ Complexity Results: {summary['complexity_metrics']}")
 #
-#             # ✅ **Store the latest analysis in session for PDF generation**
-#             request.session["latest_summary"] = summary  # ✅ Store summary
-#             request.session["latest_suggestions"] = suggestions  # ✅ Store suggestions
-#             request.session.modified = True  # Ensure session updates
+#         # ✅ **Store the latest analysis in session for PDF generation**
+#         request.session["latest_summary"] = summary
+#         request.session["latest_suggestions"] = suggestions
+#         request.session.modified = True
 #
-#             # ✅ **Generate Developer Guideline**
-#             final_guideline = ai_generate_guideline(summary)
-#
-#         except Exception as e:
-#             print(f"❌ Critical Error in analysis: {str(e)}")
-#             suggestions.append({
-#                 "code": "",
-#                 "suggestion": f"Error analyzing code: {str(e)}",
-#                 "severity": "Critical",
-#                 "line": 0
-#             })
+#         # ✅ **Generate Developer Guideline**
+#         final_guideline = ai_generate_guideline(summary)
 #
 #     return render(
 #         request,
 #         'analyze_code.html',
 #         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
 #     )
-#
 
 
 
