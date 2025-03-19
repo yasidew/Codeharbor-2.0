@@ -55,9 +55,19 @@
 {% block content %}
     <div class="content d-flex align-items-center justify-content-center min-vh-100">
         <div class="container">
-            <h2 class="text-center text-white mb-4">Code Refactoring</h2>
-
-            <!-- Toggle to Enable/Disable Guidelines -->
+            {#            <h2 class="text-center text-white mb-4">Code Refactoring</h2>#}
+            {##}
+            {#            <!-- Toggle to Enable/Disable Guidelines -->#}
+            {#            <div class="d-flex align-items-center justify-content-center mb-4" style="gap: 1.5rem;">#}
+            {#                <label class="toggle-switch m-0">#}
+            {#                    <input type="checkbox" id="guideline-toggle">#}
+            {#                    <span class="slider"></span>#}
+            {#                </label>#}
+            {#                <span class="text-white">Use Guidelines</span>#}
+            {#            </div>#}
+            <!-- 🔥 2️⃣ Code Refactoring Header (Updated) -->
+            <h2 class="text-center text-white mb-4"
+                style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 10px;">Code Refactoring</h2>
             <div class="d-flex align-items-center justify-content-center mb-4" style="gap: 1.5rem;">
                 <label class="toggle-switch m-0">
                     <input type="checkbox" id="guideline-toggle">
@@ -72,61 +82,112 @@
                 <span id="pattern-name" class="pattern-name"></span>
             </div>
 
-            <!-- Monaco Code Editor for Original Code -->
-            <div class="card bg-dark p-4">
-                <h5 class="text-white">Original Code</h5>
-                <div id="monacoEditor" class="editor-container"></div>
+            {#            <!-- Monaco Code Editor for Original Code -->#}
+            {#            <div class="card bg-dark p-4">#}
+            {#                <h5 class="text-white">Original Code</h5>#}
+            {#                <div id="monacoEditor" class="editor-container"></div>#}
+            {#            </div>#}
+            <!-- 🔥 3️⃣ Monaco Code Editor (Updated) -->
+            <div class="card bg-dark p-4" style="border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
+                <h3 class="text-center text-white">Original Code</h3>
+                <div id="monacoEditor" class="editor-container" style="position: relative;"></div>
             </div>
 
             <!-- Refactor Button -->
+            {#            <div class="text-center mt-3">#}
+            {#                <button id="refactor-btn"#}
+            {#                        class="btn btn-info btn-lg fw-bold text-white shadow-lg border-0"#}
+            {#                        style="background: linear-gradient(90deg, #007bff, #0056b3);#}
+            {#               transition: all 0.3s ease;">#}
+            {#                    Refactor Code#}
+            {#                </button>#}
+            {#            </div>#}
+            <!-- 🔥 4️⃣ Refactor Button (Updated) -->
             <div class="text-center mt-3">
-                <button id="refactor-btn"
-                        class="btn btn-info btn-lg fw-bold text-white shadow-lg border-0"
+                <button id="refactor-btn" class="btn btn-lg fw-bold text-white shadow-lg border-0 refactor-btn"
                         style="background: linear-gradient(90deg, #007bff, #0056b3);
                transition: all 0.3s ease;">
-                    Refactor Code
+                    ⚡ Refactor Code
                 </button>
             </div>
+            <br>
+            <br>
 
             <!-- Loading Spinner -->
+            {#            <div id="loading-bar" class="mt-3 text-center" style="display: none;">#}
+            {#                <div class="spinner-border text-primary" role="status">#}
+            {#                    <span class="visually-hidden">Processing...</span>#}
+            {#                </div>#}
+            {#                <p class="text-white mt-2">Refactoring your code...</p>#}
+            {#            </div>#}
+            <!-- Updated Loading Spinner -->
             <div id="loading-bar" class="mt-3 text-center" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Processing...</span>
+                <div class="dots-loader">
+                    <span class="red"></span>
+                    <span class="yellow"></span>
+                    <span class="green"></span>
+                    <span class="blue"></span>
                 </div>
                 <p class="text-white mt-2">Refactoring your code...</p>
             </div>
 
             {#            <!-- Before-After Code Diff View -->#}
-            <div id="diff-section" class="mt-5" style="display: none;">
+            {#            <div id="diff-section" class="mt-5" style="display: none;">#}
+            {#                <h3 class="text-center text-white">Before & After Code Comparison</h3>#}
+            {#                <div id="codeDiffViewer" style="height: 500px; width: 100%;"></div>#}
+            {#                <div id="monacoDiffEditor" style="height: 500px; width: 100%;"></div>#}
+            {#            </div>#}
+            <!-- 🔥 5️⃣ Before & After Code Comparison (Updated) -->
+            <div id="diff-section" class="card bg-dark p-4"
+                 style="display: none; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
                 <h3 class="text-center text-white">Before & After Code Comparison</h3>
-                {#                <div id="codeDiffViewer" style="height: 500px; width: 100%;"></div>#}
-                <div id="monacoDiffEditor" style="height: 500px; width: 100%;"></div>
+                <div id="monacoDiffEditor" class="editor-container" style="position: relative;"></div>
             </div>
+
 
             <!-- Refactored Code Output -->
             <div id="refactored-section" class="mt-5" style="display: none;">
-                <h3 class="text-center text-white">Refactored Code</h3>
-                <div class="card bg-dark p-3">
-                    <div id="monacoRefactoredEditor" class="editor-container"></div>
+                {#                <h3 class="text-center text-white">Refactored Code</h3>#}
+                {#                <div class="card bg-dark p-3">#}
+                {#                    <div id="monacoRefactoredEditor" class="editor-container"></div>#}
+                {#                </div>#}
+                <!-- 🔥 6️⃣ Refactored Code Section (Updated) -->
+                <div class="card bg-dark p-4"
+                     style="border-radius: 10px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
+                    <h3 class="text-center text-white">Refactored Code</h3>
+                    <div id="monacoRefactoredEditor" class="editor-container" style="position: relative;"></div>
+                    <br>
+                    <br>
+                    <div id="changes-section" class="mt-4"
+                         style="display: none; border-radius: 10px; border-radius: 10px;">
+                        <h4 class="text-center text-white mb-3">Changes Made</h4>
+                        <div id="changesContainer" class="d-flex flex-column gap-3"></div>
+                    </div>
                 </div>
+
 
                 <!-- Changes Summary -->
-                <div id="changes-section" class="mt-4" style="display: none;">
-                    <h4 class="text-white mb-3">Changes Made:</h4>
-                    <div id="changesContainer" class="d-flex flex-column gap-3"></div>
-                </div>
+                {#                <div id="changes-section" class="mt-4"#}
+                {#                     style="display: none; border-radius: 10px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">#}
+                {#                    <h4 class="text-center text-white mb-3">Changes Made</h4>#}
+                {#                    <div id="changesContainer" class="d-flex flex-column gap-3"></div>#}
+                {#                </div>#}
 
                 <!-- Design Pattern Used -->
-                <div id="design-pattern-text" class="text-center text-warning mt-3" style="display: none;"></div>
-                
+                {#                <div id="design-pattern-text" class="text-center text-warning mt-3" style="display: none;"></div>#}
+
 
                 <div class="text-center mt-3">
                     <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
                 </div>
             </div>
+            <br>
+            <br>
+
 
             <!-- Code Metrics Section -->
-            <div id="metrics-section" class="mt-5" style="display: none;">
+            <div id="metrics-section" class="card bg-dark p-4"
+                 style="display: none; border-radius: 10px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
                 <h3 class="text-center text-white">Code Refactoring Analysis</h3>
                 <p class="text-muted text-center">A visual comparison of refactoring improvements.</p>
 
@@ -167,7 +228,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Suggested Learning Resources -->
             <div id="resources-section" class="resource-card" style="display: none;">
                 <div class="resource-header">
@@ -669,8 +730,8 @@
                     document.getElementById("suggested-pattern").style.display = "flex";
 
                     // Display "Design Pattern Used" section
-                    designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.pattern}`;
-                    designPatternText.style.display = 'block';
+                    {#designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.pattern}`;#}
+                    {#designPatternText.style.display = 'block';#}
 
                     // Fetch Learning Resource for the detected pattern
                     fetchPatternDetails(data.pattern);
@@ -1365,6 +1426,50 @@
             background: linear-gradient(90deg, #007bff, #00d4ff);
             transform: scale(1.05);
             box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.8);
+        }
+
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dots-loader span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        /* Assign different colors to each dot */
+        .dots-loader .red {
+            background-color: #ff4d4d; /* Red */
+            animation-delay: -0.32s;
+        }
+
+        .dots-loader .yellow {
+            background-color: #ffd700; /* Yellow */
+            animation-delay: -0.16s;
+        }
+
+        .dots-loader .green {
+            background-color: #4caf50; /* Green */
+            animation-delay: 0s;
+        }
+
+        .dots-loader .blue {
+            background-color: #1e90ff; /* Blue */
+            animation-delay: 0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
         }
 
 
