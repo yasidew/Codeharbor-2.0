@@ -35,6 +35,9 @@ urlpatterns = [
     # Refactoring Explanation
     path('generate-explanation/', generate_refactoring_explanation, name='generate_explanation'),
 
+    # Design Pattern Details
+    path('get-pattern-details/', views.get_pattern_details, name='get_pattern_details'),
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
