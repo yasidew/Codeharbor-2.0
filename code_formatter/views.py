@@ -129,7 +129,7 @@ def refactor_code(request):
             """
 
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a professional code refactoring assistant."},
                     {"role": "user", "content": prompt}
@@ -378,6 +378,7 @@ def generate_guideline(request):
             prompt = GUIDELINE_PROMPTS[pattern]
 
             response = client.chat.completions.create(
+                # model="gpt-4"
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a professional software architect."},
@@ -712,7 +713,7 @@ def get_ai_suggested_pattern(code, patterns):
         """
 
         response = client.chat.completions.create(
-            # model="3.5-turbo",
+            # model="gpt-3.5-turbo",
             model="gpt-4",
             messages=[
                 {"role": "system",
