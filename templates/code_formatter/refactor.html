@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Code Refacotring{% endblock %}
+{% block title %}Code Refactoring{% endblock %}
 {% block sidebar %}
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
@@ -130,35 +130,7 @@
                 </div>
             </div>
 
-            <!-- Code Metrics -->
-            {#            <div id="metrics-section" class="mt-5" style="display: none;">#}
-            {#                <h3 class="text-center text-white">Code Metrics Visualization</h3>#}
-            {#                <canvas id="metricsChart" width="400" height="200"></canvas>#}
-            {#            </div>#}
-            {#            <div class="content d-flex align-items-center justify-content-center min-vh-100">#}
-            {#                <div class="container">#}
-            {#                    <h2 class="text-center text-white mb-4">Code Refactoring Analysis</h2>#}
-            {##}
-            {#                    <!-- Code Metrics Section -->#}
-            {#                    <div id="metrics-section" class="mt-5">#}
-            {#                        <h3 class="text-center text-white">Code Metrics Visualization</h3>#}
-            {#                        <div class="row">#}
-            {#                            <div class="col-md-6">#}
-            {#                                <canvas id="barChart"></canvas>#}
-            {#                            </div>#}
-            {#                            <div class="col-md-6">#}
-            {#                                <canvas id="pieChart"></canvas>#}
-            {#                            </div>#}
-            {#                        </div>#}
-            {#                        <div class="row mt-4">#}
-            {#                            <div class="col-md-12 text-center">#}
-            {#                                <canvas id="gaugeChart"></canvas>#}
-            {#                            </div>#}
-            {#                        </div>#}
-            {#                    </div>#}
-            {#                </div>#}
-            {#            </div>#}
-            <!-- Code Metrics Section - Hidden until Refactoring is Done -->
+            <!-- Code Metrics Section -->
             <div id="metrics-section" class="mt-5" style="display: none;">
                 <h3 class="text-center text-white">Code Refactoring Analysis</h3>
                 <p class="text-muted text-center">A visual comparison of refactoring improvements.</p>
@@ -184,6 +156,19 @@
                             <h5 class="text-white">Maintainability Index</h5>
                             <canvas id="gaugeChart"></canvas>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal for Code Metrics Explanation -->
+            <div id="codeMetricsModal" class="custom-modal">
+                <div class="custom-modal-content">
+                    <span class="close-btn" onclick="closeMetricsModal()">&times;</span>
+                    <h3 class="modal-title">Code Metrics Analysis</h3>
+                    <div id="modal-chart-container">
+                        <canvas id="modalChart"></canvas>
+                    </div>
+                    <div id="explanation-content">
+                        <p>Loading explanation...</p>
                     </div>
                 </div>
             </div>
@@ -694,6 +679,7 @@
             }
         }
 
+
         async function fetchMetrics(recordId) {
             try {
                 const response = await fetch(`/code-formatter/get-metrics/?record_id=${recordId}`);
@@ -703,6 +689,22 @@
                     generateBarChart(result.metrics);
                     generatePieChart(result.metrics);
                     generateGaugeChart(result.metrics);
+
+                    // ✅ Attach click event handlers for opening modal after charts load
+                    setTimeout(() => {
+                        document.getElementById("barChart").onclick = function () {
+                            openMetricsModal("Code Complexity", recordId);
+                        };
+
+                        document.getElementById("pieChart").onclick = function () {
+                            openMetricsModal("Readability Improvement", recordId);
+                        };
+
+                        document.getElementById("gaugeChart").onclick = function () {
+                            openMetricsModal("Maintainability Index", recordId);
+                        };
+                    }, 500); // Adding slight delay to ensure charts are fully loaded
+
                 } else {
                     console.error("Error fetching metrics:", result.error);
                 }
@@ -802,6 +804,120 @@
                     responsive: true,
                     maintainAspectRatio: false
                 }
+            });
+        }
+
+        function openModal(chartType) {
+            document.getElementById("metricsModal").style.display = "flex";
+            let explanation = "";
+
+            if (chartType === 'barChart') {
+                explanation = `Even though LOC increased from ${metricsData.before.loc} to ${metricsData.after.loc}, the code's maintainability index improved due to better structure and modularization.`;
+            } else if (chartType === 'pieChart') {
+                explanation = `Readability improved by ${metricsData.improvement.readability}% and maintainability increased by ${metricsData.improvement.maintainability}%. These enhancements ensure better long-term maintenance.`;
+            }
+
+            document.getElementById("modal-explanation").innerText = explanation;
+        }
+
+        function closeModal() {
+            document.getElementById("metricsModal").style.display = "none";
+        }
+
+        async function openMetricsModal(metricType, recordId) {
+            document.getElementById("codeMetricsModal").style.display = "flex";
+            document.getElementById("modal-chart-container").innerHTML = `<canvas id="modalChart"></canvas>`;
+            document.getElementById("explanation-content").innerHTML = `<p>Loading explanation...</p>`;
+
+            try {
+                // Fetch Code Metrics
+                const metricsResponse = await fetch(`/code-formatter/get-metrics/?record_id=${recordId}`);
+                const metricsData = await metricsResponse.json();
+
+                // Fetch Code Snippet Diff
+                const diffResponse = await fetch(`/code-formatter/fetch-snippet-diff/?record_id=${recordId}`);
+                const diffData = await diffResponse.json();
+
+                if (!metricsData.success || !diffData.success) {
+                    throw new Error("Failed to fetch metrics or code differences.");
+                }
+
+                // Prepare payload for explanation API
+                const payload = {
+                    record_id: recordId,
+                    metrics: metricsData.metrics,  // Pass entire metrics object
+                    original_code: diffData.original_code,
+                    refactored_code: diffData.refactored_code
+                };
+
+                // Fetch AI-generated explanation
+                const explanationResponse = await fetch("/code-formatter/generate-explanation/", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(payload),
+                });
+
+                const explanationData = await explanationResponse.json();
+
+                if (!explanationData.success) {
+                    throw new Error("Failed to generate explanation.");
+                }
+
+                // Update Explanation Text
+                document.getElementById("explanation-content").innerHTML = `<p>${explanationData.explanation}</p>`;
+
+                // Render the correct chart in modal
+                renderModalChart(metricType, metricsData.metrics);
+
+            } catch (error) {
+                document.getElementById("explanation-content").innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+            }
+        }
+
+
+        function closeMetricsModal() {
+            document.getElementById("codeMetricsModal").style.display = "none";
+        }
+
+        function renderModalChart(metricType, metrics) {
+            const ctx = document.getElementById('modalChart').getContext('2d');
+
+            let chartData;
+            let chartType = "bar"; // Default to bar chart
+
+            if (metricType === "Code Complexity") {
+                chartData = {
+                    labels: ["Before Refactoring", "After Refactoring"],
+                    datasets: [{
+                        label: metricType,
+                        data: [metrics.before.complexity, metrics.after.complexity],
+                        backgroundColor: ['#ff6384', '#36a2eb']
+                    }]
+                };
+            } else if (metricType === "Readability Improvement") {
+                chartData = {
+                    labels: ["Readability Before", "Readability After"],
+                    datasets: [{
+                        label: metricType,
+                        data: [metrics.before.readability, metrics.after.readability],
+                        backgroundColor: ['#ffce56', '#4bc0c0']
+                    }]
+                };
+            } else if (metricType === "Maintainability Index") {
+                chartType = "doughnut"; // Change chart type
+                chartData = {
+                    labels: ["Maintainability Index"],
+                    datasets: [{
+                        data: [metrics.after.maintainability, 100 - metrics.after.maintainability],
+                        backgroundColor: ['#4CAF50', '#ddd']
+                    }]
+                };
+            }
+
+            new Chart(ctx, {
+                type: chartType,
+                data: chartData,
+                options: {responsive: true}
             });
         }
 
@@ -1101,6 +1217,46 @@
 
         canvas {
             max-height: 400px;
+        }
+
+        .custom-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        
+
+        .close-btn {
+            color: white;
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .custom-modal-content {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 10px;
+            width: 900px; /* Increase width */
+            max-width: 90%;
+            text-align: center;
+            color: white;
+        }
+
+        #explanation-content {
+            text-align: left;
+            font-size: 16px;
+            padding: 10px;
+            background: #1c1c1e;
+            border-radius: 5px;
+            color: #ddd;
         }
 
 

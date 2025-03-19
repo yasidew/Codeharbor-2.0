@@ -1,7 +1,8 @@
 from django.urls import path
 from . import views
 from .views import define_guidelines, edit_guideline, delete_guideline, get_guidelines, \
-    github_import_modal, get_github_token, add_resource, list_resources, get_pattern, fetch_snippet_diff, get_metrics
+    github_import_modal, get_github_token, add_resource, list_resources, get_pattern, fetch_snippet_diff, get_metrics, \
+    generate_refactoring_explanation
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -30,6 +31,9 @@ urlpatterns = [
 
     # Refactoring Metrics
     path('get-metrics/', get_metrics, name='get_metrics'),  # ✅ Added for visualization
+
+    # Refactoring Explanation
+    path('generate-explanation/', generate_refactoring_explanation, name='generate_explanation'),
 
 ]
 

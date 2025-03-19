@@ -710,3 +710,69 @@ def get_metrics(request):
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@csrf_exempt
+def generate_refactoring_explanation(request):
+    """Generates an AI-powered explanation for refactoring improvements."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            record_id = data.get('record_id')
+
+            if not record_id:
+                return JsonResponse({'error': 'Missing record_id'}, status=400)
+
+            # Retrieve the code refactoring record
+            record = get_object_or_404(CodeRefactoringRecord, id=record_id)
+
+            # Extract metrics
+            original_loc = record.original_complexity
+            refactored_loc = record.refactored_complexity
+            original_readability = record.original_readability
+            refactored_readability = record.refactored_readability
+
+            # Construct AI Prompt
+            prompt = f"""
+            Analyze the code refactoring improvements based on the given metrics.
+
+            **Before Refactoring:**
+            - Lines of Code (LOC): {original_loc}
+            - Readability Score: {original_readability}
+
+            **After Refactoring:**
+            - Lines of Code (LOC): {refactored_loc}
+            - Readability Score: {refactored_readability}
+
+            **Code Comparison:**
+            - **Original Code:**
+            {record.original_code}
+
+            - **Refactored Code:**
+            {record.refactored_code}
+
+            **Explain the changes:**
+            - How has the structure improved?
+            - Even if LOC increased, why does maintainability improve?
+            - How do readability and complexity impact the new structure?
+
+            Provide a clear, professional explanation that highlights improvements without using unnecessary jargon.
+            """
+
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a professional software engineer and code reviewer."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2
+            )
+
+            explanation = response.choices[0].message.content.strip()
+
+            return JsonResponse({"success": True, "explanation": explanation})
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
