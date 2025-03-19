@@ -1,0 +1,8 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Re-authenticating:
+When an authenticated session expires, the user can continue the activity without loss of data after re-authenticating.
+Sufficient techniques include:
+   - G105: Saving data so that it can be used after a user re-authenticates
+   - G181: Encoding user data as hidden or encrypted data in a re-authorization page
+Failures include:
+   - F12: Failure of Success Criterion 2.2.5 due to having a session time limit without a mechanism re-authentication
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

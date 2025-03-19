@@ -1,0 +1,7 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Error Prevention (All):
+For Web pages that require the user to submit information, at least one of the following is true: Reversible: Submissions are reversible. Checked: Data entered by the user is checked for input errors and the user is provided an opportunity to correct them. Confirmed: A mechanism is available for reviewing, confirming, and correcting information before finalizing the submission.
+Sufficient techniques include:
+   - G220: Provide a contact-us link in a consistent location
+Failures include:
+   - Inconsistent Help Location
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

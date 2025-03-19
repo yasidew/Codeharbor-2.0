@@ -1,0 +1,7 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Keyboard:
+All functionality of the content is operable through a keyboard interface without requiring specific timings for individual keystrokes, except where the underlying function requires input that depends on the path of the user's movement and not just the endpoints.
+Sufficient techniques include:
+   - No specific techniques listed.
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

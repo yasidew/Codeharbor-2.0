@@ -1,0 +1,7 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Character Key Shortcuts:
+If a keyboard shortcut is implemented in content using only letter (including upper- and lower-case letters), punctuation, number, or symbol characters, then at least one of the following is true: Turn off: A mechanism is available to turn the shortcut off; Remap: A mechanism is available to remap the shortcut to include one or more non-printable keyboard keys (e.g., Ctrl, Alt); Active only on focus: The keyboard shortcut for a user interface component is only active when that component has focus.
+Sufficient techniques include:
+   - G217: Providing a mechanism to allow users to remap or turn off character key shortcuts
+Failures include:
+   - F99: Failure of Success Criterion 2.1.4 due to implementing character key shortcuts that cannot be turned off or remapped
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

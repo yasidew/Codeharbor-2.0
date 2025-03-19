@@ -1,0 +1,9 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Language of Page:
+The default human language of each Web page can be programmatically determined.
+Sufficient techniques include:
+   - H57: Using the language attribute on the HTML element
+   - PDF16: Setting the default language using the /Lang entry in the document catalog of a PDF document
+   - PDF19: Specifying the language for a passage or phrase with the Lang entry in PDF documents
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

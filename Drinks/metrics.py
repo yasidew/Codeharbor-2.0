@@ -86,23 +86,39 @@ def calculate_comment_density(code):
     for line in lines:
         stripped = line.strip()
 
-        # Handle docstrings (multi-line comments)
-        if stripped.startswith(('"""', "'''")):
-            inside_docstring = not inside_docstring
+        # ✅ Handle multi-line docstrings properly (''' or """ in the line)
+        if stripped.startswith(('"""', "'''")) and stripped.endswith(('"""', "'''")) and len(stripped) > 3:
+            comment_lines += 1  # Single-line docstring
+            continue
+        elif stripped.startswith(('"""', "'''")):
+            inside_docstring = True
+            comment_lines += 1
+            continue
+        elif stripped.endswith(('"""', "'''")):
+            inside_docstring = False
             comment_lines += 1
             continue
 
         if inside_docstring:
             comment_lines += 1
-            continue  # Skip to next line
+            continue  # ✅ Skip to next line
 
-        # Count single-line comments (Ignoring those containing only 🚨 or symbols)
-        if stripped.startswith("#") and len(stripped) > 2:
+        # ✅ Count single-line comments
+        if stripped.startswith("#"):
             comment_lines += 1
-        elif "#" in stripped and len(stripped.split("#")[1].strip()) > 2:  # Inline comments
-            comment_lines += 1
-            code_lines += 1  # Inline comment means there's still code on the line
-        elif stripped:  # Count non-comment, non-empty lines as code
+            continue  # ✅ Move to next line
+
+        # ✅ Detect inline comments (code followed by #)
+        if "#" in stripped:
+            before_comment, after_comment = stripped.split("#", 1)
+            if after_comment.strip():  # Ensure there's actual comment content
+                comment_lines += 1
+                if before_comment.strip():  # If code is before comment, count it
+                    code_lines += 1
+                continue
+
+        # ✅ Count non-comment, non-empty lines as code
+        if stripped:
             code_lines += 1
 
     total_lines = code_lines + comment_lines
@@ -110,57 +126,9 @@ def calculate_comment_density(code):
 
 
 
-# def calculate_comment_density(code):
-#     """Compute comment density (code-to-comment ratio) for multiple languages."""
-#     lines = code.split("\n")
-#
-#     # Recognizing both Python (`#`) and JavaScript/Java/C (`//`) single-line comments
-#     single_line_comment_patterns = ("#", "//")
-#
-#     # Detect multi-line comments for JavaScript/Java/C (`/* ... */`)
-#     multi_line_comment_pattern = r"/\*[\s\S]*?\*/"
-#
-#     # Count single-line comments
-#     single_line_comment_lines = sum(1 for line in lines if line.strip().startswith(single_line_comment_patterns))
-#
-#     # Count multi-line comments using regex
-#     multi_line_comments = re.findall(multi_line_comment_pattern, code, re.MULTILINE)
-#     multi_line_comment_lines = sum(comment.count("\n") + 1 for comment in multi_line_comments)
-#
-#     # Total comment lines
-#     total_comment_lines = single_line_comment_lines + multi_line_comment_lines
-#
-#     # Count code lines (excluding blank lines and comments)
-#     code_lines = sum(1 for line in lines if line.strip() and not line.strip().startswith(single_line_comment_patterns))
-#
-#     return total_comment_lines / code_lines if code_lines > 0 else 0  # Prevent division by zero
-
-
-# def calculate_readability_score(code):
-#     """Estimate readability of Python comments using Flesch-Kincaid readability index."""
-#     # Extract all single-line comments (`#`) and docstrings (`""" """`)
-#     comment_lines = [line.strip() for line in code.split("\n") if "#" in line]
-#
-#     # Extract docstrings (multi-line comments)
-#     multi_line_comments = re.findall(r'""".*?"""|\'\'\'.*?\'\'\'', code, re.DOTALL)
-#
-#     # Combine all comments into one text
-#     comments = "\n".join(comment_lines + multi_line_comments)
-#
-#     if not comments.strip():
-#         return 0  # No comments = readability score of 0
-#
-#     try:
-#         r = Readability(comments)
-#         readability_score = r.flesch_kincaid().score
-#         return round(readability_score, 2) if readability_score else 0
-#     except Exception as e:
-#         print(f"❌ Readability Calculation Error: {e}")
-#         return 0
-
 
 def calculate_readability_score(code):
-    """Estimate readability of Python comments using textstat."""
+    """Estimate readability of Python comments using textstat, ensuring no negative scores."""
     comment_lines = [line.strip().split("#", 1)[1] for line in code.split("\n") if "#" in line]
     comments = " ".join(comment_lines)
 
@@ -169,7 +137,9 @@ def calculate_readability_score(code):
 
     try:
         readability_score = textstat.flesch_reading_ease(comments)
-        return round(readability_score, 2)
+
+        # ✅ Normalize scores (Clamp to a minimum of 0)
+        return max(round(readability_score, 2), 5)
     except Exception as e:
         print(f"❌ Readability Calculation Error: {e}")
         return 0

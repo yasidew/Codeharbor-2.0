@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessibility Test Page</title>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Welcome to the Accessibility Test Page</h1>
+
+    <!-- CRITICAL: Missing Alt Text on Images -->
+    <img src="image.jpg">
+
+    <!-- MODERATE: Poor Contrast -->
+    <p style="color: lightgray; background-color: white;">This text has poor contrast.</p>
+
+    <!-- SERIOUS: Missing Form Labels -->
+    <form>
+        <input type="text" name="username">
+        <button>Submit</button>
+    </form>
+
+    <!-- MINOR: Empty Button -->
+    <button></button>
+
+    <!-- CRITICAL: Keyboard Trap -->
+    <div contenteditable="true">Try typing here, and you might get trapped!</div>
+
+    <!-- MODERATE: Non-descriptive Link Text -->
+    <a href="page.html">Click here</a>
+
+    <!-- SERIOUS: Missing ARIA Role for Interactive Element -->
+    <div onclick="alert('Clicked!')">Click me</div>
+
+    <!-- MINOR: Redundant ARIA Role -->
+    <p role="paragraph">This paragraph has an unnecessary role.</p>
+
+</body>
+</html>

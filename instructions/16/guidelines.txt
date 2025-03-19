@@ -1,0 +1,7 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Identify Purpose:
+In content implemented using markup languages, the purpose of user interface components, icons, and regions can be programmatically determined.
+Sufficient techniques include:
+   - ARIA11: Using ARIA landmarks to identify regions of a page
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

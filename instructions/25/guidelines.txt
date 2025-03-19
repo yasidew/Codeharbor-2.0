@@ -1,0 +1,12 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Images of Text (No Exception):
+Images of text are only used for pure decoration or where a particular presentation of text is essential to the information being conveyed.
+
+Note 1: Logotypes (text that is part of a logo or brand name) are considered essential.
+Sufficient techniques include:
+   - C22: Using CSS to control visual presentation of text
+   - C30: Using CSS to replace text with images of text and providing user interface controls to switch
+   - G140: Separating information and structure from presentation to enable different presentations
+   - PDF7: Performing OCR on a scanned PDF document to provide actual text
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

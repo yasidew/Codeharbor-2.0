@@ -1,0 +1,8 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Target Size (Enhanced):
+The size of the target for pointer inputs is at least 44 by 44 CSS pixels except when: (See full criterion for details)
+Sufficient techniques include:
+   - Ensuring that targets are at least 44 by 44 CSS pixels
+   - Ensuring inline links provide sufficiently large activation target
+Failures include:
+   - Failure of success criterion 2.5.5 due to target being less than 44 by 44 CSS pixels
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

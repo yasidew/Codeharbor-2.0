@@ -1,0 +1,49 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Info and Relationships:
+Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text.
+Sufficient techniques include:
+   - ARIA11: Using ARIA landmarks to identify regions of a page
+   - ARIA12: Using role=heading to identify headings
+   - ARIA13: Using aria-labelledby to name regions and landmarks
+   - ARIA16: Using aria-labelledby to provide a name for user interface controls
+   - ARIA17: Using grouping roles to identify related form controls
+   - ARIA20: Using the region role to identify a region of the page
+   - G115: Using semantic elements to mark up structure AND H49: Using semantic markup to mark emphasized or special text
+   - G117: Using text to convey information that is conveyed by variations in presentation of text
+   - G140: Separating information and structure from presentation to enable different presentations
+   - ARIA24: Semantically identifying a font icon with role='img'
+   - G138: Using semantic markup whenever color cues are used
+   - H51: Using table markup to present tabular information
+   - PDF6: Using table elements for table markup in PDF Documents
+   - PDF20: Using Adobe Acrobat Pro's Table Editor to repair mistagged tables
+   - H39: Using caption elements to associate data table captions with data tables
+   - H63: Using the scope attribute to associate header cells and data cells in data tables
+   - H43: Using id and headers attributes to associate data cells with header cells in data tables
+   - H44: Using label elements to associate text labels with form controls
+   - H65: Using the title attribute to identify form controls when the label element cannot be used
+   - PDF10: Providing labels for interactive form controls in PDF documents
+   - PDF12: Providing name, role, value information for form fields in PDF documents
+   - H71: Providing a description for groups of form controls using fieldset and legend elements
+   - H85: Using OPTGROUP to group OPTION elements inside a SELECT
+   - H48: Using ol, ul and dl for lists or groups of links
+   - H42: Using h1-h6 to identify headings
+   - PDF9: Providing headings by marking content with heading tags in PDF documents
+   - SCR21: Using functions of the Document Object Model (DOM) to add content to a page
+   - PDF11: Providing links and link text using the Link annotation and the /Link structure element in PDF documents
+   - PDF17: Specifying consistent page numbering for PDF documents
+   - PDF21: Using List tags for lists in PDF documents
+   - H97: Grouping related links using the nav element
+   - T1: Using standard text formatting conventions for paragraphs
+   - T2: Using standard text formatting conventions for lists
+   - T3: Using standard text formatting conventions for headings
+Failures include:
+   - F2: Failure of Success Criterion 1.3.1 due to using changes in text presentation to convey information without using the appropriate markup or text
+   - F33: Failure of Success Criterion 1.3.1 and 1.3.2 due to using white space characters to create multiple columns in plain text content
+   - F34: Failure of Success Criterion 1.3.1 and 1.3.2 due to using white space characters to format tables in plain text content
+   - F42: Failure of Success Criteria 1.3.1, 2.1.1, 2.1.3, or 4.1.2 when emulating links
+   - F43: Failure of Success Criterion 1.3.1 due to using structural markup in a way that does not represent relationships in the content
+   - F46: Failure of Success Criterion 1.3.1 due to using th elements, layout tables
+   - F48: Failure of Success Criterion 1.3.1 due to using the pre element to markup tabular information
+   - F90: Failure of Success Criterion 1.3.1 for incorrectly associating table headers and content via the headers and id attributes
+   - F91: Failure of Success Criterion 1.3.1 for not correctly marking up table headers
+   - F92: Failure of Success Criterion 1.3.1 due to the use of role presentation on content which conveys semantic information
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

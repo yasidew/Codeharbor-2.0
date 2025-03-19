@@ -1,0 +1,11 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AA guidelines for Identify Input Purpose:
+The purpose of each input field collecting information about the user can be programmatically determined when:
+
+The input field serves a purpose identified in the Input Purposes for User Interface Components section; and
+
+The content is implemented using technologies with support for identifying the expected meaning for form input data.
+Sufficient techniques include:
+   - H98: Using HTML 5.2 autocomplete attributes
+Failures include:
+   - F107: Failure of Success Criterion 1.3.5 due to incorrect autocomplete attribute values
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

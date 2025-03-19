@@ -1,0 +1,14 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Audio-only and Video-only (Prerecorded):
+For prerecorded audio-only and prerecorded video-only media, the following are true, except when the audio or video is a media alternative for text and is clearly labeled as such:
+
+Prerecorded Audio-only: An alternative for time-based media is provided that presents equivalent information for prerecorded audio-only content.
+
+Prerecorded Video-only: Either an alternative for time-based media or an audio track is provided that presents equivalent information for prerecorded video-only content.
+Sufficient techniques include:
+   - G158: Providing an alternative for time-based media for audio-only content
+   - G159: Providing an alternative for time-based media for video-only content
+   - G166: Providing audio that describes the important video content and describing it as such
+Failures include:
+   - F30: Failure of Success Criterion 1.1.1 and 1.2.1 due to using text alternatives that are not alternatives (e.g., filenames or placeholder text)
+   - F67: Failure of Success Criterion 1.1.1 and 1.2.1 due to providing long descriptions for non-text content that does not serve the same purpose or does not present the same information
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

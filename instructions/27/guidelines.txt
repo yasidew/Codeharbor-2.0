@@ -1,0 +1,14 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AA guidelines for Non-text Contrast:
+The visual presentation of the following have a contrast ratio of at least 3:1 against adjacent color(s):
+
+User Interface Components: Visual information required to identify user interface components and states, except for inactive components or where the appearance of the component is determined by the user agent and not modified by the author;
+
+Graphical Objects: Parts of graphics required to understand the content, except when a particular presentation of graphics is essential to the information being conveyed.
+Sufficient techniques include:
+   - G195: Using an author-supplied, visible focus indicator
+   - G174: Providing a control with a sufficient contrast ratio that allows users to switch to a presentation that uses sufficient contrast
+   - G207: Ensuring that a contrast ratio of 3:1 is provided for icons
+   - G209: Provide sufficient contrast at the boundaries between adjoining colors
+Failures include:
+   - F78: Failure of Success Criterion 2.4.7 due to styling element outlines and borders in a way that removes or renders non-visible the visual focus indicator
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

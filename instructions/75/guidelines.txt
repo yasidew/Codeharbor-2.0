@@ -1,0 +1,15 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Error Identification:
+If an input error is automatically detected, the item that is in error is identified and the error is described to the user in text.
+Sufficient techniques include:
+   - G83: Providing text descriptions to identify required fields that were not completed
+   - ARIA21: Using Aria-Invalid to Indicate An Error Field
+   - SCR18: Providing client-side validation and alert
+   - PDF5: Indicating required form controls in PDF forms
+   - ARIA18: Using aria-alertdialog to Identify Errors
+   - ARIA19: Using ARIA role=alert or Live Regions to Identify Errors
+   - G84: Providing a text description when the user provides information that is not in the list of allowed values
+   - G85: Providing a text description when user input falls outside the required format or values
+   - PDF22: Indicating when user input falls outside the required format or values in PDF forms
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

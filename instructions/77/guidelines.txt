@@ -1,0 +1,16 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AA guidelines for Error Suggestion:
+If an input error is automatically detected and suggestions for correction are known, then the suggestions are provided to the user, unless it would jeopardize the security or purpose of the content.
+Sufficient techniques include:
+   - G83: Providing text descriptions to identify required fields that were not completed
+   - ARIA2: Identifying a required field with the aria-required property
+   - PDF5: Indicating required form controls in PDF forms
+   - ARIA18: Using aria-alertdialog to Identify Errors
+   - G85: Providing a text description when user input falls outside the required format or values
+   - G177: Providing suggested correction text
+   - SCR18: Providing client-side validation and alert
+   - SCR32: Providing client-side validation and adding error text via the DOM
+   - PDF22: Indicating when user input falls outside the required format or values in PDF forms
+   - G84: Providing a text description when the user provides information that is not in the list of allowed values
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

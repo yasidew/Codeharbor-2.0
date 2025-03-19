@@ -1,0 +1,17 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Audio Description or Media Alternative (Prerecorded):
+An alternative for time-based media or audio description of the prerecorded video content is provided for synchronized media, except when the media is a media alternative for text and is clearly labeled as such.
+Sufficient techniques include:
+   - G69: Providing an alternative for time based media using one of the following techniques
+   - G58: Placing a link to the alternative for time-based media immediately next to the non-text content
+   - H53: Using the body of the object element
+   - G78: Providing a second, user-selectable, audio track that includes audio descriptions
+   - G173: Providing a version of a movie with audio descriptions
+   - SM6: Providing audio description in SMIL 1.0
+   - SM7: Providing audio description in SMIL 2.0
+   - G8: Providing a movie with extended audio descriptions
+   - SM1: Adding extended audio description in SMIL 1.0
+   - SM2: Adding extended audio description in SMIL 2.0
+   - G203: Using a static text alternative to describe a talking head video
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

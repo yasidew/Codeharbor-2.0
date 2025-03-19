@@ -1,0 +1,13 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Focus Order:
+If a Web page can be navigated sequentially and the navigation sequences affect meaning or operation, focusable components receive focus in an order that preserves meaning and operability.
+Sufficient techniques include:
+   - G59: Placing the interactive elements in an order that follows sequences and relationships within the content
+   - C27: Making the DOM order match the visual order
+   - PDF3: Ensuring correct tab and reading order in PDF documents
+   - SCR26: Inserting dynamic content into the Document Object Model immediately following its trigger element
+   - H102: Creating modal dialogs with the HTML dialog element
+   - SCR27: Reordering page sections using the Document Object Model
+Failures include:
+   - F44: Failure of Success Criterion 2.4.3 due to using tabindex to create a tab order that does not preserve meaning and operability
+   - F85: Failure of Success Criterion 2.4.3 due to using dialogs or menus that are not adjacent to their trigger control in the sequential navigation order
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

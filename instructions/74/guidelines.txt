@@ -1,0 +1,7 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Consistent Help:
+If a Web page contains any of the following help mechanisms, and those mechanisms are repeated on multiple Web pages within a set of Web pages, they occur in the same order relative to other page content, unless a change is initiated by the user: Human contact details; Human contact mechanism; Self-help option; A fully automated contact mechanism.
+Sufficient techniques include:
+   - G220: Provide a contact-us link in a consistent location
+Failures include:
+   - Inconsistent Help Location
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

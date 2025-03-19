@@ -1,0 +1,9 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Motion Actuation:
+Functionality that can be operated by device motion or user motion can also be operated by user interface components and responding to the motion can be disabled to prevent accidental actuation, except when: (See full criterion for details)
+Sufficient techniques include:
+   - G213: Provide conventional controls and an application setting for motion activated input
+   - GXXX: Supporting system level features which allow the user to disable motion actuation
+Failures include:
+   - F106: Failure due to inability to deactivate motion actuation
+   - FXXX: Failure of Success Criterion 2.5.4 due to disrupting or disabling system level features which allow the user to disable motion actuation
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

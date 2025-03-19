@@ -1,0 +1,7 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for On Focus:
+When any user interface component receives focus, it does not initiate a change of context.
+Sufficient techniques include:
+   - G107: Using 'activate' rather than 'focus' as a trigger for changes of context
+Failures include:
+   - F55: Failure of Success Criteria 2.1.1, 2.4.7, and 3.2.1 due to using script to remove focus when focus is received
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.
