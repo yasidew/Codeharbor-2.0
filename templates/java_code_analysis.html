@@ -610,57 +610,60 @@
 
         //complexity chart
         document.addEventListener("DOMContentLoaded", function () {
-            // Extract Java complexity metrics from summary
-            const javaComplexityMetrics = {
-                "Lines of Code": {{ summary.complexity_metrics.lines_of_code }},
-                "Effective LOC": {{ summary.complexity_metrics.effective_lines_of_code }},
-                "Classes": {{ summary.complexity_metrics.num_classes }},
-                "Methods": {{ summary.complexity_metrics.num_methods }},
-                "Avg. Method Length": {{ summary.complexity_metrics.avg_method_length }},
-                "Nesting Depth": {{ summary.complexity_metrics.nesting_depth }},
-                "Duplicate Code (%)": {{ summary.complexity_metrics.duplicate_code_percentage }},
-                "Comment Density": {{ summary.complexity_metrics.comment_density }},
-                "Readability Score": {{ summary.complexity_metrics.readability_score }},
-                "Complexity Score": {{ summary.complexity_metrics.complexity_score }}
+            // Ensure summary data exists before rendering the chart
+            const complexityMetrics = {
+                "Lines of Code": {{ summary.complexity_metrics.lines_of_code|default:0 }},
+                "Effective LOC": {{ summary.complexity_metrics.effective_lines_of_code|default:0 }},
+                "Classes": {{ summary.complexity_metrics.num_classes|default:0 }},
+                "Methods": {{ summary.complexity_metrics.num_methods|default:0 }},
+                "Avg. Method Length": {{ summary.complexity_metrics.avg_method_length|default:0 }},
+                "Nesting Depth": {{ summary.complexity_metrics.nesting_depth|default:0 }},
+                "Duplicate Code (%)": {{ summary.complexity_metrics.duplicate_code_percentage|default:0 }},
+                "Comment Density": {{ summary.complexity_metrics.comment_density|default:0 }},
+                "Readability Score": {{ summary.complexity_metrics.readability_score|default:0 }},
+                "Complexity Score": {{ summary.complexity_metrics.complexity_score|default:0 }}
             };
 
-            // Get chart labels and values
-            const javaComplexityLabels = Object.keys(javaComplexityMetrics);
-            const javaComplexityValues = Object.values(javaComplexityMetrics);
+            // Ensure at least one non-zero value is available before rendering
+            if (Object.values(complexityMetrics).some(value => value > 0)) {
+                const ctx = document.getElementById("javaComplexityChart").getContext("2d");
 
-            // Define bar chart
-            new Chart(document.getElementById('javaComplexityChart'), {
-                type: 'bar',
-                data: {
-                    labels: javaComplexityLabels,
-                    datasets: [{
-                        label: "Java Code Complexity Metrics",
-                        data: javaComplexityValues,
-                        backgroundColor: [
-                            '#FF5733', '#33FFBD', '#337AFF', '#FF33E3', '#FFCE33', '#33FF57', '#A833FF', '#FF8333', '#FFC300', '#DAF7A6'
-                        ],
-                        borderColor: '#FFFFFF',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: "#FFFFFF" }
-                        },
-                        x: {
-                            ticks: { color: "#FFFFFF" }
-                        }
+                new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: Object.keys(complexityMetrics),
+                        datasets: [{
+                            label: "Java Code Complexity Metrics",
+                            data: Object.values(complexityMetrics),
+                            backgroundColor: [
+                                "#FF5733", "#33FFBD", "#337AFF", "#FF33E3",
+                                "#FFCE33", "#33FF57", "#A833FF", "#FF8333", "#FFC300", "#DAF7A6"
+                            ],
+                            borderColor: "#FFFFFF",
+                            borderWidth: 1
+                        }]
                     },
-                    plugins: {
-                        legend: {
-                            display: false  // ✅ Hide the legend
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: "#FFFFFF" }
+                            },
+                            x: {
+                                ticks: { color: "#FFFFFF" }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false  // Hide the legend
+                            }
                         }
                     }
-                }
-            });
+                });
+            } else {
+                console.warn("No valid complexity metrics found.");
+            }
         });
 
 
