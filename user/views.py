@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+import requests
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg
 from django.shortcuts import render, get_object_or_404, redirect
@@ -18,7 +19,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, OutstandingToken
 from rest_framework.exceptions import NotAuthenticated
 from django.core.exceptions import ValidationError
 
-from games.models import GitGameScore
+from games.models import GitGameScore, UserBadge
 from user.forms import ProfileUpdateForm
 from user.models import UserProfile
 
@@ -143,32 +144,76 @@ def logout_all(request):
 
 # @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
-def user_profile_view(request, username):
-    """Display the user profile."""
-    user = get_object_or_404(User, username=username)
-    user_profile, created = UserProfile.objects.get_or_create(user=user)
+# def user_profile_view(request, username):
+#     """Display the user profile."""
+#     user = get_object_or_404(User, username=username)
+#     user_profile, created = UserProfile.objects.get_or_create(user=user)
+#
+#     # Calculate leaderboard position
+#     leaderboard = (
+#         GitGameScore.objects.values("user__id", "user__username")
+#         .annotate(avg_score=Avg("score"))
+#         .order_by("-avg_score")
+#     )
+#
+#     rank = next((index + 1 for index, entry in enumerate(leaderboard) if entry["user__id"] == user.id), None)
+#
+#     completed_challenges = GitGameScore.objects.filter(user=user).count()
+#     avg_score = GitGameScore.objects.filter(user=user).aggregate(Avg("score"))["score__avg"] or 0
+#
+#     return render(
+#         request,
+#         "profile.html",
+#         {
+#             "user_profile": user_profile,
+#             "rank": rank,
+#             "completed_challenges": completed_challenges,
+#             "avg_score": avg_score,
+#         },
+#     )
 
-    # Calculate leaderboard position
+# def user_profile_view(request, username):
+#     user_profile = UserProfile.objects.get(user__username=username)
+#     user_scores = GitGameScore.objects.filter(user=user_profile.user)
+#
+#     avg_score = user_scores.aggregate(Avg('score'))['score__avg'] or 0.0  # Compute average score
+#
+#     context = {
+#         "user_profile": user_profile,
+#         "rank": "Gold",  # Example rank logic
+#         "completed_challenges": user_scores.count(),
+#         "avg_score": round(avg_score, 2),  # Round to 2 decimal places
+#     }
+#     return render(request, "profile.html", context)
+
+
+def user_profile_view(request, username):
+    user_profile = get_object_or_404(UserProfile, user__username=username)
+
+    # Get all users' average scores sorted in descending order
     leaderboard = (
-        GitGameScore.objects.values("user__id", "user__username")
+        GitGameScore.objects.values("user")
         .annotate(avg_score=Avg("score"))
         .order_by("-avg_score")
     )
 
-    rank = next((index + 1 for index, entry in enumerate(leaderboard) if entry["user__id"] == user.id), None)
+    # Find the rank of the current user
+    rank = None
+    for position, entry in enumerate(leaderboard, start=1):
+        if entry["user"] == user_profile.user.id:
+            rank = position
+            break
 
-    completed_challenges = GitGameScore.objects.filter(user=user).count()
-    avg_score = GitGameScore.objects.filter(user=user).aggregate(Avg("score"))["score__avg"] or 0
+    # Calculate the user's average score
+    user_scores = GitGameScore.objects.filter(user=user_profile.user)
+    avg_score = user_scores.aggregate(Avg('score'))['score__avg'] or 0.0
 
-    return render(
-        request,
-        "profile.html",
-        {
-            "user_profile": user_profile,
-            "rank": rank,
-            "completed_challenges": completed_challenges,
-            "avg_score": avg_score,
-        },
-    )
+    context = {
+        "user_profile": user_profile,
+        "rank": rank if rank else "Unranked",  # Default to "Unranked" if user has no scores
+        "completed_challenges": user_scores.count(),
+        "avg_score": round(avg_score, 2),
+    }
 
+    return render(request, "profile.html", context)
 
