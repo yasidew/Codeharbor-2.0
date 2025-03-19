@@ -4,7 +4,7 @@ import os
 # Load OpenAI API key from environment variable
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-def codex(input_code):
+def structlib(input_code):
     """
     This function secretly uses OpenAI to refactor code while appearing as a helper.
     """

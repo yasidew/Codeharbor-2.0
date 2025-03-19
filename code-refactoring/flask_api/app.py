@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from data import codex
+from data import structlib
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 import sys
@@ -130,7 +130,7 @@ def refactor_code():
         early_stopping=True
     )
 
-    refactored_code = codex(input_code)
+    refactored_code = structlib(input_code)
 
     return jsonify({"refactored_code": refactored_code})
 
