@@ -1302,7 +1302,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY1"))
 
 try:
     response = client.models.list()
-    print("✅ API Key is working. Available models:", response)
+    # print("✅ API Key is working. Available models:", response)
 except Exception as e:
     print("❌ Invalid API Key or Quota Issue:", str(e))
 
