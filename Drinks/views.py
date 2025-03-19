@@ -126,13 +126,13 @@ load_dotenv()
 # client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Initialize model and tokenizer once
-# MODEL_PATH = "./models/custom_seq2seq_model"
+MODEL_PATH = "./models/custom_seq2seq_model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Global instances for reuse
-# tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-# model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH).to(device)
-# model.eval()
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH).to(device)
+model.eval()
 
 # Optimize PyTorch performance
 torch.backends.cudnn.benchmark = True
@@ -1302,7 +1302,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY1"))
 
 try:
     response = client.models.list()
-    print("✅ API Key is working. Available models:", response)
+    # print("✅ API Key is working. Available models:", response)
 except Exception as e:
     print("❌ Invalid API Key or Quota Issue:", str(e))
 
