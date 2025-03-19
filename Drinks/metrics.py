@@ -5,8 +5,8 @@ import re
 from collections import Counter
 
 import javalang
-# import textstat
-from readability.readability import Readability
+import textstat
+# from readability.readability import Readability
 
 
 
@@ -136,48 +136,43 @@ def calculate_comment_density(code):
 #     return total_comment_lines / code_lines if code_lines > 0 else 0  # Prevent division by zero
 
 
+# def calculate_readability_score(code):
+#     """Estimate readability of Python comments using Flesch-Kincaid readability index."""
+#     # Extract all single-line comments (`#`) and docstrings (`""" """`)
+#     comment_lines = [line.strip() for line in code.split("\n") if "#" in line]
+#
+#     # Extract docstrings (multi-line comments)
+#     multi_line_comments = re.findall(r'""".*?"""|\'\'\'.*?\'\'\'', code, re.DOTALL)
+#
+#     # Combine all comments into one text
+#     comments = "\n".join(comment_lines + multi_line_comments)
+#
+#     if not comments.strip():
+#         return 0  # No comments = readability score of 0
+#
+#     try:
+#         r = Readability(comments)
+#         readability_score = r.flesch_kincaid().score
+#         return round(readability_score, 2) if readability_score else 0
+#     except Exception as e:
+#         print(f"❌ Readability Calculation Error: {e}")
+#         return 0
+
+
 def calculate_readability_score(code):
-    """Estimate readability of Python comments using Flesch-Kincaid readability index."""
-    # Extract all single-line comments (`#`) and docstrings (`""" """`)
-    comment_lines = [line.strip() for line in code.split("\n") if "#" in line]
-
-    # Extract docstrings (multi-line comments)
-    multi_line_comments = re.findall(r'""".*?"""|\'\'\'.*?\'\'\'', code, re.DOTALL)
-
-    # Combine all comments into one text
-    comments = "\n".join(comment_lines + multi_line_comments)
+    """Estimate readability of Python comments using textstat."""
+    comment_lines = [line.strip().split("#", 1)[1] for line in code.split("\n") if "#" in line]
+    comments = " ".join(comment_lines)
 
     if not comments.strip():
         return 0  # No comments = readability score of 0
 
     try:
-        r = Readability(comments)
-        readability_score = r.flesch_kincaid().score
-        return round(readability_score, 2) if readability_score else 0
+        readability_score = textstat.flesch_reading_ease(comments)
+        return round(readability_score, 2)
     except Exception as e:
         print(f"❌ Readability Calculation Error: {e}")
         return 0
-
-
-# def calculate_readability_score(code):
-#     """Estimate the readability of the code's comments."""
-#     # Extract all single-line comments
-#     comment_lines = [line.strip() for line in code.split("\n") if line.strip().startswith(("#", "//"))]
-#
-#     # Extract multi-line comments
-#     multi_line_comments = re.findall(r"/\*[\s\S]*?\*/", code, re.MULTILINE)
-#
-#     # Combine all comments
-#     comments = "\n".join(comment_lines + multi_line_comments)
-#
-#     if not comments:
-#         return 0
-#
-#     try:
-#         r = Readability(comments)
-#         return r.flesch_kincaid().score
-#     except Exception:
-#         return 0  # Return 0 if there's an issue calculating readability
 
 
 def calculate_complexity_score(loc, functions, duplication):
@@ -343,19 +338,42 @@ def java_calculate_comment_density(code):
 
 
 def java_calculate_readability_score(code):
-    """Estimate the readability of Java comments using readability metrics."""
-    comment_lines = [line.strip() for line in code.split("\n") if line.strip().startswith("//")]
-    multi_line_comments = re.findall(r"/\*[\s\S]*?\*/", code, re.MULTILINE)
+    """Estimate the readability of Java comments using textstat."""
+    # Extract single-line comments (`//`)
+    comment_lines = [line.strip()[2:] for line in code.split("\n") if line.strip().startswith("//")]
+
+    # Extract multi-line comments (`/* ... */`)
+    multi_line_comments = re.findall(r"/\*([\s\S]*?)\*/", code, re.MULTILINE)
+
+    # Combine all comments into one text block
     comments = "\n".join(comment_lines + multi_line_comments)
 
-    if not comments:
+    # If there are no comments, return 0
+    if not comments.strip():
         return 0
 
     try:
-        r = Readability(comments)
-        return r.flesch_kincaid().score
-    except Exception:
+        # Calculate readability score using textstat (Flesch-Kincaid readability test)
+        readability_score = textstat.flesch_kincaid_grade(comments)
+        return round(readability_score, 2)
+    except Exception as e:
+        print(f"❌ Readability Calculation Error: {e}")
         return 0
+
+# def java_calculate_readability_score(code):
+#     """Estimate the readability of Java comments using readability metrics."""
+#     comment_lines = [line.strip() for line in code.split("\n") if line.strip().startswith("//")]
+#     multi_line_comments = re.findall(r"/\*[\s\S]*?\*/", code, re.MULTILINE)
+#     comments = "\n".join(comment_lines + multi_line_comments)
+#
+#     if not comments:
+#         return 0
+#
+#     try:
+#         r = Readability(comments)
+#         return r.flesch_kincaid().score
+#     except Exception:
+#         return 0
 
 
 def java_calculate_complexity_score(loc, num_methods, duplication):

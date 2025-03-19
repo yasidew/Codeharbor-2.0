@@ -1,7 +1,8 @@
 from django.urls import path
 from . import views
 from .views import define_guidelines, edit_guideline, delete_guideline, get_guidelines, \
-    github_import_modal, get_github_token, add_resource, list_resources, get_pattern, fetch_snippet_diff
+    github_import_modal, get_github_token, add_resource, list_resources, get_pattern, fetch_snippet_diff, get_metrics, \
+    generate_refactoring_explanation
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -14,15 +15,29 @@ urlpatterns = [
     path('define-guidelines/', define_guidelines, name='define_guidelines'),
     path("edit-guideline/<int:id>/", edit_guideline, name="edit_guideline"),
     path("delete-guideline/<int:guideline_id>/", delete_guideline, name="delete_guideline"),
+
+    # GitHub Integration
     # path("generate-guideline/", generate_guideline, name="generate_guideline"),
     path('github-import-modal/', github_import_modal, name='github_import_modal'),
     path('get-github-token/', get_github_token, name='get_github_token'),
+    # path('fetch-github-file/', fetch_github_file, name='fetch_github_file'),  # ✅ Added
+    # path('create-github-pr/', create_github_pr, name='create_github_pr'),  # ✅ Added
+
+    # Design Pattern & Resources
     path('add-resource/', add_resource, name='add_resource'),
     path('resources/', list_resources, name='list_resources'),
     path("fetch-snippet-diff/", views.fetch_snippet_diff, name="fetch_snippet_diff"),
     path('get-pattern/', get_pattern, name='get_pattern'),
-    # path('fetch-github-file/', fetch_github_file, name='fetch_github_file'),  # ✅ Added
-    # path('create-github-pr/', create_github_pr, name='create_github_pr'),  # ✅ Added
+
+    # Refactoring Metrics
+    path('get-metrics/', get_metrics, name='get_metrics'),  # ✅ Added for visualization
+
+    # Refactoring Explanation
+    path('generate-explanation/', generate_refactoring_explanation, name='generate_explanation'),
+
+    # Design Pattern Details
+    path('get-pattern-details/', views.get_pattern_details, name='get_pattern_details'),
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

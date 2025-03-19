@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Code Refacotring{% endblock %}
+{% block title %}Code Refactoring{% endblock %}
 {% block sidebar %}
     <div class="sidebar" data-color="black">
         <div class="sidebar-wrapper">
@@ -119,21 +119,64 @@
                 <!-- Design Pattern Used -->
                 <div id="design-pattern-text" class="text-center text-warning mt-3" style="display: none;"></div>
 
-                <!-- Suggested Resources -->
-                <div id="resources-section" class="mt-4" style="display: none;">
-                    <h4 class="text-white">Suggested Learning Resources</h4>
-                    <ul id="resources-list" class="text-white"></ul>
-                </div>
+                {#                <!-- Suggested Resources -->#}
+                {#                <div id="resources-section" class="mt-4" style="display: none;">#}
+                {#                    <h4 class="text-white">Suggested Learning Resources</h4>#}
+                {#                    <ul id="resources-list" class="text-white"></ul>#}
+                {#                </div>#}
 
                 <div class="text-center mt-3">
                     <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
                 </div>
             </div>
 
-            <!-- Code Metrics -->
+            <!-- Code Metrics Section -->
             <div id="metrics-section" class="mt-5" style="display: none;">
-                <h3 class="text-center text-white">Code Metrics Visualization</h3>
-                <canvas id="metricsChart" width="400" height="200"></canvas>
+                <h3 class="text-center text-white">Code Refactoring Analysis</h3>
+                <p class="text-muted text-center">A visual comparison of refactoring improvements.</p>
+
+                <div class="row gx-4 gy-4 mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-dark p-3 shadow-lg rounded">
+                            <h5 class="text-center text-white">Code Metrics Comparison</h5>
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark p-3 shadow-lg rounded">
+                            <h5 class="text-center text-white">Improvement Breakdown</h5>
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card bg-dark p-3 shadow-lg rounded text-center">
+                            <h5 class="text-white">Maintainability Index</h5>
+                            <canvas id="gaugeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal for Code Metrics Explanation -->
+            <div id="codeMetricsModal" class="custom-modal">
+                <div class="custom-modal-content">
+                    <span class="close-btn" onclick="closeMetricsModal()">&times;</span>
+                    <h3 class="modal-title">Code Metrics Analysis</h3>
+                    <div id="modal-chart-container">
+                        <canvas id="modalChart"></canvas>
+                    </div>
+                    <div id="explanation-content">
+                        <p>Loading explanation...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggested Learning Resources Section -->
+            <div id="resources-section" class="mt-4" style="display: none;">
+                <h4 class="text-white">📚 Suggested Learning Resources</h4>
+                <ul id="resources-list" class="text-white"></ul>
             </div>
         </div>
     </div>
@@ -157,6 +200,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css">
     <!-- Include diff2html JS -->
     <script src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         let editor, refactoredEditor, diffEditor, monacoDiffEditor;
@@ -185,7 +229,7 @@
             {#    theme: "vs-dark",#}
             {#    readOnly: true});#}
 
-           
+
             monacoDiffEditor = monaco.editor.createDiffEditor(document.getElementById('monacoDiffEditor'), {
                 theme: "vs-dark",
                 readOnly: true,
@@ -249,6 +293,7 @@
             const loadingBar = document.getElementById('loading-bar');
             const refactoredSection = document.getElementById('refactored-section');
             const changesSection = document.getElementById('changes-section');
+            const metricsSection = document.getElementById('metrics-section');
             {#const changesList = document.getElementById('changes-list');#}
             // CHANGED #2: We'll target "changesContainer" for collapsible cards
             const changesContainer = document.getElementById('changesContainer');
@@ -259,11 +304,12 @@
             loadingBar.style.display = 'block';
             refactoredSection.style.display = 'none';
             changesSection.style.display = 'none';
+            metricsSection.style.display = 'none';
             resourcesSection.style.display = 'none';
 
             changesContainer.innerHTML = "";// Clear previous changes
             {#changesList.innerHTML = ''; // Clear previous changes#}
-            resourcesList.innerHTML = ''; // Clear previous resources
+            {#resourcesList.innerHTML = ''; // Clear previous resources#}
 
             try {
                 const response = await fetch('/code-formatter/refactor-code/', {
@@ -281,6 +327,7 @@
                     refactoredEditor.setValue(data.refactored_code);
                     refactoredSection.style.display = 'block';
                     showCodeDiff(data.id);
+                    fetchMetrics(data.id);
 
                     // Build collapsible "cards" for each change
                     if (data.changes_made && data.changes_made.length > 0) {
@@ -320,6 +367,8 @@
                             changesContainer.appendChild(cardDiv);
                         });
                         changesSection.style.display = 'block';
+                        metricsSection.style.display = 'block';
+                        resourcesSection.style.display = 'block';
                         attachCardExpandHandlers(data.id); // attach snippet fetch on expand
                     }
 
@@ -330,15 +379,6 @@
                     } else {
                         designPatternText.style.display = 'none';
                     }
-
-                    // Display Suggested Resources
-                    {#if (data.resources && data.resources.length > 0) {#}
-                    {#    data.resources.forEach(resource => {#}
-                    {#        const li = document.createElement('li');#}
-                    {#        li.innerHTML = `<strong>${resource.pattern_name}</strong> - <a href="${resource.link}" target="_blank" class="text-info">View Resource</a>`;#}
-                    {#        resourcesList.appendChild(li);#}
-                    {#    });#}
-                    {#    resourcesSection.style.display = 'block';}#}
 
                 } else {
                     {#showToast("❌ Error in refactoring code!", "error");#}
@@ -625,15 +665,301 @@
                 });
 
                 const data = await response.json();
+                const designPatternText = document.getElementById("design-pattern-text");
+                const resourcesSection = document.getElementById("resources-section");
                 if (response.ok && data.pattern) {
                     document.getElementById("pattern-name").innerText = data.pattern;
                     document.getElementById("suggested-pattern").style.display = "flex";
+
+                    // Display "Design Pattern Used" section
+                    designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.pattern}`;
+                    designPatternText.style.display = 'block';
+
+                    // Fetch Learning Resource for the detected pattern
+                    fetchPatternDetails(data.pattern);
+
                 } else {
                     document.getElementById("suggested-pattern").style.display = "none";
+                    designPatternText.style.display = 'none';
+                    resourcesSection.style.display = 'none';
                 }
             } catch (error) {
                 console.error("Error fetching design pattern:", error);
                 document.getElementById("suggested-pattern").style.display = "none";
+                document.getElementById("design-pattern-text").style.display = 'none';
+            }
+        }
+
+
+        async function fetchMetrics(recordId) {
+            try {
+                const response = await fetch(`/code-formatter/get-metrics/?record_id=${recordId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    generateBarChart(result.metrics);
+                    generatePieChart(result.metrics);
+                    generateGaugeChart(result.metrics);
+
+                    // ✅ Attach click event handlers for opening modal after charts load
+                    setTimeout(() => {
+                        document.getElementById("barChart").onclick = function () {
+                            openMetricsModal("Code Complexity", recordId);
+                        };
+
+                        document.getElementById("pieChart").onclick = function () {
+                            openMetricsModal("Readability Improvement", recordId);
+                        };
+
+                        document.getElementById("gaugeChart").onclick = function () {
+                            openMetricsModal("Maintainability Index", recordId);
+                        };
+                    }, 500); // Adding slight delay to ensure charts are fully loaded
+
+                } else {
+                    console.error("Error fetching metrics:", result.error);
+                }
+            } catch (err) {
+                console.error("Error fetching metrics:", err.message);
+            }
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('/code-formatter/get-metrics/')
+                .then(response => response.json())
+                .then(data => {
+                    const metrics = data.metrics;
+                    generateBarChart(metrics);
+                    generatePieChart(metrics);
+                    generateGaugeChart(metrics);
+                })
+                .catch(error => console.error('Error fetching metrics:', error));
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('/code-formatter/get-metrics/')
+                .then(response => response.json())
+                .then(data => {
+                    const metrics = data.metrics;
+                    generateBarChart(metrics);
+                    generatePieChart(metrics);
+                    generateGaugeChart(metrics);
+                })
+                .catch(error => console.error('Error fetching metrics:', error));
+        });
+
+        function generateBarChart(metrics) {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Lines of Code (LOC)', 'Cyclomatic Complexity', 'Maintainability Index', 'Readability Score'],
+                    datasets: [
+                        {
+                            label: 'Before Refactoring',
+                            data: [metrics.before.loc, metrics.before.complexity, metrics.before.maintainability, metrics.before.readability],
+                            backgroundColor: '#ff6384',
+                        },
+                        {
+                            label: 'After Refactoring',
+                            data: [metrics.after.loc, metrics.after.complexity, metrics.after.maintainability, metrics.after.readability],
+                            backgroundColor: '#36a2eb',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function generatePieChart(metrics) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Code Reduction (%)', 'Readability Improvement (%)', 'Maintainability Boost (%)'],
+                    datasets: [{
+                        data: [
+                            metrics.improvement.reduction,
+                            metrics.improvement.readability,
+                            metrics.improvement.maintainability
+                        ],
+                        backgroundColor: ['#ffce56', '#4bc0c0', '#9966ff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function generateGaugeChart(metrics) {
+            const ctx = document.getElementById('gaugeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Maintainability Index'],
+                    datasets: [{
+                        data: [metrics.after.maintainability, 100 - metrics.after.maintainability],
+                        backgroundColor: ['#4CAF50', '#ddd']
+                    }]
+                },
+                options: {
+                    circumference: 180,
+                    rotation: 270,
+                    cutoutPercentage: 70,
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function openModal(chartType) {
+            document.getElementById("metricsModal").style.display = "flex";
+            let explanation = "";
+
+            if (chartType === 'barChart') {
+                explanation = `Even though LOC increased from ${metricsData.before.loc} to ${metricsData.after.loc}, the code's maintainability index improved due to better structure and modularization.`;
+            } else if (chartType === 'pieChart') {
+                explanation = `Readability improved by ${metricsData.improvement.readability}% and maintainability increased by ${metricsData.improvement.maintainability}%. These enhancements ensure better long-term maintenance.`;
+            }
+
+            document.getElementById("modal-explanation").innerText = explanation;
+        }
+
+        function closeModal() {
+            document.getElementById("metricsModal").style.display = "none";
+        }
+
+        async function openMetricsModal(metricType, recordId) {
+            document.getElementById("codeMetricsModal").style.display = "flex";
+            document.getElementById("modal-chart-container").innerHTML = `<canvas id="modalChart"></canvas>`;
+            document.getElementById("explanation-content").innerHTML = `<p>Loading explanation...</p>`;
+
+            try {
+                // Fetch Code Metrics
+                const metricsResponse = await fetch(`/code-formatter/get-metrics/?record_id=${recordId}`);
+                const metricsData = await metricsResponse.json();
+
+                // Fetch Code Snippet Diff
+                const diffResponse = await fetch(`/code-formatter/fetch-snippet-diff/?record_id=${recordId}`);
+                const diffData = await diffResponse.json();
+
+                if (!metricsData.success || !diffData.success) {
+                    throw new Error("Failed to fetch metrics or code differences.");
+                }
+
+                // Prepare payload for explanation API
+                const payload = {
+                    record_id: recordId,
+                    metrics: metricsData.metrics,  // Pass entire metrics object
+                    original_code: diffData.original_code,
+                    refactored_code: diffData.refactored_code
+                };
+
+                // Fetch AI-generated explanation
+                const explanationResponse = await fetch("/code-formatter/generate-explanation/", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(payload),
+                });
+
+                const explanationData = await explanationResponse.json();
+
+                if (!explanationData.success) {
+                    throw new Error("Failed to generate explanation.");
+                }
+
+                // Update Explanation Text
+                document.getElementById("explanation-content").innerHTML = `<p>${explanationData.explanation}</p>`;
+
+                // Render the correct chart in modal
+                renderModalChart(metricType, metricsData.metrics);
+
+            } catch (error) {
+                document.getElementById("explanation-content").innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+            }
+        }
+
+
+        function closeMetricsModal() {
+            document.getElementById("codeMetricsModal").style.display = "none";
+        }
+
+        function renderModalChart(metricType, metrics) {
+            const ctx = document.getElementById('modalChart').getContext('2d');
+
+            let chartData;
+            let chartType = "bar"; // Default to bar chart
+
+            if (metricType === "Code Complexity") {
+                chartData = {
+                    labels: ["Before Refactoring", "After Refactoring"],
+                    datasets: [{
+                        label: metricType,
+                        data: [metrics.before.complexity, metrics.after.complexity],
+                        backgroundColor: ['#ff6384', '#36a2eb']
+                    }]
+                };
+            } else if (metricType === "Readability Improvement") {
+                chartData = {
+                    labels: ["Readability Before", "Readability After"],
+                    datasets: [{
+                        label: metricType,
+                        data: [metrics.before.readability, metrics.after.readability],
+                        backgroundColor: ['#ffce56', '#4bc0c0']
+                    }]
+                };
+            } else if (metricType === "Maintainability Index") {
+                chartType = "doughnut"; // Change chart type
+                chartData = {
+                    labels: ["Maintainability Index"],
+                    datasets: [{
+                        data: [metrics.after.maintainability, 100 - metrics.after.maintainability],
+                        backgroundColor: ['#4CAF50', '#ddd']
+                    }]
+                };
+            }
+
+            new Chart(ctx, {
+                type: chartType,
+                data: chartData,
+                options: {responsive: true}
+            });
+        }
+
+        async function fetchPatternDetails(pattern) {
+            try {
+                const response = await fetch('/code-formatter/get-pattern-details/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                    body: JSON.stringify({pattern}),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Create the Learning Resource UI
+                    document.getElementById('resources-section').style.display = 'block';
+
+                    document.getElementById('resources-list').innerHTML = `
+                <li><strong>Pattern Name:</strong> ${data.pattern}</li>
+                <li><strong>Category:</strong> ${data.category}</li>
+                <li><strong>Description:</strong> ${data.description}</li>
+                <li><a href="${data.link}" target="_blank" class="text-info">📖 Learn More</a></li>
+            `;
+                } else {
+                    console.warn("No learning resource found for", pattern);
+                }
+            } catch (error) {
+                console.error("Error fetching pattern details:", error);
             }
         }
 
@@ -918,6 +1244,61 @@
             font-weight: bold;
             color: #ffeb3b; /* Bright gold for contrast */
             font-size: 18px;
+        }
+
+        #metrics-section {
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        canvas {
+            max-height: 400px;
+        }
+
+        .custom-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        .close-btn {
+            color: white;
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .custom-modal-content {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 10px;
+            width: 900px; /* Increase width */
+            max-width: 90%;
+            text-align: center;
+            color: white;
+        }
+
+        #explanation-content {
+            text-align: left;
+            font-size: 16px;
+            padding: 10px;
+            background: #1c1c1e;
+            border-radius: 5px;
+            color: #ddd;
         }
 
 

@@ -674,3 +674,136 @@ def get_ai_suggested_pattern(code, patterns):
 
     except Exception as e:
         return f"Error fetching AI suggestion: {str(e)}"
+
+
+def get_metrics(request):
+    """Fetch code metrics for a specific refactoring record using record_id."""
+    record_id = request.GET.get("record_id")
+
+    if not record_id:
+        return JsonResponse({"success": False, "error": "Missing record_id"}, status=400)
+
+    try:
+        record = get_object_or_404(CodeRefactoringRecord, id=record_id)
+
+        metrics = {
+            "before": {
+                "loc": record.original_complexity,
+                "complexity": record.original_complexity,
+                "maintainability": record.original_readability,
+                "readability": record.original_readability
+            },
+            "after": {
+                "loc": record.refactored_complexity,
+                "complexity": record.refactored_complexity,
+                "maintainability": record.refactored_readability,
+                "readability": record.refactored_readability
+            },
+            "improvement": {
+                "reduction": round((1 - (record.refactored_complexity / record.original_complexity)) * 100, 2),
+                "readability": round((record.refactored_readability - record.original_readability), 2),
+                "maintainability": round((record.refactored_readability - record.original_readability), 2),
+            }
+        }
+
+        return JsonResponse({"success": True, "metrics": metrics})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@csrf_exempt
+def generate_refactoring_explanation(request):
+    """Generates an AI-powered explanation for refactoring improvements."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            record_id = data.get('record_id')
+
+            if not record_id:
+                return JsonResponse({'error': 'Missing record_id'}, status=400)
+
+            # Retrieve the code refactoring record
+            record = get_object_or_404(CodeRefactoringRecord, id=record_id)
+
+            # Extract metrics
+            original_loc = record.original_complexity
+            refactored_loc = record.refactored_complexity
+            original_readability = record.original_readability
+            refactored_readability = record.refactored_readability
+
+            # Construct AI Prompt
+            prompt = f"""
+            Analyze the code refactoring improvements based on the given metrics.
+
+            **Before Refactoring:**
+            - Lines of Code (LOC): {original_loc}
+            - Readability Score: {original_readability}
+
+            **After Refactoring:**
+            - Lines of Code (LOC): {refactored_loc}
+            - Readability Score: {refactored_readability}
+
+            **Code Comparison:**
+            - **Original Code:**
+            {record.original_code}
+
+            - **Refactored Code:**
+            {record.refactored_code}
+
+            **Explain the changes:**
+            - How has the structure improved?
+            - Even if LOC increased, why does maintainability improve?
+            - How do readability and complexity impact the new structure?
+
+            Provide a clear, professional explanation that highlights improvements without using unnecessary jargon.
+            """
+
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a professional software engineer and code reviewer."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.2
+            )
+
+            explanation = response.choices[0].message.content.strip()
+
+            return JsonResponse({"success": True, "explanation": explanation})
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+@csrf_exempt
+def get_pattern_details(request):
+    """Fetches the design pattern details (category & link) from the database."""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            pattern_name = data.get("pattern", "").strip()
+
+            if not pattern_name:
+                return JsonResponse({"error": "No pattern provided"}, status=400)
+
+            # Query the DesignPatternResource model for details
+            pattern_details = DesignPatternResource.objects.filter(pattern_name=pattern_name).first()
+
+            if not pattern_details:
+                return JsonResponse({"error": "Pattern details not found"}, status=404)
+
+            return JsonResponse({
+                "success": True,
+                "pattern": pattern_details.pattern_name,
+                "category": pattern_details.category,
+                "description": pattern_details.description,
+                "link": pattern_details.link
+            })
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
