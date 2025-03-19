@@ -482,7 +482,7 @@
                     hideLoading();
                 } else {
                     {#showToast("❌ Error in refactoring code!", "error");#}
-                    showToast(`⚠️ ${data.message}`, "error");
+                    {#showToast(`⚠️ ${data.message}`, "error");#}
                     showToast(`Refactoring Blocked: ${data.guideline}`, "info");
                 }
             } catch (error) {
