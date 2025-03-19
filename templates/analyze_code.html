@@ -281,6 +281,14 @@
                     <h4 class="text-center">Severity Level Distribution</h4>
                     <canvas id="severityChart" width="400" height="400" ></canvas>
                 </div>
+                <div class="chart-container p-3 shadow-sm rounded mt-4">
+                    <h4 class="text-center">Code Complexity Metrics</h4>
+                    <canvas id="complexityChart" width="400" height="400"></canvas>
+                </div>
+{#                <div class="chart-container p-3 shadow-sm rounded mt-4">#}
+{#                    <h4 class="text-center">Code Complexity Radar Chart</h4>#}
+{#                    <canvas id="complexityRadarChart" width="400" height="400"></canvas>#}
+{#                </div>#}
                 <div class="text-center mt-3">
                     <a href="{% url 'export_excel' %}" class="btn btn-success">
                         <i class="fas fa-file-excel"></i> Download Excel Report
@@ -605,70 +613,58 @@
         });
     });
 
+    
+    //complexity chart
+    document.addEventListener("DOMContentLoaded", function () {
+        // Extract complexity metrics from summary
+        const complexityMetrics = {
+            "Lines of Code": {{ summary.complexity_metrics.lines_of_code }},
+            "Effective LOC": {{ summary.complexity_metrics.effective_lines_of_code }},
+            "Functions": {{ summary.complexity_metrics.num_functions }},
+            "Avg. Function Length": {{ summary.complexity_metrics.avg_function_length }},
+            "Duplicate Code (%)": {{ summary.complexity_metrics.duplicate_code_percentage }},
+            "Comment Density": {{ summary.complexity_metrics.comment_density }},
+            "Readability Score": {{ summary.complexity_metrics.readability_score }},
+            "Complexity Score": {{ summary.complexity_metrics.complexity_score }}
+        };
 
-    {#document.addEventListener("DOMContentLoaded", function () {#}
-        {#    const githubBtn = document.getElementById("githubBtn");#}
-        {#    const githubModal = document.getElementById("githubModal");#}
-        {#    const analyzeGithubBtn = document.getElementById("analyzeGithubBtn");#}
-        {#    const closeGithubBtn = document.getElementById("closeGithubBtn");#}
-        {#    const githubRepoUrl = document.getElementById("githubRepoUrl");#}
-        {#    const codeEditor = document.getElementById("codeEditor");#}
-        {##}
-        {#    // Open modal#}
-            {#    githubBtn.addEventListener("click", function (event) {#}
-                {#        event.preventDefault();#}
-                {#        githubModal.style.display = "block";#}
-                {#    });#}
-            {##}
-            {#    // Close modal#}
-                {#    closeGithubBtn.addEventListener("click", function (event) {#}
-                    {#        event.preventDefault();#}
-                    {#        githubModal.style.display = "none";#}
-                    {#    });#}
-                {##}
-                {#    // Handle GitHub analysis#}
-                    {#    analyzeGithubBtn.addEventListener("click", function (event) {#}
-                        {#        event.preventDefault();#}
-                        {#        const repoUrl = githubRepoUrl.value.trim();#}
-                        {##}
-                        {#        if (!repoUrl) {#}
-                            {#            alert("Please enter a GitHub repository URL.");#}
-                            {#            return;#}
-                            {#        }#}
-                        {##}
-                        {#        fetch("{% url 'analyze_code' %}", {#}
-                            {#            method: "POST",#}
-                            {#            headers: {#}
-                                {#                "Content-Type": "application/json",#}
-                                {#                "X-CSRFToken": "{{ csrf_token }}" // Ensure CSRF token is included#}
-                                    {#            },#}
-                                {#            body: JSON.stringify({ github_url: repoUrl })#}
-                                {#        })#}
-                            {#            .then(response => response.json())#}
-                            {#            .then(data => {#}
-                                {#                if (data.error) {#}
-                                    {#                    alert("Error fetching GitHub files: " + data.error);#}
-                                    {#                } else {#}
-                                    {#                    let formattedCode = "";#}
-                                    {##}
-                                    {#                    data.files.forEach(file => {#}
-                                        {#                        formattedCode += `# File: ${file.name}\n${file.code}\n\n`;#}
-                                        {#                    });#}
-                                    {##}
-                                    {#                    if (window.editor) {#}
-                                        {#                        window.editor.setValue(formattedCode);#}
-                                        {#                    }#}
-                                    {#                    codeEditor.value = formattedCode;#}
-                                    {#                }#}
-                                {#            })#}
-                            {#            .catch(error => {#}
-                                {#                console.error("Error:", error);#}
-                                {#                alert("Failed to fetch GitHub files.");#}
-                                {#            });#}
-                            {##}
-                            {#        githubModal.style.display = "none";#}
-                            {#    });#}
-                        {#});#}
+        // Get chart labels and values
+        const complexityLabels = Object.keys(complexityMetrics);
+        const complexityValues = Object.values(complexityMetrics);
+
+        // Define bar chart
+        new Chart(document.getElementById('complexityChart'), {
+            type: 'bar',
+            data: {
+                labels: complexityLabels,
+                datasets: [{
+                    label: "Code Complexity Metrics",
+                    data: complexityValues,
+                    backgroundColor: [
+                        '#FF5733', '#33FFBD', '#337AFF', '#FF33E3', '#FFCE33', '#33FF57', '#A833FF', '#FF8333'
+                    ],
+                    borderColor: '#FFFFFF',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: "#FFFFFF" }
+                    },
+                    x: {
+                        ticks: { color: "#FFFFFF" }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    });
+    
 
 
                     //toast messages

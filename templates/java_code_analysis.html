@@ -281,6 +281,10 @@
                         <h4 class="text-center">Severity Level Distribution</h4>
                         <canvas id="severityChart" width="400" height="400" ></canvas>
                     </div>
+                    <div class="chart-container p-3 shadow-sm rounded mt-4">
+                        <h4 class="text-center">Java Code Complexity Metrics</h4>
+                        <canvas id="javaComplexityChart" width="400" height="400"></canvas>
+                    </div>
                     <div class="text-center mt-3">
                         <a href="{% url 'export_java_excel' %}" class="btn btn-success">
                             <i class="fas fa-file-excel"></i> Download Excel Report
@@ -604,72 +608,63 @@
         });
 
 
-        {#document.addEventListener("DOMContentLoaded", function () {#}
-        {#    const githubBtn = document.getElementById("githubBtn");#}
-        {#    const githubModal = document.getElementById("githubModal");#}
-        {#    const analyzeGithubBtn = document.getElementById("analyzeGithubBtn");#}
-        {#    const closeGithubBtn = document.getElementById("closeGithubBtn");#}
-        {#    const githubRepoUrl = document.getElementById("githubRepoUrl");#}
-        {#    const codeEditor = document.getElementById("codeEditor");#}
-        {##}
-        {#    // Open modal#}
-        {#    githubBtn.addEventListener("click", function (event) {#}
-        {#        event.preventDefault();#}
-        {#        githubModal.style.display = "block";#}
-        {#    });#}
-        {##}
-        {#    // Close modal#}
-        {#    closeGithubBtn.addEventListener("click", function (event) {#}
-        {#        event.preventDefault();#}
-        {#        githubModal.style.display = "none";#}
-        {#    });#}
-        {##}
-        {#    // Handle GitHub analysis#}
-        {#    analyzeGithubBtn.addEventListener("click", function (event) {#}
-        {#        event.preventDefault();#}
-        {#        const repoUrl = githubRepoUrl.value.trim();#}
-        {##}
-        {#        if (!repoUrl) {#}
-        {#            alert("Please enter a GitHub repository URL.");#}
-        {#            return;#}
-        {#        }#}
-        {##}
-        {#        fetch("{% url 'analyze_code' %}", {#}
-        {#            method: "POST",#}
-        {#            headers: {#}
-        {#                "Content-Type": "application/json",#}
-        {#                "X-CSRFToken": "{{ csrf_token }}" // Ensure CSRF token is included#}
-        {#            },#}
-        {#            body: JSON.stringify({ github_url: repoUrl })#}
-        {#        })#}
-        {#            .then(response => response.json())#}
-        {#            .then(data => {#}
-        {#                if (data.error) {#}
-        {#                    alert("Error fetching GitHub files: " + data.error);#}
-        {#                } else {#}
-        {#                    let formattedCode = "";#}
-        {##}
-        {#                    data.files.forEach(file => {#}
-        {#                        formattedCode += `# File: ${file.name}\n${file.code}\n\n`;#}
-        {#                    });#}
-        {##}
-        {#                    if (window.editor) {#}
-        {#                        window.editor.setValue(formattedCode);#}
-        {#                    }#}
-        {#                    codeEditor.value = formattedCode;#}
-        {#                }#}
-        {#            })#}
-        {#            .catch(error => {#}
-        {#                console.error("Error:", error);#}
-        {#                alert("Failed to fetch GitHub files.");#}
-        {#            });#}
-        {##}
-        {#        githubModal.style.display = "none";#}
-        {#    });#}
-        {#});#}
+        //complexity chart
+        document.addEventListener("DOMContentLoaded", function () {
+            // Extract Java complexity metrics from summary
+            const javaComplexityMetrics = {
+                "Lines of Code": {{ summary.complexity_metrics.lines_of_code }},
+                "Effective LOC": {{ summary.complexity_metrics.effective_lines_of_code }},
+                "Classes": {{ summary.complexity_metrics.num_classes }},
+                "Methods": {{ summary.complexity_metrics.num_methods }},
+                "Avg. Method Length": {{ summary.complexity_metrics.avg_method_length }},
+                "Nesting Depth": {{ summary.complexity_metrics.nesting_depth }},
+                "Duplicate Code (%)": {{ summary.complexity_metrics.duplicate_code_percentage }},
+                "Comment Density": {{ summary.complexity_metrics.comment_density }},
+                "Readability Score": {{ summary.complexity_metrics.readability_score }},
+                "Complexity Score": {{ summary.complexity_metrics.complexity_score }}
+            };
+
+            // Get chart labels and values
+            const javaComplexityLabels = Object.keys(javaComplexityMetrics);
+            const javaComplexityValues = Object.values(javaComplexityMetrics);
+
+            // Define bar chart
+            new Chart(document.getElementById('javaComplexityChart'), {
+                type: 'bar',
+                data: {
+                    labels: javaComplexityLabels,
+                    datasets: [{
+                        label: "Java Code Complexity Metrics",
+                        data: javaComplexityValues,
+                        backgroundColor: [
+                            '#FF5733', '#33FFBD', '#337AFF', '#FF33E3', '#FFCE33', '#33FF57', '#A833FF', '#FF8333', '#FFC300', '#DAF7A6'
+                        ],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: "#FFFFFF" }
+                        },
+                        x: {
+                            ticks: { color: "#FFFFFF" }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false  // ✅ Hide the legend
+                        }
+                    }
+                }
+            });
+        });
 
 
-            //toast messages
+        //toast messages
             document.addEventListener("DOMContentLoaded", function () {
                 // Function to show Bootstrap toast messages
                 function showToast(message, type = "primary") {
@@ -713,7 +708,9 @@
                     showToast("✅ Code analysis completed!", "success");
                 }
             });
-
+            
+            
+            
 
 
 

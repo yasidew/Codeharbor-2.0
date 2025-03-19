@@ -57,9 +57,19 @@
 {% block content %}
     <div class="content d-flex align-items-center justify-content-center min-vh-100">
         <div class="container">
-            <h2 class="text-center text-white mb-4">Code Refactoring</h2>
-
-            <!-- Toggle to Enable/Disable Guidelines -->
+            {#            <h2 class="text-center text-white mb-4">Code Refactoring</h2>#}
+            {##}
+            {#            <!-- Toggle to Enable/Disable Guidelines -->#}
+            {#            <div class="d-flex align-items-center justify-content-center mb-4" style="gap: 1.5rem;">#}
+            {#                <label class="toggle-switch m-0">#}
+            {#                    <input type="checkbox" id="guideline-toggle">#}
+            {#                    <span class="slider"></span>#}
+            {#                </label>#}
+            {#                <span class="text-white">Use Guidelines</span>#}
+            {#            </div>#}
+            <!-- 🔥 2️⃣ Code Refactoring Header (Updated) -->
+            <h2 class="text-center text-white mb-4"
+                style="border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 10px;">Code Refactoring</h2>
             <div class="d-flex align-items-center justify-content-center mb-4" style="gap: 1.5rem;">
                 <label class="toggle-switch m-0">
                     <input type="checkbox" id="guideline-toggle">
@@ -74,66 +84,122 @@
                 <span id="pattern-name" class="pattern-name"></span>
             </div>
 
-            <!-- Monaco Code Editor for Original Code -->
-            <div class="card bg-dark p-4">
-                <h5 class="text-white">Original Code</h5>
-                <div id="monacoEditor" class="editor-container"></div>
+            {#            <!-- Monaco Code Editor for Original Code -->#}
+            {#            <div class="card bg-dark p-4">#}
+            {#                <h5 class="text-white">Original Code</h5>#}
+            {#                <div id="monacoEditor" class="editor-container"></div>#}
+            {#            </div>#}
+            <!-- 🔥 3️⃣ Monaco Code Editor (Updated) -->
+            <div class="card bg-dark p-4" style="border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
+                <h3 class="text-center text-white">Original Code</h3>
+                <div id="monacoEditor" class="editor-container" style="position: relative;"></div>
             </div>
 
             <!-- Refactor Button -->
+            {#            <div class="text-center mt-3">#}
+            {#                <button id="refactor-btn"#}
+            {#                        class="btn btn-info btn-lg fw-bold text-white shadow-lg border-0"#}
+            {#                        style="background: linear-gradient(90deg, #007bff, #0056b3);#}
+            {#               transition: all 0.3s ease;">#}
+            {#                    Refactor Code#}
+            {#                </button>#}
+            {#            </div>#}
+            <!-- 🔥 4️⃣ Refactor Button (Updated) -->
             <div class="text-center mt-3">
-                <button id="refactor-btn"
-                        class="btn btn-info btn-lg fw-bold text-white shadow-lg border-0"
+                <button id="refactor-btn" class="btn btn-lg fw-bold text-white shadow-lg border-0 refactor-btn"
                         style="background: linear-gradient(90deg, #007bff, #0056b3);
                transition: all 0.3s ease;">
-                    Refactor Code
+                    ⚡ Refactor Code
                 </button>
             </div>
+            <br>
+            <br>
 
             <!-- Loading Spinner -->
-            <div id="loading-bar" class="mt-3 text-center" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Processing...</span>
+            {#            <div id="loading-bar" class="mt-3 text-center" style="display: none;">#}
+            {#                <div class="spinner-border text-primary" role="status">#}
+            {#                    <span class="visually-hidden">Processing...</span>#}
+            {#                </div>#}
+            {#                <p class="text-white mt-2">Refactoring your code...</p>#}
+            {#            </div>#}
+            <!-- Updated Loading Spinner -->
+            {#            <div id="loading-bar" class="mt-3 text-center" style="display: none;">#}
+            {#                <div class="dots-loader">#}
+            {#                    <span class="red"></span>#}
+            {#                    <span class="yellow"></span>#}
+            {#                    <span class="green"></span>#}
+            {#                    <span class="blue"></span>#}
+            {#                </div>#}
+            {#                <p class="text-white mt-2">Refactoring your code...</p>#}
+            {#            </div>#}
+            <!-- Full-Page Dot Loading Spinner -->
+            <div id="loading-overlay" style="display: none;">
+                <div class="dots-loader">
+                    <span class="red"></span>
+                    <span class="yellow"></span>
+                    <span class="green"></span>
+                    <span class="blue"></span>
                 </div>
-                <p class="text-white mt-2">Refactoring your code...</p>
+                <p>Refactoring your code... Please Wait</p>
             </div>
 
             {#            <!-- Before-After Code Diff View -->#}
-            <div id="diff-section" class="mt-5" style="display: none;">
+            {#            <div id="diff-section" class="mt-5" style="display: none;">#}
+            {#                <h3 class="text-center text-white">Before & After Code Comparison</h3>#}
+            {#                <div id="codeDiffViewer" style="height: 500px; width: 100%;"></div>#}
+            {#                <div id="monacoDiffEditor" style="height: 500px; width: 100%;"></div>#}
+            {#            </div>#}
+            <!-- 🔥 5️⃣ Before & After Code Comparison (Updated) -->
+            <div id="diff-section" class="card bg-dark p-4"
+                 style="display: none; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
                 <h3 class="text-center text-white">Before & After Code Comparison</h3>
-                {#                <div id="codeDiffViewer" style="height: 500px; width: 100%;"></div>#}
-                <div id="monacoDiffEditor" style="height: 500px; width: 100%;"></div>
+                <div id="monacoDiffEditor" class="editor-container" style="position: relative;"></div>
             </div>
+
 
             <!-- Refactored Code Output -->
             <div id="refactored-section" class="mt-5" style="display: none;">
-                <h3 class="text-center text-white">Refactored Code</h3>
-                <div class="card bg-dark p-3">
-                    <div id="monacoRefactoredEditor" class="editor-container"></div>
+                {#                <h3 class="text-center text-white">Refactored Code</h3>#}
+                {#                <div class="card bg-dark p-3">#}
+                {#                    <div id="monacoRefactoredEditor" class="editor-container"></div>#}
+                {#                </div>#}
+                <!-- 🔥 6️⃣ Refactored Code Section (Updated) -->
+                <div class="card bg-dark p-4"
+                     style="border-radius: 10px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
+                    <h3 class="text-center text-white">Refactored Code</h3>
+                    <div id="monacoRefactoredEditor" class="editor-container" style="position: relative;"></div>
+                    <br>
+                    <br>
+                    <div id="changes-section" class="mt-4"
+                         style="display: none; border-radius: 10px; border-radius: 10px;">
+                        <h4 class="text-center text-white mb-3">Changes Made</h4>
+                        <div id="changesContainer" class="d-flex flex-column gap-3"></div>
+                    </div>
                 </div>
+
 
                 <!-- Changes Summary -->
-                <div id="changes-section" class="mt-4" style="display: none;">
-                    <h4 class="text-white mb-3">Changes Made:</h4>
-                    <div id="changesContainer" class="d-flex flex-column gap-3"></div>
-                </div>
+                {#                <div id="changes-section" class="mt-4"#}
+                {#                     style="display: none; border-radius: 10px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">#}
+                {#                    <h4 class="text-center text-white mb-3">Changes Made</h4>#}
+                {#                    <div id="changesContainer" class="d-flex flex-column gap-3"></div>#}
+                {#                </div>#}
 
                 <!-- Design Pattern Used -->
-                <div id="design-pattern-text" class="text-center text-warning mt-3" style="display: none;"></div>
+                {#                <div id="design-pattern-text" class="text-center text-warning mt-3" style="display: none;"></div>#}
 
-                {#                <!-- Suggested Resources -->#}
-                {#                <div id="resources-section" class="mt-4" style="display: none;">#}
-                {#                    <h4 class="text-white">Suggested Learning Resources</h4>#}
-                {#                    <ul id="resources-list" class="text-white"></ul>#}
-                {#                </div>#}
 
                 <div class="text-center mt-3">
                     <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
                 </div>
             </div>
+            <br>
+            <br>
+
 
             <!-- Code Metrics Section -->
-            <div id="metrics-section" class="mt-5" style="display: none;">
+            <div id="metrics-section" class="card bg-dark p-4"
+                 style="display: none; border-radius: 10px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
                 <h3 class="text-center text-white">Code Refactoring Analysis</h3>
                 <p class="text-muted text-center">A visual comparison of refactoring improvements.</p>
 
@@ -175,11 +241,41 @@
                 </div>
             </div>
 
-            <!-- Suggested Learning Resources Section -->
-            <div id="resources-section" class="mt-4" style="display: none;">
-                <h4 class="text-white">📚 Suggested Learning Resources</h4>
-                <ul id="resources-list" class="text-white"></ul>
+            <!-- Suggested Learning Resources -->
+            {#            <div id="resources-section" class="card bg-dark p-4" style="display: none; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">#}
+            {#                <div class="resource-header">#}
+            {#                    <i class="bi bi-lightbulb"></i> Suggested Learning Resources#}
+            {#                </div>#}
+            {#                <div class="resource-content">#}
+            {#                    <p><i class="bi bi-pin"></i> <strong>Pattern Name:</strong> <span id="pattern-name-text"></span></p>#}
+            {#                    <p><i class="bi bi-folder"></i> <strong>Category:</strong> <span id="pattern-category"></span></p>#}
+            {#                    <p><i class="bi bi-file-earmark-text"></i> <strong>Description:</strong> <span#}
+            {#                            id="pattern-description"></span></p>#}
+            {#                </div>#}
+            {#                <div class="resource-footer">#}
+            {#                    <a id="pattern-link" href="#" target="_blank" class="resource-btn">#}
+            {#                        🚀 Learn More#}
+            {#                    </a>#}
+            {#                </div>#}
+            {#            </div>#}
+            <!-- Suggested Learning Resources -->
+            <div id="resources-section" class="resource-card" style="display: none;">
+                <div class="resource-header">
+                    <i class="bi bi-lightbulb"></i> Suggested Learning Resources
+                </div>
+                <div class="resource-content">
+                    <p><i class="bi bi-pin"></i> <strong>Pattern Name:</strong> <span id="pattern-name-text"></span></p>
+                    <p><i class="bi bi-folder"></i> <strong>Category:</strong> <span id="pattern-category"></span></p>
+                    <p><i class="bi bi-file-earmark-text"></i> <strong>Description:</strong> <span
+                            id="pattern-description"></span></p>
+                </div>
+                <div class="resource-footer">
+                    <a id="pattern-link" href="#" target="_blank" class="resource-btn">
+                        🚀 Learn More
+                    </a>
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -287,12 +383,22 @@
             }
         }
 
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
 
         document.getElementById('refactor-btn').addEventListener('click', async () => {
+            showLoading(); // Show the full-page loader
+
             const code = editor.getValue();
             const useGuidelines = document.getElementById('guideline-toggle').checked;
 
-            const loadingBar = document.getElementById('loading-bar');
+            {#const loadingBar = document.getElementById('loading-bar');#}
             const refactoredSection = document.getElementById('refactored-section');
             const changesSection = document.getElementById('changes-section');
             const metricsSection = document.getElementById('metrics-section');
@@ -303,15 +409,13 @@
             const resourcesList = document.getElementById('resources-list');
             const designPatternText = document.getElementById('design-pattern-text');
 
-            loadingBar.style.display = 'block';
+            {#loadingBar.style.display = 'block';#}
             refactoredSection.style.display = 'none';
             changesSection.style.display = 'none';
             metricsSection.style.display = 'none';
-            resourcesSection.style.display = 'none';
+            resourcesSection.style.display = 'none'; // Hide resources section
 
             changesContainer.innerHTML = "";// Clear previous changes
-            {#changesList.innerHTML = ''; // Clear previous changes#}
-            {#resourcesList.innerHTML = ''; // Clear previous resources#}
 
             try {
                 const response = await fetch('/code-formatter/refactor-code/', {
@@ -330,6 +434,7 @@
                     refactoredSection.style.display = 'block';
                     showCodeDiff(data.id);
                     fetchMetrics(data.id);
+
 
                     // Build collapsible "cards" for each change
                     if (data.changes_made && data.changes_made.length > 0) {
@@ -370,18 +475,11 @@
                         });
                         changesSection.style.display = 'block';
                         metricsSection.style.display = 'block';
-                        resourcesSection.style.display = 'block';
+                        refactoredSection.style.display = 'block';
+                        resourcesSection.style.display = 'block'; // Show resources section
                         attachCardExpandHandlers(data.id); // attach snippet fetch on expand
                     }
-
-                    // Display "Design Pattern Used" section
-                    if (data.design_pattern) {
-                        designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.design_pattern}`;
-                        designPatternText.style.display = 'block';
-                    } else {
-                        designPatternText.style.display = 'none';
-                    }
-
+                    hideLoading();
                 } else {
                     {#showToast("❌ Error in refactoring code!", "error");#}
                     showToast(`⚠️ ${data.message}`, "error");
@@ -390,7 +488,8 @@
             } catch (error) {
                 showToast("❌ An error occurred: " + error.message, "error");
             } finally {
-                loadingBar.style.display = 'none';
+                {#loadingBar.style.display = 'none';#}
+                hideLoading(); // Hide the loader when done
             }
         });
 
@@ -668,14 +767,13 @@
 
                 const data = await response.json();
                 const designPatternText = document.getElementById("design-pattern-text");
-                const resourcesSection = document.getElementById("resources-section");
                 if (response.ok && data.pattern) {
                     document.getElementById("pattern-name").innerText = data.pattern;
                     document.getElementById("suggested-pattern").style.display = "flex";
 
                     // Display "Design Pattern Used" section
-                    designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.pattern}`;
-                    designPatternText.style.display = 'block';
+                    {#designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.pattern}`;#}
+                    {#designPatternText.style.display = 'block';#}
 
                     // Fetch Learning Resource for the detected pattern
                     fetchPatternDetails(data.pattern);
@@ -947,18 +1045,13 @@
 
                 const data = await response.json();
 
-                if (response.ok && data.success) {
-                    // Create the Learning Resource UI
-                    document.getElementById('resources-section').style.display = 'block';
-
-                    document.getElementById('resources-list').innerHTML = `
-                <li><strong>Pattern Name:</strong> ${data.pattern}</li>
-                <li><strong>Category:</strong> ${data.category}</li>
-                <li><strong>Description:</strong> ${data.description}</li>
-                <li><a href="${data.link}" target="_blank" class="text-info">📖 Learn More</a></li>
-            `;
+                if (response.ok && data.pattern) {
+                    document.getElementById("pattern-name-text").innerText = data.pattern;
+                    document.getElementById("pattern-category").innerText = data.category;
+                    document.getElementById("pattern-description").innerText = data.description;
+                    document.getElementById("pattern-link").href = data.link;
                 } else {
-                    console.warn("No learning resource found for", pattern);
+                    document.getElementById("resources-section").style.display = "none";
                 }
             } catch (error) {
                 console.error("Error fetching pattern details:", error);
@@ -1301,6 +1394,231 @@
             background: #1c1c1e;
             border-radius: 5px;
             color: #ddd;
+        }
+
+        /* ✨ Modern Glassy Card UI for Learning Resources */
+        /* ✨ Refined "Suggested Learning Resources" Section */
+        .resource-card {
+            background: rgba(30, 30, 30, 0.95); /* Dark background with slight transparency */
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.1); /* Soft neon glow */
+            transition: transform 0.2s ease-in-out;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Header Styling */
+        .resource-header {
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        /* Content Styling */
+        .resource-content p {
+            font-size: 16px; /* Increased font size */
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resource-content i {
+            color: #0ef; /* Neon Cyan Icons */
+        }
+
+        /* 🚀 "Learn More" Button */
+        .resource-btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, #00d4ff, #007bff); /* Cool gradient */
+            color: white !important;
+            font-weight: bold;
+            border-radius: 8px;
+            text-decoration: none;
+            box-shadow: 0px 0px 8px rgba(0, 255, 255, 0.3);
+            text-align: center;
+            width: 100%;
+            display: block;
+            font-size: 18px;
+            transition: none;
+        }
+
+        /* Ensure no pink hover effect */
+        .resource-btn:hover,
+        .resource-btn:focus,
+        .resource-btn:active {
+            background: linear-gradient(90deg, #00d4ff, #007bff) !important; /* Keep the same color */
+            color: white !important; /* Keep text white */
+            box-shadow: 0px 0px 8px rgba(0, 255, 255, 0.3) !important; /* Keep the same shadow */
+            text-decoration: none !important; /* Prevent underline or changes */
+        }
+
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dots-loader span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        /* Assign different colors to each dot */
+        .dots-loader .red {
+            background-color: #ff4d4d; /* Red */
+            animation-delay: -0.32s;
+        }
+
+        .dots-loader .yellow {
+            background-color: #ffd700; /* Yellow */
+            animation-delay: -0.16s;
+        }
+
+        .dots-loader .green {
+            background-color: #4caf50; /* Green */
+            animation-delay: 0s;
+        }
+
+        .dots-loader .blue {
+            background-color: #1e90ff; /* Blue */
+            animation-delay: 0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+
+        /* Fullscreen Loading Overlay */
+        #loading-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75); /* Dark transparent background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            z-index: 1000;
+        }
+
+        /* Centered Dot Loader */
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dots-loader span {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        /* Dot Colors */
+        .dots-loader .red {
+            background-color: #ff4d4d;
+            animation-delay: -0.32s;
+        }
+
+        .dots-loader .yellow {
+            background-color: #ffd700;
+            animation-delay: -0.16s;
+        }
+
+        .dots-loader .green {
+            background-color: #4caf50;
+            animation-delay: 0s;
+        }
+
+        .dots-loader .blue {
+            background-color: #1e90ff;
+            animation-delay: 0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Inline Dot Loader */
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dots-loader span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        /* Dot Colors */
+        .dots-loader .red {
+            background-color: #ff4d4d;
+            animation-delay: -0.32s;
+        }
+
+        .dots-loader .yellow {
+            background-color: #ffd700;
+            animation-delay: -0.16s;
+        }
+
+        .dots-loader .green {
+            background-color: #4caf50;
+            animation-delay: 0s;
+        }
+
+        .dots-loader .blue {
+            background-color: #1e90ff;
+            animation-delay: 0.16s;
+        }
+
+        /* Animation */
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
         }
 
 
