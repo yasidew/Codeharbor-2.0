@@ -1400,7 +1400,8 @@ def ai_code_analysis(snippet):
                             "Issue Identified: Describe the issue concisely.\n"
                             "Why It's a Problem: Explain the consequences very shortly.\n"
                             "Recommended Fix: Provide a solution."
-                            "If no issue is found, simply reply with 'No Issue Found'."},
+                            # "If no issue is found, simply reply with 'No Issue Found'."
+                 },
                 {"role": "user",
                  # "content": f"Analyze the following Python code and provide structured feedback:\n{snippet}"}
                  "content": f"Analyze the following code and provide structured feedback:\n{snippet}"}
@@ -1412,8 +1413,8 @@ def ai_code_analysis(snippet):
         # Extract AI response
         ai_response = response.choices[0].message.content
         # ✅ If AI detects no issue, return None
-        if ai_response == "No Issue Found":
-            return None
+        # if ai_response == "No Issue Found":
+        #     return None
 
         # Format the response for HTML
         formatted_response = ai_response.replace("Issue Identified:", "<b>Issue Identified:</b>") \
@@ -1423,6 +1424,7 @@ def ai_code_analysis(snippet):
         return formatted_response  # ✅ Now formatted for HTML rendering
     except Exception as e:
         return f"Error generating AI analysis: {str(e)}"
+
 
 
 
