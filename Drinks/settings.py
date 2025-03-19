@@ -56,7 +56,8 @@ INSTALLED_APPS = [
     'user',
     'accessibility_checker',
     'games',
-    'code_analysis'
+    'code_analysis',
+    'evaluator'
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -121,9 +122,9 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'code_complexity_db',  # Keep this as 'postgres' (Main DB)
+        'NAME': 'postgres',  # Keep this as 'postgres' (Main DB)
         'USER': 'postgres',
-        'PASSWORD': '12345',
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',
         'PORT': '5432',
         'OPTIONS': {
@@ -132,14 +133,6 @@ DATABASES = {
         # 'TEST': {
         #     'MIRROR': 'default'  # Use the same database but with a different schema
         # },
-    },
-    'code_analysis': {  # Secondary DB for code analysis
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'code_analysis_db',  # Change as needed
-        'USER': 'postgres',
-        'PASSWORD': '12345',
-        'HOST': 'localhost',  # Use the correct DB host
-        'PORT': '5432',  # Default PostgreSQL port
     }
 }
 DATABASE_ROUTERS = ['Drinks.routers.CodeAnalysisRouter']
