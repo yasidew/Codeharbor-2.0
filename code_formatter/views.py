@@ -132,7 +132,7 @@ def refactor_code(request):
             response_text = str(response.choices[0].message.content).strip()
 
             # ✅ Debugging log to check AI response
-            print("AI Response:", response_text)
+            # print("AI Response:", response_text)
 
             # ✅ Extract the refactored code using regex
             code_match = re.search(r"```java([\s\S]*?)```", response_text)
