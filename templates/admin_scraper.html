@@ -19,11 +19,23 @@
             <i class="bi bi-download"></i> Fetch New Challenges
         </button>
 
-    <button id="claimBadges">Claim badges</button>
+    <button id="claimBadges" class="btn btn-warning mt-3">
+    <i class="bi bi-trophy"></i> Claim Badges
+</button>
+
+    <button id="seeBadges" class="btn btn-info mt-3">
+    <i class="bi bi-eye"></i> See Badges
+</button>
 
         <div id="loading" class="mt-3" style="display: none;">
             <span class="spinner-border spinner-border-sm"></span> Fetching...
         </div>
+
+    <!-- Badges Display Container -->
+<div id="badgesContainer" class="mt-3">
+    <h5 class="text-warning">🏅 Earned Badges</h5>
+    <div id="badgesList" class="d-flex flex-wrap"></div>
+</div>
 
         <div class="table-responsive mt-4">
             <table class="table">
@@ -212,6 +224,69 @@ document.getElementById("fetchChallengesBtn").addEventListener("click", function
     }
 });
 
+    document.getElementById("seeBadges").addEventListener("click", async function () {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+        alert("You are not logged in! Redirecting to login...");
+        window.location.href = '/login';
+        return;
+    }
+
+    let userId = sessionStorage.getItem("user_id") || localStorage.getItem("user_id");
+    if (!userId) {
+        alert("❌ User ID not found! Please log in.");
+        return;
+    }
+
+    try {
+        let response = await fetch(`http://127.0.0.1:8000/games/user-badges/${userId}/`, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${accessToken}`,
+                "X-CSRFToken": getCookie("csrftoken")
+            }
+        });
+
+        let data = await response.json();
+        console.log("Fetched Badges Data:", data);  // Debugging: Ensure data is received
+
+        let badgesContainer = document.getElementById("badgesContainer");
+        let badgesList = document.getElementById("badgesList");
+
+        // Clear previous content
+        badgesContainer.innerHTML = "";
+
+        if (!data.badges || data.badges.length === 0) {
+            badgesContainer.innerHTML = "<p class='text-muted'>No badges earned yet.</p>";
+            return;
+        }
+
+        // Ensure badges list container exists
+        if (!badgesList) {
+            badgesList = document.createElement("div");
+            badgesList.id = "badgesList";
+            badgesContainer.appendChild(badgesList);
+        }
+
+        // Display Badges in UI
+        data.badges.forEach(badge => {
+            let badgeCard = document.createElement("div");
+            badgeCard.classList.add("badge-card", "p-3", "m-2", "text-center");
+            badgeCard.innerHTML = `
+                <div class="badge-icon">🏆</div>
+                <strong class="badge-name">${badge.name}</strong>
+                <p class="badge-desc text-muted">${badge.description}</p>
+            `;
+            badgesList.appendChild(badgeCard);
+        });
+
+    } catch (error) {
+        console.error("❌ Error fetching badges:", error);
+        alert("❌ Failed to fetch badges.");
+    }
+});
+
+
 // ✅ Function to Get CSRF Token
 function getCookie(name) {
     let cookieValue = null;
@@ -228,5 +303,45 @@ function getCookie(name) {
 
 
 </script>
+
+    <style>
+    #claimBadges {
+    background-color: #ffcc00; /* Gold color */
+    color: #333; /* Dark text */
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 2px solid #ffbb00;
+    transition: all 0.3s ease-in-out;
+}
+
+#claimBadges:hover {
+    background-color: #ffbb00;
+    color: white;
+    transform: scale(1.05);
+}
+
+#seeBadges {
+    background-color: #17a2b8; /* Info color */
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+}
+
+#seeBadges:hover {
+    background-color: #138496;
+    transform: scale(1.05);
+}
+
+#badgesContainer {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+    </style>
 
 {% endblock %}
