@@ -1427,6 +1427,7 @@ def ai_code_analysis(snippet):
 
 
 
+
 def analyze_code_complexity(code):
     """Analyze code complexity using various metrics, including duplicate code detection."""
     print("🔍 Entering analyze_code_complexity function...")  # ✅ Debug
