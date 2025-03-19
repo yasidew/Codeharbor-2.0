@@ -129,7 +129,7 @@ def refactor_code(request):
             """
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a professional code refactoring assistant."},
                     {"role": "user", "content": prompt}
@@ -378,7 +378,7 @@ def generate_guideline(request):
             prompt = GUIDELINE_PROMPTS[pattern]
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a professional software architect."},
                     {"role": "user", "content": prompt}
@@ -676,6 +676,9 @@ def get_ai_suggested_pattern(code, patterns):
         - If multiple instances of a class are created but should only be **one**, suggest `Singleton`.
         - If an interface is used to change behavior at runtime, suggest `Strategy`.
         - If a separate **factory method** is used for object creation, suggest `Factory`.
+        - If **multiple subclasses** of a class are used in conditional statements for object creation, suggest `Factory`.
+        - If a method creates an object based on a **string, enum, or parameterized value**, suggest `Factory`.
+        - If **if-else or switch-case is used to instantiate objects of different types**, suggest `Factory`.
         - If objects notify observers when they change, suggest `Observer`.
         - If a method builds a complex object step by step, suggest `Builder`.
         - If an object copies itself to create new instances, suggest `Prototype`.
@@ -695,6 +698,12 @@ def get_ai_suggested_pattern(code, patterns):
         - If an object changes its behavior based on its state, suggest `State`.
         - If a base class defines a template for its subclasses to override specific steps, suggest `Template Method`.
         - If new operations need to be added without modifying existing objects, suggest `Visitor`.
+        
+        **Additional Clarifications for Factory Method vs Strategy:**
+        - If **an object’s behavior (logic) changes dynamically** at runtime by injecting different algorithms/behaviors, suggest `Strategy`.
+        - If **object creation is abstracted away** and handled using **factories, static factory methods, or subclass-based object instantiation**, suggest `Factory`.
+        - If a class has a **method responsible for returning instances of different subclasses**, suggest `Factory`.
+        - If a class contains **an interface with multiple implementations, and the correct one is injected into a context dynamically**, suggest `Strategy`.
 
         **Example Code:**
         {code}
@@ -703,7 +712,8 @@ def get_ai_suggested_pattern(code, patterns):
         """
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            # model="3.5-turbo",
+            model="gpt-4",
             messages=[
                 {"role": "system",
                  "content": "You are a software architecture expert specializing in design patterns."},
@@ -809,7 +819,7 @@ def generate_refactoring_explanation(request):
             """
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a professional software engineer and code reviewer."},
                     {"role": "user", "content": prompt}
