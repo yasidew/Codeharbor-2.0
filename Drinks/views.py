@@ -265,29 +265,29 @@ def group_recommendations_by_line(recommendations):
 
 ################################ java ##############################
 
-# JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
+JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ✅ Initialize model & tokenizer globally
-# java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
-# java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
-# java_model.eval()  # Set to evaluation mode for inference
+java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
+java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
+java_model.eval()  # Set to evaluation mode for inference
 
-# def java_generate_suggestion(code_snippet):
-#     """
-#     Uses the Java-trained T5 model to generate AI-powered suggestions.
-#     """
-#     try:
-#         inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
-#         inputs = {k: v.to(device) for k, v in inputs.items()}
-#
-#         with torch.no_grad():
-#             output = java_model.generate(**inputs, max_length=128)
-#
-#         return java_tokenizer.decode(output[0], skip_special_tokens=True)
-#
-#     except Exception as e:
-#         return f"❌ Error generating suggestion: {str(e)}"
+def java_generate_suggestion(code_snippet):
+    """
+    Uses the Java-trained T5 model to generate AI-powered suggestions.
+    """
+    try:
+        inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+
+        with torch.no_grad():
+            output = java_model.generate(**inputs, max_length=128)
+
+        return java_tokenizer.decode(output[0], skip_special_tokens=True)
+
+    except Exception as e:
+        return f"❌ Error generating suggestion: {str(e)}"
 
 
 
@@ -1400,7 +1400,8 @@ def ai_code_analysis(snippet):
                             "Issue Identified: Describe the issue concisely.\n"
                             "Why It's a Problem: Explain the consequences very shortly.\n"
                             "Recommended Fix: Provide a solution."
-                            "If no issue is found, simply reply with 'No Issue Found'."},
+                            # "If no issue is found, simply reply with 'No Issue Found'."
+                 },
                 {"role": "user",
                  # "content": f"Analyze the following Python code and provide structured feedback:\n{snippet}"}
                  "content": f"Analyze the following code and provide structured feedback:\n{snippet}"}
@@ -1412,8 +1413,8 @@ def ai_code_analysis(snippet):
         # Extract AI response
         ai_response = response.choices[0].message.content
         # ✅ If AI detects no issue, return None
-        if ai_response == "No Issue Found":
-            return None
+        # if ai_response == "No Issue Found":
+        #     return None
 
         # Format the response for HTML
         formatted_response = ai_response.replace("Issue Identified:", "<b>Issue Identified:</b>") \
