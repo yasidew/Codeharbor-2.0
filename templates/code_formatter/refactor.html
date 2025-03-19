@@ -121,14 +121,24 @@
             {#                <p class="text-white mt-2">Refactoring your code...</p>#}
             {#            </div>#}
             <!-- Updated Loading Spinner -->
-            <div id="loading-bar" class="mt-3 text-center" style="display: none;">
+            {#            <div id="loading-bar" class="mt-3 text-center" style="display: none;">#}
+            {#                <div class="dots-loader">#}
+            {#                    <span class="red"></span>#}
+            {#                    <span class="yellow"></span>#}
+            {#                    <span class="green"></span>#}
+            {#                    <span class="blue"></span>#}
+            {#                </div>#}
+            {#                <p class="text-white mt-2">Refactoring your code...</p>#}
+            {#            </div>#}
+            <!-- Full-Page Dot Loading Spinner -->
+            <div id="loading-overlay" style="display: none;">
                 <div class="dots-loader">
                     <span class="red"></span>
                     <span class="yellow"></span>
                     <span class="green"></span>
                     <span class="blue"></span>
                 </div>
-                <p class="text-white mt-2">Refactoring your code...</p>
+                <p>Refactoring your code... Please Wait</p>
             </div>
 
             {#            <!-- Before-After Code Diff View -->#}
@@ -229,6 +239,23 @@
                 </div>
             </div>
 
+            <!-- Suggested Learning Resources -->
+            {#            <div id="resources-section" class="card bg-dark p-4" style="display: none; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">#}
+            {#                <div class="resource-header">#}
+            {#                    <i class="bi bi-lightbulb"></i> Suggested Learning Resources#}
+            {#                </div>#}
+            {#                <div class="resource-content">#}
+            {#                    <p><i class="bi bi-pin"></i> <strong>Pattern Name:</strong> <span id="pattern-name-text"></span></p>#}
+            {#                    <p><i class="bi bi-folder"></i> <strong>Category:</strong> <span id="pattern-category"></span></p>#}
+            {#                    <p><i class="bi bi-file-earmark-text"></i> <strong>Description:</strong> <span#}
+            {#                            id="pattern-description"></span></p>#}
+            {#                </div>#}
+            {#                <div class="resource-footer">#}
+            {#                    <a id="pattern-link" href="#" target="_blank" class="resource-btn">#}
+            {#                        🚀 Learn More#}
+            {#                    </a>#}
+            {#                </div>#}
+            {#            </div>#}
             <!-- Suggested Learning Resources -->
             <div id="resources-section" class="resource-card" style="display: none;">
                 <div class="resource-header">
@@ -354,12 +381,22 @@
             }
         }
 
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
 
         document.getElementById('refactor-btn').addEventListener('click', async () => {
+            showLoading(); // Show the full-page loader
+
             const code = editor.getValue();
             const useGuidelines = document.getElementById('guideline-toggle').checked;
 
-            const loadingBar = document.getElementById('loading-bar');
+            {#const loadingBar = document.getElementById('loading-bar');#}
             const refactoredSection = document.getElementById('refactored-section');
             const changesSection = document.getElementById('changes-section');
             const metricsSection = document.getElementById('metrics-section');
@@ -370,7 +407,7 @@
             const resourcesList = document.getElementById('resources-list');
             const designPatternText = document.getElementById('design-pattern-text');
 
-            loadingBar.style.display = 'block';
+            {#loadingBar.style.display = 'block';#}
             refactoredSection.style.display = 'none';
             changesSection.style.display = 'none';
             metricsSection.style.display = 'none';
@@ -395,6 +432,7 @@
                     refactoredSection.style.display = 'block';
                     showCodeDiff(data.id);
                     fetchMetrics(data.id);
+
 
                     // Build collapsible "cards" for each change
                     if (data.changes_made && data.changes_made.length > 0) {
@@ -439,6 +477,7 @@
                         resourcesSection.style.display = 'block'; // Show resources section
                         attachCardExpandHandlers(data.id); // attach snippet fetch on expand
                     }
+                    hideLoading();
                 } else {
                     {#showToast("❌ Error in refactoring code!", "error");#}
                     showToast(`⚠️ ${data.message}`, "error");
@@ -447,7 +486,8 @@
             } catch (error) {
                 showToast("❌ An error occurred: " + error.message, "error");
             } finally {
-                loadingBar.style.display = 'none';
+                {#loadingBar.style.display = 'none';#}
+                hideLoading(); // Hide the loader when done
             }
         });
 
@@ -1355,77 +1395,74 @@
         }
 
         /* ✨ Modern Glassy Card UI for Learning Resources */
+        /* ✨ Refined "Suggested Learning Resources" Section */
         .resource-card {
-            background: rgba(20, 20, 20, 0.85); /* Dark semi-transparent */
+            background: rgba(30, 30, 30, 0.95); /* Dark background with slight transparency */
             color: white;
-            padding: 20px;
+            padding: 24px;
             border-radius: 12px;
-            box-shadow: 0px 0px 12px rgba(0, 255, 255, 0.3); /* Neon glow */
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.1); /* Soft neon glow */
+            transition: transform 0.2s ease-in-out;
             width: 100%;
-            max-width: 420px;
+            max-width: 500px;
             margin: auto;
             text-align: left;
-            position: relative;
-            backdrop-filter: blur(10px); /* Glass effect */
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* ✨ Soft Glow on Hover */
-        .resource-card:hover {
-            transform: scale(1.03);
-            box-shadow: 0px 0px 20px rgba(0, 255, 255, 0.6);
-        }
-
-        /* Header with Modern Font */
+        /* Header Styling */
         .resource-header {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 10px;
-            margin-bottom: 10px;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #0ef; /* Neon Cyan */
+            color: white;
         }
 
-        /* Icons for Better Readability */
+        /* Content Styling */
         .resource-content p {
-            font-size: 14px;
-            margin: 8px 0;
+            font-size: 16px; /* Increased font size */
+            margin: 10px 0;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .resource-content i {
             color: #0ef; /* Neon Cyan Icons */
         }
 
-        /* 🟢 Learn More Button - Futuristic Style */
+        /* 🚀 "Learn More" Button */
         .resource-btn {
             display: inline-block;
-            padding: 10px 18px;
+            padding: 12px 20px;
             background: linear-gradient(90deg, #00d4ff, #007bff); /* Cool gradient */
-            color: white;
+            color: white !important;
             font-weight: bold;
             border-radius: 8px;
             text-decoration: none;
-            transition: background 0.3s ease-in-out, transform 0.2s;
-            box-shadow: 0px 0px 8px rgba(0, 255, 255, 0.4);
+            box-shadow: 0px 0px 8px rgba(0, 255, 255, 0.3);
             text-align: center;
             width: 100%;
             display: block;
+            font-size: 18px;
+            transition: none;
         }
 
-        /* 🚀 Button Hover Effect */
-        .resource-btn:hover {
-            background: linear-gradient(90deg, #007bff, #00d4ff);
-            transform: scale(1.05);
-            box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.8);
+        /* Ensure no pink hover effect */
+        .resource-btn:hover,
+        .resource-btn:focus,
+        .resource-btn:active {
+            background: linear-gradient(90deg, #00d4ff, #007bff) !important; /* Keep the same color */
+            color: white !important; /* Keep text white */
+            box-shadow: 0px 0px 8px rgba(0, 255, 255, 0.3) !important; /* Keep the same shadow */
+            text-decoration: none !important; /* Prevent underline or changes */
         }
 
         .dots-loader {
@@ -1463,6 +1500,116 @@
             animation-delay: 0.16s;
         }
 
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+
+        /* Fullscreen Loading Overlay */
+        #loading-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75); /* Dark transparent background */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            z-index: 1000;
+        }
+
+        /* Centered Dot Loader */
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dots-loader span {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        /* Dot Colors */
+        .dots-loader .red {
+            background-color: #ff4d4d;
+            animation-delay: -0.32s;
+        }
+
+        .dots-loader .yellow {
+            background-color: #ffd700;
+            animation-delay: -0.16s;
+        }
+
+        .dots-loader .green {
+            background-color: #4caf50;
+            animation-delay: 0s;
+        }
+
+        .dots-loader .blue {
+            background-color: #1e90ff;
+            animation-delay: 0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Inline Dot Loader */
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dots-loader span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        /* Dot Colors */
+        .dots-loader .red {
+            background-color: #ff4d4d;
+            animation-delay: -0.32s;
+        }
+
+        .dots-loader .yellow {
+            background-color: #ffd700;
+            animation-delay: -0.16s;
+        }
+
+        .dots-loader .green {
+            background-color: #4caf50;
+            animation-delay: 0s;
+        }
+
+        .dots-loader .blue {
+            background-color: #1e90ff;
+            animation-delay: 0.16s;
+        }
+
+        /* Animation */
         @keyframes bounce {
             0%, 80%, 100% {
                 transform: scale(0);
