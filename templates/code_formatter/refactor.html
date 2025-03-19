@@ -118,12 +118,7 @@
 
                 <!-- Design Pattern Used -->
                 <div id="design-pattern-text" class="text-center text-warning mt-3" style="display: none;"></div>
-
-                {#                <!-- Suggested Resources -->#}
-                {#                <div id="resources-section" class="mt-4" style="display: none;">#}
-                {#                    <h4 class="text-white">Suggested Learning Resources</h4>#}
-                {#                    <ul id="resources-list" class="text-white"></ul>#}
-                {#                </div>#}
+                
 
                 <div class="text-center mt-3">
                     <button id="download-btn" class="btn btn-success">Download Refactored Code</button>
@@ -172,12 +167,25 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Suggested Learning Resources Section -->
-            <div id="resources-section" class="mt-4" style="display: none;">
-                <h4 class="text-white">📚 Suggested Learning Resources</h4>
-                <ul id="resources-list" class="text-white"></ul>
+            
+            <!-- Suggested Learning Resources -->
+            <div id="resources-section" class="resource-card" style="display: none;">
+                <div class="resource-header">
+                    <i class="bi bi-lightbulb"></i> Suggested Learning Resources
+                </div>
+                <div class="resource-content">
+                    <p><i class="bi bi-pin"></i> <strong>Pattern Name:</strong> <span id="pattern-name-text"></span></p>
+                    <p><i class="bi bi-folder"></i> <strong>Category:</strong> <span id="pattern-category"></span></p>
+                    <p><i class="bi bi-file-earmark-text"></i> <strong>Description:</strong> <span
+                            id="pattern-description"></span></p>
+                </div>
+                <div class="resource-footer">
+                    <a id="pattern-link" href="#" target="_blank" class="resource-btn">
+                        🚀 Learn More
+                    </a>
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -305,11 +313,9 @@
             refactoredSection.style.display = 'none';
             changesSection.style.display = 'none';
             metricsSection.style.display = 'none';
-            resourcesSection.style.display = 'none';
+            resourcesSection.style.display = 'none'; // Hide resources section
 
             changesContainer.innerHTML = "";// Clear previous changes
-            {#changesList.innerHTML = ''; // Clear previous changes#}
-            {#resourcesList.innerHTML = ''; // Clear previous resources#}
 
             try {
                 const response = await fetch('/code-formatter/refactor-code/', {
@@ -368,18 +374,10 @@
                         });
                         changesSection.style.display = 'block';
                         metricsSection.style.display = 'block';
-                        resourcesSection.style.display = 'block';
+                        refactoredSection.style.display = 'block';
+                        resourcesSection.style.display = 'block'; // Show resources section
                         attachCardExpandHandlers(data.id); // attach snippet fetch on expand
                     }
-
-                    // Display "Design Pattern Used" section
-                    if (data.design_pattern) {
-                        designPatternText.innerHTML = `🔹 <strong>Design Pattern Applied:</strong> ${data.design_pattern}`;
-                        designPatternText.style.display = 'block';
-                    } else {
-                        designPatternText.style.display = 'none';
-                    }
-
                 } else {
                     {#showToast("❌ Error in refactoring code!", "error");#}
                     showToast(`⚠️ ${data.message}`, "error");
@@ -666,7 +664,6 @@
 
                 const data = await response.json();
                 const designPatternText = document.getElementById("design-pattern-text");
-                const resourcesSection = document.getElementById("resources-section");
                 if (response.ok && data.pattern) {
                     document.getElementById("pattern-name").innerText = data.pattern;
                     document.getElementById("suggested-pattern").style.display = "flex";
@@ -945,18 +942,13 @@
 
                 const data = await response.json();
 
-                if (response.ok && data.success) {
-                    // Create the Learning Resource UI
-                    document.getElementById('resources-section').style.display = 'block';
-
-                    document.getElementById('resources-list').innerHTML = `
-                <li><strong>Pattern Name:</strong> ${data.pattern}</li>
-                <li><strong>Category:</strong> ${data.category}</li>
-                <li><strong>Description:</strong> ${data.description}</li>
-                <li><a href="${data.link}" target="_blank" class="text-info">📖 Learn More</a></li>
-            `;
+                if (response.ok && data.pattern) {
+                    document.getElementById("pattern-name-text").innerText = data.pattern;
+                    document.getElementById("pattern-category").innerText = data.category;
+                    document.getElementById("pattern-description").innerText = data.description;
+                    document.getElementById("pattern-link").href = data.link;
                 } else {
-                    console.warn("No learning resource found for", pattern);
+                    document.getElementById("resources-section").style.display = "none";
                 }
             } catch (error) {
                 console.error("Error fetching pattern details:", error);
@@ -1299,6 +1291,80 @@
             background: #1c1c1e;
             border-radius: 5px;
             color: #ddd;
+        }
+
+        /* ✨ Modern Glassy Card UI for Learning Resources */
+        .resource-card {
+            background: rgba(20, 20, 20, 0.85); /* Dark semi-transparent */
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 0px 12px rgba(0, 255, 255, 0.3); /* Neon glow */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            width: 100%;
+            max-width: 420px;
+            margin: auto;
+            text-align: left;
+            position: relative;
+            backdrop-filter: blur(10px); /* Glass effect */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* ✨ Soft Glow on Hover */
+        .resource-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0px 0px 20px rgba(0, 255, 255, 0.6);
+        }
+
+        /* Header with Modern Font */
+        .resource-header {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #0ef; /* Neon Cyan */
+        }
+
+        /* Icons for Better Readability */
+        .resource-content p {
+            font-size: 14px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .resource-content i {
+            color: #0ef; /* Neon Cyan Icons */
+        }
+
+        /* 🟢 Learn More Button - Futuristic Style */
+        .resource-btn {
+            display: inline-block;
+            padding: 10px 18px;
+            background: linear-gradient(90deg, #00d4ff, #007bff); /* Cool gradient */
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: background 0.3s ease-in-out, transform 0.2s;
+            box-shadow: 0px 0px 8px rgba(0, 255, 255, 0.4);
+            text-align: center;
+            width: 100%;
+            display: block;
+        }
+
+        /* 🚀 Button Hover Effect */
+        .resource-btn:hover {
+            background: linear-gradient(90deg, #007bff, #00d4ff);
+            transform: scale(1.05);
+            box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.8);
         }
 
 
