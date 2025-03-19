@@ -776,3 +776,34 @@ def generate_refactoring_explanation(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+@csrf_exempt
+def get_pattern_details(request):
+    """Fetches the design pattern details (category & link) from the database."""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            pattern_name = data.get("pattern", "").strip()
+
+            if not pattern_name:
+                return JsonResponse({"error": "No pattern provided"}, status=400)
+
+            # Query the DesignPatternResource model for details
+            pattern_details = DesignPatternResource.objects.filter(pattern_name=pattern_name).first()
+
+            if not pattern_details:
+                return JsonResponse({"error": "Pattern details not found"}, status=404)
+
+            return JsonResponse({
+                "success": True,
+                "pattern": pattern_details.pattern_name,
+                "category": pattern_details.category,
+                "description": pattern_details.description,
+                "link": pattern_details.link
+            })
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
