@@ -1,0 +1,11 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Reading Level:
+When text requires reading ability more advanced than the lower secondary education level after removal of proper names and titles, supplemental content, or a version that does not require reading ability more advanced than the lower secondary education level, is available.
+Sufficient techniques include:
+   - G86: Providing a text summary that can be understood by people with lower secondary education level reading ability
+   - G103: Providing visual illustrations, pictures, and symbols to help explain ideas, events, and processes
+   - G79: Providing a spoken version of the text
+   - G153: Making the text easier to read
+   - G160: Providing sign language versions of information, ideas, and processes that must be understood in order to use the content
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

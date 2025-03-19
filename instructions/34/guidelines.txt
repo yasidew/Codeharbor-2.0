@@ -1,0 +1,17 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Pause, Stop, Hide:
+For moving, blinking, scrolling, or auto-updating information, all of the following are true: (See full criterion for details)
+Sufficient techniques include:
+   - G4: Allowing the content to be paused and restarted from where it was paused
+   - SCR33: Using script to scroll content, and providing a mechanism to pause it
+   - G11: Creating content that blinks for less than 5 seconds
+   - G152: Setting animated gif images to stop blinking after n cycles (within 5 seconds)
+   - SCR22: Using scripts to control blinking and stop it in five seconds or less
+   - G186: Using a control in the Web page that stops moving, blinking, or auto-updating content
+   - G191: Providing a link, button, or other mechanism that reloads the page without any blinking content
+Failures include:
+   - F16: Failure of Success Criterion 2.2.2 due to including scrolling content where movement is not essential to the activity without also including a mechanism to pause and restart the content
+   - F47: Failure of Success Criterion 2.2.2 due to using the blink element
+   - F4: Failure of Success Criterion 2.2.2 due to using text-decoration:blink without a mechanism to stop it in less than five seconds
+   - F50: Failure of Success Criterion 2.2.2 due to a script that causes a blink effect without a mechanism to stop the blinking at 5 seconds or less
+   - F7: Failure of Success Criterion 2.2.2 due to an object or applet for more than five seconds
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

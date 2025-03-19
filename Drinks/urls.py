@@ -56,6 +56,7 @@ path('guidelines/', views.guidelines_view, name='guidelines'),
     path('games/', include('games.urls')),
     path('challenges/', include('challenges.urls')),
     path('editor/', editor_view, name='editor'),
+    path('api/', include('evaluator.urls')),
 
     # Code Refactoring
     path('code-formatter/', include('code_formatter.urls')),

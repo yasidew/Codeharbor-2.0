@@ -1,0 +1,20 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Labels or Instructions:
+Labels or instructions are provided when content requires user input.
+Sufficient techniques include:
+   - G131: Providing descriptive labels
+   - ARIA1: Using the aria-describedby property to provide a descriptive label for user interface controls
+   - ARIA9: Using aria-labelledby to concatenate a label from several text nodes
+   - ARIA17: Using grouping roles to identify related form controls
+   - G89: Providing expected data format and example
+   - G184: Providing text instructions at the beginning of a form or set of fields that describes the necessary input
+   - G162: Positioning labels to maximize predictability of relationships
+   - G83: Providing text descriptions to identify required fields that were not completed
+   - H90: Indicating required form controls using label or legend
+   - PDF5: Indicating required form controls in PDF forms
+   - H44: Using label elements to associate text labels with form controls
+   - PDF10: Providing labels for interactive form controls in PDF documents
+   - H71: Providing a description for groups of form controls using fieldset and legend elements
+   - G167: Using an adjacent button to label the purpose of a field
+Failures include:
+   - F82: Failure of Success Criterion 3.3.2 by visually formatting a set of phone number fields but not including a text label
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

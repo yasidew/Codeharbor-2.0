@@ -1,0 +1,9 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Timeouts:
+Users are warned of the duration of any user inactivity that could cause data loss, unless the data is preserved for more than 20 hours when the user does not take any actions.
+Sufficient techniques include:
+   - Setting a session timeout to occur following at least 20 hours of inactivity
+   - Store user data for more than 20 hours
+   - Provide a warning of the duration of user inactivity at the start of a process
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

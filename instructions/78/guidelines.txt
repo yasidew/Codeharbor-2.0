@@ -1,0 +1,11 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AA guidelines for Error Prevention (Legal, Financial, Data):
+For Web pages that cause legal commitments or financial transactions for the user to occur, that modify or delete user-controllable data in data storage systems, or that submit user test responses, at least one of the following is true: Reversible: Submissions are reversible. Checked: Data entered by the user is checked for input errors and the user is provided an opportunity to correct them. Confirmed: A mechanism is available for reviewing, confirming, and correcting information before finalizing the submission.
+Sufficient techniques include:
+   - G164: Providing a stated time within which an online request (or transaction) may be amended or canceled by the user after making the request
+   - G98: Providing the ability for the user to review and correct answers before submitting
+   - G155: Providing a checkbox in addition to a submit button
+   - G99: Providing the ability to recover deleted information
+   - G168: Requesting confirmation to continue with selected action
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

@@ -1,0 +1,10 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AA guidelines for Captions (Live):
+Captions are provided for all live audio content in synchronized media.
+Sufficient techniques include:
+   - G9: Creating captions for live synchronized media AND G93: Providing open (always visible) captions
+   - G9: Creating captions for live synchronized media AND G87: Providing closed captions
+   - SM11: Providing captions through synchronized text streams in SMIL 1.0
+   - SM12: Providing captions through synchronized text streams in SMIL 2.0
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

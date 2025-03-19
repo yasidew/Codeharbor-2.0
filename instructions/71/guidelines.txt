@@ -1,0 +1,7 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AA guidelines for Consistent Navigation:
+Navigational mechanisms that are repeated on multiple Web pages within a set of Web pages occur in the same relative order each time they are repeated, unless a change is initiated by the user.
+Sufficient techniques include:
+   - G61: Presenting repeated components in the same relative order each time they appear
+Failures include:
+   - F66: Failure of Success Criterion 3.2.3 due to presenting navigation links in a different relative order on different pages
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

@@ -1,0 +1,36 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Visual Presentation:
+For the visual presentation of blocks of text, a mechanism is available to achieve the following:
+
+Foreground and background colors can be selected by the user.
+
+Width is no more than 80 characters or glyphs (40 if CJK).
+
+Text is not justified (aligned to both the left and the right margins).
+
+Line spacing (leading) is at least space-and-a-half within paragraphs, and paragraph spacing is at least 1.5 times larger than the line spacing.
+
+Text can be resized without assistive technology up to 200 percent in a way that does not require the user to scroll horizontally to read a line of text on a full-screen window.
+Sufficient techniques include:
+   - C23: Specifying text and background colors of secondary content such as banners, features and navigation in CSS while not specifying text and background colors of the main content
+   - C25: Specifying borders and layout in CSS to delineate areas of a Web page while not specifying text and text-background colors
+   - G156: Using a technology that has commonly-available user agents that can change the foreground and background of blocks of text
+   - G148: Not specifying background color, not specifying text color, and not using technology features that change those defaults
+   - G175: Providing a multi color selection tool on the page for foreground and background colors
+   - G204: Not interfering with the user agent's reflow of text as the viewing window is narrowed
+   - C20: Using relative measurements to set column widths so that lines can average 80 characters or less when the browser is resized
+   - C19: Specifying alignment either to the left OR right in CSS
+   - G172: Providing a mechanism to remove full justification of text
+   - G169: Aligning text on only one side
+   - G188: Providing a button on the page to increase line spaces and paragraph spaces
+   - C21: Specifying line spacing in CSS
+   - G146: Using liquid layout
+   - C12: Using percent for font sizes
+   - C13: Using named font sizes
+   - C14: Using em units for font sizes
+   - C24: Using percentage values in CSS for container sizes
+   - SCR34: Calculating size and position in a way that scales with text size
+   - G206: Providing options within the content to switch to a layout that does not require the user to scroll horizontally to read a line of text
+Failures include:
+   - F24: Failure of Success Criterion 1.4.3, 1.4.6 and 1.4.8 due to specifying foreground colors without specifying background colors or vice versa
+   - F88: Failure of Success Criterion 1.4.8 due to using text that is justified (aligned to both the left and the right margins)
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

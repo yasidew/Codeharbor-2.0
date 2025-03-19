@@ -1,0 +1,8 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level A guidelines for Label in Name:
+For user interface components with labels that include text or images of text, the name contains the text that is presented visually.
+Sufficient techniques include:
+   - G208: Including the text of the visible label as part of the accessible name
+   - G211: Matching the accessible name to the visible label
+Failures include:
+   - F96: Failure due to the accessible name not containing the visible label text
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

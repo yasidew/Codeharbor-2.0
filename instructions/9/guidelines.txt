@@ -1,0 +1,10 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Media Alternative (Prerecorded):
+An alternative for time-based media is provided for all prerecorded synchronized media and for all prerecorded video-only media.
+Sufficient techniques include:
+   - G69: Providing an alternative for time based media
+   - G58: Placing a link to the alternative for time-based media immediately next to the non-text content
+   - H53: Using the body of the object element
+   - G159: Providing an alternative for time-based media for video-only content
+Failures include:
+   - F74: Failure of Success Criterion 1.2.2 and 1.2.8 due to not labeling a synchronized media alternative to text as an alternative
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

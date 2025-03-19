@@ -1,0 +1,7 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AA guidelines for Target Size (Minimum):
+The size of the target for pointer inputs is at least 24 by 24 CSS pixels, except where: (See full criterion for details)
+Sufficient techniques include:
+   - C42: Using min-height and min-width to ensure sufficient target spacing
+Failures include:
+   - Failure of Success Criterion 2.5.8 due to targets smaller than 24 by 24 CSS pixels without sufficient spacing or alternatives
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

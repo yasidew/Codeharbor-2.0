@@ -1,0 +1,17 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AA guidelines for Resize Text:
+Except for captions and images of text, text can be resized without assistive technology up to 200 percent without loss of content or functionality.
+Sufficient techniques include:
+   - G142: Using a technology that has commonly-available user agents that support zoom
+   - C28: Specifying the size of text containers using em units
+   - C12: Using percent for font sizes
+   - C13: Using named font sizes
+   - C14: Using em units for font sizes
+   - SCR34: Calculating size and position in a way that scales with text size
+   - G146: Using liquid layout
+   - G178: Providing controls on the Web page that allow users to incrementally change the size of all text on the page up to 200 percent
+   - G179: Ensuring that there is no loss of content or functionality when the text resizes and text containers do not change their width
+Failures include:
+   - F69: Failure of Success Criterion 1.4.4 when resizing visually rendered text up to 200 percent causes the text, image or controls to be clipped, truncated or obscured
+   - F80: Failure of Success Criterion 1.4.4 when text-based form controls do not resize when visually rendered text is resized up to 200%
+   - F94: Failure of Success Criterion 1.4.4 due to incorrect use of viewport units to resize text
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.

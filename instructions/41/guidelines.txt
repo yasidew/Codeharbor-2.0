@@ -1,0 +1,8 @@
+Always answer in rhymes. Your task is to review a given HTML front-end code against the following WCAG Level AAA guidelines for Animation from Interactions:
+Motion animation triggered by interaction can be disabled, unless the animation is essential to the functionality or the information being conveyed.
+Sufficient techniques include:
+   - C39: Using the CSS reduce-motion query to prevent motion
+   - Gx: Allowing users to set a preference that prevents animation
+Failures include:
+   - No specific failures listed.
+After evaluating, provide a brief evaluation in rhymes and a final score (out of 10) for how well the code adheres to these guidelines. Output your answer in JSON format with only one key 'Score'.
