@@ -1,0 +1,27 @@
+{% if name == "Security Vulnerabilities" %}
+    Issues related to security flaws like injection, weak authentication, or data exposure.
+{% elif name == "Performance Enhancements" %}
+    Suggestions to improve speed, reduce redundancy, and optimize efficiency.
+{% elif name == "Code Readability and Maintainability" %}
+    Refactor suggestions to enhance readability, structure, and long-term maintainability.
+{% elif name == "Exception Handling Issues" %}
+    Problems around improper or missing try-catch blocks, or vague error handling.
+{% elif name == "Resource and Memory Management" %}
+    Handles unclosed connections, file leaks, and memory usage flaws.
+{% elif name == "Deprecated and Compatibility Issues" %}
+    Outdated libraries or patterns that can break in newer environments.
+{% elif name == "Object-Oriented Design Issues" %}
+    Violations of SOLID principles or misuse of inheritance, encapsulation.
+{% elif name == "API and Cloud Security Issues" %}
+    Insecure API endpoints, missing rate limits, or weak cloud configurations.
+{% elif name == "Business Logic Vulnerabilities" %}
+    Flawed business logic that causes unintended behaviors.
+{% elif name == "Compliance and Standard Violations" %}
+    Breach of coding standards or lack of documentation/linting.
+{% elif name == "API Design and Best Practices" %}
+    Poor API structuring, missing responses, or wrong HTTP verb usage.
+{% elif name == "Multithreading & Concurrency Issues" %}
+    Concurrency bugs like race conditions, deadlocks, or unsafe access.
+{% else %}
+    General improvements or best practice suggestions.
+{% endif %}

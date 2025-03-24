@@ -1417,9 +1417,9 @@ def ai_code_analysis(snippet):
         #     return None
 
         # Format the response for HTML
-        formatted_response = ai_response.replace("Issue Identified:", "<b>Issue Identified:</b>") \
-            .replace("Why It's a Problem:", "<b>Why It's a Problem:</b>") \
-            .replace("Recommended Fix:", "<b>Recommended Fix:</b>")
+        formatted_response = ai_response.replace("Issue Identified:", "<b>Issue Identified:</b><br>") \
+            .replace("Why It's a Problem:", "<b>Why It's a Problem:</b><br>") \
+            .replace("Recommended Fix:", "<b>Recommended Fix:</b><br>")
 
         return formatted_response  # ✅ Now formatted for HTML rendering
     except Exception as e:
@@ -1631,7 +1631,7 @@ def analyze_code_view(request):
                         continue
 
                     # ✅ **Use stored suggestions**
-                    final_suggestion = f"Suggestion:\n{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
+                    final_suggestion = f"Suggestion:\n{model_suggestion}\n\n💡Detail Analysis\n{ai_suggestion}"
 
                 else:
                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
