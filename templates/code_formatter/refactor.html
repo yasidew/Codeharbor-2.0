@@ -482,7 +482,7 @@
                     hideLoading();
                 } else {
                     {#showToast("❌ Error in refactoring code!", "error");#}
-                    showToast(`⚠️ ${data.message}`, "error");
+                    {#showToast(`⚠️ ${data.message}`, "error");#}
                     showToast(`Refactoring Blocked: ${data.guideline}`, "info");
                 }
             } catch (error) {
@@ -854,16 +854,16 @@
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Lines of Code (LOC)', 'Cyclomatic Complexity', 'Maintainability Index', 'Readability Score'],
+                    labels: ['Lines of Code (LOC)', 'Readability Score'],
                     datasets: [
                         {
                             label: 'Before Refactoring',
-                            data: [metrics.before.loc, metrics.before.complexity, metrics.before.maintainability, metrics.before.readability],
+                            data: [metrics.before.loc, metrics.before.readability],
                             backgroundColor: '#ff6384',
                         },
                         {
                             label: 'After Refactoring',
-                            data: [metrics.after.loc, metrics.after.complexity, metrics.after.maintainability, metrics.after.readability],
+                            data: [metrics.after.loc, metrics.after.readability],
                             backgroundColor: '#36a2eb',
                         }
                     ]

@@ -56,7 +56,8 @@ INSTALLED_APPS = [
     'user',
     'accessibility_checker',
     'games',
-    'code_analysis'
+    'code_analysis',
+    'evaluator'
 ]
 
 CORS_ALLOW_HEADERS = [

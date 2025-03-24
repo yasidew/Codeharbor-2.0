@@ -79,6 +79,15 @@ def refactor_code(request):
             if not code:
                 return JsonResponse({'error': 'No code provided'}, status=400)
 
+                # ✅ Check for Flask-based refactoring first
+                flask_result, flask_error = get_pattern_and_refactor_with_flask(code)
+
+                if flask_error:
+                    return JsonResponse({'error': flask_error}, status=500)
+
+                if flask_result:  # If Flask handled it, return its response
+                    return JsonResponse(flask_result)
+
             # ✅ Identify the design pattern used in the code
             detected_pattern = analyze_code_for_pattern(code)
 
@@ -170,6 +179,46 @@ def refactor_code(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def get_pattern_and_refactor_with_flask(code):
+    """
+    Identifies the design pattern using Django API and refactors using Flask API
+    if the pattern matches Strategy, Observer, or Factory.
+    """
+    try:
+        # ✅ Step 1: Identify the design pattern from Django API
+        pattern_response = requests.post(
+            "http://127.0.0.1:8000/code-formatter/get-pattern/",
+            json={"code": code}
+        )
+
+        if pattern_response.status_code == 200:
+            detected_pattern = pattern_response.json().get("pattern", "")
+        else:
+            return None, "Failed to fetch pattern from API"  # Return error message
+
+        # ✅ Step 2: If pattern is Strategy, Observer, or Factory, call Flask API
+        if detected_pattern in ["Strategy", "Observer", "Factory"]:
+            flask_response = requests.post(
+                "http://127.0.0.1:5000/refactor",
+                json={"code": code}
+            )
+
+            if flask_response.status_code == 200:
+                flask_data = flask_response.json()
+                return {
+                    'refactored_code': flask_data.get('refactored_code', ''),
+                    'changes_made': ["Refactored using Flask Model"],  # Placeholder
+                    'pattern_used': detected_pattern
+                }, None  # No error
+            else:
+                return None, "Flask API failed"
+
+        return None, None  # No special refactoring required
+
+    except Exception as e:
+        return None, str(e)  # Return error message
 
 
 # API Endpoint for AI to Fetch Guidelines
@@ -329,7 +378,8 @@ def generate_guideline(request):
             prompt = GUIDELINE_PROMPTS[pattern]
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                # model="gpt-4"
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a professional software architect."},
                     {"role": "user", "content": prompt}
@@ -627,6 +677,9 @@ def get_ai_suggested_pattern(code, patterns):
         - If multiple instances of a class are created but should only be **one**, suggest `Singleton`.
         - If an interface is used to change behavior at runtime, suggest `Strategy`.
         - If a separate **factory method** is used for object creation, suggest `Factory`.
+        - If **multiple subclasses** of a class are used in conditional statements for object creation, suggest `Factory`.
+        - If a method creates an object based on a **string, enum, or parameterized value**, suggest `Factory`.
+        - If **if-else or switch-case is used to instantiate objects of different types**, suggest `Factory`.
         - If objects notify observers when they change, suggest `Observer`.
         - If a method builds a complex object step by step, suggest `Builder`.
         - If an object copies itself to create new instances, suggest `Prototype`.
@@ -646,6 +699,12 @@ def get_ai_suggested_pattern(code, patterns):
         - If an object changes its behavior based on its state, suggest `State`.
         - If a base class defines a template for its subclasses to override specific steps, suggest `Template Method`.
         - If new operations need to be added without modifying existing objects, suggest `Visitor`.
+        
+        **Additional Clarifications for Factory Method vs Strategy:**
+        - If **an object’s behavior (logic) changes dynamically** at runtime by injecting different algorithms/behaviors, suggest `Strategy`.
+        - If **object creation is abstracted away** and handled using **factories, static factory methods, or subclass-based object instantiation**, suggest `Factory`.
+        - If a class has a **method responsible for returning instances of different subclasses**, suggest `Factory`.
+        - If a class contains **an interface with multiple implementations, and the correct one is injected into a context dynamically**, suggest `Strategy`.
 
         **Example Code:**
         {code}
@@ -654,7 +713,8 @@ def get_ai_suggested_pattern(code, patterns):
         """
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            # model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=[
                 {"role": "system",
                  "content": "You are a software architecture expert specializing in design patterns."},
@@ -760,7 +820,7 @@ def generate_refactoring_explanation(request):
             """
 
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are a professional software engineer and code reviewer."},
                     {"role": "user", "content": prompt}

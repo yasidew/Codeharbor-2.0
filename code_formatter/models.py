@@ -56,7 +56,7 @@ class CodeRefactoringRecord(models.Model):
 
 class DesignPatternResource(models.Model):
     DESIGN_PATTERNS = [
-        ('Factory Method', 'Factory Method'),
+        ('Factory', 'Factory'),
         ('Singleton', 'Singleton'),
         ('Observer', 'Observer'),
         ('Decorator', 'Decorator'),
