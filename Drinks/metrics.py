@@ -74,55 +74,94 @@ def find_duplicate_code(code, block_size=3):
     return duplicate_map
 
 
-def calculate_comment_density(code):
-    """Compute comment density (ratio of comments to code) for Python code."""
-    lines = code.split("\n")
+# def calculate_comment_density(code):
+#     """Compute comment density (ratio of comments to code) for Python code."""
+#     lines = code.split("\n")
+#
+#     # Initialize counters
+#     comment_lines = 0
+#     code_lines = 0
+#     inside_docstring = False
+#
+#     for line in lines:
+#         stripped = line.strip()
+#
+#         # ✅ Handle multi-line docstrings properly (''' or """ in the line)
+#         if stripped.startswith(('"""', "'''")) and stripped.endswith(('"""', "'''")) and len(stripped) > 3:
+#             comment_lines += 1  # Single-line docstring
+#             continue
+#         elif stripped.startswith(('"""', "'''")):
+#             inside_docstring = True
+#             comment_lines += 1
+#             continue
+#         elif stripped.endswith(('"""', "'''")):
+#             inside_docstring = False
+#             comment_lines += 1
+#             continue
+#
+#         if inside_docstring:
+#             comment_lines += 1
+#             continue  # ✅ Skip to next line
+#
+#         # ✅ Count single-line comments
+#         if stripped.startswith("#"):
+#             comment_lines += 1
+#             continue  # ✅ Move to next line
+#
+#         # ✅ Detect inline comments (code followed by #)
+#         if "#" in stripped:
+#             before_comment, after_comment = stripped.split("#", 1)
+#             if after_comment.strip():  # Ensure there's actual comment content
+#                 comment_lines += 1
+#                 if before_comment.strip():  # If code is before comment, count it
+#                     code_lines += 1
+#                 continue
+#
+#         # ✅ Count non-comment, non-empty lines as code
+#         if stripped:
+#             code_lines += 1
+#
+#     total_lines = code_lines + comment_lines
+#     return round(comment_lines / total_lines, 2) if total_lines > 0 else 0  # ✅ Prevent division by zero
 
-    # Initialize counters
+def calculate_comment_density(code):
+    """Count the number of comment lines in Python code."""
+    lines = code.split("\n")
     comment_lines = 0
-    code_lines = 0
     inside_docstring = False
 
     for line in lines:
         stripped = line.strip()
+        if not stripped:
+            continue
 
-        # ✅ Handle multi-line docstrings properly (''' or """ in the line)
-        if stripped.startswith(('"""', "'''")) and stripped.endswith(('"""', "'''")) and len(stripped) > 3:
-            comment_lines += 1  # Single-line docstring
-            continue
-        elif stripped.startswith(('"""', "'''")):
-            inside_docstring = True
-            comment_lines += 1
-            continue
-        elif stripped.endswith(('"""', "'''")):
-            inside_docstring = False
-            comment_lines += 1
-            continue
+        # Handle multi-line docstrings
+        if stripped.startswith(('"""', "'''")):
+            if stripped.count('"""') == 2 or stripped.count("'''") == 2:
+                comment_lines += 1
+                continue
+            else:
+                inside_docstring = not inside_docstring
+                comment_lines += 1
+                continue
 
         if inside_docstring:
             comment_lines += 1
-            continue  # ✅ Skip to next line
+            continue
 
-        # ✅ Count single-line comments
+        # Count standalone comments
         if stripped.startswith("#"):
             comment_lines += 1
-            continue  # ✅ Move to next line
+            continue
 
-        # ✅ Detect inline comments (code followed by #)
+        # Count inline comments
         if "#" in stripped:
-            before_comment, after_comment = stripped.split("#", 1)
-            if after_comment.strip():  # Ensure there's actual comment content
+            quote_count = stripped.count('"') + stripped.count("'")
+            if quote_count % 2 == 0:
                 comment_lines += 1
-                if before_comment.strip():  # If code is before comment, count it
-                    code_lines += 1
-                continue
 
-        # ✅ Count non-comment, non-empty lines as code
-        if stripped:
-            code_lines += 1
+    return comment_lines
 
-    total_lines = code_lines + comment_lines
-    return round(comment_lines / total_lines, 2) if total_lines > 0 else 0  # ✅ Prevent division by zero
 
 
 
