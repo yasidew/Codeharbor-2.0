@@ -332,18 +332,39 @@ def java_find_duplicate_code(code, block_size=3):
 
 
 def java_calculate_comment_density(code):
-    """Compute the ratio of comments to code lines in Java."""
+    """Count the total number of comment lines in Java code."""
     lines = code.split("\n")
 
-    # Java single-line (`//`) and multi-line (`/* ... */`) comments
-    single_line_comments = sum(1 for line in lines if line.strip().startswith("//"))
-    multi_line_comments = re.findall(r"/\*[\s\S]*?\*/", code, re.MULTILINE)
-    multi_line_comment_lines = sum(comment.count("\n") + 1 for comment in multi_line_comments)
+    single_line_comments = 0
+    multi_line_comment_lines = 0
+    inside_multiline = False
 
-    total_comment_lines = single_line_comments + multi_line_comment_lines
-    code_lines = sum(1 for line in lines if line.strip() and not line.strip().startswith("//"))
+    for line in lines:
+        stripped = line.strip()
 
-    return total_comment_lines / code_lines if code_lines > 0 else 0
+        # Count single-line comment
+        if stripped.startswith("//"):
+            single_line_comments += 1
+            continue
+
+        # Detect start of multiline comment
+        if stripped.startswith("/*"):
+            inside_multiline = True
+            multi_line_comment_lines += 1
+            continue
+
+        # Detect end of multiline comment
+        if inside_multiline:
+            multi_line_comment_lines += 1
+            if "*/" in stripped:
+                inside_multiline = False
+            continue
+
+        # Also catch inline multiline comments like: int a = 0; /* inline comment */
+        if "/*" in stripped and "*/" in stripped:
+            multi_line_comment_lines += 1
+
+    return single_line_comments + multi_line_comment_lines
 
 
 def java_calculate_readability_score(code):
