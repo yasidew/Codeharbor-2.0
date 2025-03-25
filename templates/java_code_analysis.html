@@ -153,14 +153,47 @@
                 <h2 class="text-center mb-4">Analysis Results:</h2>
                 <div class="recommendation-container scrollable-container">
                     {% for suggestion in suggestions %}
-                        <div class="code-block">
+{#                        <div class="code-block">#}
                             {#                            <strong>📂 File Name: {{ suggestion.file_name }}</strong> <br> <!-- ✅ Show File Name -->#}
-                            <strong>🔹 Code With Issue:</strong>
-                            <pre>{{ suggestion.code }}</pre>
-                        </div>
-                        <div class="suggestion-block">
-                            <strong>💡 Suggestion:</strong>
-                            <pre>{{ suggestion.suggestion | safe }}</pre>
+{#                            <strong>🔹 Code With Issue:</strong>#}
+{#                            <pre>{{ suggestion.code }}</pre>#}
+{#                        </div>#}
+{#                        <div class="suggestion-block">#}
+{#                            <strong>💡 Suggestion:</strong>#}
+{#                            <pre>{{ suggestion.suggestion | safe }}</pre>#}
+{#                        </div>#}
+                        <div class="card mb-4 shadow-sm border-0 rounded-lg suggestion-card" style="background-color: #1e1e2f; color: #ffffff;">
+                            <div class="card-header d-flex justify-content-between align-items-center bg-transparent border-bottom border-secondary">
+                                <h5 class="mb-0 text-warning fw-bold">
+                                    <i class="fas fa-bug"></i> Issue in <code class="text-light">{{ suggestion.file_name }}</code>
+                                </h5>
+                                <span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top"
+                                      title="{% include 'code_analysis/severity_tooltip.html' with level=suggestion.severity %}">
+                            {{ suggestion.severity }}
+                        </span>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <h6 class="text-info"><i class="fas fa-code"></i> Problematic Code (Line {{ suggestion.line }})</h6>
+                                    <pre class="bg-dark p-3 rounded text-white" style="font-size: 0.9rem;">{{ suggestion.code }}</pre>
+                                </div>
+
+                                <div class="mb-3">
+                                    <h6 class="text-success"><i class="fas fa-lightbulb"></i> AI-Powered Suggestion</h6>
+                                    <div class="bg-secondary p-3 rounded suggestion-content" style="white-space: pre-wrap;">
+                                        {{ suggestion.suggestion | safe }}
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary px-3 py-2" data-bs-toggle="tooltip" data-bs-placement="top"
+                                  title="{% include 'code_analysis/category_tooltip.html' with name=suggestion.category %}">
+                                {{ suggestion.category }}
+                            </span>
+                                    <i class="fas fa-robot text-muted"> AI Analyzed</i>
+                                </div>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -836,6 +869,19 @@
                 }
             });
 
+        document.addEventListener('DOMContentLoaded', function () {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    animation: true,
+                    placement: 'top',
+                    boundary: 'window'
+                });
+            });
+        });
+
+
     </script>
 
 
@@ -1267,8 +1313,51 @@
                 transform: scale(1);
             }
         }
-        
-        </style>
+
+        .suggestion-card {
+            border-left: 4px solid #ffc107;
+            transition: all 0.3s ease;
+        }
+        .suggestion-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+        }
+        .suggestion-content {
+            background-color: #2c2c3a;
+            border-left: 4px solid #28a745;
+        }
+
+        .tooltip-inner {
+            background-color: #2c2f3f !important;
+            color: #ffffff !important;
+            padding: 10px 14px !important;
+            font-size: 0.85rem;
+            font-weight: 500;
+            max-width: 300px;
+            text-align: left;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .bs-tooltip-top .tooltip-arrow::before,
+        .bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
+            border-top-color: #2c2f3f !important;
+        }
+        .bs-tooltip-bottom .tooltip-arrow::before,
+        .bs-tooltip-auto[data-popper-placement^="bottom"] .tooltip-arrow::before {
+            border-bottom-color: #2c2f3f !important;
+        }
+        .bs-tooltip-left .tooltip-arrow::before,
+        .bs-tooltip-auto[data-popper-placement^="left"] .tooltip-arrow::before {
+            border-left-color: #2c2f3f !important;
+        }
+        .bs-tooltip-right .tooltip-arrow::before,
+        .bs-tooltip-auto[data-popper-placement^="right"] .tooltip-arrow::before {
+            border-right-color: #2c2f3f !important;
+        }
+
+
+    </style>
 
 
 {% endblock %}
