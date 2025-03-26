@@ -242,69 +242,175 @@
 
 
                     <hr>
-                    <h4>Categories</h4>
-                    {#                        <ul class="list-group">#}
-                    {#                            {% for category, count in summary.categories.items %}#}
-                    {#                                <li class="list-group-item d-flex justify-content-between align-items-center">#}
-                        {#                                    {{ category }}#}
-                        {#                                    <span class="badge bg-primary rounded-pill">{{ count }}</span>#}
-                        {#                                </li>#}
-                    {#                            {% endfor %}#}
-                    {#                        </ul>#}
-                    <div class="category-container">
-                        <ul class="list-group">
+{#                    <h4>Categories</h4>#}
+{#                    <div class="category-container">#}
+{#                        <ul class="list-group">#}
+{#                            {% for category, count in summary.categories.items %}#}
+{#                            <li class="list-group-item d-flex justify-content-between align-items-center category-toggle"#}
+{#                                data-category="{{ category }}">#}
+{#                                {{ category }}#}
+{#                                <span class="badge bg-primary rounded-pill">{{ count }}</span>#}
+{#                            </li>#}
+{#                            <div class="category-details" id="{{ category|slugify }}-details" style="display: none;">#}
+{#                                {% for suggestion in suggestions %}#}
+{#                                {% if suggestion.category == category %}#}
+{#                                <div class="code-block">#}
+{#                                    <strong>Code With Issue (Line {{ suggestion.line }}):</strong>#}
+{#                                    <pre>{{ suggestion.code }}</pre>#}
+{#                                </div>#}
+{#                                <div class="suggestion-block">#}
+{#                                    <strong>Suggestion:</strong>#}
+{#                                    <pre>{{ suggestion.suggestion | safe}}</pre>#}
+{#                                </div>#}
+{#                                {% endif %}#}
+{#                                {% endfor %}#}
+{#                            </div>#}
+{#                            {% endfor %}#}
+{#                        </ul>#}
+{#                    </div>#}
+
+                    <div class="category-section mt-4">
+                        <h4 class="text-center text-light fw-bold mb-4">
+                            🚀 Category-Wise Insights
+                        </h4>
+
+                        <div class="accordion accordion-flush" id="categoryAccordion">
                             {% for category, count in summary.categories.items %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center category-toggle"
-                                data-category="{{ category }}">
-                                {{ category }}
-                                <span class="badge bg-primary rounded-pill">{{ count }}</span>
-                            </li>
-                            <div class="category-details" id="{{ category|slugify }}-details" style="display: none;">
-                                {% for suggestion in suggestions %}
-                                {% if suggestion.category == category %}
-                                <div class="code-block">
-                                    <strong>Code With Issue (Line {{ suggestion.line }}):</strong>
-                                    <pre>{{ suggestion.code }}</pre>
+                                <div class="accordion-item bg-dark border-secondary rounded mb-3 shadow-sm">
+                                    <h2 class="accordion-header" id="heading-{{ forloop.counter }}">
+                                        <button class="accordion-button collapsed custom-accordion-header"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#collapse-{{ forloop.counter }}"
+                                                aria-expanded="false"
+                                                aria-controls="collapse-{{ forloop.counter }}">
+                                            <div class="d-flex justify-content-between align-items-center w-100">
+                                                <span class="d-flex align-items-center">
+                                                    <i class="fas fa-folder me-2 text-info"></i>
+                                                    {{ category }}
+                                                </span>
+                                                <span class="badge bg-info ms-2 text-dark fw-bold">{{ count }}</span>
+                                            </div>
+                                        </button>
+                                    </h2>
+
+                                    <div id="collapse-{{ forloop.counter }}" class="accordion-collapse collapse"
+                                         aria-labelledby="heading-{{ forloop.counter }}" data-bs-parent="#categoryAccordion">
+                                        <div class="accordion-body p-3 bg-secondary-subtle text-white rounded">
+
+                                            {% for suggestion in suggestions %}
+                                                {% if suggestion.category == category %}
+                                                    <div class="card mb-3 shadow-sm border-0" style="background-color: #212529;">
+                                                        <div class="card-body">
+
+                                                            <h6 class="text-primary fw-bold mb-2">
+                                                                <i class="fas fa-code"></i> CODE WITH ISSUE (LINE {{ suggestion.line }})
+                                                            </h6>
+                                                            <pre class="bg-black p-3 rounded text-white mb-3" style="font-family: 'Fira Code', monospace; white-space: pre-wrap;">{{ suggestion.code }}</pre>
+
+                                                            <h6 class="text-warning fw-bold">
+                                                                <i class="fas fa-lightbulb"></i> AI-POWERED SUGGESTION
+                                                            </h6>
+                                                            <div class="bg-light text-dark p-3 rounded" style="white-space: pre-wrap; font-size: 0.95rem; border-left: 4px solid #ffc107;">
+                                                                {{ suggestion.suggestion | safe }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="suggestion-block">
-                                    <strong>Suggestion:</strong>
-                                    <pre>{{ suggestion.suggestion | safe}}</pre>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
+
 
 
                     <br><hr>
-                    <h4>Severity Levels</h4>
-                    <div class="severity-container">
-                        <ul class="list-group">
+{#                    <h4>Severity Levels</h4>#}
+{#                    <div class="severity-container">#}
+{#                        <ul class="list-group">#}
+{#                            {% for level, count in summary.severity.items %}#}
+{#                            <li class="list-group-item d-flex justify-content-between align-items-center severity-toggle"#}
+{#                                data-severity="{{ level }}">#}
+{#                                {{ level }}#}
+{#                                <span class="badge bg-warning rounded-pill">{{ count }}</span>#}
+{#                            </li>#}
+{#                            <div class="severity-details" id="{{ level|lower }}-details" style="display: none;">#}
+{#                                {% for suggestion in suggestions %}#}
+{#                                {% if suggestion.severity == level %}#}
+{#                                <div class="code-block">#}
+{#                                    <strong>Code With Issue (Line {{ suggestion.line }}):</strong>#}
+{#                                    <pre>{{ suggestion.code }}</pre>#}
+{#                                </div>#}
+{#                                <div class="suggestion-block">#}
+{#                                    <strong>Suggestion:</strong>#}
+{#                                    <pre>{{ suggestion.suggestion | safe}}</pre>#}
+{#                                </div>#}
+{#                                {% endif %}#}
+{#                                {% endfor %}#}
+{#                            </div>#}
+{#                            {% endfor %}#}
+{#                        </ul>#}
+{#                    </div>#}
+                    <div class="severity-section mt-5">
+                        <h4 class="text-center text-light fw-bold mb-4">
+                            🛡️ Severity Levels
+                        </h4>
+
+                        <div class="accordion accordion-flush" id="severityAccordion">
                             {% for level, count in summary.severity.items %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center severity-toggle"
-                                data-severity="{{ level }}">
-                                {{ level }}
-                                <span class="badge bg-warning rounded-pill">{{ count }}</span>
-                            </li>
-                            <div class="severity-details" id="{{ level|lower }}-details" style="display: none;">
-                                {% for suggestion in suggestions %}
-                                {% if suggestion.severity == level %}
-                                <div class="code-block">
-                                    <strong>Code With Issue (Line {{ suggestion.line }}):</strong>
-                                    <pre>{{ suggestion.code }}</pre>
+                                <div class="accordion-item bg-dark border-secondary rounded mb-3 shadow-sm">
+                                    <h2 class="accordion-header" id="severity-heading-{{ forloop.counter }}">
+                                        <button class="accordion-button collapsed custom-accordion-header"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#severity-collapse-{{ forloop.counter }}"
+                                                aria-expanded="false"
+                                                aria-controls="severity-collapse-{{ forloop.counter }}">
+                                            <div class="d-flex justify-content-between align-items-center w-100">
+                        <span class="d-flex align-items-center">
+                            <i class="fas fa-shield-alt me-2 text-warning"></i>
+                            {{ level }}
+                        </span>
+                                                <span class="badge bg-warning ms-2 text-dark fw-bold">{{ count }}</span>
+                                            </div>
+                                        </button>
+                                    </h2>
+
+                                    <div id="severity-collapse-{{ forloop.counter }}"
+                                         class="accordion-collapse collapse"
+                                         aria-labelledby="severity-heading-{{ forloop.counter }}"
+                                         data-bs-parent="#severityAccordion">
+                                        <div class="accordion-body p-3 bg-secondary-subtle text-white rounded">
+                                            {% for suggestion in suggestions %}
+                                                {% if suggestion.severity == level %}
+                                                    <div class="card mb-3 shadow-sm border-0" style="background-color: #212529;">
+                                                        <div class="card-body">
+                                                            <h6 class="text-primary fw-bold mb-2">
+                                                                <i class="fas fa-code"></i> CODE WITH ISSUE (LINE {{ suggestion.line }})
+                                                            </h6>
+                                                            <pre class="bg-black p-3 rounded text-white mb-3" style="font-family: 'Fira Code', monospace; white-space: pre-wrap;">{{ suggestion.code }}</pre>
+
+                                                            <h6 class="text-warning fw-bold">
+                                                                <i class="fas fa-lightbulb"></i> AI-POWERED SUGGESTION
+                                                            </h6>
+                                                            <div class="bg-light text-dark p-3 rounded" style="white-space: pre-wrap; font-size: 0.95rem; border-left: 4px solid #ffc107;">
+                                                                {{ suggestion.suggestion | safe }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="suggestion-block">
-                                    <strong>Suggestion:</strong>
-                                    <pre>{{ suggestion.suggestion | safe}}</pre>
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
                             {% endfor %}
-                        </ul>
+                        </div>
                     </div>
+
                 </div>
             </div>
             <!-- Issue Category Distribution -->
@@ -1367,6 +1473,89 @@
     .bs-tooltip-right .tooltip-arrow::before,
     .bs-tooltip-auto[data-popper-placement^="right"] .tooltip-arrow::before {
         border-right-color: #2c2f3f !important;
+    }
+
+    .category-section {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+
+    .severity-section {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+
+    /* Accordion header */
+    .custom-accordion-header {
+        background: linear-gradient(145deg, #3a0ca3, #4361ee) !important;
+        color: #ffffff;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .accordion-button:not(.collapsed) {
+        color: #ffffff !important;
+        background: linear-gradient(145deg, #3a0ca3, #4361ee) !important;
+    }
+
+    .custom-accordion-header:hover {
+        background: linear-gradient(145deg, #4c2aad, #5078f2) !important;
+    }
+
+    /* Badge styling */
+    .badge.bg-info {
+        background-color: #00cfff !important;
+        font-size: 0.85rem;
+        padding: 0.35em 0.65em;
+        border-radius: 12px;
+        min-width: 32px;
+        text-align: center;
+    }
+
+    /* Accordion body */
+    .accordion-body {
+        background-color: #1e1e2f;
+        border-radius: 0.5rem;
+        max-height: 450px;       /* 👈 Adjust this value as needed */
+        overflow-y: auto;
+        {#padding-right: 10px;#}
+        padding: 1rem;
+    }
+
+    /* Optional: Add scrollbar styling for better UX */
+    .accordion-body::-webkit-scrollbar {
+        width: 8px;
+    }
+    .accordion-body::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .accordion-body::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+    }
+
+    /* Code card styles */
+    .card-body pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: 'Fira Code', monospace;
+    }
+
+    .card {
+        background-color: #2d2d3a;
+        border-radius: 0.5rem;
+    }
+
+    .card-body h6 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .bg-light.text-dark {
+        background-color: #f5f5f5 !important;
+        color: #212529 !important;
+        border-left: 4px solid #ffc107;
     }
 
 </style>

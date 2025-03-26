@@ -53,16 +53,46 @@
                     </span>
                 </li>
 
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-expand-arrows-alt"></i> Avg Function Length:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.avg_function_length }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.function_length |floatformat:2 }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-expand-arrows-alt"></i> Avg Function Length:</strong>
-                    <span>{{ summary.complexity_metrics.avg_function_length }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.function_length |floatformat:2 }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.avg_function_length }}
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.function_length == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.function_length == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/metric_tooltip.html' with name='function_length' %}">
+                            {{ summary.complexity_metrics.rating.function_length  }}
+                        </span>
                     </span>
                 </li>
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-clone"></i> Duplicate Code Percentage:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.duplicate_code_percentage }}%#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.duplicate_code }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-clone"></i> Duplicate Code Percentage:</strong>
-                    <span>{{ summary.complexity_metrics.duplicate_code_percentage }}%
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.duplicate_code |floatformat:2}}</span>
+                    <span>
+                        {{ summary.complexity_metrics.duplicate_code_percentage }}%
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.duplicate_code == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.duplicate_code == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/metric_tooltip.html' with name='duplicate_code' %}">
+                            {{ summary.complexity_metrics.rating.duplicate_code }}
+                        </span>
                     </span>
                 </li>
                 {% if summary.complexity_metrics.duplicate_code_details %}
@@ -90,20 +120,50 @@
                 {% else %}
                     {#                    <p class="text-center text-success">✅ No duplicate code detected!</p>#}
                 {% endif %}
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-comments"></i> Comment Density:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.comment_density }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.comment_density  }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-comments"></i> Comment Density:</strong>
-                    <span>{{ summary.complexity_metrics.comment_density }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.comment_density |floatformat:2 }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.comment_density }}
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.comment_density == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.comment_density == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/metric_tooltip.html' with name='comment_density' %}">
+                            {{ summary.complexity_metrics.rating.comment_density }}
+                        </span>
                     </span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-eye"></i> Readability Score:</strong>
                     <span>{{ summary.complexity_metrics.readability_score }}</span>
                 </li>
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-brain"></i> Complexity Score:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.complexity_score }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score |floatformat:2 }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-brain"></i> Complexity Score:</strong>
-                    <span>{{ summary.complexity_metrics.complexity_score }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score |floatformat:2 }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.complexity_score }}
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.complexity_score == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.complexity_score == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/metric_tooltip.html' with name='complexity_score' %}">
+                            {{ summary.complexity_metrics.rating.complexity_score }}
+                        </span>
                     </span>
                 </li>
             </ul>
@@ -176,20 +236,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl, {
-                trigger: 'hover',
-                animation: true,
-                placement: 'top',
-                boundary: 'window'
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    animation: true,
+                    placement: 'top',
+                    boundary: 'window'
+                });
             });
         });
-    });
-
-</script>
+    
+    </script>
 
 <style>
     /* 📌 Card Styling */
