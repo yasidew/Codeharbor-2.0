@@ -1,0 +1,15 @@
+{% if name == 'lines_of_code' %}
+    Indicates the total number of code lines. More lines may mean higher complexity.
+{% elif name == 'num_functions' %}
+    Fewer functions might indicate lack of modularity. Too many may signal over-engineering.
+{% elif name == 'function_length' %}
+    Average lines per function. High values can reduce readability.
+{% elif name == 'duplicate_code' %}
+    Shows how much of your code is repeated. Less duplication is better.
+{% elif name == 'comment_density' %}
+    Number of comments in your code. Good comments improve maintainability.
+{% elif name == 'complexity_score' %}
+    Final score combining various metrics. Lower is better.
+{% else %}
+    Describes the rating metric for this code feature.
+{% endif %}

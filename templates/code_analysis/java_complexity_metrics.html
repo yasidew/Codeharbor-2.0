@@ -5,10 +5,25 @@
     <div class="card-body">
         {% if summary.complexity_metrics %}
             <ul class="list-group">
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-code"></i> Lines of Code:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.lines_of_code }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.lines_of_code }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-code"></i> Lines of Code:</strong>
-                    <span>{{ summary.complexity_metrics.lines_of_code }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.lines_of_code }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.lines_of_code }}
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.lines_of_code == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.lines_of_code == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/java_metric_tooltip.html' with name='lines_of_code' %}">
+                            {{ summary.complexity_metrics.rating.lines_of_code }}
+                        </span>
                     </span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -19,16 +34,46 @@
                     <strong><i class="fas fa-cube"></i> Number of Classes:</strong>
                     <span>{{ summary.complexity_metrics.num_classes }}</span>
                 </li>
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-list-ul"></i> Number of Methods:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.num_methods }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.num_methods }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-list-ul"></i> Number of Methods:</strong>
-                    <span>{{ summary.complexity_metrics.num_methods }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.num_methods }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.num_methods }}
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.num_methods == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.num_methods == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/java_metric_tooltip.html' with name='num_methods' %}">
+                            {{ summary.complexity_metrics.rating.num_methods }}
+                        </span>
                     </span>
                 </li>
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-expand-arrows-alt"></i> Avg Method Length:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.avg_method_length }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.method_length }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-expand-arrows-alt"></i> Avg Method Length:</strong>
-                    <span>{{ summary.complexity_metrics.avg_method_length }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.method_length }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.avg_method_length }}
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.method_length == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.method_length == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/java_metric_tooltip.html' with name='method_length' %}">
+                            {{ summary.complexity_metrics.rating.method_length }}
+                        </span>
                     </span>
                 </li>
 {#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
@@ -41,10 +86,25 @@
                     <strong><i class="fas fa-layer-group"></i> Nesting Depth:</strong>
                     <span>{{ summary.complexity_metrics.nesting_depth }}</span>
                 </li>
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-clone"></i> Duplicate Code Percentage:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.duplicate_code_percentage }}%#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.duplicate_code }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-clone"></i> Duplicate Code Percentage:</strong>
-                    <span>{{ summary.complexity_metrics.duplicate_code_percentage }}%
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.duplicate_code }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.duplicate_code_percentage }}%
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.duplicate_code == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.duplicate_code == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/java_metric_tooltip.html' with name='duplicate_code' %}">
+                            {{ summary.complexity_metrics.rating.duplicate_code }}
+                        </span>
                     </span>
                 </li>
                 {% if summary.complexity_metrics.duplicate_code_details %}
@@ -70,20 +130,50 @@
                         </div>
                     </div>
                 {% endif %}
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-comments"></i> Comment Density:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.comment_density }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.comment_density }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-comments"></i> Comment Density:</strong>
-                    <span>{{ summary.complexity_metrics.comment_density }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.comment_density }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.comment_density }}
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.comment_density == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.comment_density == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/java_metric_tooltip.html' with name='comment_density' %}">
+                            {{ summary.complexity_metrics.rating.comment_density }}
+                        </span>
                     </span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-eye"></i> Readability Score:</strong>
                     <span>{{ summary.complexity_metrics.readability_score }}</span>
                 </li>
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-brain"></i> Complexity Score:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.complexity_score }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-brain"></i> Complexity Score:</strong>
-                    <span>{{ summary.complexity_metrics.complexity_score }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.complexity_score }}
+                        <span class="badge 
+                            {% if summary.complexity_metrics.rating.complexity_score == 'Low' %}bg-success
+                            {% elif summary.complexity_metrics.rating.complexity_score == 'Medium' %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/java_metric_tooltip.html' with name='complexity_score' %}">
+                            {{ summary.complexity_metrics.rating.complexity_score }}
+                        </span>
                     </span>
                 </li>
             </ul>

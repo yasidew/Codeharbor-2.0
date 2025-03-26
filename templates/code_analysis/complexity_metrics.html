@@ -5,22 +5,54 @@
     <div class="card-body">
         {% if summary.complexity_metrics %}
             <ul class="list-group">
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-code"></i> Lines of Code:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.lines_of_code }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.lines_of_code }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-code"></i> Lines of Code:</strong>
-                    <span>{{ summary.complexity_metrics.lines_of_code }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.lines_of_code }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.lines_of_code }}
+                        <span class="badge 
+                                     {% if summary.complexity_metrics.rating.lines_of_code == 'Low' %}bg-success
+                                     {% elif summary.complexity_metrics.rating.lines_of_code == 'Medium' %}bg-warning
+                                     {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/metric_tooltip.html' with name='lines_of_code' %}">
+                            {{ summary.complexity_metrics.rating.lines_of_code }}
+                        </span>
                     </span>
                 </li>
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-check-double"></i> Effective Lines of Code:</strong>
                     <span>{{ summary.complexity_metrics.effective_lines_of_code }}</span>
                 </li>
+{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-list-ul"></i> Number of Functions:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.num_functions }}#}
+{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.num_functions }}</span>#}
+{#                    </span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-list-ul"></i> Number of Functions:</strong>
-                    <span>{{ summary.complexity_metrics.num_functions }}
-                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.num_functions }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.num_functions }}
+                        <span class="badge 
+                                     {% if summary.complexity_metrics.rating.num_functions == 'Low' %}bg-success
+                                     {% elif summary.complexity_metrics.rating.num_functions == 'Medium' %}bg-warning
+                                     {% else %}bg-danger{% endif %}"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              title="{% include 'code_analysis/metric_tooltip.html' with name='num_functions' %}">
+                            {{ summary.complexity_metrics.rating.num_functions }}
+                        </span>
                     </span>
                 </li>
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-expand-arrows-alt"></i> Avg Function Length:</strong>
                     <span>{{ summary.complexity_metrics.avg_function_length }}
@@ -144,6 +176,20 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl, {
+                trigger: 'hover',
+                animation: true,
+                placement: 'top',
+                boundary: 'window'
+            });
+        });
+    });
+
+</script>
 
 <style>
     /* 📌 Card Styling */
