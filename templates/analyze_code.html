@@ -71,12 +71,34 @@
             </div>
         </div>
 
+        <!-- 🌟 Company Guideline Upload - Clean & Professional -->
+        <div class="card shadow-sm mb-4 bg-gradient bg-dark text-white border-0 rounded">
+            <div class="card-header bg-primary text-white fw-bold rounded-top d-flex align-items-center">
+                <i class="fas fa-shield-alt me-2"></i> Company Coding Guidelines <small class="ms-2 text-light">(Optional)</small>
+            </div>
+            <div class="card-body">
+                <p class="mb-2 text-white-50"><i class="fas fa-info-circle text-warning me-1"></i> Upload a guideline file to tailor suggestions to your company’s standards.</p>
+                <input type="file" name="guideline_file" id="guidelineFile" class="form-control bg-dark text-white border-secondary">
+            </div>
+        </div>
+
         <!-- Button to Open Modal -->
         <div class="text-center mb-3">
             <button id="githubBtn" class="btn btn-lg btn-github">
                 <i class="fab fa-github"></i> Import from GitHub
             </button>
         </div>
+
+
+
+
+        {#        <div class="mb-3">#}
+{#            <label for="guidelineFile" class="form-label fw-bold">#}
+{#                <i class="fas fa-file-alt"></i> Upload Company Coding Guideline:#}
+{#            </label>#}
+{#            <input type="file" name="guideline_file" id="guidelineFile" class="form-control">#}
+{#        </div>#}
+
 
 
         {#            <div class="mb-3">#}
@@ -86,7 +108,7 @@
         {#            </div>#}
         <div class="mb-3">
             <label class="form-label fw-bold">
-                <i class="fas fa-file-code"></i> Select File to Analyze:
+                <i class="fas fa-file-code"></i> Select File Imported from GitHub to Analyze:
             </label>
 
             <div class="input-group">
@@ -437,92 +459,37 @@
                     </a>
                 </div>
 
-                <!-- 🔥 Trend Analysis: Compare Against Previous Runs -->
-                {#                    <div class="chart-container p-3 shadow-sm rounded mt-4">#}
-                {#                        <h4 class="text-center">📊 Code Quality Progress Over Time</h4>#}
-                {#                        {% if previous_analysis %}#}
-                {#                            <table class="table table-bordered text-center">#}
-                    {#                                <thead>#}
-                    {#                                <tr class="table-primary">#}
-                        {#                                    <th>📊 Metric</th>#}
-                        {#                                    <th>📆 Previous Run</th>#}
-                        {#                                    <th>📆 Current Run</th>#}
-                        {#                                    <th>📉📈 Trend</th>#}
-                        {#                                </tr>#}
-                    {#                                </thead>#}
-                    {#                                <tbody>#}
-                    {#                                <tr>#}
-                        {#                                    <td>⚙️ Complexity Score</td>#}
-                        {#                                    <td>{{ previous_analysis.complexity_score }}</td>#}
-                        {#                                    <td>{{ summary.complexity_metrics.complexity_score }}</td>#}
-                        {#                                    <td>#}
-                            {#                                        {% if previous_analysis.complexity_score > summary.complexity_metrics.complexity_score %}#}
-                            {#                                            ✅ Improved 📉#}
-                            {#                                        {% else %}#}
-                            {#                                            ❌ Increased 📈#}
-                            {#                                        {% endif %}#}
-                            {#                                    </td>#}
-                        {#                                </tr>#}
-                    {#                                <tr>#}
-                        {#                                    <td>🔄 Duplicate Code</td>#}
-                        {#                                    <td>{{ previous_analysis.duplicate_code_percentage }}%</td>#}
-                        {#                                    <td>{{ summary.complexity_metrics.duplicate_code_percentage }}%</td>#}
-                        {#                                    <td>#}
-                            {#                                        {% if previous_analysis.duplicate_code_percentage > summary.complexity_metrics.duplicate_code_percentage %}#}
-                            {#                                            ✅ Reduced 📉#}
-                            {#                                        {% else %}#}
-                            {#                                            ❌ Increased 📈#}
-                            {#                                        {% endif %}#}
-                            {#                                    </td>#}
-                        {#                                </tr>#}
-                    {#                                <tr>#}
-                        {#                                    <td>🛡 Security Issues</td>#}
-                        {#                                    <td>{{ previous_analysis.security_issues }}</td>#}
-                        {#                                    <td>{{ summary.complexity_metrics.security_issues }}</td>#}
-                        {#                                    <td>#}
-                            {#                                        {% if previous_analysis.security_issues > summary.complexity_metrics.security_issues %}#}
-                            {#                                            ✅ Fewer Issues 📉#}
-                            {#                                        {% else %}#}
-                            {#                                            ❌ More Issues 📈#}
-                            {#                                        {% endif %}#}
-                            {#                                    </td>#}
-                        {#                                </tr>#}
-                    {#                                </tbody>#}
-                    {#                            </table>#}
-                {#                        {% else %}#}
-                {#                            <p class="text-center text-muted">No previous analysis available for comparison.</p>#}
-                {#                        {% endif %}#}
-                {#                    </div>#}
-
-                {#                    <div class="container mt-4">#}
-                {#                        <h3 class="text-center">📥 Download Report</h3>#}
-                {#                        <div class="text-center">#}
-                    {#                            <a href="{% url 'generate_pdf_report' %}" class="btn btn-danger">#}
-                        {#                                <i class="fas fa-file-pdf"></i> Download PDF Report#}
-                        {#                            </a>#}
-                    {#                        </div>#}
-                {#                    </div>#}
+                
 
 
             </div>
-            <!-- Severity Level Distribution -->
-            {#                <div class="col-md-6 ">#}
-            {#                    <div class="chart-container p-3 shadow-sm rounded">#}
-                {#                        <h4 class="text-center">Severity Level Distribution</h4>#}
-                {#                        <canvas id="severityChart" width="400" height="400" ></canvas>#}
-                {#                    </div>#}
-            {#                </div>#}
+           
         </div>
         <!-- Developer Guideline Section -->
         {% if final_guideline %}
-        <div class="container mt-5">
-            <div class="guideline-panel p-4 shadow-lg rounded text-center">
-                <h3 class="guideline-title mb-3">
-                    <i class="fas fa-lightbulb"></i> Final Coding Guideline
-                </h3>
-                <p class="guideline-content">{{ final_guideline | safe }}</p>
+{#        <div class="container mt-5">#}
+{#            <div class="guideline-panel p-4 shadow-lg rounded text-center">#}
+{#                <h3 class="guideline-title mb-3">#}
+{#                    <i class="fas fa-lightbulb"></i> Final Coding Guideline#}
+{#                </h3>#}
+{#                <p class="guideline-content">{{ final_guideline | safe }}</p>#}
+{#            </div>#}
+{#        </div>#}
+            <div class="container mt-5">
+                <div class="guideline-panel p-4 shadow-lg rounded text-white" style="background: linear-gradient(145deg, #0f2027, #203a43, #2c5364); border-left: 6px solid #ffc107;">
+                    <div class="text-center mb-4">
+                        <h3 class="fw-bold text-warning">
+                            <i class="fas fa-lightbulb"></i> Final Coding Guideline
+                        </h3>
+{#                        <p class="text-muted">Tailored AI Recommendations for Secure, Performant & Maintainable Code</p>#}
+                    </div>
+
+                    <div class="text-start" style="font-size: 1rem;">
+                        {{ final_guideline | safe }}
+                    </div>
+                </div>
             </div>
-        </div>
+
         {% endif %}
 
     </div>
@@ -1557,6 +1524,46 @@
         color: #212529 !important;
         border-left: 4px solid #ffc107;
     }
+
+    .guideline-panel ul {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .guideline-panel ul li {
+        margin-bottom: 0.75rem;
+        line-height: 1.6;
+    }
+
+    .guideline-panel h4 {
+        margin-top: 1.5rem;
+        font-weight: 600;
+        color: #ffc107;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .guideline-panel h3 {
+        font-size: 1.6rem;
+    }
+
+    .card-header.bg-primary {
+        background: linear-gradient(to right, #007bff, #0056b3);
+        border-bottom: 1px solid #004999;
+    }
+
+    input#guidelineFile::file-selector-button {
+        background-color: #0056b3;
+        color: #fff;
+        border: none;
+        padding: 0.3rem 1rem;
+        border-radius: 0.25rem;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+
+
 
 </style>
 
