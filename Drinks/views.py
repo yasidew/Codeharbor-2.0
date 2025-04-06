@@ -1648,7 +1648,7 @@ def ai_generate_guideline(summary):
                  "content": "You are an expert AI code reviewer. Based on the analysis summary, provide a concise final"
                             "guideline for the developer to follow. Keep it within 3-5 bullet points focusing on:\n"
                             "Use this format:\n\n"
-                            "🚀 **Final Coding Guideline** 🚀\n\n"
+                            "🚀 **General Coding Suggestion** 🚀\n\n"
                             "1️⃣ **Security Improvements:**\n"
                             "2️⃣ **Code Readability & Maintainability:**\n"
                             "3️⃣ **Performance Optimization:**\n"
@@ -1665,7 +1665,7 @@ def ai_generate_guideline(summary):
         guideline_response = response.choices[0].message.content
 
         # Format for HTML rendering
-        formatted_guideline = guideline_response.replace("🚀 **Final Coding Guideline** 🚀", "<h3>🚀 Final Coding Guideline 🚀</h3>") \
+        formatted_guideline = guideline_response.replace("🚀 **General Coding Suggestion** 🚀", "<h3>🚀 General Coding Suggestion 🚀</h3>") \
             .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
             .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
             .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \
@@ -1848,7 +1848,7 @@ def analyze_code_view(request):
                             model_suggestion=model_suggestion,
                         )
 
-                final_suggestion = f"Suggestion:\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
+                final_suggestion = f"\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
                 category = categorize_suggestion(final_suggestion)
                 severity = determine_severity(final_suggestion)
 
