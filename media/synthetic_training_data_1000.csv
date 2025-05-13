@@ -311,3 +311,5 @@ control_structure_complexity,nesting_level,compound_condition_weight,try_catch_w
 3,2,0,1,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 5,2,0,0,5,Refactor: Reduce deep inheritance by favoring composition over inheritance.
 1,5,5,0,1,Refactor: Reduce deep if-nesting by restructuring logic or using guard clauses.
+1,2,3,0,1,No refactoring needed.
+1,3,3,0,1,No refactoring needed.

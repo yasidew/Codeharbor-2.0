@@ -1,5 +1,6 @@
 import json
 import os
+from math import isclose
 
 import numpy as np
 import torch
@@ -118,9 +119,6 @@ def home(request):
     return render(request, 'home.html')
 
 
-
-
-
 load_dotenv()
 # OpenAI API Client
 # client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -141,6 +139,7 @@ torch.backends.cuda.matmul.allow_tf32 = True
 # FLASK_API_URL = "http://16.171.138.50:5000/predict"  # Update if deployed on AWS
 FLASK_API_URL = "http://127.0.0.1:5000/predict"
 
+
 def call_flask_model(snippet):
     """Calls Flask API and gets prediction from T5 model."""
     try:
@@ -151,6 +150,7 @@ def call_flask_model(snippet):
             return f"❌ Flask API Error: {response.status_code} - {response.text}"
     except requests.exceptions.RequestException as e:
         return f"❌ Flask API Request Failed: {str(e)}"
+
 
 # async def call_flask_model_async(snippet):
 #     """Calls Flask API asynchronously and gets prediction from T5 model."""
@@ -163,7 +163,6 @@ def call_flask_model(snippet):
 #                     return f"❌ Flask API Error: {response.status} - {await response.text()}"
 #         except Exception as e:
 #             return f"❌ Flask API Request Failed: {str(e)}"
-
 
 
 def home(request):
@@ -263,6 +262,7 @@ def group_recommendations_by_line(recommendations):
         })
     return grouped
 
+
 ################################ java ##############################
 
 JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
@@ -273,12 +273,14 @@ java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
 java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
 java_model.eval()  # Set to evaluation mode for inference
 
+
 def java_generate_suggestion(code_snippet):
     """
     Uses the Java-trained T5 model to generate AI-powered suggestions.
     """
     try:
-        inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
+        inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length",
+                                max_length=512)
         inputs = {k: v.to(device) for k, v in inputs.items()}
 
         with torch.no_grad():
@@ -288,8 +290,6 @@ def java_generate_suggestion(code_snippet):
 
     except Exception as e:
         return f"❌ Error generating suggestion: {str(e)}"
-
-
 
 
 # def java_split_code_snippets(code):
@@ -367,7 +367,8 @@ def java_split_code_snippets(code):
                 add_unique_snippet("UNUSED OBJECT CREATION", "new Object()")
                 add_unique_snippet("UNNECESSARY SYNCHRONIZATION", "synchronized void method()")
                 add_unique_snippet("RESOURCE LEAK", "new BufferedReader(new FileReader(file))")
-                add_unique_snippet("LONG PARAMETER LIST", "public void method(int a, int b, int c, int d, int e, int f)")
+                add_unique_snippet("LONG PARAMETER LIST",
+                                   "public void method(int a, int b, int c, int d, int e, int f)")
                 add_unique_snippet("THROWING GENERIC EXCEPTION", "throw new Exception()")
 
         return snippets
@@ -424,9 +425,6 @@ def extract_logical_block(method_body, keyword):
             extracted.update(lines[start_index:end_index])  # ✅ Use set instead of list
 
     return "\n".join(sorted(extracted))  # ✅ Sort to maintain order
-
-
-
 
 
 def is_java_code(code):
@@ -814,8 +812,6 @@ def java_code_analysis(request):
 #     )
 
 
-
-
 def java_analyze_code_complexity(code):
     """Analyze Java code complexity using various metrics."""
     print("🔍 Entering java_analyze_code_complexity function...")  # ✅ Debug
@@ -869,7 +865,8 @@ def export_java_excel(request):
 
     # Create Excel response
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = f'attachment; filename="java_code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    response[
+        "Content-Disposition"] = f'attachment; filename="java_code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
 
     # Create Workbook and Worksheet
     wb = Workbook()
@@ -909,7 +906,8 @@ def export_java_excel(request):
     ws.append(["Number of Methods", summary.get("complexity_metrics", {}).get("num_methods", "N/A")])
     ws.append(["Average Method Length", summary.get("complexity_metrics", {}).get("avg_method_length", "N/A")])
     ws.append(["Nesting Depth", summary.get("complexity_metrics", {}).get("nesting_depth", "N/A")])
-    ws.append(["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
+    ws.append(
+        ["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
     ws.append(["Comment Density", summary.get("complexity_metrics", {}).get("comment_density", "N/A")])
     ws.append(["Complexity Score", summary.get("complexity_metrics", {}).get("complexity_score", "N/A")])
     ws.append(["Readability Score", summary.get("complexity_metrics", {}).get("readability_score", "N/A")])
@@ -986,7 +984,6 @@ def export_java_excel(request):
     # ✅ Save workbook to response
     wb.save(response)
     return response
-
 
 
 @api_view(['GET', 'POST'])
@@ -1216,6 +1213,7 @@ def split_code_snippets(code_snippet):
         print(f"Error parsing code snippets: {e}")
         return [code_snippet]  # Return full code as a single snippet if parsing fails
 
+
 #
 # ✅ Define vulnerability categories & related risky function calls
 # VULNERABLE_PATTERNS = {
@@ -1289,9 +1287,6 @@ def split_code_snippets(code_snippet):
 #         return [code_snippet]  # Return full code as a single snippet if parsing fails
 
 
-
-
-
 # Ensure API Key is loaded
 openai.api_key = os.getenv("OPENAI_API_KEY1")
 
@@ -1305,7 +1300,6 @@ try:
     # print("✅ API Key is working. Available models:", response)
 except Exception as e:
     print("❌ Invalid API Key or Quota Issue:", str(e))
-
 
 
 # def fetch_github_files(repo_url):
@@ -1347,7 +1341,6 @@ except Exception as e:
 #         return None, f"Error fetching GitHub repository: {str(e)}"
 
 
-
 def fetch_github_files(repo_url):
     """
     Fetches code files from a GitHub repository, including subfolders.
@@ -1386,7 +1379,6 @@ def fetch_github_files(repo_url):
         return None, f"Error fetching GitHub repository: {str(e)}"
 
 
-
 def ai_code_analysis(snippet):
     """
     Uses OpenAI's GPT-4o to analyze a given code snippet and provide structured suggestions.
@@ -1400,7 +1392,7 @@ def ai_code_analysis(snippet):
                             "Issue Identified: Describe the issue concisely.\n"
                             "Why It's a Problem: Explain the consequences very shortly.\n"
                             "Recommended Fix: Provide a solution."
-                            # "If no issue is found, simply reply with 'No Issue Found'."
+                 # "If no issue is found, simply reply with 'No Issue Found'."
                  },
                 {"role": "user",
                  # "content": f"Analyze the following Python code and provide structured feedback:\n{snippet}"}
@@ -1424,8 +1416,6 @@ def ai_code_analysis(snippet):
         return formatted_response  # ✅ Now formatted for HTML rendering
     except Exception as e:
         return f"Error generating AI analysis: {str(e)}"
-
-
 
 
 def analyze_code_complexity(code):
@@ -1467,7 +1457,6 @@ def analyze_code_complexity(code):
     return result
 
 
-
 def ai_generate_guideline(summary):
     """
     Uses OpenAI to generate a final coding guideline for the developer based on the summary report.
@@ -1498,9 +1487,11 @@ def ai_generate_guideline(summary):
         guideline_response = response.choices[0].message.content
 
         # Format for HTML rendering
-        formatted_guideline = guideline_response.replace("🚀 **Final Coding Guideline** 🚀", "<h3>🚀 Final Coding Guideline 🚀</h3>") \
+        formatted_guideline = guideline_response.replace("🚀 **Final Coding Guideline** 🚀",
+                                                         "<h3>🚀 Final Coding Guideline 🚀</h3>") \
             .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
-            .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
+            .replace("2️⃣ **Code Readability & Maintainability:**",
+                     "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
             .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \
             .replace("4️⃣ **Reference Links / Guidelines:**", "</ul><h4>📚 Reference Guideline</h4><ul>")
 
@@ -1531,7 +1522,6 @@ def is_python_code(code):
         return True
     except SyntaxError:
         return False
-
 
 
 @api_view(['GET', 'POST'])
@@ -1626,7 +1616,7 @@ def analyze_code_view(request):
                     model_suggestion = existing_snippet.model_suggestion
                     ai_suggestion = existing_snippet.ai_suggestion
 
-                    if not ai_suggestion :  # ✅ Skip if AI found no issue
+                    if not ai_suggestion:  # ✅ Skip if AI found no issue
                         print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
                         continue
 
@@ -1690,7 +1680,6 @@ def analyze_code_view(request):
         'analyze_code.html',
         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
     )
-
 
 
 # @api_view(['GET', 'POST'])
@@ -1882,10 +1871,6 @@ def analyze_code_view(request):
 #     )
 
 
-
-
-
-
 # def compare_trend(previous_value, current_value):
 #     """Compares two values and returns an indicator if it improved, worsened, or stayed the same."""
 #     if current_value < previous_value:
@@ -1896,9 +1881,6 @@ def analyze_code_view(request):
 #         return f"➖ No Change ({previous_value})"
 
 
-
-
-
 def export_excel(request):
     """Generate and download the Excel report with detailed insights."""
     summary = request.session.get("latest_summary", {})  # Get latest analysis
@@ -1906,7 +1888,8 @@ def export_excel(request):
 
     # Create Excel response
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = f'attachment; filename="code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    response[
+        "Content-Disposition"] = f'attachment; filename="code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
 
     # Create Workbook and Worksheet
     wb = Workbook()
@@ -1943,12 +1926,14 @@ def export_excel(request):
     ws.append(["Total Issues Identified", summary.get("total_suggestions", 0)])  # ✅ Added Total Issues
     ws.append(["Total Lines of Code", summary.get("total_lines", 0)])
     ws.append(["Number of Functions", summary.get("complexity_metrics", {}).get("num_functions", "N/A")])
-    ws.append(["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
+    ws.append(
+        ["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
     ws.append(["Average Function Length", summary.get("complexity_metrics", {}).get("avg_function_length", "N/A")])
     ws.append(["Comment Density", summary.get("complexity_metrics", {}).get("comment_density", "N/A")])
     ws.append(["Complexity Score", summary.get("complexity_metrics", {}).get("complexity_score", "N/A")])
     ws.append(["Readability Score", summary.get("complexity_metrics", {}).get("readability_score", "N/A")])
-    ws.append(["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
+    ws.append(
+        ["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
     ws.append([])
 
     # ✅ Add Severity Levels
@@ -2024,11 +2009,6 @@ def export_excel(request):
     return response
 
 
-
-
-
-
-
 def categorize_suggestion(suggestion):
     """Categorize a suggestion based on its content using meaningful categories."""
     suggestion_lower = suggestion.lower()
@@ -2094,7 +2074,7 @@ def categorize_suggestion(suggestion):
     elif any(term in suggestion_lower for term in [
         "inheritance misuse", "misuse of polymorphism", "encapsulation violation",
         "tight coupling", "improper abstraction", "large class",
-        "single responsibility principle violation","violation of SOLID principles",
+        "single responsibility principle violation", "violation of SOLID principles",
         "deep inheritance chain"
     ]):
         return "Object-Oriented Design Issues"
@@ -2132,7 +2112,7 @@ def categorize_suggestion(suggestion):
     # Multithreading & Concurrency Issues
     elif any(term in suggestion_lower for term in [
         "race condition", "deadlock", "thread safety", "improper synchronization",
-        "mutex missing", "concurrent modification","synchronized misuse",
+        "mutex missing", "concurrent modification", "synchronized misuse",
         "volatile misuse", "executor service not shut down",
         "concurrent hashmap instead of hashmap"
     ]):
@@ -2175,7 +2155,6 @@ def determine_severity(suggestion):
 
     # Default to Low if no matches
     return "Low"
-
 
 
 # @api_view(['GET', 'POST'])
@@ -2432,7 +2411,6 @@ def drink_detail(request, id, format=None):
 #         return Response(complexity, status=status.HTTP_200_OK)
 
 
-
 @api_view(['GET', 'POST'])
 def calculate_complexity_line_by_line(request):
     if request.method == 'POST':
@@ -2460,6 +2438,50 @@ def get_thresholds():
         return thresholds
     # Default values if the file doesn't exist
     return {'threshold_low': 10, 'threshold_medium': 20}
+
+
+# Load OpenAI API ke
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+
+def get_refactored_code(original_code, recommendation_block):
+    prompt = f"""
+You are a senior Java software engineer.
+
+Refactor the entire Java class below using the provided line-level suggestions as a starting point. 
+However, don't just fix those lines — analyze the whole class and reduce code complexity wherever necessary.
+
+**Your main goals:**
+- Eliminate deep nesting using guard clauses
+- Break large methods into smaller helper methods
+- Improve method and variable naming
+- Improve modularity and readability
+
+Be assertive. If a method looks too complex, restructure it fully. Especially focus on methods like 'processHierarchyValues' that contain deeply nested conditionals and loops.
+
+### Suggestions with Line Context:
+{recommendation_block}
+
+### Original Java Class:
+{original_code}
+
+### Refactored Java Class:
+"""
+
+    try:
+        gpt_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a professional Java refactoring assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=2048
+        )
+        return gpt_response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Refactoring error: {e}"
 
 
 @api_view(['GET', 'POST'])
@@ -2541,6 +2563,43 @@ def calculate_complexity_multiple_java_files(request):
                     else:
                         print(f"Unexpected format in method_data: {method_data}")
 
+                # high_method_names = [method['method_name'] for method in categorized_methods if
+                #                      method['category'] == 'High']
+
+                # print("high_method_names::::::::::::::::::::", high_method_names)
+                recommendation_strings = [
+                    f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
+                    for rec in recommendations
+                    if rec.get('recommendation')
+                ]
+
+                print(":::::::::::::::::::::::::::::::::::", recommendation_strings)
+
+                recommendation_block = "\n".join(recommendation_strings)
+
+                print(":::::::::::::::::::::::::::::::::::", recommendation_block)
+
+                refactored_class_code = get_refactored_code(java_code, recommendation_block)
+                if refactored_class_code.strip().startswith("```java"):
+                    refactored_class_code = refactored_class_code.strip()
+                    refactored_class_code = refactored_class_code.removeprefix("```java").removesuffix("```").strip()
+
+                # Step 1: Prepare dictionary format
+                refactored_file_contents = {
+                    "RefactoredClass.java": refactored_class_code
+                }
+
+                # Step 2: Run complexity analysis
+                complexity_results, _ = calculate_code_complexity_multiple_files(refactored_file_contents)
+
+                # # Step 3: Extract WCC
+                total_wcc_refactored = complexity_results["RefactoredClass.java"]["total_wcc"]
+
+                if total_wcc > 0:
+                    percentage_reduction = round(((total_wcc - total_wcc_refactored) / total_wcc) * 100, 2)
+                else:
+                    percentage_reduction = 0.0
+
                 complexities.append({
                     'filename': filename,
                     'complexity_data': complexity_data,
@@ -2549,7 +2608,10 @@ def calculate_complexity_multiple_java_files(request):
                     'method_complexities': categorized_methods,
                     'recommendations': recommendations,
                     'pie_chart_path': pie_chart_path,
-                    'total_wcc': total_wcc
+                    'total_wcc': total_wcc,
+                    'refactored_class_code': refactored_class_code,
+                    'refactored_total_wcc': total_wcc_refactored,
+                    'percentage_reduction': percentage_reduction
                 })
 
             # Extract CBO Predictions & Recommendations
@@ -2939,10 +3001,10 @@ def calculate_complexity(request):
             # Generate WCC Clustering and Thresholds Graph
             plt.figure(figsize=(10, 6))
             sns.scatterplot(x=np.arange(len(wcc_values)), y=wcc_values.flatten(), hue=clusters, palette="coolwarm",
-                                s=100)
+                            s=100)
             plt.axhline(y=low_center, color='red', linestyle='--', label=f'Low Threshold ({round(low_center, 2)})')
             plt.axhline(y=high_center, color='green', linestyle='--',
-                            label=f'High Threshold ({round(high_center, 2)})')
+                        label=f'High Threshold ({round(high_center, 2)})')
             plt.title("WCC Clustering and Thresholds using K-Means")
             plt.xlabel("Sample Index")
             plt.ylabel("WCC Values")
