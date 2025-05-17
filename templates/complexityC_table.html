@@ -267,6 +267,24 @@
             white-space: pre;
             display: block;
         }
+
+        .high {
+            background-color: #f87171; /* red background */
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .medium {
+            background-color: orange; /* orange background */
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .low {
+            background-color: lightgreen; /* green background */
+            color: #000;
+            font-weight: bold;
+        }
     </style>
 
     <h1 class="text-center">Code Complexity Results for C#</h1>
@@ -341,12 +359,15 @@
                         <td>{% if line.2 != 0 %}{{ line.2 }}{% endif %}</td>
                         <td>{% if line.2 != 0 %}{{ line.3 }}{% endif %}</td>
                         <td>{% if line.2 != 0 %}{{ line.4 }}{% endif %}</td>
-                        <td>{% if line.2 != 0 %}{{ line.5 }}{% endif %}</td>
-                        <td>{% if line.2 != 0 %}{{ line.6 }}{% endif %}</td>
-                        <td>{% if line.2 != 0 %}{{ line.7 }}{% endif %}</td>
-                        <td>{% if line.2 != 0 %}{{ line.8 }}{% endif %}</td>
+                        <td class="{% if line.5 >= 5 %}high{% endif %}">{% if line.2 != 0 %}{{ line.5 }}{% endif %}</td>
+                        <td class="{% if line.6 >= 5 %}high{% elif line.6 >= 3 %}medium{% endif %}">
+                            {% if line.2 != 0 %}{{ line.6 }}{% endif %}</td>
+                        <td class="{% if line.7 > 5 %}high{% endif %}">{% if line.2 != 0 %}{{ line.7 }}{% endif %}</td>
+                        <td class="{% if line.8 > 5 %}high{% elif line.8 > 3 %}medium{% endif %}">
+                            {% if line.2 != 0 %}{{ line.8 }}{% endif %}</td>
                         <td>{% if line.2 != 0 %}{{ line.9 }}{% endif %}</td>
-                        <td>{% if line.2 != 0 %}{{ line.10 }}{% endif %}</td>
+                        <td class="{% if line.10 == 1 %}low{% endif %}">
+                            {% if line.2 != 0 %}{{ line.10 }}{% endif %}</td>
                         <td>{% if line.2 != 0 %}{{ line.11 }}{% endif %}</td>
                         <td>{% if line.2 != 0 %}{{ line.12 }}{% endif %}</td>
                     </tr>
@@ -466,6 +487,62 @@
                 </tbody>
             </table>
         </div>
+
+        {% if file.was_refactored %}
+            <div class="container mt-5">
+                <h3>Refactored Code Diff – {{ file.filename }} (Based on Recommendations)</h3>
+
+                <div class="row text-center text-light mt-4">
+                        <!-- Previous Total WCC -->
+                        <div class="col-md-4">
+                            <p><strong>🧮 Previous WCC</strong></p>
+                            <h4 style="color: #f87171; font-size: 2rem;">{{ file.total_wcc }}</h4>
+                        </div>
+
+                        <!-- Complexity Reduction -->
+                        <div class="col-md-4">
+                            <p><strong>📉 Complexity Reduction</strong></p>
+                            <h4 style="color: {% if file.percentage_reduction > 0 %}lightgreen{% else %}orange{% endif %}; font-size: 2rem;">
+                                {% if file.percentage_reduction > 0 %}
+                                    {{ file.percentage_reduction }}% <i class="fas fa-arrow-down"></i>
+                                {% else %}
+                                    No improvement
+                                {% endif %}
+                            </h4>
+                        </div>
+
+                        <!-- Refactored Total WCC -->
+                        <div class="col-md-4">
+                            <p><strong>🔁 Refactored WCC</strong></p>
+                            <h4 style="color: #58a6ff; font-size: 2rem;">{{ file.refactored_total_wcc }}</h4>
+                        </div>
+                    </div>
+
+                <div id="monaco-diff-editor-{{ forloop.counter }}" style="height: 500px; border: 1px solid #ccc;"></div>
+
+                <script>
+                    const originalCode{{ forloop.counter }} = `{{ file.original_code|escapejs }}`;
+                    const refactoredCode{{ forloop.counter }} = `{{ file.refactored_class_code|escapejs }}`;
+
+                    require.config({paths: {'vs': 'https://unpkg.com/monaco-editor@latest/min/vs'}});
+                    require(['vs/editor/editor.main'], function () {
+                        const diffEditor = monaco.editor.createDiffEditor(
+                            document.getElementById("monaco-diff-editor-{{ forloop.counter }}"),
+                            {
+                                theme: "vs-dark",
+                                automaticLayout: true,
+                                readOnly: true
+                            }
+                        );
+
+                        diffEditor.setModel({
+                            original: monaco.editor.createModel(originalCode{{ forloop.counter }}, "csharp"),
+                            modified: monaco.editor.createModel(refactoredCode{{ forloop.counter }}, "csharp")
+                        });
+                    });
+                </script>
+            </div>
+        {% endif %}
 
         <div class="container-custom mt-5">
             <h3>🔍 CBO Analysis</h3>

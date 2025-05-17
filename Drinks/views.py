@@ -2484,11 +2484,50 @@ Be assertive. If a method looks too complex, restructure it fully. Especially fo
         return f"Refactoring error: {e}"
 
 
+def get_refactored_code_csharp(original_code, recommendation_block):
+    prompt = f"""
+You are a senior C# software engineer.
+
+Refactor the entire C# class below using the provided line-level suggestions as a starting point. 
+However, don't just fix those lines — analyze the whole class and reduce code complexity wherever necessary.
+
+**Your main goals:**
+- Eliminate deep nesting using guard clauses
+- Break large methods into smaller helper methods
+- Improve method and variable naming
+- Improve modularity and readability
+- Follow clean code and SOLID principles
+
+Be assertive. If a method looks too complex, restructure it fully. Especially focus on deeply nested conditionals and long methods.
+
+### Suggestions with Line Context:
+{recommendation_block}
+
+### Original C# Class:
+{original_code}
+
+### Refactored C# Class:
+"""
+
+    try:
+        gpt_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a professional C# refactoring assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=2048
+        )
+        return gpt_response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Refactoring error: {e}"
+
 @api_view(['GET', 'POST'])
 def calculate_complexity_multiple_java_files(request):
     if request.method == 'POST':
         try:
-            # Expecting multiple Java files in the request
+            # Expecting multiple Java files in the reques
             files = request.FILES.getlist('files')
             if not files:
                 return Response({'error': 'No files uploaded'}, status=status.HTTP_400_BAD_REQUEST)
@@ -2497,7 +2536,6 @@ def calculate_complexity_multiple_java_files(request):
 
             # Load thresholds from the JSON file
             thresholds = get_thresholds()
-            print("thresholds<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>", thresholds)
             threshold_low = thresholds.get('threshold_low', 10)
             # threshold_medium = thresholds.get('threshold_medium', 20)
             threshold_high = thresholds.get('threshold_high', 50)
@@ -2525,12 +2563,6 @@ def calculate_complexity_multiple_java_files(request):
                 pie_chart_path = file_data.get('pie_chart_path', '')
                 total_wcc = file_data.get('total_wcc', 0)
                 bar_charts = file_data.get('bar_charts', {})
-
-                # java_file, created = JavaFile.objects.update_or_create(
-                #     filename=filename,
-                #     defaults={'total_wcc': file_data.get('total_wcc', 0)}
-                # )
-                # saved_files.append({'filename': filename, 'total_wcc': java_file.total_wcc})
 
                 java_code = file_contents.get(filename, "")
 
@@ -2563,9 +2595,6 @@ def calculate_complexity_multiple_java_files(request):
                     else:
                         print(f"Unexpected format in method_data: {method_data}")
 
-                # high_method_names = [method['method_name'] for method in categorized_methods if
-                #                      method['category'] == 'High']
-
                 # print("high_method_names::::::::::::::::::::", high_method_names)
                 recommendation_strings = [
                     f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
@@ -2579,10 +2608,24 @@ def calculate_complexity_multiple_java_files(request):
 
                 print(":::::::::::::::::::::::::::::::::::", recommendation_block)
 
-                refactored_class_code = get_refactored_code(java_code, recommendation_block)
-                if refactored_class_code.strip().startswith("```java"):
-                    refactored_class_code = refactored_class_code.strip()
-                    refactored_class_code = refactored_class_code.removeprefix("```java").removesuffix("```").strip()
+                has_high_complexity = any(method['category'] == 'High' for method in categorized_methods)
+
+                was_refactored = False
+
+                if has_high_complexity and recommendation_block.strip():
+                    refactored_class_code = get_refactored_code(java_code, recommendation_block)
+
+                    # Optional: clean up formatting
+                    if refactored_class_code.strip().startswith("```java"):
+                        refactored_class_code = (
+                            refactored_class_code.strip()
+                            .removeprefix("```java")
+                            .removesuffix("```")
+                            .strip()
+                        )
+                    was_refactored = True
+                else:
+                    refactored_class_code = java_code
 
                 # Step 1: Prepare dictionary format
                 refactored_file_contents = {
@@ -2611,7 +2654,9 @@ def calculate_complexity_multiple_java_files(request):
                     'total_wcc': total_wcc,
                     'refactored_class_code': refactored_class_code,
                     'refactored_total_wcc': total_wcc_refactored,
-                    'percentage_reduction': percentage_reduction
+                    'percentage_reduction': percentage_reduction,
+                    'was_refactored': was_refactored,
+                    'original_code': java_code,
                 })
 
             # Extract CBO Predictions & Recommendations
@@ -2733,7 +2778,7 @@ def calculate_complexity_line_by_line_csharp(request):
 @api_view(['GET', 'POST'])
 def calculate_complexity_multiple_csharp_files(request):
     if request.method == 'POST':
-        # Expecting multiple Java files in the request
+        # Expecting multiple Java files in the reques
         files = request.FILES.getlist('files')
         if not files:
             return Response({'error': 'No files uploaded'}, status=status.HTTP_400_BAD_REQUEST)
@@ -2741,7 +2786,7 @@ def calculate_complexity_multiple_csharp_files(request):
         file_contents = {}
         for file in files:
             # Read the content of each file
-            content = file.read().decode('utf-8')  # Assuming the files are UTF-8 encoded
+            content = file.read().decode('utf-8')  # Assuming the files are UTF-8 encode
             file_contents[file.name] = content
 
         # Load thresholds from the JSON file
@@ -2780,6 +2825,8 @@ def calculate_complexity_multiple_csharp_files(request):
             total_wcc = file_data['total_wcc']
             bar_charts = file_data.get('bar_charts', {})
 
+            csharp_code = file_contents.get(filename, "")
+
             save_complexity_to_db_csharp(filename, file_contents[filename], total_wcc, method_complexities)
 
             for line_data in complexity_data:
@@ -2798,12 +2845,6 @@ def calculate_complexity_multiple_csharp_files(request):
                     else:
                         category = 'High'
 
-                    # Append category to the method data
-                    # categorized_method = method_data.copy()
-                    # categorized_method['category'] = category
-                    # categorized_method['method_name'] = method_name
-                    # categorized_methods.append(categorized_method)
-
                     categorized_methods.append({
                         **method_data,
                         'category': category,
@@ -2813,7 +2854,50 @@ def calculate_complexity_multiple_csharp_files(request):
                 else:
                     print(f"Unexpected format in method_data: {method_data}")
 
-                # print("categorized_method", categorized_method)
+            recommendation_strings = [
+                f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
+                for rec in recommendations
+                if rec.get('recommendation')
+            ]
+
+            recommendation_block = "\n".join(recommendation_strings)
+
+            has_high_complexity = any(method['category'] == 'High' for method in categorized_methods)
+
+            was_refactored = False
+
+            if has_high_complexity and recommendation_block.strip():
+                refactored_class_code = get_refactored_code_csharp(csharp_code, recommendation_block)
+
+                # Optional: clean up formatting
+                if refactored_class_code.strip().startswith("```csharp"):
+                    refactored_class_code = (
+                        refactored_class_code.strip()
+                        .removeprefix("```csharp")
+                        .removesuffix("```")
+                        .strip()
+                    )
+                was_refactored = True
+            else:
+                refactored_class_code = csharp_code
+
+            # Step 1: Prepare dictionary format
+            refactored_file_contents = {
+                "RefactoredClass.cs": refactored_class_code
+            }
+
+            # Step 2: Run complexity analysis
+            complexity_results, _ = calculate_code_complexity_multiple_files_csharp(refactored_file_contents)
+
+            # # Step 3: Extract WCC
+            total_wcc_refactored = complexity_results["RefactoredClass.cs"]["total_wcc"]
+
+            if total_wcc > 0:
+                percentage_reduction = round(((total_wcc - total_wcc_refactored) / total_wcc) * 100, 2)
+            else:
+                percentage_reduction = 0.0
+
+
             complexities.append({
                 'filename': filename,
                 'complexity_data': complexity_data,
@@ -2822,7 +2906,12 @@ def calculate_complexity_multiple_csharp_files(request):
                 'method_complexities': categorized_methods,
                 'recommendations': recommendations,
                 'pie_chart_path': pie_chart_path,
-                'total_wcc': total_wcc
+                'total_wcc': total_wcc,
+                'refactored_class_code': refactored_class_code,
+                'refactored_total_wcc': total_wcc_refactored,
+                'percentage_reduction': percentage_reduction,
+                'was_refactored': was_refactored,
+                'original_code': csharp_code,
             })
 
         # Log the result table for debugging or reference
@@ -2869,7 +2958,7 @@ def calculate_complexity_multiple_csharp_files(request):
             'method_complexities': method_list
         })
 
-    # If GET request, just show the form
+    # If GET request, just show the for
     return render(request, 'complexityC_form.html', {'complexities': complexities})
 
 
