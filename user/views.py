@@ -25,14 +25,14 @@ from user.models import UserProfile
 
 class UserAPI(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [AllowAny]
-
+    permission_classes = [IsAuthenticated]  # ✅ Enforce token-based access
 
     def get(self, request):
         user = request.user
         if not user.is_authenticated:
             raise NotAuthenticated()
         return Response({
+            "id": user.id,  # ✅ Add this line
             "username": user.username,
             "first_name": user.first_name,
             "last_name": user.last_name,
@@ -120,25 +120,6 @@ def logout_all(request):
     for token in tokens:
         token.blacklist()
     return Response({'message': 'Successfully logged out from all sessions.'}, status=200)
-
-
-# def update_user_streak(user):
-#     """Ensure the user's streak is updated when they play."""
-#     today = date.today()
-#     user_profile, created = UserProfile.objects.get_or_create(user=user)
-#
-#     latest_score = GitGameScore.objects.filter(user=user).order_by("-last_played").first()
-#
-#     if latest_score and latest_score.last_played:
-#         if latest_score.last_played == today - timedelta(days=1):
-#             user_profile.current_streak += 1
-#         else:
-#             user_profile.current_streak = 1
-#
-#     if user_profile.current_streak > user_profile.longest_streak:
-#         user_profile.longest_streak = user_profile.current_streak
-#
-#     user_profile.save()
 
 
 # @api_view(['GET'])
