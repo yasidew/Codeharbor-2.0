@@ -156,7 +156,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Toastify JS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
 </head>
 <body class="dark-mode">
 <div class="wrapper">
@@ -175,19 +174,19 @@
                         <p>Settings</p></a></li>
                     <li><a href="#"><i class="bi-card-list"></i>
                         <p>Home</p></a></li>
-{#                    <li><a href="http://127.0.0.1:8000/api/logout"><i class="bi bi-box-arrow-right"></i>#}
-{#                        <p>Logout</p></a></li>#}
+                    {#                    <li><a href="http://127.0.0.1:8000/api/logout"><i class="bi bi-box-arrow-right"></i>#}
+                    {#                        <p>Logout</p></a></li>#}
                     <li><a href="#" onclick="logoutUser(); return false;"> <i class="bi bi-box-arrow-right"></i>
-                    <p>Logout</p></a></li>
+                        <p>Logout</p></a></li>
                 </ul>
                 {% if "/games/github-scraper/" in request.path %}
-                <!-- Sidebar for Accessibility & Gamification -->
-                <hr>
-                <ul class="nav">
-                    <li><a href="#"><i class="bi bi-trophy"></i>
-                        <p>Leaderboard</p></a></li>
-                </ul>
-            {% endif %}
+                    <!-- Sidebar for Accessibility & Gamification -->
+                    <hr>
+                    <ul class="nav">
+                        <li><a href="#"><i class="bi bi-trophy"></i>
+                            <p>Leaderboard</p></a></li>
+                    </ul>
+                {% endif %}
             </div>
         </div>
     {% endblock %}
@@ -327,5 +326,3 @@
 </script>
 </body>
 </html>
-
-

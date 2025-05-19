@@ -448,7 +448,6 @@ def is_java_code(code):
     except (javalang.parser.JavaSyntaxError, javalang.tokenizer.LexerError):
         return False
 
-
 @api_view(['GET', 'POST'])
 def java_code_analysis(request):
     """
@@ -550,7 +549,7 @@ def java_code_analysis(request):
                         print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
                         continue
 
-                    final_suggestion = f"Suggestion:\n{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
+                    final_suggestion = f"\n{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
 
                 else:
                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
@@ -561,7 +560,7 @@ def java_code_analysis(request):
                         continue
 
                     model_suggestion = java_generate_suggestion(snippet)
-                    final_suggestion = f"Suggestion:\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
+                    final_suggestion = f"\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
 
                     if not JavaCodeSnippet.objects.filter(snippet=snippet).exists():
                         JavaCodeSnippet.objects.create(
@@ -1688,8 +1687,31 @@ def ai_generate_guideline(summary):
 #         if guideline:
 #             base_instruction += f"\nAlso consider this company coding guideline:\n{guideline}"
 #
-#     # Check if at least 2 Python-specific keywords exist
-#     return sum(1 for kw in python_keywords if kw in code) >= 2
+#         response = client.chat.completions.create(
+#             model="gpt-4o",
+#             messages=[
+#                 {"role": "system", "content": base_instruction},
+#                 {"role": "user", "content": f"Here is the code analysis summary:\n{summary}"}
+#             ],
+#             max_tokens=400,
+#             temperature=0.2
+#         )
+#
+#         # 🧠 Extract AI response
+#         guideline_response = response.choices[0].message.content
+#
+#         # 🧼 Format for HTML rendering
+#         formatted = guideline_response.replace("🚀 **Final Coding Guideline** 🚀", "<h3>🚀 Final Coding Guideline 🚀</h3>") \
+#             .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
+#             .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
+#             .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \
+#             .replace("4️⃣ **Reference Links / Guidelines:**", "</ul><h4>📚 Reference Guideline</h4><ul>")
+#
+#         return formatted
+#
+#     except Exception as e:
+#         return f"Error generating final guideline: {str(e)}"
+
 
 
 def is_python_code(code):
@@ -2008,6 +2030,12 @@ def analyze_code_view(request):
 #         'analyze_code.html',
 #         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
 #     )
+
+#
+
+
+
+
 
 
 

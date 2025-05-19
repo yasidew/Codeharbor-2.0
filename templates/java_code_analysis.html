@@ -165,15 +165,15 @@
                 <h2 class="text-center mb-4">Analysis Results:</h2>
                 <div class="recommendation-container scrollable-container">
                     {% for suggestion in suggestions %}
-{#                        <div class="code-block">#}
-                            {#                            <strong>📂 File Name: {{ suggestion.file_name }}</strong> <br> <!-- ✅ Show File Name -->#}
-{#                            <strong>🔹 Code With Issue:</strong>#}
-{#                            <pre>{{ suggestion.code }}</pre>#}
-{#                        </div>#}
-{#                        <div class="suggestion-block">#}
-{#                            <strong>💡 Suggestion:</strong>#}
-{#                            <pre>{{ suggestion.suggestion | safe }}</pre>#}
-{#                        </div>#}
+                        {#                        <div class="code-block">#}
+                        {#                            <strong>📂 File Name: {{ suggestion.file_name }}</strong> <br> <!-- ✅ Show File Name -->#}
+                        {#                            <strong>🔹 Code With Issue:</strong>#}
+                        {#                            <pre>{{ suggestion.code }}</pre>#}
+                        {#                        </div>#}
+                        {#                        <div class="suggestion-block">#}
+                        {#                            <strong>💡 Suggestion:</strong>#}
+                        {#                            <pre>{{ suggestion.suggestion | safe }}</pre>#}
+                        {#                        </div>#}
                         <div class="card mb-4 shadow-sm border-0 rounded-lg suggestion-card" style="background-color: #1e1e2f; color: #ffffff;">
                             <div class="card-header d-flex justify-content-between align-items-center bg-transparent border-bottom border-secondary">
                                 <h5 class="mb-0 text-warning fw-bold">
@@ -251,33 +251,33 @@
 
 
                         <hr>
-{#                        <h4>Categories</h4>#}
-{#                      #}
-{#                        <div class="category-container">#}
-{#                            <ul class="list-group">#}
-{#                                {% for category, count in summary.categories.items %}#}
-{#                                    <li class="list-group-item d-flex justify-content-between align-items-center category-toggle"#}
-{#                                        data-category="{{ category }}">#}
-{#                                        {{ category }}#}
-{#                                        <span class="badge bg-primary rounded-pill">{{ count }}</span>#}
-{#                                    </li>#}
-{#                                    <div class="category-details" id="{{ category|slugify }}-details" style="display: none;">#}
-{#                                        {% for suggestion in suggestions %}#}
-{#                                            {% if suggestion.category == category %}#}
-{#                                                <div class="code-block">#}
-{#                                                    <strong>Code With Issue (Line {{ suggestion.line }}):</strong>#}
-{#                                                    <pre>{{ suggestion.code }}</pre>#}
-{#                                                </div>#}
-{#                                                <div class="suggestion-block">#}
-{#                                                    <strong>Suggestion:</strong>#}
-{#                                                    <pre>{{ suggestion.suggestion | safe }}</pre>#}
-{#                                                </div>#}
-{#                                            {% endif %}#}
-{#                                        {% endfor %}#}
-{#                                    </div>#}
-{#                                {% endfor %}#}
-{#                            </ul>#}
-{#                        </div>#}
+                        {#                        <h4>Categories</h4>#}
+                        {#                      #}
+                        {#                        <div class="category-container">#}
+                        {#                            <ul class="list-group">#}
+                        {#                                {% for category, count in summary.categories.items %}#}
+                        {#                                    <li class="list-group-item d-flex justify-content-between align-items-center category-toggle"#}
+                        {#                                        data-category="{{ category }}">#}
+                        {#                                        {{ category }}#}
+                        {#                                        <span class="badge bg-primary rounded-pill">{{ count }}</span>#}
+                        {#                                    </li>#}
+                        {#                                    <div class="category-details" id="{{ category|slugify }}-details" style="display: none;">#}
+                        {#                                        {% for suggestion in suggestions %}#}
+                        {#                                            {% if suggestion.category == category %}#}
+                        {#                                                <div class="code-block">#}
+                        {#                                                    <strong>Code With Issue (Line {{ suggestion.line }}):</strong>#}
+                        {#                                                    <pre>{{ suggestion.code }}</pre>#}
+                        {#                                                </div>#}
+                        {#                                                <div class="suggestion-block">#}
+                        {#                                                    <strong>Suggestion:</strong>#}
+                        {#                                                    <pre>{{ suggestion.suggestion | safe }}</pre>#}
+                        {#                                                </div>#}
+                        {#                                            {% endif %}#}
+                        {#                                        {% endfor %}#}
+                        {#                                    </div>#}
+                        {#                                {% endfor %}#}
+                        {#                            </ul>#}
+                        {#                        </div>#}
                         <div class="category-section mt-4">
                             <h4 class="text-center text-light fw-bold mb-4">
                                 🚀 Category-Wise Insights
@@ -337,32 +337,32 @@
 
 
                         <br><hr>
-{#                        <h4>Severity Levels</h4>#}
-{#                        <div class="severity-container">#}
-{#                            <ul class="list-group">#}
-{#                                {% for level, count in summary.severity.items %}#}
-{#                                    <li class="list-group-item d-flex justify-content-between align-items-center severity-toggle"#}
-{#                                        data-severity="{{ level }}">#}
-{#                                        {{ level }}#}
-{#                                        <span class="badge bg-warning rounded-pill">{{ count }}</span>#}
-{#                                    </li>#}
-{#                                    <div class="severity-details" id="{{ level|lower }}-details" style="display: none;">#}
-{#                                        {% for suggestion in suggestions %}#}
-{#                                            {% if suggestion.severity == level %}#}
-{#                                                <div class="code-block">#}
-{#                                                    <strong>Code With Issue (Line {{ suggestion.line }}):</strong>#}
-{#                                                    <pre>{{ suggestion.code }}</pre>#}
-{#                                                </div>#}
-{#                                                <div class="suggestion-block">#}
-{#                                                    <strong>Suggestion:</strong>#}
-{#                                                    <pre>{{ suggestion.suggestion | safe }}</pre>#}
-{#                                                </div>#}
-{#                                            {% endif %}#}
-{#                                        {% endfor %}#}
-{#                                    </div>#}
-{#                                {% endfor %}#}
-{#                            </ul>#}
-{#                        </div>#}
+                        {#                        <h4>Severity Levels</h4>#}
+                        {#                        <div class="severity-container">#}
+                        {#                            <ul class="list-group">#}
+                        {#                                {% for level, count in summary.severity.items %}#}
+                        {#                                    <li class="list-group-item d-flex justify-content-between align-items-center severity-toggle"#}
+                        {#                                        data-severity="{{ level }}">#}
+                        {#                                        {{ level }}#}
+                        {#                                        <span class="badge bg-warning rounded-pill">{{ count }}</span>#}
+                        {#                                    </li>#}
+                        {#                                    <div class="severity-details" id="{{ level|lower }}-details" style="display: none;">#}
+                        {#                                        {% for suggestion in suggestions %}#}
+                        {#                                            {% if suggestion.severity == level %}#}
+                        {#                                                <div class="code-block">#}
+                        {#                                                    <strong>Code With Issue (Line {{ suggestion.line }}):</strong>#}
+                        {#                                                    <pre>{{ suggestion.code }}</pre>#}
+                        {#                                                </div>#}
+                        {#                                                <div class="suggestion-block">#}
+                        {#                                                    <strong>Suggestion:</strong>#}
+                        {#                                                    <pre>{{ suggestion.suggestion | safe }}</pre>#}
+                        {#                                                </div>#}
+                        {#                                            {% endif %}#}
+                        {#                                        {% endfor %}#}
+                        {#                                    </div>#}
+                        {#                                {% endfor %}#}
+                        {#                            </ul>#}
+                        {#                        </div>#}
 
                         <div class="severity-section mt-5">
                             <h4 class="text-center text-light fw-bold mb-4">
@@ -441,7 +441,7 @@
                         </a>
                     </div>
 
-                   
+
 
 
                 </div>
@@ -455,14 +455,14 @@
             </div>
             <!-- Developer Guideline Section -->
             {% if final_guideline %}
-{#                <div class="container mt-5">#}
-{#                    <div class="guideline-panel p-4 shadow-lg rounded text-center">#}
-{#                        <h3 class="guideline-title mb-3">#}
-{#                            <i class="fas fa-lightbulb"></i> Final Coding Guideline#}
-{#                        </h3>#}
-{#                        <p class="guideline-content">{{ final_guideline | safe }}</p>#}
-{#                    </div>#}
-{#                </div>#}
+                {#                <div class="container mt-5">#}
+                {#                    <div class="guideline-panel p-4 shadow-lg rounded text-center">#}
+                {#                        <h3 class="guideline-title mb-3">#}
+                {#                            <i class="fas fa-lightbulb"></i> Final Coding Guideline#}
+                {#                        </h3>#}
+                {#                        <p class="guideline-content">{{ final_guideline | safe }}</p>#}
+                {#                    </div>#}
+                {#                </div>#}
                 <div class="container mt-5">
                     <div class="guideline-panel p-4 shadow-lg rounded text-white" style="background: linear-gradient(145deg, #0f2027, #203a43, #2c5364); border-left: 6px solid #ffc107;">
                         <div class="text-center mb-4">
@@ -768,173 +768,173 @@
 
 
         //toast messages
-            document.addEventListener("DOMContentLoaded", function () {
-                // Function to show Bootstrap toast messages
-                function showToast(message, type = "primary") {
-                    const toastElement = document.getElementById("generalToast");
-                    const toastMessage = document.getElementById("toastMessage");
+        document.addEventListener("DOMContentLoaded", function () {
+            // Function to show Bootstrap toast messages
+            function showToast(message, type = "primary") {
+                const toastElement = document.getElementById("generalToast");
+                const toastMessage = document.getElementById("toastMessage");
 
-                    // Update message and class based on type
-                    toastMessage.innerHTML = message;
-                    toastElement.className = `toast align-items-center text-white bg-${type} border-0`;
+                // Update message and class based on type
+                toastMessage.innerHTML = message;
+                toastElement.className = `toast align-items-center text-white bg-${type} border-0`;
 
-                    // Show toast
-                    const toast = new bootstrap.Toast(toastElement);
-                    toast.show();
+                // Show toast
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+            }
+
+            // 🎯 1️⃣ Show Toast When Uploading a File
+            document.getElementById('fileInput').addEventListener('change', function () {
+                if (this.files.length > 0) {
+                    showToast("📂 File uploaded successfully!", "success");
                 }
+            });
 
-                // 🎯 1️⃣ Show Toast When Uploading a File
-                document.getElementById('fileInput').addEventListener('change', function () {
-                    if (this.files.length > 0) {
-                        showToast("📂 File uploaded successfully!", "success");
-                    }
-                });
+            // 🎯 2️⃣ Show Toast When Importing from GitHub
+            document.getElementById("analyzeGithubBtn").addEventListener("click", function () {
+                const repoUrl = document.getElementById("githubRepoUrl").value.trim();
+                if (repoUrl) {
+                    showToast("🔄 Fetching repository data from GitHub...", "info");
+                } else {
+                    showToast("⚠️ Please enter a valid GitHub repository URL!", "danger");
+                }
+            });
 
-                // 🎯 2️⃣ Show Toast When Importing from GitHub
-                document.getElementById("analyzeGithubBtn").addEventListener("click", function () {
-                    const repoUrl = document.getElementById("githubRepoUrl").value.trim();
-                    if (repoUrl) {
-                        showToast("🔄 Fetching repository data from GitHub...", "info");
+            // 🎯 3️⃣ Show Toast When Analysis Begins
+            document.querySelector("form").addEventListener("submit", function () {
+                showToast("⚡ Code analysis started. Please wait...", "warning");
+            });
+
+            // 🎯 4️⃣ Show Toast When Analysis Results Are Available
+            const analysisResults = document.getElementById("analysis-results");
+            if (analysisResults && analysisResults.innerHTML.trim().length > 0) {
+                showToast("✅ Code analysis completed!", "success");
+            }
+        });
+
+
+
+
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            Chart.defaults.color = "#ffffff"; // ✅ Make all text white
+            Chart.defaults.font.size = 12; // ✅ Adjust font size for better visibility
+            // Toggle severity details
+            document.querySelectorAll(".severity-toggle").forEach(item => {
+                item.addEventListener("click", function () {
+                    const severity = this.getAttribute("data-severity").toLowerCase();
+                    const details = document.getElementById(severity + "-details");
+
+                    if (details.style.display === "none") {
+                        details.style.display = "block";
                     } else {
-                        showToast("⚠️ Please enter a valid GitHub repository URL!", "danger");
-                    }
-                });
-
-                // 🎯 3️⃣ Show Toast When Analysis Begins
-                document.querySelector("form").addEventListener("submit", function () {
-                    showToast("⚡ Code analysis started. Please wait...", "warning");
-                });
-
-                // 🎯 4️⃣ Show Toast When Analysis Results Are Available
-                const analysisResults = document.getElementById("analysis-results");
-                if (analysisResults && analysisResults.innerHTML.trim().length > 0) {
-                    showToast("✅ Code analysis completed!", "success");
-                }
-            });
-            
-            
-            
-
-
-
-            document.addEventListener("DOMContentLoaded", function () {
-
-                Chart.defaults.color = "#ffffff"; // ✅ Make all text white
-                Chart.defaults.font.size = 12; // ✅ Adjust font size for better visibility
-                // Toggle severity details
-                document.querySelectorAll(".severity-toggle").forEach(item => {
-                    item.addEventListener("click", function () {
-                        const severity = this.getAttribute("data-severity").toLowerCase();
-                        const details = document.getElementById(severity + "-details");
-
-                        if (details.style.display === "none") {
-                            details.style.display = "block";
-                        } else {
-                            details.style.display = "none";
-                        }
-                    });
-                });
-
-
-                const severityChart = new Chart(document.getElementById('severityChart'), {
-                    type: 'pie',
-                    data: {
-                        labels: Object.keys({{ summary.severity|safe }}),
-                        datasets: [{
-                            label: 'Severity Levels',
-                            data: Object.values({{ summary.severity|safe }}),
-                            backgroundColor: ['#FF6384', '#FFCE56', '#4BC0C0'],
-                            borderColor: ['#FF6384', '#FFCE56', '#4BC0C0'],
-                            borderWidth: 1
-                        }]
-                    },
-                });
-            });
-
-            document.addEventListener("DOMContentLoaded", function () {
-                document.querySelectorAll(".category-toggle").forEach(item => {
-                    item.addEventListener("click", function () {
-                        const category = this.getAttribute("data-category");
-                        const details = document.getElementById(category.replace(/\s+/g, '-').toLowerCase() + "-details");
-
-                        if (details) {
-                            details.style.display = details.style.display === "none" ? "block" : "none";
-                        }
-                    });
-                });
-
-                // Define more colors for categories
-                const colorPalette = [
-                    'rgba(75, 192, 192, 1)',   // Teal
-                    'rgba(153, 102, 255, 1)',  // Purple
-                    'rgba(255, 159, 64, 1)',   // Orange
-                    'rgba(255, 99, 132, 1)',   // Red
-                    'rgba(54, 162, 235, 1)',   // Blue
-                    'rgba(255, 205, 86, 1)',   // Yellow
-                    'rgba(46, 204, 113, 1)',   // Green
-                    'rgba(231, 76, 60, 1)',    // Dark Red
-                    'rgba(241, 196, 15, 1)',   // Bright Yellow
-                    'rgba(155, 89, 182, 1)',   // Deep Purple
-                    'rgba(52, 152, 219, 1)',   // Sky Blue
-                    'rgba(39, 174, 96, 1)',    // Leaf Green
-                    'rgba(243, 156, 18, 1)'    // Orange-Yellow
-                ];
-
-                const borderColorPalette = colorPalette.map(color => color.replace("1", "1")); // Darker border colors
-
-                // Generate category chart
-                const categoryLabels = Object.keys({{ summary.categories|safe }});
-                const categoryDataValues = Object.values({{ summary.categories|safe }});
-
-                const categoryChart = new Chart(document.getElementById('categoryChart'), {
-                    type: 'pie',
-                    data: {
-                        labels: categoryLabels,
-                        datasets: [{
-                            label: 'Categories',
-                            data: categoryDataValues,
-                            backgroundColor: categoryLabels.map((_, index) => colorPalette[index % colorPalette.length]), // Cycle colors
-                            borderColor: categoryLabels.map((_, index) => borderColorPalette[index % borderColorPalette.length]), // Cycle border colors
-                            borderWidth: 1
-                        }]
+                        details.style.display = "none";
                     }
                 });
             });
 
 
+            const severityChart = new Chart(document.getElementById('severityChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys({{ summary.severity|safe }}),
+                    datasets: [{
+                        label: 'Severity Levels',
+                        data: Object.values({{ summary.severity|safe }}),
+                        backgroundColor: ['#FF6384', '#FFCE56', '#4BC0C0'],
+                        borderColor: ['#FF6384', '#FFCE56', '#4BC0C0'],
+                        borderWidth: 1
+                    }]
+                },
+            });
+        });
 
-            // Severity Level Distribution Chart
-            const severityData = {
-                labels: Object.keys({{ summary.severity|safe }}),
-                datasets: [{
-                    label: 'Severity Levels',
-                    data: Object.values({{ summary.severity|safe }}),
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)', // Critical - Red
-                        'rgba(255, 206, 86, 0.2)', // Medium - Yellow
-                        'rgba(75, 192, 192, 0.2)', // Low - Green
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                    ],
-                    borderWidth: 1
-                }]
-            };
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".category-toggle").forEach(item => {
+                item.addEventListener("click", function () {
+                    const category = this.getAttribute("data-category");
+                    const details = document.getElementById(category.replace(/\s+/g, '-').toLowerCase() + "-details");
 
+                    if (details) {
+                        details.style.display = details.style.display === "none" ? "block" : "none";
+                    }
+                });
+            });
 
-            // Handle file upload and display content in the editor
-            document.getElementById('fileInput').addEventListener('change', function (event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        codeMirrorEditor.setValue(e.target.result);
-                    };
-                    reader.readAsText(file);
+            // Define more colors for categories
+            const colorPalette = [
+                'rgba(75, 192, 192, 1)',   // Teal
+                'rgba(153, 102, 255, 1)',  // Purple
+                'rgba(255, 159, 64, 1)',   // Orange
+                'rgba(255, 99, 132, 1)',   // Red
+                'rgba(54, 162, 235, 1)',   // Blue
+                'rgba(255, 205, 86, 1)',   // Yellow
+                'rgba(46, 204, 113, 1)',   // Green
+                'rgba(231, 76, 60, 1)',    // Dark Red
+                'rgba(241, 196, 15, 1)',   // Bright Yellow
+                'rgba(155, 89, 182, 1)',   // Deep Purple
+                'rgba(52, 152, 219, 1)',   // Sky Blue
+                'rgba(39, 174, 96, 1)',    // Leaf Green
+                'rgba(243, 156, 18, 1)'    // Orange-Yellow
+            ];
+
+            const borderColorPalette = colorPalette.map(color => color.replace("1", "1")); // Darker border colors
+
+            // Generate category chart
+            const categoryLabels = Object.keys({{ summary.categories|safe }});
+            const categoryDataValues = Object.values({{ summary.categories|safe }});
+
+            const categoryChart = new Chart(document.getElementById('categoryChart'), {
+                type: 'pie',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        label: 'Categories',
+                        data: categoryDataValues,
+                        backgroundColor: categoryLabels.map((_, index) => colorPalette[index % colorPalette.length]), // Cycle colors
+                        borderColor: categoryLabels.map((_, index) => borderColorPalette[index % borderColorPalette.length]), // Cycle border colors
+                        borderWidth: 1
+                    }]
                 }
             });
+        });
+
+
+
+        // Severity Level Distribution Chart
+        const severityData = {
+            labels: Object.keys({{ summary.severity|safe }}),
+            datasets: [{
+                label: 'Severity Levels',
+                data: Object.values({{ summary.severity|safe }}),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)', // Critical - Red
+                    'rgba(255, 206, 86, 0.2)', // Medium - Yellow
+                    'rgba(75, 192, 192, 0.2)', // Low - Green
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                ],
+                borderWidth: 1
+            }]
+        };
+
+
+        // Handle file upload and display content in the editor
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    codeMirrorEditor.setValue(e.target.result);
+                };
+                reader.readAsText(file);
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function () {
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
