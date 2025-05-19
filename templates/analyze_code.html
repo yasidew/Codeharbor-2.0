@@ -307,10 +307,17 @@
                                                 aria-expanded="false"
                                                 aria-controls="collapse-{{ forloop.counter }}">
                                             <div class="d-flex justify-content-between align-items-center w-100">
-                                                <span class="d-flex align-items-center">
-                                                    <i class="fas fa-folder me-2 text-info"></i>
-                                                    {{ category }}
-                                                </span>
+{#                                                <span class="d-flex align-items-center">#}
+{#                                                    <i class="fas fa-folder me-2 text-info"></i>#}
+{#                                                    {{ category }}#}
+{#                                                </span>#}
+                                                <span class="d-flex align-items-center"
+                                                      data-bs-toggle="tooltip"
+                                                      data-bs-placement="top"
+                                                      title="{% include 'code_analysis/category_tooltip.html' with name=category %}">
+                                                        <i class="fas fa-folder me-2 text-info"></i>
+                                                        {{ category }}
+                                                    </span>
                                                 <span class="badge bg-info ms-2 text-dark fw-bold">{{ count }}</span>
                                             </div>
                                         </button>
@@ -393,10 +400,17 @@
                                                 aria-expanded="false"
                                                 aria-controls="severity-collapse-{{ forloop.counter }}">
                                             <div class="d-flex justify-content-between align-items-center w-100">
-                        <span class="d-flex align-items-center">
-                            <i class="fas fa-shield-alt me-2 text-warning"></i>
-                            {{ level }}
-                        </span>
+{#                                            <span class="d-flex align-items-center">#}
+{#                                                <i class="fas fa-shield-alt me-2 text-warning"></i>#}
+{#                                                {{ level }}#}
+{#                                            </span>#}
+                                                <span class="d-flex align-items-center"
+                                                      data-bs-toggle="tooltip"
+                                                      data-bs-placement="top"
+                                                      title="{% include 'code_analysis/severity_tooltip.html' with level=level %}">
+                                                        <i class="fas fa-shield-alt me-2 text-warning"></i>
+                                                        {{ level }}
+                                                    </span>
                                                 <span class="badge bg-warning ms-2 text-dark fw-bold">{{ count }}</span>
                                             </div>
                                         </button>
