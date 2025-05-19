@@ -448,6 +448,7 @@ def is_java_code(code):
     except (javalang.parser.JavaSyntaxError, javalang.tokenizer.LexerError):
         return False
 
+
 @api_view(['GET', 'POST'])
 def java_code_analysis(request):
     """
@@ -1687,31 +1688,8 @@ def ai_generate_guideline(summary):
 #         if guideline:
 #             base_instruction += f"\nAlso consider this company coding guideline:\n{guideline}"
 #
-#         response = client.chat.completions.create(
-#             model="gpt-4o",
-#             messages=[
-#                 {"role": "system", "content": base_instruction},
-#                 {"role": "user", "content": f"Here is the code analysis summary:\n{summary}"}
-#             ],
-#             max_tokens=400,
-#             temperature=0.2
-#         )
-#
-#         # 🧠 Extract AI response
-#         guideline_response = response.choices[0].message.content
-#
-#         # 🧼 Format for HTML rendering
-#         formatted = guideline_response.replace("🚀 **Final Coding Guideline** 🚀", "<h3>🚀 Final Coding Guideline 🚀</h3>") \
-#             .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
-#             .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
-#             .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \
-#             .replace("4️⃣ **Reference Links / Guidelines:**", "</ul><h4>📚 Reference Guideline</h4><ul>")
-#
-#         return formatted
-#
-#     except Exception as e:
-#         return f"Error generating final guideline: {str(e)}"
-
+#     # Check if at least 2 Python-specific keywords exist
+#     return sum(1 for kw in python_keywords if kw in code) >= 2
 
 
 def is_python_code(code):
@@ -2030,12 +2008,6 @@ def analyze_code_view(request):
 #         'analyze_code.html',
 #         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
 #     )
-
-#
-
-
-
-
 
 
 
@@ -2618,6 +2590,89 @@ def get_thresholds():
     return {'threshold_low': 10, 'threshold_medium': 20}
 
 
+# Load OpenAI API ke
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+
+def get_refactored_code(original_code, recommendation_block):
+    prompt = f"""
+You are a senior Java software engineer.
+
+Refactor the entire Java class below using the provided line-level suggestions as a starting point. 
+However, don't just fix those lines — analyze the whole class and reduce code complexity wherever necessary.
+
+**Your main goals:**
+- Eliminate deep nesting using guard clauses
+- Break large methods into smaller helper methods
+- Improve method and variable naming
+- Improve modularity and readability
+
+Be assertive. If a method looks too complex, restructure it fully. Especially focus on methods like 'processHierarchyValues' that contain deeply nested conditionals and loops.
+
+### Suggestions with Line Context:
+{recommendation_block}
+
+### Original Java Class:
+{original_code}
+
+### Refactored Java Class:
+"""
+
+    try:
+        gpt_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a professional Java refactoring assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=2048
+        )
+        return gpt_response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Refactoring error: {e}"
+
+
+def get_refactored_code_csharp(original_code, recommendation_block):
+    prompt = f"""
+You are a senior C# software engineer.
+
+Refactor the entire C# class below using the provided line-level suggestions as a starting point. 
+However, don't just fix those lines — analyze the whole class and reduce code complexity wherever necessary.
+
+**Your main goals:**
+- Eliminate deep nesting using guard clauses
+- Break large methods into smaller helper methods
+- Improve method and variable naming
+- Improve modularity and readability
+- Follow clean code and SOLID principles
+
+Be assertive. If a method looks too complex, restructure it fully. Especially focus on deeply nested conditionals and long methods.
+
+### Suggestions with Line Context:
+{recommendation_block}
+
+### Original C# Class:
+{original_code}
+
+### Refactored C# Class:
+"""
+
+    try:
+        gpt_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a professional C# refactoring assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=2048
+        )
+        return gpt_response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Refactoring error: {e}"
+
 @api_view(['GET', 'POST'])
 def calculate_complexity_multiple_java_files(request):
     if request.method == 'POST':
@@ -2697,6 +2752,54 @@ def calculate_complexity_multiple_java_files(request):
                     else:
                         print(f"Unexpected format in method_data: {method_data}")
 
+                # print("high_method_names::::::::::::::::::::", high_method_names)
+                recommendation_strings = [
+                    f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
+                    for rec in recommendations
+                    if rec.get('recommendation')
+                ]
+
+                print(":::::::::::::::::::::::::::::::::::", recommendation_strings)
+
+                recommendation_block = "\n".join(recommendation_strings)
+
+                print(":::::::::::::::::::::::::::::::::::", recommendation_block)
+
+                has_high_complexity = any(method['category'] == 'High' for method in categorized_methods)
+
+                was_refactored = False
+
+                if has_high_complexity and recommendation_block.strip():
+                    refactored_class_code = get_refactored_code(java_code, recommendation_block)
+
+                    # Optional: clean up formatting
+                    if refactored_class_code.strip().startswith("```java"):
+                        refactored_class_code = (
+                            refactored_class_code.strip()
+                            .removeprefix("```java")
+                            .removesuffix("```")
+                            .strip()
+                        )
+                    was_refactored = True
+                else:
+                    refactored_class_code = java_code
+
+                # Step 1: Prepare dictionary format
+                refactored_file_contents = {
+                    "RefactoredClass.java": refactored_class_code
+                }
+
+                # Step 2: Run complexity analysis
+                complexity_results, _ = calculate_code_complexity_multiple_files(refactored_file_contents)
+
+                # # Step 3: Extract WCC
+                total_wcc_refactored = complexity_results["RefactoredClass.java"]["total_wcc"]
+
+                if total_wcc > 0:
+                    percentage_reduction = round(((total_wcc - total_wcc_refactored) / total_wcc) * 100, 2)
+                else:
+                    percentage_reduction = 0.0
+
                 complexities.append({
                     'filename': filename,
                     'complexity_data': complexity_data,
@@ -2705,7 +2808,12 @@ def calculate_complexity_multiple_java_files(request):
                     'method_complexities': categorized_methods,
                     'recommendations': recommendations,
                     'pie_chart_path': pie_chart_path,
-                    'total_wcc': total_wcc
+                    'total_wcc': total_wcc,
+                    'refactored_class_code': refactored_class_code,
+                    'refactored_total_wcc': total_wcc_refactored,
+                    'percentage_reduction': percentage_reduction,
+                    'was_refactored': was_refactored,
+                    'original_code': java_code,
                 })
 
             # Extract CBO Predictions & Recommendations
@@ -2874,6 +2982,8 @@ def calculate_complexity_multiple_csharp_files(request):
             total_wcc = file_data['total_wcc']
             bar_charts = file_data.get('bar_charts', {})
 
+            csharp_code = file_contents.get(filename, "")
+
             save_complexity_to_db_csharp(filename, file_contents[filename], total_wcc, method_complexities)
 
             for line_data in complexity_data:
@@ -2907,7 +3017,50 @@ def calculate_complexity_multiple_csharp_files(request):
                 else:
                     print(f"Unexpected format in method_data: {method_data}")
 
-                # print("categorized_method", categorized_method)
+            recommendation_strings = [
+                f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
+                for rec in recommendations
+                if rec.get('recommendation')
+            ]
+
+            recommendation_block = "\n".join(recommendation_strings)
+
+            has_high_complexity = any(method['category'] == 'High' for method in categorized_methods)
+
+            was_refactored = False
+
+            if has_high_complexity and recommendation_block.strip():
+                refactored_class_code = get_refactored_code_csharp(csharp_code, recommendation_block)
+
+                # Optional: clean up formatting
+                if refactored_class_code.strip().startswith("```csharp"):
+                    refactored_class_code = (
+                        refactored_class_code.strip()
+                        .removeprefix("```csharp")
+                        .removesuffix("```")
+                        .strip()
+                    )
+                was_refactored = True
+            else:
+                refactored_class_code = csharp_code
+
+            # Step 1: Prepare dictionary format
+            refactored_file_contents = {
+                "RefactoredClass.cs": refactored_class_code
+            }
+
+            # Step 2: Run complexity analysis
+            complexity_results, _ = calculate_code_complexity_multiple_files_csharp(refactored_file_contents)
+
+            # # Step 3: Extract WCC
+            total_wcc_refactored = complexity_results["RefactoredClass.cs"]["total_wcc"]
+
+            if total_wcc > 0:
+                percentage_reduction = round(((total_wcc - total_wcc_refactored) / total_wcc) * 100, 2)
+            else:
+                percentage_reduction = 0.0
+
+
             complexities.append({
                 'filename': filename,
                 'complexity_data': complexity_data,
@@ -2916,7 +3069,12 @@ def calculate_complexity_multiple_csharp_files(request):
                 'method_complexities': categorized_methods,
                 'recommendations': recommendations,
                 'pie_chart_path': pie_chart_path,
-                'total_wcc': total_wcc
+                'total_wcc': total_wcc,
+                'refactored_class_code': refactored_class_code,
+                'refactored_total_wcc': total_wcc_refactored,
+                'percentage_reduction': percentage_reduction,
+                'was_refactored': was_refactored,
+                'original_code': csharp_code,
             })
 
         # Log the result table for debugging or reference
@@ -3095,10 +3253,10 @@ def calculate_complexity(request):
             # Generate WCC Clustering and Thresholds Graph
             plt.figure(figsize=(10, 6))
             sns.scatterplot(x=np.arange(len(wcc_values)), y=wcc_values.flatten(), hue=clusters, palette="coolwarm",
-                                s=100)
+                            s=100)
             plt.axhline(y=low_center, color='red', linestyle='--', label=f'Low Threshold ({round(low_center, 2)})')
             plt.axhline(y=high_center, color='green', linestyle='--',
-                            label=f'High Threshold ({round(high_center, 2)})')
+                        label=f'High Threshold ({round(high_center, 2)})')
             plt.title("WCC Clustering and Thresholds using K-Means")
             plt.xlabel("Sample Index")
             plt.ylabel("WCC Values")
@@ -3411,7 +3569,7 @@ class CarTight {
                  "weight": "1 (Level 1), 2 (Level 2), 3 (Level 3), 4 (Level 4+)"},
                 {"structure": "finally",
                  "guideline": "Always executes, adding a mandatory execution path. Assigned a fixed weight.",
-                 "weight": 1}
+                 "weight": 2}
             ],
             "examples": {
                 "Java": """
@@ -3432,7 +3590,7 @@ class CarTight {
                         }
                     } catch (Exception e) { // Catch at Level 1 (Weight: 1)
                         System.out.println("Generic exception!"); 
-                    } finally { // Finally block (Weight: 1)
+                    } finally { // Finally block (Weight: 2)
                         System.out.println("Execution finished."); 
                     }
                 }

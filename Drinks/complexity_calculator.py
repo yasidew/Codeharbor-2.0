@@ -197,35 +197,6 @@ class CBOMetrics:
         return report
 
 
-# output_csv = "media/cbo_features_output.csv"
-# model_output = "xgboost_model.pkl"
-#
-# df = pd.read_csv("media/c#_code_features.csv")
-#
-# # Drop filename
-# df.drop(columns=["file_name"], inplace=True)
-#
-# # Create a binary label (1 = High Complexity, 0 = Low Complexity)
-# df["cbo_label"] = (df["class_dependencies"] > df["class_dependencies"].median()).astype(int)
-#
-# X = df.drop(columns=["cbo_label"])
-# y = df["cbo_label"]
-#
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-# model = XGBClassifier(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
-# model.fit(X_train, y_train)
-#
-# y_pred = model.predict(X_test)
-# accuracy = accuracy_score(y_test, y_pred)
-#
-# print(f"XGBoost Model Accuracy:::::::::::::::::::::::::::::::::::::: {accuracy:.4f}")
-# print(classification_report(y_test, y_pred))
-#
-# # Save model
-# joblib.dump(model, model_output)
-# print(f"Model saved as {model_output}")
-
-
 output_csv = "media/cbo_features_output.csv"
 model_output = "xgboost_java_model.pkl"
 
@@ -405,7 +376,7 @@ def add_java_code(file_name, java_code):
             print(f"⚠️ Duplicate Java code detected for {file_name}. Skipping...")
             return
 
-    # **Append new Java code to dataset**
+    # **Append new Java code to dataset*
     java_data.append({"file_name": file_name, "java_code": java_code})
     save_java_dataset(java_data)
 
@@ -422,8 +393,6 @@ def get_code_recommendations(java_code, model_path):
 
     # Extract CBO features
     features = extract_cbo_features1(java_code)
-
-    print("featuressssssssssssssssssssssssssss<<<<<<<<<<<<>>>>>>>>>>>>", features)
 
     # Convert features into DataFrame
     feature_df = pd.DataFrame([features])
@@ -456,42 +425,6 @@ def get_code_recommendations(java_code, model_path):
     return result
 
 
-"""
-# Load dataset
-dataset = pd.read_csv("media/c#_code_features.csv")
-
-# Drop non-numeric columns
-dataset = dataset.drop(columns=["file_name"], errors="ignore")
-
-# Ensure dataset contains labels
-if "cbo_label" not in dataset.columns:
-    raise ValueError("The dataset must contain a 'cbo_label' column!")
-
-# Split features and labels
-X = dataset.drop(columns=["cbo_label"])
-y = dataset["cbo_label"]
-
-# Handle missing values
-X.fillna(0, inplace=True)
-
-# Split into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-
-# Train the Random Forest model
-rf_model = RandomForestClassifier(n_estimators=200, random_state=42, max_depth=10, class_weight="balanced")
-rf_model.fit(X_train, y_train)
-
-# Save trained model
-joblib.dump(rf_model, "random_forest_cbo_model.pkl")
-
-# Evaluate model
-y_pred = rf_model.predict(X_test)
-print(classification_report(y_test, y_pred))
-print("✅ Model saved as 'random_forest_cbo_model.pkl'")
-
-# Load the trained model
-rf_model = joblib.load("random_forest_cbo_model.pkl")
-"""
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 # Global flag to track whether the class declaration has ended
 class_declaration_ended = False
@@ -612,51 +545,6 @@ def calculate_size(line):
     tokens = re.findall(token_pattern, line, re.VERBOSE)
 
     return len(tokens), tokens
-
-
-"""
-def calculate_control_structure_complexity(lines):
-
-    total_weight = 0
-    line_weights = {}
-
-    for line_number, line in enumerate(lines, start=1):
-        stripped_line = line.strip()
-
-        # Sequential statement (Weight = 0)
-        # if stripped_line.startswith("int") or stripped_line.startswith("double") or "=" in stripped_line:
-        #     weight = 0
-
-        # Branching statement (if, else if, else) (Weight = 1)
-        if stripped_line.startswith("if") or stripped_line.startswith("}else if"):
-            weight = 1
-
-        # Iterative statement (for, while, do-while) (Weight = 2)
-        elif stripped_line.startswith("for") or stripped_line.startswith("while") or stripped_line.startswith("do"):
-            weight = 2
-
-        elif stripped_line.startswith("switch"):
-            case_count = 0
-
-            for subsequent_line in lines[line_number:]:
-                subsequent_line = subsequent_line.strip()
-                if subsequent_line.startswith("case") or subsequent_line.startswith("default"):
-                    case_count += 1
-                if subsequent_line == "}":
-                    break
-            weight = case_count
-
-        else:
-            weight = 0  # Default weight for lines not matching any category
-
-        line_weights[line_number] = {
-            "line_content": stripped_line,
-            "weight": weight
-        }
-        total_weight += weight
-
-    return line_weights, total_weight
-"""
 
 
 def calculate_control_structure_complexity(java_code):
@@ -813,63 +701,6 @@ def calculate_compound_condition_weight(line):
     return complexity
 
 
-# def calculate_try_catch_weight(java_code):
-#     """
-#     Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
-#     - Increment nesting level for try.
-#     - Assign weights line by line for catch and finally based on nesting level.
-#     """
-#     # Remove comments from the Java code
-#     java_code = remove_comments(java_code)
-#     lines = java_code.splitlines()
-#
-#     # State variables
-#     current_nesting = 0
-#     nesting_levels = []
-#     line_weights = {}
-#
-#     # Regular expressions for try, catch, and finally
-#     control_regex = re.compile(r'\b(try|catch|finally)\b')
-#
-#     # Weights for catch based on nesting levels
-#     catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
-#     finally_weight = 1
-#
-#     for line_no, line in enumerate(lines, start=1):
-#         stripped_line = line.strip()
-#
-#         if not stripped_line:
-#             # Skip empty lines
-#             nesting_levels.append((line_no, stripped_line, current_nesting, 0))
-#             continue
-#
-#         # Check for try, catch, or finally
-#         control_match = control_regex.search(stripped_line)
-#         if control_match:
-#             control_type = control_match.group()
-#
-#             if control_type == 'try':
-#                 # Increment nesting level for try
-#                 current_nesting += 1
-#
-#             elif control_type == 'catch':
-#                 # Assign weight for catch based on nesting level
-#                 weight = catch_weights.get(current_nesting, 1)
-#                 line_weights[line_no] = weight
-#
-#             elif control_type == 'finally':
-#                 # Assign fixed weight for finally
-#                 line_weights[line_no] = finally_weight
-#
-#         # Append the current line and its weight
-#         nesting_levels.append((line_no, stripped_line, current_nesting, line_weights.get(line_no, 0)))
-#
-#         # Adjust nesting level for closing braces
-#         if stripped_line.endswith('}'):
-#             current_nesting = max(0, current_nesting - 1)
-#
-#     return nesting_levels, line_weights
-
 def calculate_try_catch_weight(java_code):
     """
     Calculates the weight of nesting levels specifically for try-catch-finally blocks in Java code.
@@ -886,7 +717,7 @@ def calculate_try_catch_weight(java_code):
 
     control_regex = re.compile(r'\b(try|catch|finally)\b')
     catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
-    finally_weight = 1
+    finally_weight = 2
 
     try_stack = []  # Stack to track try nesting levels
 
@@ -1614,77 +1445,6 @@ def update_dataset_and_model(new_data):
     model = train_model(dataset)
 
 
-# def recommend_action(metrics):
-#     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
-#
-#     if control_structure_complexity == 1 and nesting_level >= 5:
-#         if compound_condition_weight >= 5:
-#             return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
-#         return "Critical refactor: High complexity and if nesting"
-#
-#     if control_structure_complexity == 2 and nesting_level >= 5:
-#         if compound_condition_weight >= 5:
-#             return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
-#         return "Critical refactor: High complexity and for loop nesting"
-#
-#     if control_structure_complexity >= 3 and nesting_level >= 5:
-#         return "Critical refactor: High complexity and switch case nesting"
-#
-#     if try_catch_weight > 5:
-#         return "Critical refactor: High complexity due to try-catch nesting"
-#
-#     if current_inheritance > 4:
-#         return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
-#
-#     if current_inheritance > 3:
-#         return "Consider reducing inheritance levels to improve maintainability"
-#
-#     if compound_condition_weight > 4:
-#         if compound_condition_weight > 5:
-#             return "Critical refactor: Excessive compound conditions, simplify conditional logic"
-#         return "Consider simplifying compound conditions to improve readability"
-#
-#     if try_catch_weight > 3 and try_catch_weight <= 5:
-#         return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
-#
-#     if control_structure_complexity >= 2 and nesting_level > 5:
-#         return "Moderate complexity: Control structures are manageable but keep them simple"
-#
-#     return "No action needed"
-
-# def recommend_action(metrics):
-#     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
-#
-#     if control_structure_complexity == 1 and nesting_level >= 5:
-#         if compound_condition_weight > 5:
-#             return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
-#         return "Critical refactor: High complexity and if nesting"
-#
-#     if control_structure_complexity == 2 and nesting_level >= 5:
-#         if compound_condition_weight > 5:
-#             return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
-#         return "Critical refactor: High complexity and for loop nesting"
-#
-#     if control_structure_complexity >= 3 and nesting_level >= 5:
-#         return "Critical refactor: High complexity and switch case nesting"
-#
-#     if try_catch_weight > 5:
-#         return "Critical refactor: High complexity due to try-catch nesting"
-#
-#     if compound_condition_weight > 5:
-#         return "Critical refactor: Excessive compound conditions simplify conditional logic"
-#
-#     if try_catch_weight > 3 and try_catch_weight <= 5:
-#         return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
-#
-#     if current_inheritance == 5:
-#         return "Critical refactor: Deep inheritance hierarchy consider flattening the design"
-#
-#     if current_inheritance > 3:
-#         return "Consider reducing inheritance levels to improve maintainability"
-#
-#     return "No action needed"
-
 def recommend_action(metrics):
     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
 
@@ -1831,7 +1591,7 @@ def calculate_code_complexity_multiple_files(file_contents):
 
     # Iterate through each file content
     for filename, content in file_contents.items():
-        add_java_code(filename, content)
+        # add_java_code(filename, content)
         class_name = filename.split('.')[0]
 
         # Split content into lines
@@ -1878,7 +1638,6 @@ def calculate_code_complexity_multiple_files(file_contents):
         }
 
         # (If you have a model output, use it for code recommendations)
-        print("model output>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", model_output)
         model_based_recommendations = get_code_recommendations(content, model_output)
 
         results3[filename] = {
@@ -2336,8 +2095,6 @@ def plot_complexity_bar_chart(method_name, complexity_factors, filename):
     labels = list(complexity_factors.keys())
     values = list(complexity_factors.values())
 
-    print("labels---------------------------", labels)
-    print("values---------------------------", values)
     # Define colors for the bars
     colors = plt.cm.tab20.colors[:len(values)]  # Using tab20 colormap for variety
 

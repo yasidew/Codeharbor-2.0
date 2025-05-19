@@ -235,7 +235,8 @@
 
                     <div id="file-list"></div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100" onclick="showLoading()">Calculate Complexity
+                <button type="submit" id="submitBtn" class="btn btn-primary w-100" onclick="showLoading()" disabled>
+                    Calculate Complexity
                 </button>
             </form>
         </div>
@@ -366,13 +367,24 @@
 
         function updateFileList(files) {
             fileList.innerHTML = "";
+            let validFiles = [];
+
             if (files.length > 0) {
                 for (let file of files) {
-                    fileList.innerHTML += `<p>✔️ ${file.name}</p>`;
+                    if (file.name.endsWith(".cs")) {
+                        validFiles.push(file);
+                        fileList.innerHTML += `<p>✔️ ${file.name}</p>`;
+                    } else {
+                        fileList.innerHTML += `<p style="color: red;">❌ ${file.name} (Invalid file type)</p>`;
+                    }
                 }
             } else {
                 fileList.innerHTML = `<p>No files selected</p>`;
             }
+
+            // Enable button if valid .java files exist
+            const submitBtn = document.getElementById("submitBtn");
+            submitBtn.disabled = validFiles.length === 0;
         }
     </script>
 {% endblock %}

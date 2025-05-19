@@ -26,9 +26,9 @@
                 <div class="alert alert-info text-center">
                     <h5>Summary:</h5>
                     <p>
-                        <strong>Violations:</strong> <span id="violation-count" class="text-danger">0</span> |
-                        <strong>Passes:</strong> <span id="pass-count" class="text-success">0</span> |
-                        <strong>Incomplete:</strong> <span id="incomplete-count" class="text-warning">0</span> |
+                        {#                        <strong>Violations:</strong> <span id="violation-count" class="text-danger">0</span> |#}
+                        {#                        <strong>Passes:</strong> <span id="pass-count" class="text-success">0</span> |#}
+                        {#                        <strong>Incomplete:</strong> <span id="incomplete-count" class="text-warning">0</span> |#}
                         <strong>🔴 Critical:</strong> <span id="critical-count" class="text-danger">0 (0%)</span> |
                         <strong>🟠 Serious:</strong> <span id="serious-count" class="text-warning">0 (0%)</span> |
                         <strong>🔵 Moderate:</strong> <span id="moderate-count" class="text-primary">0 (0%)</span> |
@@ -311,20 +311,20 @@
 
                     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
                     // ✅ Fetch updated Critical Score and Assign Badge
-            await fetch(`http://127.0.0.1:8000/games/store-badge/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`,
-                    "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: JSON.stringify({ user_id: result.user_id })
-            })
-            .then(response => response.json())
-            .then(badgeResult => {
-                console.log("🔹 Assigned Badge:", badgeResult.assigned_badge);
-                alert(`New Badge Assigned: ${badgeResult.assigned_badge}`);
-            })
+                    await fetch(`http://127.0.0.1:8000/games/store-badge/`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${accessToken}`,
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({ user_id: result.user_id })
+                    })
+                        .then(response => response.json())
+                        .then(badgeResult => {
+                            console.log("🔹 Assigned Badge:", badgeResult.assigned_badge);
+                            alert(`New Badge Assigned: ${badgeResult.assigned_badge}`);
+                        })
                     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
                     // ✅ Fetch the updated Critical Score AFTER submission

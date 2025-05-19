@@ -1,150 +1,3 @@
-
-
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
-<!--    <title>HTML Code Submission</title>-->
-<!--    <style>-->
-<!--        /* General Page Styling */-->
-<!--        body {-->
-<!--            font-family: Arial, sans-serif;-->
-<!--            background-color: #0b0f19;-->
-<!--            margin: 0;-->
-<!--            padding: 20px;-->
-<!--            display: flex;-->
-<!--            justify-content: center;-->
-<!--            align-items: center;-->
-<!--            height: 100vh;-->
-<!--            flex-direction: column;-->
-<!--            color: #fff;-->
-<!--        }-->
-
-<!--        h2, h3 {-->
-<!--            color: #f0f0f0;-->
-<!--        }-->
-
-<!--        /* Container */-->
-<!--        .container {-->
-<!--            background: #13182b;-->
-<!--            padding: 20px;-->
-<!--            border-radius: 10px;-->
-<!--            width: 600px;-->
-<!--            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);-->
-<!--        }-->
-
-<!--        /* Textarea Styling */-->
-<!--        textarea {-->
-<!--            width: 100%;-->
-<!--            height: 200px;-->
-<!--            padding: 10px;-->
-<!--            border: none;-->
-<!--            border-radius: 5px;-->
-<!--            font-size: 16px;-->
-<!--            background: #1e2339;-->
-<!--            color: #fff;-->
-<!--            outline: none;-->
-<!--            resize: none;-->
-<!--        }-->
-
-<!--        /* Guidelines Checkboxes */-->
-<!--        .guidelines {-->
-<!--            margin-top: 10px;-->
-<!--        }-->
-
-<!--        label {-->
-<!--            display: block;-->
-<!--            margin: 5px 0;-->
-<!--            font-size: 16px;-->
-<!--            color: #d1d1d1;-->
-<!--        }-->
-
-<!--        input[type="checkbox"] {-->
-<!--            margin-right: 5px;-->
-<!--            accent-color: #ff9ff3;-->
-<!--        }-->
-
-<!--        /* Submit Button */-->
-<!--        button {-->
-<!--            background: linear-gradient(90deg, #ff00ff, #7b00ff);-->
-<!--            color: white;-->
-<!--            border: none;-->
-<!--            padding: 12px 20px;-->
-<!--            font-size: 16px;-->
-<!--            margin-top: 15px;-->
-<!--            cursor: pointer;-->
-<!--            border-radius: 5px;-->
-<!--            transition: 0.3s;-->
-<!--            width: 100%;-->
-<!--            font-weight: bold;-->
-<!--            text-transform: uppercase;-->
-<!--        }-->
-
-<!--        button:hover {-->
-<!--            background: linear-gradient(90deg, #d600d6, #5b00d6);-->
-<!--        }-->
-
-<!--        /* Response Box */-->
-<!--        pre {-->
-<!--            background: #1e2339;-->
-<!--            padding: 10px;-->
-<!--            border-radius: 5px;-->
-<!--            max-width: 600px;-->
-<!--            word-wrap: break-word;-->
-<!--            white-space: pre-wrap;-->
-<!--            color: #ddd;-->
-<!--            margin-top: 10px;-->
-<!--            border-left: 4px solid #ff00ff;-->
-<!--        }-->
-
-<!--    </style>-->
-<!--    <script>-->
-<!--        function submitForm() {-->
-<!--            const htmlCode = document.getElementById("html_code").value;-->
-<!--            const checkboxes = document.querySelectorAll('input[name="guidelines"]:checked');-->
-<!--            const selectedGuidelines = Array.from(checkboxes).map(cb => cb.value);-->
-
-<!--            const payload = {-->
-<!--                html_code: htmlCode,-->
-<!--                guidelines: selectedGuidelines-->
-<!--            };-->
-
-<!--            fetch("http://127.0.0.1:8000/api/evaluate/", {-->
-<!--                method: "POST",-->
-<!--                headers: { "Content-Type": "application/json" },-->
-<!--                body: JSON.stringify(payload)-->
-<!--            })-->
-<!--            .then(response => response.json())-->
-<!--            .then(data => {-->
-<!--                document.getElementById("response").innerText = JSON.stringify(data, null, 2);-->
-<!--            })-->
-<!--            .catch(error => console.error("Error:", error));-->
-<!--        }-->
-<!--    </script>-->
-<!--</head>-->
-<!--<body>-->
-
-<!--    <div class="container">-->
-<!--        <h2>Submit HTML Code for Evaluation</h2>-->
-<!--        <textarea id="html_code" placeholder="Enter your HTML code here..."></textarea>-->
-
-<!--        <h3>Select Guidelines:</h3>-->
-<!--        <div class="guidelines">-->
-<!--            <label><input type="checkbox" name="guidelines" value="1"> Guideline 1</label>-->
-<!--            <label><input type="checkbox" name="guidelines" value="2"> Guideline 2</label>-->
-<!--            <label><input type="checkbox" name="guidelines" value="3"> Guideline 3</label>-->
-<!--        </div>-->
-
-<!--        <button onclick="submitForm()">Submit</button>-->
-
-<!--        <h3>Response:</h3>-->
-<!--        <pre id="response"></pre>-->
-<!--    </div>-->
-
-<!--</body>-->
-<!--</html>-->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -158,13 +11,14 @@
             font-family: Arial, sans-serif;
             background-color: #0b0f19;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             flex-direction: column;
             color: #fff;
+            overflow: hidden;
         }
 
         h2, h3 {
@@ -178,6 +32,10 @@
             border-radius: 10px;
             width: 600px;
             box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 90vh;
         }
 
         /* Monaco Editor Container */
@@ -188,15 +46,21 @@
             border: 1px solid #333;
         }
 
-        /* Guidelines Checkboxes */
-        .guidelines {
+        /* Guidelines Checkboxes - Scrollable */
+        .guidelines-container {
             margin-top: 10px;
+            width: 100%;
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            background: #1e2339;
         }
 
-        label {
+        .guidelines-container label {
             display: block;
-            margin: 5px 0;
-            font-size: 16px;
+            font-size: 14px;
             color: #d1d1d1;
         }
 
@@ -230,12 +94,14 @@
             background: #1e2339;
             padding: 10px;
             border-radius: 5px;
-            max-width: 600px;
+            width: 100%;
             word-wrap: break-word;
             white-space: pre-wrap;
             color: #ddd;
             margin-top: 10px;
             border-left: 4px solid #ff00ff;
+            height: 100px;
+            overflow-y: auto;
         }
 
     </style>
@@ -249,11 +115,7 @@
         <div id="editor-container"></div>
 
         <h3>Select Guidelines:</h3>
-        <div class="guidelines">
-            <label><input type="checkbox" name="guidelines" value="1"> Guideline 1</label>
-            <label><input type="checkbox" name="guidelines" value="2"> Guideline 2</label>
-            <label><input type="checkbox" name="guidelines" value="3"> Guideline 3</label>
-        </div>
+        <div class="guidelines-container" id="guidelines-container"></div>
 
         <button onclick="submitForm()">Submit</button>
 
@@ -265,7 +127,7 @@
         var editor;
 
         // Load Monaco Editor
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' }});
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' }}); 
         require(["vs/editor/editor.main"], function () {
             editor = monaco.editor.create(document.getElementById('editor-container'), {
                 value: "<!DOCTYPE html>\n<html>\n<head>\n    <title>Sample</title>\n</head>\n<body>\n    <h1>Hello, World!</h1>\n</body>\n</html>",
@@ -274,6 +136,18 @@
                 automaticLayout: true
             });
         });
+
+        // Generate 65 Checkboxes
+        function generateCheckboxes() {
+            const container = document.getElementById('guidelines-container');
+            for (let i = 1; i <= 65; i++) {
+                const label = document.createElement('label');
+                label.innerHTML = `<input type="checkbox" name="guidelines" value="${i}"> Guideline ${i}`;
+                container.appendChild(label);
+            }
+        }
+
+        generateCheckboxes();
 
         function submitForm() {
             const htmlCode = editor.getValue();

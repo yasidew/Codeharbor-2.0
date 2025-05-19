@@ -240,8 +240,6 @@ public class Order
 }
 """
 
-print("fffffffffffffffffffffffffff", calculate_cbo_csharp(ccccc.strip().split("\n")))
-
 
 def extract_cbo_features_csharp(csharp_code):
     cbo_features = {
@@ -426,43 +424,6 @@ class CBOMetricsCSharp:
 # Load dataset
 df = pd.read_csv("media/Updated_Dataset_with_CBO_Labeling.csv")
 
-# dataset = dataset.drop(columns=["file_name"], errors="ignore")
-#
-# # Ensure dataset contains labels
-# if "cbo_label" not in dataset.columns:
-#     raise ValueError("The dataset must contain a 'cbo_label' column!")
-#
-# # Split features and labels
-# X = dataset.drop(columns=["cbo_label"])
-# y = dataset["cbo_label"]
-#
-# # Handle missing values
-# X.fillna(0, inplace=True)
-#
-# # Check class distribution
-# value_counts = y.value_counts()
-#
-# # Ensure each class has at least two samples
-# if value_counts.min() < 2:
-#     print("⚠️ Warning: Some classes have fewer than two samples. Adjusting strategy.")
-#     stratify_param = None  # Disable stratification
-# else:
-#     stratify_param = y  # Keep stratification if valid
-#
-# # Split into training and test sets
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=stratify_param)
-#
-# # Train the Random Forest model
-# rf_model = RandomForestClassifier(n_estimators=200, random_state=42, max_depth=10, class_weight="balanced")
-# rf_model.fit(X_train, y_train)
-#
-# # Save trained model
-# joblib.dump(rf_model, "random_forest_csharp_cbo_model.pkl")
-#
-# # Evaluate model
-# y_pred = rf_model.predict(X_test)
-# print("✅✅✅✅hhhhhhhhhhhhhhh", classification_report(y_test, y_pred))
-# print("✅ Model saved as 'random_forest_csharp_cbo_model.pkl'")
 
 # Drop 'file_name' column as it's not a feature
 df.drop(columns=["file_name"], inplace=True)
@@ -680,69 +641,6 @@ def calculate_control_structure_complexity(lines):
     return line_weights, total_weight
 
 
-# def calculate_control_structure_complexity(lines):
-#     """
-#     Calculates control structure complexity for a given C# code using Pygments tokenization.
-#
-#     Parameters:
-#         - lines (list of str): List of lines in C# code.
-#
-#     Returns:
-#         - dict: A dictionary with line numbers as keys and assigned complexity weights as values.
-#         - int: Total complexity of the code.
-#     """
-#
-#     total_weight = 0
-#     line_weights = {}
-#     switch_case_count = 0  # Stores switch case count
-#     inside_switch = False  # Flag for tracking switch cases
-#     switch_start_line = None
-#
-#     for line_number, line in enumerate(lines, start=1):
-#         stripped_line = line.strip()
-#         tokens = list(lex(stripped_line, CSharpLexer()))
-#
-#         # Ignore empty lines
-#         if not stripped_line:
-#             continue
-#
-#         weight = 0  # Default weight
-#
-#         # ✅ Branching Statements (if, else if, else) → Weight = 1
-#         if any(tok[0] == Token.Keyword and tok[1] in ["if", "else"] for tok in tokens):
-#             weight = 1
-#
-#         # ✅ Loops (for, while, do-while, foreach) → Weight = 2
-#         elif any(tok[0] == Token.Keyword and tok[1] in ["for", "while", "do", "foreach"] for tok in tokens):
-#             weight = 2
-#
-#         # ✅ Switch-Case Complexity → Weight = 1 for switch + Number of cases
-#         elif any(tok[0] == Token.Keyword and tok[1] == "switch" for tok in tokens):
-#             inside_switch = True
-#             switch_case_count = 0  # Reset case count
-#             switch_start_line = line_number  # Store switch start line
-#             weight = 1  # Base weight for switch
-#
-#         elif inside_switch and any(tok[0] == Token.Keyword and tok[1] in ["case", "default"] for tok in tokens):
-#             switch_case_count += 1  # Count cases
-#             weight = 1  # Assign weight to each case
-#
-#         elif inside_switch and "}" in stripped_line:
-#             # End of switch block, update switch weight
-#             if switch_start_line:
-#                 line_weights[switch_start_line]["weight"] += switch_case_count  # Assign case count to switch line
-#             inside_switch = False
-#
-#         # ✅ Store results
-#         line_weights[line_number] = {
-#             "line_content": stripped_line,
-#             "weight": weight
-#         }
-#         total_weight += weight
-#
-#     return line_weights, total_weight
-
-
 def calculate_nesting_level(java_code):
     """
     Dynamically calculates the nesting level of control structures (if-else, switch-case, loops, etc.)
@@ -862,7 +760,7 @@ def calculate_try_catch_weight(java_code):
 
     # Weights for `catch` based on nesting levels
     catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
-    finally_weight = 1
+    finally_weight = 2
 
     for line_no, line in enumerate(lines, start=1):
         stripped_line = line.strip()
@@ -1627,40 +1525,6 @@ def update_dataset_and_model(new_data):
     dataset.to_csv(data_file, index=False)
     model = train_model(dataset)
 
-
-# def recommend_action(metrics):
-#     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
-#
-#     if control_structure_complexity == 1 and nesting_level >= 5:
-#         if compound_condition_weight > 5:
-#             return "Critical refactor: High complexity and if nesting & reduce compound conditional statement"
-#         return "Critical refactor: High complexity and if nesting"
-#
-#     if control_structure_complexity == 2 and nesting_level >= 5:
-#         if compound_condition_weight > 5:
-#             return "Critical refactor: High complexity and for loop nesting & reduce compound conditional statement"
-#         return "Critical refactor: High complexity and for loop nesting"
-#
-#     if control_structure_complexity >= 3 and nesting_level >= 5:
-#         return "Critical refactor: High complexity and switch case nesting"
-#
-#     if try_catch_weight > 5:
-#         return "Critical refactor: High complexity due to try-catch nesting"
-#
-#     if current_inheritance == 5:
-#         return "Critical refactor: Deep inheritance hierarchy, consider flattening the design"
-#
-#     if current_inheritance > 3:
-#         return "Consider reducing inheritance levels to improve maintainability"
-#
-#     if compound_condition_weight > 5:
-#         return "Critical refactor: Excessive compound conditions, simplify conditional logic"
-#
-#     if try_catch_weight > 3 and try_catch_weight <= 5:
-#         return "Moderate complexity: Try-catch nesting is acceptable but consider flattening for clarity"
-#
-#     return "No action needed"
-
 def recommend_action(metrics):
     control_structure_complexity, nesting_level, compound_condition_weight, try_catch_weight, current_inheritance = metrics
 
@@ -2017,8 +1881,6 @@ def get_csharp_code_recommendations(csharp_code, model_path):
     # Extract CBO features
     features = calculate_cbo_csharp1(csharp_code)
 
-    print("✅ Extracted Features:", features)
-
     # **Expected features based on training data**
     expected_features = [
         "direct_instantiations",
@@ -2036,8 +1898,6 @@ def get_csharp_code_recommendations(csharp_code, model_path):
         "interface_implementations": len(features.get("Interface Implementations", [])) * 0.5,
         "injection_initiations": len(features.get("Injection Initiations", [])) * 0.5,
     }
-
-    print("✅ Processed Features:", cleaned_features)
 
     # Convert to DataFrame
     feature_df = pd.DataFrame([cleaned_features])
@@ -2092,15 +1952,12 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         # CBO feature extraction
         cbo_report = calculate_cbo_csharp(lines)
 
-        print("model output>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", model_output)
         model_based_recommendations = get_csharp_code_recommendations(lines, model_filename)
 
         results3[filename] = {
             "prediction": model_based_recommendations.get("prediction", "Unknown"),
             "recommendations": model_based_recommendations.get("recommendations", [])
         }
-
-        print("result222222222222222222222222222", results3)
 
         # 3) Retrieve any existing line-based data
         cbo_line_data = result1.get(filename, [])
@@ -2189,7 +2046,6 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
             # Additional metrics
             nesting_level = nesting_level_dict.get(line_number, 0)
             try_catch_weight = try_catch_weight_dict.get(line_number, 0)
-            print("try_catch_weight", try_catch_weight)
             thread_weight_info = thread_weights.get(line_number, {"score": 0, "reasons": []})
 
             # Control structure complexity
@@ -2410,8 +2266,6 @@ def plot_complexity_bar_chart(method_name, complexity_factors, filename):
     labels = list(complexity_factors.keys())
     values = list(complexity_factors.values())
 
-    print("labels---------------------------", labels)
-    print("values---------------------------", values)
     # Define colors for the bars
     colors = plt.cm.tab20.colors[:len(values)]  # Using tab20 colormap for variety
 
