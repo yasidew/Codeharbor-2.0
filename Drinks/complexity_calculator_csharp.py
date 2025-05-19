@@ -760,7 +760,7 @@ def calculate_try_catch_weight(java_code):
 
     # Weights for `catch` based on nesting levels
     catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
-    finally_weight = 1
+    finally_weight = 2
 
     for line_no, line in enumerate(lines, start=1):
         stripped_line = line.strip()

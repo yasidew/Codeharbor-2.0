@@ -3406,7 +3406,7 @@ class CarTight {
                  "weight": "1 (Level 1), 2 (Level 2), 3 (Level 3), 4 (Level 4+)"},
                 {"structure": "finally",
                  "guideline": "Always executes, adding a mandatory execution path. Assigned a fixed weight.",
-                 "weight": 1}
+                 "weight": 2}
             ],
             "examples": {
                 "Java": """
@@ -3427,7 +3427,7 @@ class CarTight {
                         }
                     } catch (Exception e) { // Catch at Level 1 (Weight: 1)
                         System.out.println("Generic exception!"); 
-                    } finally { // Finally block (Weight: 1)
+                    } finally { // Finally block (Weight: 2)
                         System.out.println("Execution finished."); 
                     }
                 }

@@ -717,7 +717,7 @@ def calculate_try_catch_weight(java_code):
 
     control_regex = re.compile(r'\b(try|catch|finally)\b')
     catch_weights = {1: 1, 2: 2, 3: 3, 4: 4}
-    finally_weight = 1
+    finally_weight = 2
 
     try_stack = []  # Stack to track try nesting levels
 
