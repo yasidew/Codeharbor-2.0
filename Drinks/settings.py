@@ -15,6 +15,7 @@ from datetime import timedelta
 from dotenv import load_dotenv
 import logging
 
+DB_HOST = os.getenv("DB_HOST", "localhost")
 load_dotenv()  # Load variables from .env
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -124,8 +125,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'code_complexity_db',  # Keep this as 'postgres' (Main DB)
         'USER': 'postgres',
-        'PASSWORD': '12345',
-        'HOST': 'localhost',
+        'PASSWORD': 'admin',
+        'HOST': DB_HOST, #use "localhost" when locally running
         'PORT': '5432',
         'OPTIONS': {
             'options': '-c search_path=code_complexity_db,public'  # Prioritize 'code_harbor' schema
@@ -138,8 +139,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'code_analysis_db',  # Change as needed
         'USER': 'postgres',
-        'PASSWORD': '12345',
-        'HOST': 'localhost',  # Use the correct DB host
+        'PASSWORD': 'admin',
+        'HOST': DB_HOST,   #use "localhost" when locally running
         'PORT': '5432',  # Default PostgreSQL port
     }
 }
@@ -180,7 +181,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # settings.py
 LOGIN_URL = '/api/token/'
