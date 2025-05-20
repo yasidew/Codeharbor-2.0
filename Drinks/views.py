@@ -2628,21 +2628,29 @@ def get_refactored_code(original_code, recommendation_block):
 You are a senior Java software engineer.
 
 Refactor the entire Java class below using the provided line-level suggestions as a starting point. 
-However, don't just fix those lines — analyze the whole class and reduce code complexity wherever necessary.
 
-**Your main goals:**
-- Eliminate deep nesting using guard clauses
-- Break large methods into smaller helper methods
-- Improve method and variable naming
-- Improve modularity and readability
+Specifically focus on:
+- Eliminating deep nesting (use guard clauses and early returns)
+- Breaking down large methods into smaller, single-responsibility helper methods
+- Renaming variables and methods for clarity
+- Simplifying conditional logic and loops
+- Reducing cyclomatic complexity to make the code easier to understand and maintain
 
-Be assertive. If a method looks too complex, restructure it fully. Especially focus on methods like 'processHierarchyValues' that contain deeply nested conditionals and loops.
-
-### Suggestions with Line Context:
+### Use the following line-level recommendations as critical points to address:
 {recommendation_block}
 
 ### Original Java Class:
 {original_code}
+
+### Your output should be:
+1. The fully refactored Java class code that addresses all the above goals.
+2. Removed deep nesting by applying guard clauses and early returns in methods.
+3. Split large methods into smaller helper functions to improve readability and modularity.
+4. Renamed variables and methods to use clear, descriptive names enhancing maintainability.
+5. Simplified complex conditional logic by reducing nested if-else blocks and using boolean expressions.
+6. Reduced cyclomatic complexity by eliminating redundant code paths and simplifying loops.
+
+---
 
 ### Refactored Java Class:
 """
@@ -2666,23 +2674,30 @@ def get_refactored_code_csharp(original_code, recommendation_block):
     prompt = f"""
 You are a senior C# software engineer.
 
-Refactor the entire C# class below using the provided line-level suggestions as a starting point. 
-However, don't just fix those lines — analyze the whole class and reduce code complexity wherever necessary.
+Your task is to refactor the entire C# class below, **focusing on reducing code complexity and improving maintainability**.
 
-**Your main goals:**
-- Eliminate deep nesting using guard clauses
-- Break large methods into smaller helper methods
-- Improve method and variable naming
-- Improve modularity and readability
-- Follow clean code and SOLID principles
+Specifically, please:
+- Eliminate deep nesting by applying guard clauses and early returns.
+- Break large methods into smaller, single-responsibility helper methods.
+- Rename methods and variables for clear intent and readability.
+- Follow clean code practices and SOLID principles throughout.
+- Simplify complex conditional logic and loops to reduce cyclomatic complexity.
+- Enhance modularity and overall code structure.
 
-Be assertive. If a method looks too complex, restructure it fully. Especially focus on deeply nested conditionals and long methods.
 
-### Suggestions with Line Context:
+### Use the following line-level recommendations as critical points to address:
 {recommendation_block}
 
 ### Original C# Class:
 {original_code}
+
+### Your output should be:
+1. The fully refactored C# class code that addresses all the above goals.
+2. Removed deep nesting by applying guard clauses and early returns in methods.
+3. Split large methods into smaller helper functions to improve readability and modularity.
+4. Renamed variables and methods to use clear, descriptive names enhancing maintainability.
+5. Simplified complex conditional logic by reducing nested if-else blocks and using boolean expressions.
+6. Reduced cyclomatic complexity by eliminating redundant code paths and simplifying loops.
 
 ### Refactored C# Class:
 """

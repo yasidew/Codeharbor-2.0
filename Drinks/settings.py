@@ -125,7 +125,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'code_complexity_db',  # Keep this as 'postgres' (Main DB)
         'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'PASSWORD': '12345',
         'HOST': DB_HOST, #use "localhost" when locally running
         'PORT': '5432',
         'OPTIONS': {
@@ -139,7 +139,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'code_analysis_db',  # Change as needed
         'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'PASSWORD': '12345',
         'HOST': DB_HOST,   #use "localhost" when locally running
         'PORT': '5432',  # Default PostgreSQL port
     }

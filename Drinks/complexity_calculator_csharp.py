@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from pathlib import Path
 
 import joblib
 import matplotlib
@@ -423,38 +424,41 @@ class CBOMetricsCSharp:
 
 # Load dataset
 df = pd.read_csv("media/Updated_Dataset_with_CBO_Labeling.csv")
-
-
-# Drop 'file_name' column as it's not a feature
-df.drop(columns=["file_name"], inplace=True)
-
-# Define features (X) and labels (y)
-X = df.drop(columns=["cbo_label"])
-y = df["cbo_label"]
-
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Define and train the XGBoost model
-model = XGBClassifier(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
-model.fit(X_train, y_train)
-
-# Make predictions
-y_pred = model.predict(X_test)
-
-# Evaluate model performance
-accuracy = accuracy_score(y_test, y_pred)
-print(f"XGBoost Model Accuracy: {accuracy:.4f}")
-print("Classification Report:")
-print(classification_report(y_test, y_pred))
-
-# Save trained model for use in C#
 model_filename = "xgboost_c#_cbo_model.pkl"
-joblib.dump(model, model_filename)
-print(f"Model saved as {model_filename}")
 
-# Load the trained model
-rf_model = joblib.load("xgboost_c#_cbo_model.pkl")
+if os.path.exists(model_filename):
+    model = joblib.load(model_filename)
+    print(f"✅ Loaded existing model c# cbo from {model_filename}")
+else:
+    # Drop 'file_name' column as it's not a feature
+    df.drop(columns=["file_name"], inplace=True)
+
+    # Define features (X) and labels (y)
+    X = df.drop(columns=["cbo_label"])
+    y = df["cbo_label"]
+
+    # Split data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Define and train the XGBoost model
+    model = XGBClassifier(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
+    model.fit(X_train, y_train)
+
+    # Make predictions
+    y_pred = model.predict(X_test)
+
+    # Evaluate model performance
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"XGBoost Model Accuracy: {accuracy:.4f}")
+    print("Classification Report:")
+    print(classification_report(y_test, y_pred))
+
+    # Save trained model for use in C#
+    joblib.dump(model, model_filename)
+    print(f"Model saved as {model_filename}")
+
+    # Load the trained model
+    # rf_model = joblib.load("xgboost_c#_cbo_model.pkl")
 
 # Global dictionary for tracking inheritance depth
 inheritance_depth = {}
@@ -1471,6 +1475,7 @@ def calculate_inheritance_level2(class_name):
 
 # Load or initialize dataset
 data_file = "media/synthetic_training_data_c#_1000.csv"
+MODEL_PATH = "random_forest_reco_c#_model.pkl"
 if os.path.exists(data_file):
     dataset = pd.read_csv(data_file)
 else:
@@ -1512,7 +1517,19 @@ def train_model(data):
     return model
 
 
-model = train_model(dataset)
+# model = train_model(dataset)
+
+# Use existing model if available
+if Path(MODEL_PATH).exists():
+    model = joblib.load(MODEL_PATH)
+    print("✅ Pre-trained model loaded from disk.")
+elif not dataset.empty:
+    model = train_model(dataset)
+    joblib.dump(model, MODEL_PATH)
+    print("✅ New model trained and saved.")
+else:
+    model = None
+    print("⚠️ Dataset is empty. No model available.")
 
 
 def update_dataset_and_model(new_data):
@@ -2143,9 +2160,9 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         )
 
         # 6) If new patterns appear, update dataset & model
-        if new_patterns:
-            new_data = pd.DataFrame(new_patterns)
-            update_dataset_and_model(new_data)
+        # if new_patterns:
+        #     new_data = pd.DataFrame(new_patterns)
+        #     update_dataset_and_model(new_data)
 
         # 7) AI recommendations
         recommendations = ai_recommend_refactoring(line_complexities)
