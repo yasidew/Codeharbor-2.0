@@ -42,4 +42,10 @@ jobs:
           tags: ydewmin/codeharbor:latest
 
       - name: Run tests (optional)
-        run: docker run --rm ydewmin/codeharbor:latest python manage.py test
+        run: |
+          docker run --rm \
+            -e OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} \
+            -e OPENAI_API_KEY1=${{ secrets.OPENAI_API_KEY1 }} \
+            -e DB_HOST=localhost \
+            ydewmin/codeharbor:latest python manage.py test
+      
