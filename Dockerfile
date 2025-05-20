@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Collect static files (optional for Django)
-RUN python manage.py collectstatic --noinput
+#RUN python manage.py collectstatic --noinput
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
