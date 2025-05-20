@@ -465,6 +465,7 @@ def java_code_analysis(request):
     }
     code_snippet = ""
     final_guideline = ""
+    full_fixed_code = ""
     all_code_snippets = []  # ✅ Store all snippets (pasted, uploaded, GitHub)
 
     # ✅ NEW: Extract uploaded guideline (if any)
@@ -589,6 +590,8 @@ def java_code_analysis(request):
 
         # ✅ Complexity Analysis
         print("🔍 Performing Java Complexity Analysis...")
+        #Generate full fixed code for comparison
+        full_fixed_code = generate_fixed_code(code_snippet, guideline=company_guideline_text)
         summary["complexity_metrics"] = java_analyze_code_complexity(code_snippet)
         print(f"✅ Java Complexity Results: {summary['complexity_metrics']}")
         final_guideline = ai_generate_guideline(summary)
@@ -604,6 +607,7 @@ def java_code_analysis(request):
         'java_code_analysis.html',
         {
             'code': code_snippet,
+            'fixed_code': full_fixed_code,
             'suggestions': suggestions,
             'summary': summary,
             'final_guideline': final_guideline
@@ -778,202 +782,6 @@ def java_code_analysis(request):
 #     )
 
 
-# @api_view(['GET', 'POST'])
-# def java_code_analysis(request):
-#     """
-#     Handles Java code analysis: Accepts pasted/uploaded/imported code, categorizes vulnerabilities,
-#     assigns severity levels, and stores results in PostgreSQL.
-#     """
-#     suggestions = []
-#     summary = {
-#         "total_snippets": 0,
-#         "total_suggestions": 0,
-#         "total_lines": 0,
-#         "categories": {},
-#         "severity": {"Critical": 0, "Medium": 0, "Low": 0},
-#         "complexity_metrics": {},
-#     }
-#     code_snippet = ""
-#     final_guideline = ""
-#     all_code_snippets = []  # ✅ Store all snippets (pasted, uploaded, GitHub)
-#
-#     if request.method == 'POST':
-#         # ✅ Handle GitHub repository submission (JSON request)
-#         if request.content_type == 'application/json':
-#             data = json.loads(request.body)
-#             github_repo_url = data.get("github_url", "").strip()
-#
-#             if github_repo_url:
-#                 files, error = fetch_github_files(github_repo_url)
-#                 if error:
-#                     return JsonResponse({"error": error})
-#                 if files:
-#                     return JsonResponse({"files": files})  # ✅ Return GitHub files to frontend
-#
-#         # ✅ Handle manually entered code & uploaded files
-#         code_snippet = request.POST.get('code', '').strip()
-#         project_name = request.POST.get('project_name', '').strip()
-#
-#         # ✅ Auto-generate project name if none is provided
-#         if not project_name:
-#             project_name = f"JavaProject_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-#             print(f"🆕 Auto-generated project name: {project_name}")
-#
-#         # ✅ Check if project exists, else create
-#         project, _ = JavaProject.objects.get_or_create(name=project_name)
-#
-#         # ✅ Fetch uploaded files
-#         uploaded_files = request.FILES.getlist('files')
-#
-#         # ✅ Process uploaded files
-#         if uploaded_files:
-#             for uploaded_file in uploaded_files:
-#                 file_name = uploaded_file.name
-#                 file_content = uploaded_file.read().decode('utf-8')
-#                 # ✅ If the file is not Java, render error on the same page
-#                 if not is_java_code(file_content):
-#                     return render(request, 'java_code_analysis.html', {
-#                         "error": f"🚨 The uploaded file `{file_name}` is not valid Java!",
-#                         "code": "",  # ✅ No code shown in the editor
-#                         "suggestions": [],
-#                         "summary": summary,
-#                         "final_guideline": ""
-#                     })
-#                 all_code_snippets.append({"name": file_name, "code": file_content})
-#
-#         # ✅ Add manually pasted code
-#         if code_snippet:
-#             if not is_java_code(code_snippet):
-#                 return render(request, 'java_code_analysis.html', {
-#                     "error": "🚨 The pasted code is not valid Java!",
-#                     "code": code_snippet,  # ✅ Keep invalid code in the editor
-#                     "suggestions": [],
-#                     "summary": summary,
-#                     "final_guideline": ""
-#                 })
-#             all_code_snippets.append({"name": "Pasted Code", "code": code_snippet})
-#
-#         # ✅ Handle GitHub repository files (if provided)
-#         github_repo_url = request.POST.get("github_url", "").strip()
-#         if github_repo_url:
-#             github_files, error = fetch_github_files(github_repo_url)
-#             if github_files:
-#                 all_code_snippets.extend(github_files)
-#
-#         if not all_code_snippets:
-#             return render(request, 'java_code_analysis.html', {
-#                 "code": "", "suggestions": [], "summary": summary,"final_guideline": "",
-#                 "error": "No Java code provided for analysis."
-#             })
-#
-#         # ✅ Process each file/snippet
-#         for file_data in all_code_snippets:
-#             file_name = file_data["name"]
-#             file_code = file_data["code"]
-#
-#             # ✅ **Split Java code into individual methods or classes (Improved)**
-#             snippets = java_split_code_snippets(file_code)  # ✅ Replaced re.split() with structured splitting
-#             summary["total_snippets"] += len(snippets)
-#             summary["total_lines"] += file_code.count('\n') + 1
-#
-#             for line_num, snippet in enumerate(snippets, start=1):
-#                 # ✅ **Check if snippet already analyzed**
-#                 existing_snippet = JavaCodeSnippet.objects.filter(snippet=snippet).first()
-#
-#                 if existing_snippet:
-#                     print(f"✅ Found existing analysis for snippet in {file_name}...")
-#
-#                     model_suggestion = existing_snippet.model_suggestion
-#                     ai_suggestion = existing_snippet.ai_suggestion
-#
-#                     final_suggestion = f"{model_suggestion}\n\n💡Detail Suggestion:\n{ai_suggestion}"
-#                     category = categorize_suggestion(final_suggestion)
-#                     severity = determine_severity(final_suggestion)
-#
-#                     summary["total_suggestions"] += 1
-#                     summary["categories"].setdefault(category, 0)
-#                     summary["categories"][category] += 1
-#                     summary["severity"][severity] += 1
-#
-#                     suggestions.append({
-#                         "file_name": file_name,
-#                         "code": existing_snippet.snippet,
-#                         "suggestion": final_suggestion,
-#                         "category": category,
-#                         "severity": severity,
-#                         "line": line_num
-#                     })
-#                     continue  # ✅ Skip AI processing for existing snippets
-#
-#                 try:
-#                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
-#
-#                     # ✅ **Generate Model-based Suggestion**
-#                     model_suggestion = java_generate_suggestion(snippet)
-#
-#                     # ✅ **Generate AI-based Suggestion**
-#                     ai_suggestion = ai_code_analysis(snippet,)
-#
-#                     final_suggestion = f"Suggestion:\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
-#
-#                     # ✅ **Categorize & determine severity**
-#                     category = categorize_suggestion(final_suggestion)
-#                     severity = determine_severity(final_suggestion)
-#
-#                     summary["total_suggestions"] += 1
-#                     summary["categories"].setdefault(category, 0)
-#                     summary["categories"][category] += 1
-#                     summary["severity"][severity] += 1
-#
-#                     # ✅ **Store in Java PostgreSQL tables**
-#                     JavaCodeSnippet.objects.create(
-#                         project=project,
-#                         snippet=snippet,
-#                         ai_suggestion=ai_suggestion,
-#                         model_suggestion=model_suggestion,
-#                     )
-#
-#                     print(f"📌 Stored analysis for {file_name}, Line {line_num} in DB.")
-#
-#                     # ✅ **Check if this snippet already exists in suggestions before appending**
-#                     if not any(s["code"] == snippet and s["suggestion"] == final_suggestion for s in suggestions):
-#                         suggestions.append({
-#                             "file_name": file_name,
-#                             "code": snippet,
-#                             "category": category,
-#                             "suggestion": final_suggestion,
-#                             "severity": severity,
-#                             "line": line_num
-#                         })
-#
-#                 except Exception as snippet_error:
-#                     print(f"❌ Error analyzing snippet in {file_name}, Line {line_num}: {str(snippet_error)}")
-#                     suggestions.append({
-#                         "file_name": file_name,
-#                         "code": snippet,
-#                         "suggestion": f"Error: {str(snippet_error)}",
-#                         "severity": "Low",
-#                         "line": line_num
-#                     })
-#
-#         # ✅ **Perform Java Complexity Analysis**
-#         print("🔍 Performing Java Complexity Analysis...")
-#         summary["complexity_metrics"] = java_analyze_code_complexity(code_snippet)
-#         print(f"✅ Java Complexity Results: {summary['complexity_metrics']}")
-#         final_guideline = ai_generate_guideline(summary)
-#
-#         # ✅ **Store the latest analysis in session for PDF generation**
-#         request.session["latest_summary"] = summary
-#         request.session["latest_suggestions"] = suggestions
-#         request.session["latest_guideline"] = final_guideline
-#         request.session.modified = True
-#
-#
-#     return render(
-#         request,
-#         'java_code_analysis.html',
-#         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
-#     )
 
 
 
@@ -1501,44 +1309,6 @@ def fetch_github_files(repo_url):
 
 
 
-# def ai_code_analysis(snippet):
-#     """
-#     Uses OpenAI's GPT-4o to analyze a given code snippet and provide structured suggestions.
-#     """
-#     try:
-#         response = client.chat.completions.create(
-#             model="gpt-3.5-turbo",  # Use "gpt-4o" for better results/ gpt-3.5-turbo
-#             messages=[
-#                 {"role": "system",
-#                  "content": "You are an expert AI code reviewer. Follow this structure:\n"
-#                             "Issue Identified: Describe the issue concisely.\n"
-#                             "Why It's a Problem: Explain the consequences very shortly.\n"
-#                             "Recommended Fix: Provide a solution."
-#                             # "If no issue is found, simply reply with 'No Issue Found'."
-#                  },
-#                 {"role": "user",
-#                  # "content": f"Analyze the following Python code and provide structured feedback:\n{snippet}"}
-#                  "content": f"Analyze the following code and provide structured feedback:\n{snippet}"}
-#             ],
-#             max_tokens=300,
-#             temperature=0.2  # Control randomness
-#         )
-#
-#         # Extract AI response
-#         ai_response = response.choices[0].message.content
-#         # ✅ If AI detects no issue, return None
-#         # if ai_response == "No Issue Found":
-#         #     return None
-#
-#         # Format the response for HTML
-#         formatted_response = ai_response.replace("Issue Identified:", "<b>Issue Identified:</b><br>") \
-#             .replace("Why It's a Problem:", "<b>Why It's a Problem:</b><br>") \
-#             .replace("Recommended Fix:", "<b>Recommended Fix:</b><br>")
-#
-#         return formatted_response  # ✅ Now formatted for HTML rendering
-#     except Exception as e:
-#         return f"Error generating AI analysis: {str(e)}"
-
 
 def ai_code_analysis(snippet, guideline=""):
     """
@@ -1666,51 +1436,40 @@ def ai_generate_guideline(summary):
         return f"Error generating final guideline: {str(e)}"
 
 
-# def ai_generate_guideline(summary, guideline=""):
-#     """
-#     Uses OpenAI to generate a final coding guideline for the developer based on the summary report,
-#     optionally considering uploaded company guidelines.
-#     """
-#     try:
-#         # 🔧 Include guideline in the prompt if available
-#         base_instruction = (
-#             "You are an expert AI code reviewer. Based on the analysis summary, "
-#             "provide a concise final guideline for the developer to follow. "
-#             "Keep it within 3-5 bullet points focusing on:\n\n"
-#             "🚀 **Final Coding Guideline** 🚀\n\n"
-#             "1️⃣ **Security Improvements:**\n"
-#             "2️⃣ **Code Readability & Maintainability:**\n"
-#             "3️⃣ **Performance Optimization:**\n"
-#             "4️⃣ **Reference Links / Guidelines:**\n"
-#         )
-#
-#         if guideline:
-#             base_instruction += f"\nAlso consider this company coding guideline:\n{guideline}"
-#
-#         response = client.chat.completions.create(
-#             model="gpt-4o",
-#             messages=[
-#                 {"role": "system", "content": base_instruction},
-#                 {"role": "user", "content": f"Here is the code analysis summary:\n{summary}"}
-#             ],
-#             max_tokens=400,
-#             temperature=0.2
-#         )
-#
-#         # 🧠 Extract AI response
-#         guideline_response = response.choices[0].message.content
-#
-#         # 🧼 Format for HTML rendering
-#         formatted = guideline_response.replace("🚀 **Final Coding Guideline** 🚀", "<h3>🚀 Final Coding Guideline 🚀</h3>") \
-#             .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
-#             .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
-#             .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \
-#             .replace("4️⃣ **Reference Links / Guidelines:**", "</ul><h4>📚 Reference Guideline</h4><ul>")
-#
-#         return formatted
-#
-#     except Exception as e:
-#         return f"Error generating final guideline: {str(e)}"
+def generate_fixed_code(snippet, guideline=""):
+    """
+    Uses OpenAI to generate a fixed/improved version of the code snippet.
+    If a company guideline is provided, the fix aligns with it.
+    """
+    try:
+        system_prompt = (
+            "You are an expert code fixer. Improve the following code by resolving issues related to security, performance, readability, maintainability, etc.\n"
+            "Only return the fully rewritten code. Do not include explanations or summaries.\n"
+            "Keep original formatting and variable names unless absolutely necessary."
+        )
+
+        user_prompt = (
+            f"Company Coding Guideline:\n{guideline}\n\n"
+            f"Code:\n{snippet}"
+            if guideline else
+            f"Code:\n{snippet}"
+        )
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo", #gpt-3.5-turbo
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=500,
+            temperature=0.2
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        return f"# Error generating fixed code: {str(e)}"
+
 
 
 
@@ -1753,9 +1512,9 @@ def analyze_code_view(request):
     }
     code_snippet = ""
     final_guideline = ""
+    full_fixed_code = ""
     all_code_snippets = []
 
-    # ✅ Handle GitHub repository submission separately
     if request.method == 'POST' and request.content_type == 'application/json':
         try:
             data = json.loads(request.body)
@@ -1768,9 +1527,7 @@ def analyze_code_view(request):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
-    # ✅ Now handle multipart form-data (HTML form uploads and guideline)
     if request.method == 'POST':
-        # ✅ Extract uploaded guideline file if present
         company_guideline_text = ""
         guideline_file = request.FILES.get("guideline_file")
         if guideline_file:
@@ -1822,13 +1579,12 @@ def analyze_code_view(request):
                     print(f"✅ Found existing analysis for snippet in {file_name}, Line {line_num}...")
                     model_suggestion = existing_snippet.model_suggestion
                     ai_suggestion = existing_snippet.ai_suggestion
+                    fixed_code = ""  # Skip generating again for reused snippets
                     if not ai_suggestion:
                         continue
                 else:
                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
                     ai_suggestion = ai_code_analysis(snippet, guideline=company_guideline_text)
-                    if not ai_suggestion:
-                        continue
                     model_suggestion = call_flask_model(snippet)
                     if not CodeSnippet.objects.filter(snippet=snippet).exists():
                         CodeSnippet.objects.create(
@@ -1853,9 +1609,12 @@ def analyze_code_view(request):
                     "suggestion": final_suggestion,
                     "category": category,
                     "severity": severity,
-                    "line": line_num
+                    "line": line_num,
+                    "fixed_code": fixed_code if fixed_code else "N/A"
                 })
 
+        # ✅ Generate the fully fixed code based on the entire code block
+        full_fixed_code = generate_fixed_code(code_snippet, guideline=company_guideline_text)
         summary["complexity_metrics"] = analyze_code_complexity(code_snippet)
         request.session["latest_summary"] = summary
         request.session["latest_suggestions"] = suggestions
@@ -1867,18 +1626,15 @@ def analyze_code_view(request):
         'analyze_code.html',
         {
             'code': code_snippet,
+            'fixed_code': full_fixed_code,
             'suggestions': suggestions,
             'summary': summary,
             'final_guideline': final_guideline
         }
     )
 
-
 # @api_view(['GET', 'POST'])
 # def analyze_code_view(request):
-#     """
-#     Handles code analysis: Takes input, processes it, stores results in PostgreSQL, and retrieves past analysis if available.
-#     """
 #     suggestions = []
 #     summary = {
 #         "total_snippets": 0,
@@ -1890,47 +1646,46 @@ def analyze_code_view(request):
 #     }
 #     code_snippet = ""
 #     final_guideline = ""
-#     all_code_snippets = []  # Store all code snippets from GitHub, uploaded files, and pasted code
+#     all_code_snippets = []
 #
-#     if request.method == 'POST':
-#         # ✅ Handle GitHub repository submission
-#         if request.content_type == 'application/json':
+#     # ✅ Handle GitHub repository submission separately
+#     if request.method == 'POST' and request.content_type == 'application/json':
+#         try:
 #             data = json.loads(request.body)
 #             github_repo_url = data.get("github_url", "").strip()
-#
 #             if github_repo_url:
 #                 files, error = fetch_github_files(github_repo_url)
 #                 if error:
 #                     return JsonResponse({"error": error})
+#                 return JsonResponse({"files": files})
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)}, status=500)
 #
-#                 if files:
-#                     return JsonResponse({"files": files})  # ✅ Send GitHub files to frontend
+#     # ✅ Now handle multipart form-data (HTML form uploads and guideline)
+#     if request.method == 'POST':
+#         # ✅ Extract uploaded guideline file if present
+#         company_guideline_text = ""
+#         guideline_file = request.FILES.get("guideline_file")
+#         if guideline_file:
+#             company_guideline_text = extract_guideline_text(guideline_file)
 #
-#         # ✅ Handle manually entered code & uploaded files
 #         code_snippet = request.POST.get('code', '').strip()
 #         project_name = request.POST.get('project_name', '').strip()
 #
-#         # ✅ Auto-generate project name if none is provided
 #         if not project_name:
 #             project_name = f"Project_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 #             print(f"🆕 Auto-generated project name: {project_name}")
 #
-#         # ✅ Check if project already exists, else create it
 #         project, _ = Project.objects.get_or_create(name=project_name)
 #
-#         # ✅ Fetch uploaded files
 #         uploaded_files = request.FILES.getlist('files')
-#
-#         # ✅ Process uploaded files
 #         if uploaded_files:
 #             for uploaded_file in uploaded_files:
 #                 file_name = uploaded_file.name
 #                 file_content = uploaded_file.read().decode('utf-8')
 #                 all_code_snippets.append({"name": file_name, "code": file_content})
-#         else:
-#             # Handle code pasted directly in the editor
-#             if code_snippet:
-#                 all_code_snippets.append({"name": "Pasted Code", "code": code_snippet})
+#         elif code_snippet:
+#             all_code_snippets.append({"name": "Pasted Code", "code": code_snippet})
 #
 #         if not all_code_snippets:
 #             return render(request, 'analyze_code.html', {
@@ -1942,13 +1697,10 @@ def analyze_code_view(request):
 #             file_name = file_data["name"]
 #             file_code = file_data["code"]
 #
-#             # ✅ **Check if the code is Python before analysis**
 #             if not is_python_code(file_code):
 #                 return render(request, 'analyze_code.html', {
 #                     "code": file_code,
-#                     "suggestions": [],
-#                     "summary": summary,
-#                     "final_guideline": "",
+#                     "suggestions": [], "summary": summary, "final_guideline": "",
 #                     "error": f" Error: The uploaded file `{file_name}` is not valid Python code."
 #                 })
 #
@@ -1957,34 +1709,20 @@ def analyze_code_view(request):
 #             summary["total_lines"] += file_code.count('\n') + 1
 #
 #             for line_num, snippet in enumerate(snippets, start=1):
-#                 # ✅ **Check if snippet already exists**
 #                 existing_snippet = CodeSnippet.objects.filter(snippet=snippet).first()
 #
 #                 if existing_snippet:
 #                     print(f"✅ Found existing analysis for snippet in {file_name}, Line {line_num}...")
-#
 #                     model_suggestion = existing_snippet.model_suggestion
 #                     ai_suggestion = existing_snippet.ai_suggestion
-#
-#                     if not ai_suggestion :  # ✅ Skip if AI found no issue
-#                         print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
+#                     if not ai_suggestion:
 #                         continue
-#
-#                     # ✅ **Use stored suggestions**
-#                     final_suggestion = f"Suggestion:\n{model_suggestion}\n\n💡Detail Analysis\n{ai_suggestion}"
-#
 #                 else:
 #                     print(f"🚀 Running AI analysis for snippet in {file_name}, Line {line_num}")
-#                     ai_suggestion = ai_code_analysis(snippet)
-#
-#                     if not ai_suggestion:  # ✅ Skip if AI finds no issue
-#                         print(f"✅ Skipping snippet in {file_name}, Line {line_num} as AI detected no issue.")
+#                     ai_suggestion = ai_code_analysis(snippet, guideline=company_guideline_text)
+#                     if not ai_suggestion:
 #                         continue
-#
 #                     model_suggestion = call_flask_model(snippet)
-#                     final_suggestion = f"Suggestion:\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
-#
-#                     # ✅ **Prevent duplicate storage before saving**
 #                     if not CodeSnippet.objects.filter(snippet=snippet).exists():
 #                         CodeSnippet.objects.create(
 #                             project=project,
@@ -1993,7 +1731,7 @@ def analyze_code_view(request):
 #                             model_suggestion=model_suggestion,
 #                         )
 #
-#                 # ✅ **Ensure categories & severity are updated from DB suggestions**
+#                 final_suggestion = f"\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
 #                 category = categorize_suggestion(final_suggestion)
 #                 severity = determine_severity(final_suggestion)
 #
@@ -2002,7 +1740,6 @@ def analyze_code_view(request):
 #                 summary["categories"][category] += 1
 #                 summary["severity"][severity] += 1
 #
-#                 # ✅ **Store combined suggestions in the results**
 #                 suggestions.append({
 #                     "file_name": file_name,
 #                     "code": snippet,
@@ -2012,26 +1749,23 @@ def analyze_code_view(request):
 #                     "line": line_num
 #                 })
 #
-#         # ✅ **Perform Complexity Analysis**
-#         print("🔍 Performing Complexity Analysis...")
 #         summary["complexity_metrics"] = analyze_code_complexity(code_snippet)
-#         print(f"✅ Complexity Results: {summary['complexity_metrics']}")
-#
-#         # ✅ **Store the latest analysis in session for PDF generation**
 #         request.session["latest_summary"] = summary
 #         request.session["latest_suggestions"] = suggestions
 #         request.session.modified = True
-#
-#         # ✅ **Generate Developer Guideline**
 #         final_guideline = ai_generate_guideline(summary)
 #
 #     return render(
 #         request,
 #         'analyze_code.html',
-#         {'code': code_snippet, 'suggestions': suggestions, 'summary': summary, 'final_guideline': final_guideline}
+#         {
+#             'code': code_snippet,
+#             'suggestions': suggestions,
+#             'summary': summary,
+#             'final_guideline': final_guideline
+#         }
 #     )
 
-#
 
 
 

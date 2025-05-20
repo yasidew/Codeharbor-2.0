@@ -1,0 +1,76 @@
+<style>
+    /* Sleek scrollbar styling for modern browsers */
+    pre::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    pre::-webkit-scrollbar-track {
+        background: #1a1a2e;
+        border-radius: 10px;
+    }
+
+    pre::-webkit-scrollbar-thumb {
+        background-color: #555;
+        border-radius: 10px;
+        border: 2px solid #1a1a2e;
+    }
+
+    pre::-webkit-scrollbar-thumb:hover {
+        background-color: #888;
+    }
+
+    /* For Firefox */
+    pre {
+        scrollbar-width: thin;
+        scrollbar-color: #555 #1a1a2e;
+    }
+</style>
+
+<div class="card mt-4 shadow-sm border-0 rounded-lg" style="background-color: #1a1a2e;">
+    <div class="card-header bg-dark text-white text-center fw-bold">
+        <i class="fas fa-code-branch"></i> Before & After Code Review
+    </div>
+    <div class="card-body p-0">
+        <div class="row g-0">
+            <div class="col-md-6 border-end">
+                <div class="p-3">
+                    <h6 class="text-danger"><i class="fas fa-exclamation-circle"></i> Original Code</h6>
+                    <pre id="originalCode" class="bg-black text-white p-3 rounded"
+                         style="font-family: 'Fira Code', monospace; white-space: pre-wrap; max-height: 400px; overflow-y: auto;">
+{{ original_code }}
+                    </pre>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3">
+                    <h6 class="text-success"><i class="fas fa-check-circle"></i> Fixed Code</h6>
+                    <pre id="fixedCode" class="bg-success text-white p-3 rounded"
+                         style="font-family: 'Fira Code', monospace; white-space: pre-wrap; max-height: 400px; overflow-y: auto;">
+{{ fixed_code }}
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const original = document.getElementById('originalCode');
+    const fixed = document.getElementById('fixedCode');
+
+    let isSyncingScroll = false;
+
+    function syncScroll(source, target) {
+        if (!isSyncingScroll) {
+            isSyncingScroll = true;
+            target.scrollTop = source.scrollTop;
+            setTimeout(() => isSyncingScroll = false, 10);
+        }
+    }
+
+    original.addEventListener('scroll', () => syncScroll(original, fixed));
+    fixed.addEventListener('scroll', () => syncScroll(fixed, original));
+</script>
+
+
+

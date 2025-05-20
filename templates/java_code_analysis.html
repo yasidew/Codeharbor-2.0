@@ -451,11 +451,7 @@
                         <h4 class="text-center">Java Code Complexity Metrics</h4>
                         <canvas id="javaComplexityChart" width="400" height="400"></canvas>
                     </div>
-                    <div class="text-center mt-3">
-                        <a href="{% url 'export_java_excel' %}" class="btn btn-success">
-                            <i class="fas fa-file-excel"></i> Download Excel Report
-                        </a>
-                    </div>
+                    
 
 
 
@@ -470,6 +466,12 @@
                 {#                </div>#}
             </div>
             <!-- Developer Guideline Section -->
+            {% include 'code_analysis/before_after_comparison.html' with original_code=code fixed_code=fixed_code %}
+            <div class="text-center mt-3">
+                <a href="{% url 'export_java_excel' %}" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Download Excel Report
+                </a>
+            </div>
             {% if final_guideline %}
                 {#                <div class="container mt-5">#}
                 {#                    <div class="guideline-panel p-4 shadow-lg rounded text-center">#}
