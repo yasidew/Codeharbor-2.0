@@ -3,6 +3,7 @@ import logging
 import os
 import re
 from collections import defaultdict, deque
+from pathlib import Path
 
 import javalang
 import pandas as pd
@@ -200,40 +201,44 @@ class CBOMetrics:
 output_csv = "media/cbo_features_output.csv"
 model_output = "xgboost_java_model.pkl"
 
-# Load dataset
-df = pd.read_csv(output_csv)
-
-# Drop 'file_name' column as it's not a feature
-df.drop(columns=["file_name"], inplace=True)
-
-# Define features (X) and labels (y)
-X = df.drop(columns=["cbo_label"])
-y = df["cbo_label"]
-
-# Split data into training and testing sets
-if len(X) < 2:
-    print("Warning: Not enough data for train-test split. Training on the entire dataset.")
-    X_train, y_train = X, y  # Use all data for training
-    X_test, y_test = X, y  # Empty test set (or keep a single instance)
+if os.path.exists(model_output):
+    model = joblib.load(model_output)
+    print(f"✅ Loaded existing model java cbo from {model_output}")
 else:
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Load dataset
+    df = pd.read_csv(output_csv)
 
-# Define and train the XGBoost model
-model = XGBClassifier(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
-model.fit(X_train, y_train)
+    # Drop 'file_name' column as it's not a feature
+    df.drop(columns=["file_name"], inplace=True)
 
-# Make predictions
-y_pred = model.predict(X_test)
+    # Define features (X) and labels (y)
+    X = df.drop(columns=["cbo_label"])
+    y = df["cbo_label"]
 
-# Evaluate model performance
-accuracy = accuracy_score(y_test, y_pred)
-print(f"XGBoost Model Accuracy: {accuracy:.4f}")
-print("Classification Report:")
-print(classification_report(y_test, y_pred))
+    # Split data into training and testing sets
+    if len(X) < 2:
+        print("Warning: Not enough data for train-test split. Training on the entire dataset.")
+        X_train, y_train = X, y  # Use all data for training
+        X_test, y_test = X, y  # Empty test set (or keep a single instance)
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Save trained model
-joblib.dump(model, model_output)
-print(f"Model saved as {model_output}")
+    # Define and train the XGBoost model
+    model = XGBClassifier(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
+    model.fit(X_train, y_train)
+
+    # Make predictions
+    y_pred = model.predict(X_test)
+
+    # Evaluate model performance
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"XGBoost Model Accuracy: {accuracy:.4f}")
+    print("Classification Report:")
+    print(classification_report(y_test, y_pred))
+
+    # Save trained model
+    joblib.dump(model, model_output)
+    print(f"Model saved as {model_output}")
 
 JAVA_STANDARD_CLASSES = {
     "Thread", "String", "HashMap", "BufferedReader", "FileReader", "Runnable", "System.out", "Logger", "Math"
@@ -1377,6 +1382,7 @@ def calculate_inheritance_level2(class_name):
 
 # Load or initialize dataset
 data_file = "media/synthetic_training_data_1000.csv"
+MODEL_PATH = "random_forest_reco_model.pkl"
 if os.path.exists(data_file):
     dataset = pd.read_csv(data_file)
 else:
@@ -1403,7 +1409,6 @@ dataset = dataset.drop_duplicates()
 
 dataset = clean_and_convert_dataset(dataset)
 
-
 def train_model(data):
     X = data[["control_structure_complexity", "nesting_level", "compound_condition_weight", "try_catch_weight",
               "current_inheritance"]]
@@ -1428,11 +1433,21 @@ def train_model(data):
     print(f"🔹 F1 Score: {f1:.2f}")
     print("=" * 50)
 
-
     return model
 
+# model = train_model(dataset)
 
-model = train_model(dataset)
+# Use existing model if available
+if Path(MODEL_PATH).exists():
+    model = joblib.load(MODEL_PATH)
+    print("✅ Pre-trained model loaded from disk.")
+elif not dataset.empty:
+    model = train_model(dataset)
+    joblib.dump(model, MODEL_PATH)
+    print("✅ New model trained and saved.")
+else:
+    model = None
+    print("⚠️ Dataset is empty. No model available.")
 
 
 def update_dataset_and_model(new_data):
@@ -1512,7 +1527,7 @@ def calculate_code_complexity_line_by_line(code):
     line_complexities = []
 
     for i, line in enumerate(lines, start=1):
-        # Calculate complexity for the current line
+        # Calculate complexity for the current lin
         size, tokens = calculate_size(line)
         # if size == 0:
         #     continue
@@ -1834,9 +1849,9 @@ def calculate_code_complexity_multiple_files(file_contents):
         )
 
         # If new patterns appear, update dataset & model
-        if new_patterns:
-            new_data = pd.DataFrame(new_patterns)
-            update_dataset_and_model(new_data)
+        # if new_patterns:
+        #     new_data = pd.DataFrame(new_patterns)
+        #     update_dataset_and_model(new_data)
 
         # Get AI recommendations for each line
         recommendations = ai_recommend_refactoring(line_complexities)
