@@ -208,7 +208,6 @@
                                         {{ suggestion.suggestion | safe }}
                                     </div>
                                 </div>
-
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                     {#                            <span class="badge bg-primary px-3 py-2">{{ suggestion.category }}</span>#}
                                     <span class="badge bg-primary px-3 py-2" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -249,6 +248,7 @@
         {#        </div>#}
 
         <!-- Summary Report Section -->
+        
         <div class="container mt-4">
             <div class="row">
                 <div class="col-md-6">
@@ -448,6 +448,7 @@
                         </div>
 
                     </div>
+                    
                 </div>
                 <!-- Issue Category Distribution -->
                 <div class="col-md-6">
@@ -467,17 +468,20 @@
                     {#                    <h4 class="text-center">Code Complexity Radar Chart</h4>#}
                     {#                    <canvas id="complexityRadarChart" width="400" height="400"></canvas>#}
                     {#                </div>#}
-                    <div class="text-center mt-3">
-                        <a href="{% url 'export_excel' %}" class="btn btn-success">
-                            <i class="fas fa-file-excel"></i> Download Excel Report
-                        </a>
-                    </div>
+                   
 
 
 
 
                 </div>
 
+            </div>
+            <!-- Before & After Comparison -->
+            {% include 'code_analysis/before_after_comparison.html' with original_code=code fixed_code=fixed_code %}
+            <div class="text-center mt-3">
+                <a href="{% url 'export_excel' %}" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Download Excel Report
+                </a>
             </div>
             <!-- Developer Guideline Section -->
             {% if final_guideline %}
