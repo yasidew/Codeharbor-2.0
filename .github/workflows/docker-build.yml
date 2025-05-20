@@ -12,6 +12,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_API_KEY1: ${{ secrets.OPENAI_API_KEY1 }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -38,5 +42,4 @@ jobs:
           tags: ydewmin/codeharbor:latest
 
       - name: Run tests (optional)
-        run: |
-          docker run --rm ydewmin/codeharbor:latest python manage.py test
+        run: docker run --rm ydewmin/codeharbor:latest python manage.py test
