@@ -15,6 +15,9 @@ class JavaFile(models.Model):
     java_code = models.TextField()
     analysis_date = models.DateTimeField(auto_now_add=True)
     total_wcc = models.IntegerField(default=0)  # Store Weighted Code Complexity (WCC)
+    refactored_java_code = models.TextField(null=True, blank=True)  # New field for refactored code
+    cbo = models.TextField(null=True, blank=True)  # New field for CBO (Class Coupling)
+    recommendations = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.filename} - WCC: {self.total_wcc} - {self.analysis_date.strftime('%Y-%m-%d %H:%M:%S')}"
@@ -48,6 +51,9 @@ class CSharpFile(models.Model):
     csharp_code = models.TextField()
     analysis_date = models.DateTimeField(auto_now_add=True)
     total_wcc = models.IntegerField(default=0)  # Weighted Code Complexity (WCC)
+    refactored_java_code = models.TextField(null=True, blank=True)  # New field for refactored code
+    cbo = models.TextField(null=True, blank=True)  # New field for CBO (Class Coupling)
+    recommendations = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.filename} - WCC: {self.total_wcc} - {self.analysis_date.strftime('%Y-%m-%d %H:%M:%S')}"
