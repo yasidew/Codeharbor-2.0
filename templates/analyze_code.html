@@ -478,6 +478,7 @@
             </div>
             <!-- Before & After Comparison -->
             {% include 'code_analysis/before_after_comparison.html' with original_code=code fixed_code=fixed_code %}
+{#            {% include 'code_analysis/before_after_comparison.html' with original_code=code fixed_code=fixed_code language='python'%}#}
             <div class="text-center mt-3">
                 <a href="{% url 'export_excel' %}" class="btn btn-success">
                     <i class="fas fa-file-excel"></i> Download Excel Report
@@ -523,7 +524,7 @@
     <!-- Bootstrap 5 JS & Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF8ZRW3E6E4k/t8Hh7tY0fRS6P8qHcV9I6mDGM1If7HxhRDI3c" crossorigin="anonymous"></script>
-
+    
 
     <!-- Chart.js for Graph -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -533,6 +534,17 @@
     {#    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>#}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+
+    <!-- PrismJS Styles -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet"/>
+
+    <!-- PrismJS Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
 
 
     <script>
@@ -564,9 +576,63 @@
                     minimap: { enabled: false },
                 });
             });
-
-
         });
+
+        {#document.addEventListener("DOMContentLoaded", function () {#}
+        {#    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });#}
+        {##}
+        {#    require(["vs/editor/editor.main"], function () {#}
+        {#        // ✅ Main code input editor (editable)#}
+        {#        window.editor = monaco.editor.create(document.getElementById("monaco-container"), {#}
+        {#            value: `{{ code|escapejs }}`,#}
+        {#            language: "python",#}
+        {#            theme: "vs-dark",#}
+        {#            automaticLayout: true,#}
+        {#            minimap: { enabled: false },#}
+        {#        });#}
+        {##}
+        {#        // ✅ Comparison editors (read-only)#}
+        {#        const beforeEl = document.getElementById("beforeEditor");#}
+        {#        const afterEl = document.getElementById("afterEditor");#}
+        {##}
+        {#        if (beforeEl && afterEl) {#}
+        {#            const beforeEditor = monaco.editor.create(beforeEl, {#}
+        {#                value: `{{ original_code|escapejs }}`,#}
+        {#                language: "{{ language|default:'python' }}",#}
+        {#                theme: "vs-dark",#}
+        {#                readOnly: true,#}
+        {#                minimap: { enabled: false },#}
+        {#                scrollbar: { vertical: 'auto', horizontal: 'auto' }#}
+        {#            });#}
+        {##}
+        {#            const afterEditor = monaco.editor.create(afterEl, {#}
+        {#                value: `{{ fixed_code|escapejs }}`,#}
+        {#                language: "{{ language|default:'python' }}",#}
+        {#                theme: "vs-dark",#}
+        {#                readOnly: true,#}
+        {#                minimap: { enabled: false },#}
+        {#                scrollbar: { vertical: 'auto', horizontal: 'auto' }#}
+        {#            });#}
+        {##}
+        {#            // ✅ Scroll sync#}
+        {#            let syncingScroll = false;#}
+        {#            beforeEditor.onDidScrollChange(() => {#}
+        {#                if (!syncingScroll) {#}
+        {#                    syncingScroll = true;#}
+        {#                    afterEditor.setScrollTop(beforeEditor.getScrollTop());#}
+        {#                    setTimeout(() => syncingScroll = false, 20);#}
+        {#                }#}
+        {#            });#}
+        {#            afterEditor.onDidScrollChange(() => {#}
+        {#                if (!syncingScroll) {#}
+        {#                    syncingScroll = true;#}
+        {#                    beforeEditor.setScrollTop(afterEditor.getScrollTop());#}
+        {#                    setTimeout(() => syncingScroll = false, 20);#}
+        {#                }#}
+        {#            });#}
+        {#        }#}
+        {#    });#}
+        {#});#}
         // Handle file upload and display content in Monaco Editor
         document.getElementById('fileInput').addEventListener('change', function (event) {
             const file = event.target.files[0];
