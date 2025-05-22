@@ -258,6 +258,7 @@
 
                 <!-- Collapsible Content -->
                 <div class="table-content" id="table-{{ file.filename|slugify }}">
+                    <p><strong style="color:#58a6ff;">Method Complexity</strong></p>
                     <table class="table table-hover">
                         <thead>
                         <tr>
@@ -299,19 +300,39 @@
 
                     {% if file.cbo %}
                         <div class="cbo-recommendations">
-                            <p><strong>CBO Prediction:</strong> {{ file.cbo }}</p>
+                            <p>
+                                <strong style="color:#58a6ff;">CBO Prediction:</strong>
+                                <span style="color: {% if 'High' in file.cbo %}#ff4d4d{% elif 'Low' in file.cbo %}#4caf50{% else %}#ffc107{% endif %};">{{ file.cbo }}</span>
+                            </p>
                         </div>
                     {% endif %}
                     {% if file.recommendations %}
-                        <p><strong style="color:#58a6ff;">Recommendations:</strong></p>
-                        <ul>
-                            {% for line in file.recommendations.splitlines %}
-                                <li>{{ line }}</li>
-                            {% endfor %}
-                        </ul>
+
+                        <div style="overflow-x:auto;">
+                            <table class="table table-bordered" style="color: #c9d1d9; border-color: #30363d;">
+                                <thead style="background-color: #21262d; color: #58a6ff;">
+                                <tr>
+                                    <th style="text-align:center;">Recommendations</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for line in file.recommendations.splitlines %}
+                                    <tr>
+                                        <td>
+                                            {% if "[" in line and "Line " in line %}
+                                                {{ line }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     {% endif %}
 
-                    <!-- Refactored Code Section -->
                     {% if file.refactored_java_code %}
                         <div class="refactor-container mt-3">
                             <button class="btn btn-outline-info toggle-refactor"
@@ -322,12 +343,15 @@
                             <div id="refactor-code-{{ forloop.counter }}" class="refactor-content mt-2"
                                  style="display: none;">
                                 <p><strong style="color:#58a6ff;">Refactored Code:</strong></p>
-                                <pre style="white-space: pre-wrap; background-color: #161b22; padding: 15px; border-radius: 6px; color: #c9d1d9;">
-{{ file.refactored_java_code }}
-            </pre>
+
+                                <textarea id="editor-content-{{ forloop.counter }}"
+                                          style="display:none;">{{ file.refactored_java_code }}</textarea>
+
+                                <div id="editor-{{ forloop.counter }}"
+                                     class="monaco-editor-container"
+                                     style="height: 400px; border: 1px solid #30363d; border-radius: 6px; margin: 10px 0; text-align: left;"></div>
                             </div>
                         </div>
-
                     {% endif %}
 
                 </div>
@@ -429,19 +453,57 @@
             submitBtn.disabled = validFiles.length === 0;
         }
 
-        document.querySelectorAll(".toggle-refactor").forEach(button => {
-        button.addEventListener("click", () => {
-            const targetId = button.getAttribute("data-target");
-            const content = document.getElementById(targetId);
+        function showLoading() {
+            document.getElementById('loading-spinner').style.display = 'flex';
+            setTimeout(() => {
+                document.querySelector('form').submit();
+            }, 200000);
+        }
 
-            if (content.style.display === "none") {
-                content.style.display = "block";
-                button.innerHTML = "🔽 Hide Refactored Code";
-            } else {
-                content.style.display = "none";
-                button.innerHTML = "🔧 Show Refactored Code";
-            }
+        function hideLoading() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        }
+
+        window.onload = function () {
+            hideLoading();
+        };
+
+        // Monaco Editor Lazy Load
+        require.config({paths: {vs: 'https://unpkg.com/monaco-editor@0.43.0/min/vs'}});
+
+        require(["vs/editor/editor.main"], function () {
+            document.querySelectorAll(".toggle-refactor").forEach(button => {
+                button.addEventListener("click", () => {
+                    const targetId = button.getAttribute("data-target");
+                    const content = document.getElementById(targetId);
+                    const editorId = `editor-${targetId.split("-").pop()}`;
+                    const textareaId = `editor-content-${targetId.split("-").pop()}`;
+
+                    if (content.style.display === "none") {
+                        content.style.display = "block";
+                        button.innerHTML = "🔽 Hide Refactored Code";
+
+                        const container = document.getElementById(editorId);
+                        const source = document.getElementById(textareaId);
+                        if (!container.classList.contains("initialized")) {
+                            monaco.editor.create(container, {
+                                value: source.value,
+                                language: "java",
+                                theme: "vs-dark",
+                                readOnly: true,
+                                automaticLayout: true,
+                                minimap: {enabled: false}
+                            });
+                            container.classList.add("initialized");
+                        }
+
+                    } else {
+                        content.style.display = "none";
+                        button.innerHTML = "🔧 Show Refactored Code";
+                    }
+                });
+            });
+
         });
-    });
     </script>
 {% endblock %}

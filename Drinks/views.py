@@ -2901,6 +2901,9 @@ def calculate_complexity_multiple_csharp_files(request):
         complexities.append({
             'filename': file.filename,
             'total_wcc': file.total_wcc,
+            "cbo": file.cbo,
+            "recommendations": file.recommendations,
+            "refactored_java_code": file.refactored_java_code,
             'method_complexities': method_list
         })
 
