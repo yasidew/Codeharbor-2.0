@@ -1142,106 +1142,135 @@ def ensure_blocks_have_bodies(code_snippet):
     return "\n".join(corrected_lines)
 
 
-def split_code_snippets(code_snippet):
-    """
-    Split the input code snippet into Python functions, top-level blocks,
-    and logic-level keyword blocks (similar to Java splitting).
-    """
-    try:
-        # Step 1: Normalize and validate indentation
-        normalized_code = normalize_and_validate_indentation(code_snippet)
-
-        # Step 2: Parse the normalized code into AST
-        tree = ast.parse(normalized_code)
-        snippets = []
-
-        # Step 3: Extract top-level code blocks (functions, classes, imports, etc.)
-        for node in tree.body:
-            if hasattr(ast, "get_source_segment"):
-                snippet = ast.get_source_segment(normalized_code, node)
-            else:
-                start_line = getattr(node, "lineno", None)
-                end_line = getattr(node, "end_lineno", None)
-                if start_line and end_line:
-                    snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
-                    snippet = "\n".join(snippet_lines)
-                else:
-                    snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
-
-            if snippet and snippet not in snippets:
-                snippets.append(snippet)
-
-        # Step 4: Extract additional logic-level blocks (e.g., eval, file ops)
-        logic_keywords = [
-            "open(", "read(", "write(", "eval(", "exec(", "input(", "os.system(",
-            "subprocess.", "pickle.", "socket.", "importlib.", "sys.exit("
-        ]
-        logic_blocks = extract_python_logic_blocks(normalized_code, logic_keywords)
-
-        for block in logic_blocks:
-            labeled_block = f"# LOGIC BLOCK\n{block}"
-            if labeled_block not in snippets:
-                snippets.append(labeled_block)
-
-        return snippets
-
-    except SyntaxError as e:
-        print(f"❌ Error parsing code snippets: {e}")
-        return [code_snippet]  # Return as fallback
-
-
 # def split_code_snippets(code_snippet):
 #     """
-#     Split the input code snippet into individual Python functions or top-level blocks.
+#     Split the input code snippet into Python functions, top-level blocks,
+#     and logic-level keyword blocks (similar to Java splitting).
 #     """
 #     try:
-#         # Normalize and validate indentation
+#         # Step 1: Normalize and validate indentation
 #         normalized_code = normalize_and_validate_indentation(code_snippet)
 #
-#         # Parse the normalized code into an Abstract Syntax Tree (AST)
+#         # Step 2: Parse the normalized code into AST
 #         tree = ast.parse(normalized_code)
 #         snippets = []
 #
-#         # Extract top-level nodes
+#         # Step 3: Extract top-level code blocks (functions, classes, imports, etc.)
 #         for node in tree.body:
-#             # Extract source code for each node
 #             if hasattr(ast, "get_source_segment"):
 #                 snippet = ast.get_source_segment(normalized_code, node)
-#                 print(f"Snippet: {snippet}")
 #             else:
-#                 # Fallback: Use line numbers if available
 #                 start_line = getattr(node, "lineno", None)
 #                 end_line = getattr(node, "end_lineno", None)
-#
 #                 if start_line and end_line:
 #                     snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
 #                     snippet = "\n".join(snippet_lines)
 #                 else:
-#                     # Fallback for cases where neither method works
 #                     snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
 #
-#             # ✅ Prevent duplicates
 #             if snippet and snippet not in snippets:
 #                 snippets.append(snippet)
 #
+#         # Step 4: Extract additional logic-level blocks (e.g., eval, file ops)
+#         logic_keywords = [
+#             "open(", "read(", "write(", "eval(", "exec(", "input(", "os.system(",
+#             "subprocess.", "pickle.", "socket.", "importlib.", "sys.exit("
+#         ]
+#         logic_blocks = extract_python_logic_blocks(normalized_code, logic_keywords)
+#
+#         for block in logic_blocks:
+#             labeled_block = f"# LOGIC BLOCK\n{block}"
+#             if labeled_block not in snippets:
+#                 snippets.append(labeled_block)
+#
 #         return snippets
+#
 #     except SyntaxError as e:
-#         print(f"Error parsing code snippets: {e}")
-#         return [code_snippet]  # Return full code as a single snippet if parsing fails
+#         print(f"❌ Error parsing code snippets: {e}")
+#         return [code_snippet]  # Return as fallback
+
+def split_code_snippets(code_snippet: str) -> list:
+    """
+    Splits a Python code block into function/class/import definitions and logic-level code blocks.
+    Designed for high accuracy in enterprise-level code analysis.
+
+    Returns:
+        List of code snippets (str), each representing a distinct logical or structural unit.
+    """
+    snippets = []
+    logic_keywords = [
+        "open(", "read(", "write(", "eval(", "exec(", "input(",
+        "os.system(", "subprocess.", "pickle.", "socket.", "importlib.", "sys.exit("
+    ]
+
+    try:
+        # Normalize and parse code safely
+        normalized_code = normalize_and_validate_indentation(code_snippet)
+        tree = ast.parse(normalized_code)
+
+        for node in tree.body:
+            snippet = ast.get_source_segment(normalized_code, node)
+            if not snippet:
+                start_line = getattr(node, 'lineno', 1)
+                end_line = getattr(node, 'end_lineno', start_line)
+                lines = normalized_code.splitlines()[start_line - 1:end_line]
+                snippet = "\n".join(lines)
+
+            if snippet and snippet not in snippets:
+                snippets.append(snippet)
+
+        # Include logic-level blocks that may not be captured by AST
+        logic_blocks = extract_python_logic_blocks(normalized_code, logic_keywords)
+        for block in logic_blocks:
+            labeled = f"# LOGIC BLOCK\n{block}"
+            if labeled not in snippets:
+                snippets.append(labeled)
+
+        return snippets
+
+    except SyntaxError as e:
+        # logging.error(f"[Code Split Error] SyntaxError: {e}")
+        return [code_snippet]
 
 
-def extract_python_logic_blocks(code, keywords):
+def extract_python_logic_blocks(code: str, keywords: list) -> list:
+    """
+    Heuristically detects small logic blocks centered around critical keywords (e.g., file I/O, subprocess).
+    Useful for identifying risky operations outside of defined functions/classes.
+
+    Returns:
+        List of small logic code snippets (str).
+    """
     lines = code.splitlines()
     logic_blocks = []
+    visited_indices = set()
 
     for i, line in enumerate(lines):
-        if any(kw in line for kw in keywords):
-            start = max(0, i - 1)
-            end = min(len(lines), i + 2)
-            snippet = "\n".join(lines[start:end])
-            if snippet not in logic_blocks:
-                logic_blocks.append(snippet)
+        if any(kw in line for kw in keywords) and i not in visited_indices:
+            start = max(0, i - 2)
+            end = min(len(lines), i + 3)
+
+            block = "\n".join(lines[start:end]).strip()
+            if block and block not in logic_blocks:
+                logic_blocks.append(block)
+                visited_indices.update(range(start, end))
+
     return logic_blocks
+
+
+
+# def extract_python_logic_blocks(code, keywords):
+#     lines = code.splitlines()
+#     logic_blocks = []
+#
+#     for i, line in enumerate(lines):
+#         if any(kw in line for kw in keywords):
+#             start = max(0, i - 1)
+#             end = min(len(lines), i + 2)
+#             snippet = "\n".join(lines[start:end])
+#             if snippet not in logic_blocks:
+#                 logic_blocks.append(snippet)
+#     return logic_blocks
 
 
 # Ensure API Key is loaded
