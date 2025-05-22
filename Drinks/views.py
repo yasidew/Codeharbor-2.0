@@ -118,9 +118,6 @@ def home(request):
     return render(request, 'home.html')
 
 
-
-
-
 load_dotenv()
 # OpenAI API Client
 # client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -141,6 +138,7 @@ torch.backends.cuda.matmul.allow_tf32 = True
 # FLASK_API_URL = "http://16.171.138.50:5000/predict"  # Update if deployed on AWS
 FLASK_API_URL = "http://127.0.0.1:5000/predict"
 
+
 def call_flask_model(snippet):
     """Calls Flask API and gets prediction from T5 model."""
     try:
@@ -151,6 +149,7 @@ def call_flask_model(snippet):
             return f"❌ Flask API Error: {response.status_code} - {response.text}"
     except requests.exceptions.RequestException as e:
         return f"❌ Flask API Request Failed: {str(e)}"
+
 
 # async def call_flask_model_async(snippet):
 #     """Calls Flask API asynchronously and gets prediction from T5 model."""
@@ -163,7 +162,6 @@ def call_flask_model(snippet):
 #                     return f"❌ Flask API Error: {response.status} - {await response.text()}"
 #         except Exception as e:
 #             return f"❌ Flask API Request Failed: {str(e)}"
-
 
 
 def home(request):
@@ -263,6 +261,7 @@ def group_recommendations_by_line(recommendations):
         })
     return grouped
 
+
 ################################ java ##############################
 
 JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
@@ -273,12 +272,14 @@ java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
 java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
 java_model.eval()  # Set to evaluation mode for inference
 
+
 def java_generate_suggestion(code_snippet):
     """
     Uses the Java-trained T5 model to generate AI-powered suggestions.
     """
     try:
-        inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
+        inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length",
+                                max_length=512)
         inputs = {k: v.to(device) for k, v in inputs.items()}
 
         with torch.no_grad():
@@ -288,8 +289,6 @@ def java_generate_suggestion(code_snippet):
 
     except Exception as e:
         return f"❌ Error generating suggestion: {str(e)}"
-
-
 
 
 # def java_split_code_snippets(code):
@@ -367,7 +366,8 @@ def java_split_code_snippets(code):
                 add_unique_snippet("UNUSED OBJECT CREATION", "new Object()")
                 add_unique_snippet("UNNECESSARY SYNCHRONIZATION", "synchronized void method()")
                 add_unique_snippet("RESOURCE LEAK", "new BufferedReader(new FileReader(file))")
-                add_unique_snippet("LONG PARAMETER LIST", "public void method(int a, int b, int c, int d, int e, int f)")
+                add_unique_snippet("LONG PARAMETER LIST",
+                                   "public void method(int a, int b, int c, int d, int e, int f)")
                 add_unique_snippet("THROWING GENERIC EXCEPTION", "throw new Exception()")
 
         return snippets
@@ -426,9 +426,6 @@ def extract_logical_block(method_body, keyword):
     return "\n".join(sorted(extracted))  # ✅ Sort to maintain order
 
 
-
-
-
 def is_java_code(code):
     """
     Checks if the provided code is valid Java by parsing it using javalang.
@@ -447,6 +444,7 @@ def is_java_code(code):
         return True
     except (javalang.parser.JavaSyntaxError, javalang.tokenizer.LexerError):
         return False
+
 
 @api_view(['GET', 'POST'])
 def java_code_analysis(request):
@@ -590,7 +588,7 @@ def java_code_analysis(request):
 
         # ✅ Complexity Analysis
         print("🔍 Performing Java Complexity Analysis...")
-        #Generate full fixed code for comparison
+        # Generate full fixed code for comparison
         full_fixed_code = generate_fixed_code(code_snippet, guideline=company_guideline_text)
         summary["complexity_metrics"] = java_analyze_code_complexity(code_snippet)
         print(f"✅ Java Complexity Results: {summary['complexity_metrics']}")
@@ -782,10 +780,6 @@ def java_code_analysis(request):
 #     )
 
 
-
-
-
-
 def java_analyze_code_complexity(code):
     """Analyze Java code complexity using various metrics."""
     print("🔍 Entering java_analyze_code_complexity function...")  # ✅ Debug
@@ -839,7 +833,8 @@ def export_java_excel(request):
 
     # Create Excel response
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = f'attachment; filename="java_code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    response[
+        "Content-Disposition"] = f'attachment; filename="java_code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
 
     # Create Workbook and Worksheet
     wb = Workbook()
@@ -879,7 +874,8 @@ def export_java_excel(request):
     ws.append(["Number of Methods", summary.get("complexity_metrics", {}).get("num_methods", "N/A")])
     ws.append(["Average Method Length", summary.get("complexity_metrics", {}).get("avg_method_length", "N/A")])
     ws.append(["Nesting Depth", summary.get("complexity_metrics", {}).get("nesting_depth", "N/A")])
-    ws.append(["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
+    ws.append(
+        ["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
     ws.append(["Comment Density", summary.get("complexity_metrics", {}).get("comment_density", "N/A")])
     ws.append(["Complexity Score", summary.get("complexity_metrics", {}).get("complexity_score", "N/A")])
     ws.append(["Readability Score", summary.get("complexity_metrics", {}).get("readability_score", "N/A")])
@@ -956,7 +952,6 @@ def export_java_excel(request):
     # ✅ Save workbook to response
     wb.save(response)
     return response
-
 
 
 @api_view(['GET', 'POST'])
@@ -1194,6 +1189,7 @@ def split_code_snippets(code_snippet):
         print(f"❌ Error parsing code snippets: {e}")
         return [code_snippet]  # Return as fallback
 
+
 # def split_code_snippets(code_snippet):
 #     """
 #     Split the input code snippet into individual Python functions or top-level blocks.
@@ -1248,10 +1244,6 @@ def extract_python_logic_blocks(code, keywords):
     return logic_blocks
 
 
-
-
-
-
 # Ensure API Key is loaded
 openai.api_key = os.getenv("OPENAI_API_KEY1")
 
@@ -1265,9 +1257,6 @@ try:
     # print("✅ API Key is working. Available models:", response)
 except Exception as e:
     print("❌ Invalid API Key or Quota Issue:", str(e))
-
-
-
 
 
 def fetch_github_files(repo_url):
@@ -1306,8 +1295,6 @@ def fetch_github_files(repo_url):
 
     except Exception as e:
         return None, f"Error fetching GitHub repository: {str(e)}"
-
-
 
 
 def ai_code_analysis(snippet, guideline=""):
@@ -1354,7 +1341,6 @@ def ai_code_analysis(snippet, guideline=""):
         return f"Error generating AI analysis: {str(e)}"
 
 
-
 def analyze_code_complexity(code):
     """Analyze code complexity using various metrics, including duplicate code detection."""
     print("🔍 Entering analyze_code_complexity function...")  # ✅ Debug
@@ -1394,7 +1380,6 @@ def analyze_code_complexity(code):
     return result
 
 
-
 def ai_generate_guideline(summary):
     """
     Uses OpenAI to generate a final coding guideline for the developer based on the summary report.
@@ -1427,7 +1412,8 @@ def ai_generate_guideline(summary):
         # Format for HTML rendering
         formatted_guideline = guideline_response.replace("🚀 **General Coding Suggestion** 🚀", "") \
             .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
-            .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
+            .replace("2️⃣ **Code Readability & Maintainability:**",
+                     "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
             .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \
             .replace("4️⃣ **Reference Links / Guidelines:**", "</ul><h4>📚 Reference Guideline</h4><ul>")
 
@@ -1456,7 +1442,7 @@ def generate_fixed_code(snippet, guideline=""):
         )
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo", #gpt-3.5-turbo
+            model="gpt-3.5-turbo",  # gpt-3.5-turbo
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -1471,8 +1457,6 @@ def generate_fixed_code(snippet, guideline=""):
         return f"# Error generating fixed code: {str(e)}"
 
 
-
-
 def is_python_code(code):
     """
     Checks if the provided code is valid Python code by attempting to parse it.
@@ -1482,7 +1466,6 @@ def is_python_code(code):
         return True
     except SyntaxError:
         return False
-
 
 
 def extract_guideline_text(file):
@@ -1633,6 +1616,7 @@ def analyze_code_view(request):
         }
     )
 
+
 # @api_view(['GET', 'POST'])
 # def analyze_code_view(request):
 #     suggestions = []
@@ -1767,15 +1751,6 @@ def analyze_code_view(request):
 #     )
 
 
-
-
-
-
-
-
-
-
-
 # def compare_trend(previous_value, current_value):
 #     """Compares two values and returns an indicator if it improved, worsened, or stayed the same."""
 #     if current_value < previous_value:
@@ -1786,9 +1761,6 @@ def analyze_code_view(request):
 #         return f"➖ No Change ({previous_value})"
 
 
-
-
-
 def export_excel(request):
     """Generate and download the Excel report with detailed insights."""
     summary = request.session.get("latest_summary", {})  # Get latest analysis
@@ -1796,7 +1768,8 @@ def export_excel(request):
 
     # Create Excel response
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = f'attachment; filename="code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+    response[
+        "Content-Disposition"] = f'attachment; filename="code_analysis_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
 
     # Create Workbook and Worksheet
     wb = Workbook()
@@ -1833,12 +1806,14 @@ def export_excel(request):
     ws.append(["Total Issues Identified", summary.get("total_suggestions", 0)])  # ✅ Added Total Issues
     ws.append(["Total Lines of Code", summary.get("total_lines", 0)])
     ws.append(["Number of Functions", summary.get("complexity_metrics", {}).get("num_functions", "N/A")])
-    ws.append(["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
+    ws.append(
+        ["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
     ws.append(["Average Function Length", summary.get("complexity_metrics", {}).get("avg_function_length", "N/A")])
     ws.append(["Comment Density", summary.get("complexity_metrics", {}).get("comment_density", "N/A")])
     ws.append(["Complexity Score", summary.get("complexity_metrics", {}).get("complexity_score", "N/A")])
     ws.append(["Readability Score", summary.get("complexity_metrics", {}).get("readability_score", "N/A")])
-    ws.append(["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
+    ws.append(
+        ["Duplicate Code Percentage", summary.get("complexity_metrics", {}).get("duplicate_code_percentage", "N/A")])
     ws.append([])
 
     # ✅ Add Severity Levels
@@ -1914,11 +1889,6 @@ def export_excel(request):
     return response
 
 
-
-
-
-
-
 def categorize_suggestion(suggestion):
     """Categorize a suggestion based on its content using meaningful categories."""
     suggestion_lower = suggestion.lower()
@@ -1984,7 +1954,7 @@ def categorize_suggestion(suggestion):
     elif any(term in suggestion_lower for term in [
         "inheritance misuse", "misuse of polymorphism", "encapsulation violation",
         "tight coupling", "improper abstraction", "large class",
-        "single responsibility principle violation","violation of SOLID principles",
+        "single responsibility principle violation", "violation of SOLID principles",
         "deep inheritance chain"
     ]):
         return "Object-Oriented Design Issues"
@@ -2022,7 +1992,7 @@ def categorize_suggestion(suggestion):
     # Multithreading & Concurrency Issues
     elif any(term in suggestion_lower for term in [
         "race condition", "deadlock", "thread safety", "improper synchronization",
-        "mutex missing", "concurrent modification","synchronized misuse",
+        "mutex missing", "concurrent modification", "synchronized misuse",
         "volatile misuse", "executor service not shut down",
         "concurrent hashmap instead of hashmap"
     ]):
@@ -2065,7 +2035,6 @@ def determine_severity(suggestion):
 
     # Default to Low if no matches
     return "Low"
-
 
 
 # @api_view(['GET', 'POST'])
@@ -2322,7 +2291,6 @@ def drink_detail(request, id, format=None):
 #         return Response(complexity, status=status.HTTP_200_OK)
 
 
-
 @api_view(['GET', 'POST'])
 def calculate_complexity_line_by_line(request):
     if request.method == 'POST':
@@ -2362,21 +2330,29 @@ def get_refactored_code(original_code, recommendation_block):
 You are a senior Java software engineer.
 
 Refactor the entire Java class below using the provided line-level suggestions as a starting point. 
-However, don't just fix those lines — analyze the whole class and reduce code complexity wherever necessary.
 
-**Your main goals:**
-- Eliminate deep nesting using guard clauses
-- Break large methods into smaller helper methods
-- Improve method and variable naming
-- Improve modularity and readability
+Specifically focus on:
+- Eliminating deep nesting (use guard clauses and early returns)
+- Breaking down large methods into smaller, single-responsibility helper methods
+- Renaming variables and methods for clarity
+- Simplifying conditional logic and loops
+- Reducing cyclomatic complexity to make the code easier to understand and maintain
 
-Be assertive. If a method looks too complex, restructure it fully. Especially focus on methods like 'processHierarchyValues' that contain deeply nested conditionals and loops.
-
-### Suggestions with Line Context:
+### Use the following line-level recommendations as critical points to address:
 {recommendation_block}
 
 ### Original Java Class:
 {original_code}
+
+### Your output should be:
+1. The fully refactored Java class code that addresses all the above goals.
+2. Removed deep nesting by applying guard clauses and early returns in methods.
+3. Split large methods into smaller helper functions to improve readability and modularity.
+4. Renamed variables and methods to use clear, descriptive names enhancing maintainability.
+5. Simplified complex conditional logic by reducing nested if-else blocks and using boolean expressions.
+6. Reduced cyclomatic complexity by eliminating redundant code paths and simplifying loops.
+
+---
 
 ### Refactored Java Class:
 """
@@ -2400,23 +2376,30 @@ def get_refactored_code_csharp(original_code, recommendation_block):
     prompt = f"""
 You are a senior C# software engineer.
 
-Refactor the entire C# class below using the provided line-level suggestions as a starting point. 
-However, don't just fix those lines — analyze the whole class and reduce code complexity wherever necessary.
+Your task is to refactor the entire C# class below, **focusing on reducing code complexity and improving maintainability**.
 
-**Your main goals:**
-- Eliminate deep nesting using guard clauses
-- Break large methods into smaller helper methods
-- Improve method and variable naming
-- Improve modularity and readability
-- Follow clean code and SOLID principles
+Specifically, please:
+- Eliminate deep nesting by applying guard clauses and early returns.
+- Break large methods into smaller, single-responsibility helper methods.
+- Rename methods and variables for clear intent and readability.
+- Follow clean code practices and SOLID principles throughout.
+- Simplify complex conditional logic and loops to reduce cyclomatic complexity.
+- Enhance modularity and overall code structure.
 
-Be assertive. If a method looks too complex, restructure it fully. Especially focus on deeply nested conditionals and long methods.
 
-### Suggestions with Line Context:
+### Use the following line-level recommendations as critical points to address:
 {recommendation_block}
 
 ### Original C# Class:
 {original_code}
+
+### Your output should be:
+1. The fully refactored C# class code that addresses all the above goals.
+2. Removed deep nesting by applying guard clauses and early returns in methods.
+3. Split large methods into smaller helper functions to improve readability and modularity.
+4. Renamed variables and methods to use clear, descriptive names enhancing maintainability.
+5. Simplified complex conditional logic by reducing nested if-else blocks and using boolean expressions.
+6. Reduced cyclomatic complexity by eliminating redundant code paths and simplifying loops.
 
 ### Refactored C# Class:
 """
@@ -2434,6 +2417,7 @@ Be assertive. If a method looks too complex, restructure it fully. Especially fo
         return gpt_response.choices[0].message.content.strip()
     except Exception as e:
         return f"Refactoring error: {e}"
+
 
 @api_view(['GET', 'POST'])
 def calculate_complexity_multiple_java_files(request):
@@ -2484,8 +2468,6 @@ def calculate_complexity_multiple_java_files(request):
                 # saved_files.append({'filename': filename, 'total_wcc': java_file.total_wcc})
 
                 java_code = file_contents.get(filename, "")
-
-                save_complexity_to_db(filename, java_code, total_wcc, method_complexities)
 
                 for line_data in complexity_data:
                     if len(line_data) == 12:
@@ -2562,6 +2544,21 @@ def calculate_complexity_multiple_java_files(request):
                 else:
                     percentage_reduction = 0.0
 
+                recommendation_block1 = "\n".join([
+                    f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
+                    for rec in recommendations
+                    if rec.get('recommendation')
+                ])
+
+                cbo_prediction = cbo_predictions.get(filename, {}).get('prediction', 'Unknown')
+
+                refactored_class_code1 = refactored_class_code if was_refactored else None
+
+                save_complexity_to_db(filename, java_code, total_wcc, method_complexities,
+                                      refactored_class_code=refactored_class_code1,
+                                      cbo=cbo_prediction,
+                                      recommendations=recommendation_block1 if recommendation_block1 else None)
+
                 complexities.append({
                     'filename': filename,
                     'complexity_data': complexity_data,
@@ -2616,7 +2613,11 @@ def calculate_complexity_multiple_java_files(request):
     for java_file in complexities:
         file_data = {
             "filename": java_file.filename,
+            "java_code": java_file.java_code,
             "total_wcc": java_file.total_wcc,
+            "cbo": java_file.cbo,
+            "recommendations": java_file.recommendations,
+            "refactored_java_code": java_file.refactored_java_code,
             "method_complexities": [
                 {
                     "method_name": method.method_name,
@@ -2640,12 +2641,19 @@ def calculate_complexity_multiple_java_files(request):
     return render(request, 'complexity_form.html', {"complexities": complexity_data})
 
 
-def save_complexity_to_db(filename, java_code, total_wcc, method_complexities):
+def save_complexity_to_db(filename, java_code, total_wcc, method_complexities, refactored_class_code=None, cbo=0,
+                          recommendations=None):
     try:
         # Create or update JavaFile entry
         java_file, created = JavaFile.objects.update_or_create(
             filename=filename,
-            defaults={'java_code': java_code, 'total_wcc': total_wcc}
+            defaults={
+                'java_code': java_code,
+                'total_wcc': total_wcc,
+                'refactored_java_code': refactored_class_code if refactored_class_code else None,
+                'cbo': cbo,
+                'recommendations': recommendations if recommendations else None
+            }
         )
 
         # Remove old method complexities (if updating)
@@ -2746,7 +2754,7 @@ def calculate_complexity_multiple_csharp_files(request):
 
             csharp_code = file_contents.get(filename, "")
 
-            save_complexity_to_db_csharp(filename, file_contents[filename], total_wcc, method_complexities)
+            # save_complexity_to_db_csharp(filename, file_contents[filename], total_wcc, method_complexities)
 
             for line_data in complexity_data:
                 results_table.add_row([filename] + line_data)  # Now line_data has 9 values
@@ -2822,6 +2830,20 @@ def calculate_complexity_multiple_csharp_files(request):
             else:
                 percentage_reduction = 0.0
 
+            recommendation_block1 = "\n".join([
+                f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
+                for rec in recommendations
+                if rec.get('recommendation')
+            ])
+
+            cbo_prediction = cbo_predictions.get(filename, {}).get('prediction', 'Unknown')
+
+            refactored_class_code1 = refactored_class_code if was_refactored else None
+
+            save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_complexities,
+                                  refactored_class_code=refactored_class_code1,
+                                  cbo=cbo_prediction,
+                                  recommendations=recommendation_block1 if recommendation_block1 else None)
 
             complexities.append({
                 'filename': filename,
@@ -2879,7 +2901,11 @@ def calculate_complexity_multiple_csharp_files(request):
 
         complexities.append({
             'filename': file.filename,
+            'csharp_code': file.csharp_code,
             'total_wcc': file.total_wcc,
+            "cbo": file.cbo,
+            "recommendations": file.recommendations,
+            "refactored_java_code": file.refactored_java_code,
             'method_complexities': method_list
         })
 
@@ -2887,13 +2913,20 @@ def calculate_complexity_multiple_csharp_files(request):
     return render(request, 'complexityC_form.html', {'complexities': complexities})
 
 
-def save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_complexities):
+def save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_complexities, refactored_class_code=None, cbo=0,
+                          recommendations=None):
     """Save C# complexity results to the database while preventing duplicate method names."""
     try:
         # Update or create the CSharpFile record
         csharp_file, created = CSharpFile.objects.update_or_create(
             filename=filename,
-            defaults={'csharp_code': csharp_code, 'total_wcc': total_wcc}
+            defaults={
+                'csharp_code': csharp_code,
+                'total_wcc': total_wcc,
+                'refactored_java_code': refactored_class_code if refactored_class_code else None,
+                'cbo': cbo,
+                'recommendations': recommendations if recommendations else None
+            }
         )
 
         # Delete old methods before inserting new ones (to avoid duplicates)

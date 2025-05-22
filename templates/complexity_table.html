@@ -778,7 +778,9 @@
                             {% if file.percentage_reduction > 0 %}
                                 {{ file.percentage_reduction }}% <i class="fas fa-arrow-down"></i>
                             {% else %}
-                                No improvement
+                                <span style="font-size: 1rem;">No improvement</span>
+                                <br>
+                                <small style="font-size: 1rem; color: greenyellow;">Provide Cleaner and modular code</small>
                             {% endif %}
                         </h4>
                     </div>
@@ -790,7 +792,7 @@
                     </div>
                 </div>
 
-                <div id="monaco-diff-editor-{{ forloop.counter }}" style="height: 500px; border: 1px solid #ccc;"></div>
+                <div id="monaco-diff-editor-{{ forloop.counter }}" style="height: 500px; border: 1px solid #ccc; text-align: left"></div>
 
                 <script>
                     const originalCode{{ forloop.counter }} = `{{ file.original_code|escapejs }}`;
@@ -803,7 +805,7 @@
                             {
                                 theme: "vs-dark",
                                 automaticLayout: true,
-                                readOnly: true
+                                readOnly: true,
                             }
                         );
 

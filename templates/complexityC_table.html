@@ -493,30 +493,32 @@
                 <h3>Refactored Code Diff – {{ file.filename }} (Based on Recommendations)</h3>
 
                 <div class="row text-center text-light mt-4">
-                        <!-- Previous Total WCC -->
-                        <div class="col-md-4">
-                            <p><strong>🧮 Previous WCC</strong></p>
-                            <h4 style="color: #f87171; font-size: 2rem;">{{ file.total_wcc }}</h4>
-                        </div>
-
-                        <!-- Complexity Reduction -->
-                        <div class="col-md-4">
-                            <p><strong>📉 Complexity Reduction</strong></p>
-                            <h4 style="color: {% if file.percentage_reduction > 0 %}lightgreen{% else %}orange{% endif %}; font-size: 2rem;">
-                                {% if file.percentage_reduction > 0 %}
-                                    {{ file.percentage_reduction }}% <i class="fas fa-arrow-down"></i>
-                                {% else %}
-                                    No improvement
-                                {% endif %}
-                            </h4>
-                        </div>
-
-                        <!-- Refactored Total WCC -->
-                        <div class="col-md-4">
-                            <p><strong>🔁 Refactored WCC</strong></p>
-                            <h4 style="color: #58a6ff; font-size: 2rem;">{{ file.refactored_total_wcc }}</h4>
-                        </div>
+                    <!-- Previous Total WCC -->
+                    <div class="col-md-4">
+                        <p><strong>🧮 Previous WCC</strong></p>
+                        <h4 style="color: #f87171; font-size: 2rem;">{{ file.total_wcc }}</h4>
                     </div>
+
+                    <!-- Complexity Reduction -->
+                    <div class="col-md-4">
+                        <p><strong>📉 Complexity Reduction</strong></p>
+                        <h4 style="color: {% if file.percentage_reduction > 0 %}lightgreen{% else %}orange{% endif %}; font-size: 2rem;">
+                            {% if file.percentage_reduction > 0 %}
+                                {{ file.percentage_reduction }}% <i class="fas fa-arrow-down"></i>
+                            {% else %}
+                                <span style="font-size: 1rem;">No improvement</span>
+                                <br>
+                                <small style="font-size: 1rem; color: greenyellow;">Provide Cleaner and modular code</small>
+                            {% endif %}
+                        </h4>
+                    </div>
+
+                    <!-- Refactored Total WCC -->
+                    <div class="col-md-4">
+                        <p><strong>🔁 Refactored WCC</strong></p>
+                        <h4 style="color: #58a6ff; font-size: 2rem;">{{ file.refactored_total_wcc }}</h4>
+                    </div>
+                </div>
 
                 <div id="monaco-diff-editor-{{ forloop.counter }}" style="height: 500px; border: 1px solid #ccc;"></div>
 
