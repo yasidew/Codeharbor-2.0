@@ -336,19 +336,21 @@
                     {% if file.refactored_java_code %}
                         <div class="refactor-container mt-3">
                             <button class="btn btn-outline-info toggle-refactor"
-                                    data-target="refactor-code-{{ forloop.counter }}">
-                                🔧 Show Refactored Code
+                                    data-target="diff-view-{{ forloop.counter }}">
+                                🧠 Compare Original vs Refactored
                             </button>
 
-                            <div id="refactor-code-{{ forloop.counter }}" class="refactor-content mt-2"
+                            <div id="diff-view-{{ forloop.counter }}" class="refactor-content mt-2"
                                  style="display: none;">
-                                <p><strong style="color:#58a6ff;">Refactored Code:</strong></p>
 
-                                <textarea id="editor-content-{{ forloop.counter }}"
+                                <!-- Hidden textareas to store code -->
+                                <textarea id="original-code-{{ forloop.counter }}"
+                                          style="display:none;">{{ file.java_code }}</textarea>
+                                <textarea id="refactored-code-{{ forloop.counter }}"
                                           style="display:none;">{{ file.refactored_java_code }}</textarea>
 
-                                <div id="editor-{{ forloop.counter }}"
-                                     class="monaco-editor-container"
+                                <!-- Monaco Diff Editor container -->
+                                <div id="monaco-diff-{{ forloop.counter }}"
                                      style="height: 400px; border: 1px solid #30363d; border-radius: 6px; margin: 10px 0; text-align: left;"></div>
                             </div>
                         </div>
@@ -476,34 +478,37 @@
                 button.addEventListener("click", () => {
                     const targetId = button.getAttribute("data-target");
                     const content = document.getElementById(targetId);
-                    const editorId = `editor-${targetId.split("-").pop()}`;
-                    const textareaId = `editor-content-${targetId.split("-").pop()}`;
+                    const index = targetId.split("-").pop();
+                    const container = document.getElementById(`monaco-diff-${index}`);
+                    const original = document.getElementById(`original-code-${index}`).value;
+                    const refactored = document.getElementById(`refactored-code-${index}`).value;
 
                     if (content.style.display === "none") {
                         content.style.display = "block";
-                        button.innerHTML = "🔽 Hide Refactored Code";
+                        button.innerHTML = "🔽 Hide Comparison";
 
-                        const container = document.getElementById(editorId);
-                        const source = document.getElementById(textareaId);
                         if (!container.classList.contains("initialized")) {
-                            monaco.editor.create(container, {
-                                value: source.value,
-                                language: "java",
+                            const originalModel = monaco.editor.createModel(original, "java");
+                            const modifiedModel = monaco.editor.createModel(refactored, "java");
+
+                            monaco.editor.createDiffEditor(container, {
                                 theme: "vs-dark",
-                                readOnly: true,
                                 automaticLayout: true,
+                                readOnly: true,
                                 minimap: {enabled: false}
+                            }).setModel({
+                                original: originalModel,
+                                modified: modifiedModel
                             });
+
                             container.classList.add("initialized");
                         }
-
                     } else {
                         content.style.display = "none";
-                        button.innerHTML = "🔧 Show Refactored Code";
+                        button.innerHTML = "🧠 Compare Original vs Refactored";
                     }
                 });
             });
-
         });
     </script>
 {% endblock %}

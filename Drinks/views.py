@@ -2613,6 +2613,7 @@ def calculate_complexity_multiple_java_files(request):
     for java_file in complexities:
         file_data = {
             "filename": java_file.filename,
+            "java_code": java_file.java_code,
             "total_wcc": java_file.total_wcc,
             "cbo": java_file.cbo,
             "recommendations": java_file.recommendations,
@@ -2900,6 +2901,7 @@ def calculate_complexity_multiple_csharp_files(request):
 
         complexities.append({
             'filename': file.filename,
+            'csharp_code': file.csharp_code,
             'total_wcc': file.total_wcc,
             "cbo": file.cbo,
             "recommendations": file.recommendations,
