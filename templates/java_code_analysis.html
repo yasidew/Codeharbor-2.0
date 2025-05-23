@@ -466,7 +466,7 @@
                 {#                </div>#}
             </div>
             <!-- Developer Guideline Section -->
-            {% include 'code_analysis/before_after_comparison.html' with original_code=code fixed_code=fixed_code %}
+            {% include 'code_analysis/before_after_comparison.html' with original_code=code fixed_code=fixed_code language='java'%}
             <div class="text-center mt-3">
                 <a href="{% url 'export_java_excel' %}" class="btn btn-success">
                     <i class="fas fa-file-excel"></i> Download Excel Report
@@ -520,6 +520,16 @@
     {#    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>#}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+
+    <!-- PrismJS Styles -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet"/>
+
+    <!-- PrismJS Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 
 
     <script>
