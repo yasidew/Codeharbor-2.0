@@ -126,13 +126,13 @@ load_dotenv()
 # client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Initialize model and tokenizer once
-MODEL_PATH = "./models/custom_seq2seq_model"
+# MODEL_PATH = "./models/custom_seq2seq_model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Global instances for reuse
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH).to(device)
-model.eval()
+# tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+# model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH).to(device)
+# model.eval()
 
 # Optimize PyTorch performance
 torch.backends.cudnn.benchmark = True
@@ -265,29 +265,29 @@ def group_recommendations_by_line(recommendations):
 
 ################################ java ##############################
 
-JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
+# JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ✅ Initialize model & tokenizer globally
-java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
-java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
-java_model.eval()  # Set to evaluation mode for inference
+# java_tokenizer = AutoTokenizer.from_pretrained(JAVA_MODEL_PATH)
+# java_model = T5ForConditionalGeneration.from_pretrained(JAVA_MODEL_PATH).to(device)
+# java_model.eval()  # Set to evaluation mode for inference
 
-def java_generate_suggestion(code_snippet):
-    """
-    Uses the Java-trained T5 model to generate AI-powered suggestions.
-    """
-    try:
-        inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
-        inputs = {k: v.to(device) for k, v in inputs.items()}
-
-        with torch.no_grad():
-            output = java_model.generate(**inputs, max_length=128)
-
-        return java_tokenizer.decode(output[0], skip_special_tokens=True)
-
-    except Exception as e:
-        return f"❌ Error generating suggestion: {str(e)}"
+# def java_generate_suggestion(code_snippet):
+#     """
+#     Uses the Java-trained T5 model to generate AI-powered suggestions.
+#     """
+#     try:
+#         inputs = java_tokenizer(code_snippet, return_tensors="pt", truncation=True, padding="max_length", max_length=512)
+#         inputs = {k: v.to(device) for k, v in inputs.items()}
+#
+#         with torch.no_grad():
+#             output = java_model.generate(**inputs, max_length=128)
+#
+#         return java_tokenizer.decode(output[0], skip_special_tokens=True)
+#
+#     except Exception as e:
+#         return f"❌ Error generating suggestion: {str(e)}"
 
 
 
@@ -1341,108 +1341,42 @@ def ensure_blocks_have_bodies(code_snippet):
 
 def split_code_snippets(code_snippet):
     """
-    Split the input code snippet into Python functions, top-level blocks,
-    and logic-level keyword blocks (similar to Java splitting).
+    Split the input code snippet into individual Python functions or top-level blocks.
     """
     try:
-        # Step 1: Normalize and validate indentation
+        # Normalize and validate indentation
         normalized_code = normalize_and_validate_indentation(code_snippet)
 
-        # Step 2: Parse the normalized code into AST
+        # Parse the normalized code into an Abstract Syntax Tree (AST)
         tree = ast.parse(normalized_code)
         snippets = []
 
-        # Step 3: Extract top-level code blocks (functions, classes, imports, etc.)
+        # Extract top-level nodes
         for node in tree.body:
+            # Extract source code for each node
             if hasattr(ast, "get_source_segment"):
                 snippet = ast.get_source_segment(normalized_code, node)
+                print(f"Snippet: {snippet}")
             else:
+                # Fallback: Use line numbers if available
                 start_line = getattr(node, "lineno", None)
                 end_line = getattr(node, "end_lineno", None)
+
                 if start_line and end_line:
                     snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
                     snippet = "\n".join(snippet_lines)
                 else:
+                    # Fallback for cases where neither method works
                     snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
 
+            # ✅ Prevent duplicates
             if snippet and snippet not in snippets:
                 snippets.append(snippet)
 
-        # Step 4: Extract additional logic-level blocks (e.g., eval, file ops)
-        logic_keywords = [
-            "open(", "read(", "write(", "eval(", "exec(", "input(", "os.system(",
-            "subprocess.", "pickle.", "socket.", "importlib.", "sys.exit("
-        ]
-        logic_blocks = extract_python_logic_blocks(normalized_code, logic_keywords)
-
-        for block in logic_blocks:
-            labeled_block = f"# LOGIC BLOCK\n{block}"
-            if labeled_block not in snippets:
-                snippets.append(labeled_block)
-
         return snippets
-
     except SyntaxError as e:
-        print(f"❌ Error parsing code snippets: {e}")
-        return [code_snippet]  # Return as fallback
-
-# def split_code_snippets(code_snippet):
-#     """
-#     Split the input code snippet into individual Python functions or top-level blocks.
-#     """
-#     try:
-#         # Normalize and validate indentation
-#         normalized_code = normalize_and_validate_indentation(code_snippet)
-#
-#         # Parse the normalized code into an Abstract Syntax Tree (AST)
-#         tree = ast.parse(normalized_code)
-#         snippets = []
-#
-#         # Extract top-level nodes
-#         for node in tree.body:
-#             # Extract source code for each node
-#             if hasattr(ast, "get_source_segment"):
-#                 snippet = ast.get_source_segment(normalized_code, node)
-#                 print(f"Snippet: {snippet}")
-#             else:
-#                 # Fallback: Use line numbers if available
-#                 start_line = getattr(node, "lineno", None)
-#                 end_line = getattr(node, "end_lineno", None)
-#
-#                 if start_line and end_line:
-#                     snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
-#                     snippet = "\n".join(snippet_lines)
-#                 else:
-#                     # Fallback for cases where neither method works
-#                     snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
-#
-#             # ✅ Prevent duplicates
-#             if snippet and snippet not in snippets:
-#                 snippets.append(snippet)
-#
-#         return snippets
-#     except SyntaxError as e:
-#         print(f"Error parsing code snippets: {e}")
-#         return [code_snippet]  # Return full code as a single snippet if parsing fails
-
-
-def extract_python_logic_blocks(code, keywords):
-    lines = code.splitlines()
-    logic_blocks = []
-
-    for i, line in enumerate(lines):
-        if any(kw in line for kw in keywords):
-            start = max(0, i - 1)
-            end = min(len(lines), i + 2)
-            snippet = "\n".join(lines[start:end])
-            if snippet not in logic_blocks:
-                logic_blocks.append(snippet)
-    return logic_blocks
-
-
-
-
-
+        print(f"Error parsing code snippets: {e}")
+        return [code_snippet]  # Return full code as a single snippet if parsing fails
 
 # Ensure API Key is loaded
 openai.api_key = os.getenv("OPENAI_API_KEY1")
@@ -1655,7 +1589,7 @@ def ai_generate_guideline(summary):
         guideline_response = response.choices[0].message.content
 
         # Format for HTML rendering
-        formatted_guideline = guideline_response.replace("🚀 **General Coding Suggestion** 🚀", "") \
+        formatted_guideline = guideline_response.replace("🚀 **General Coding Suggestion** 🚀", "<h3>🚀 General Coding Suggestion 🚀</h3>") \
             .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
             .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
             .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \

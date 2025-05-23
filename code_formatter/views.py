@@ -378,8 +378,8 @@ def generate_guideline(request):
             prompt = GUIDELINE_PROMPTS[pattern]
 
             response = client.chat.completions.create(
-                # model="gpt-4"
-                model="gpt-4",
+                # model="gpt-3.5-turbo"
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a professional software architect."},
                     {"role": "user", "content": prompt}
@@ -714,7 +714,7 @@ def get_ai_suggested_pattern(code, patterns):
 
         response = client.chat.completions.create(
             # model="gpt-3.5-turbo",
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system",
                  "content": "You are a software architecture expert specializing in design patterns."},
@@ -820,7 +820,7 @@ def generate_refactoring_explanation(request):
             """
 
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a professional software engineer and code reviewer."},
                     {"role": "user", "content": prompt}

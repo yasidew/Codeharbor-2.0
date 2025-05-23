@@ -1,0 +1,46 @@
+{% block title %}Code Refactoring{% endblock %}
+{% block sidebar %}
+    <div class="sidebar" data-color="black">
+        <div class="sidebar-wrapper">
+            <div class="logo">
+                <a href="http://127.0.0.1:8000" class="simple-text logo-mini">
+                    <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
+                </a>
+                <a href="http://127.0.0.1:8000" class="simple-text logo-normal">Code Harbor</a>
+            </div>
+            <ul class="nav">
+                <li>
+                    <a href="http://127.0.0.1:8000/games/leaderboard/">
+                        <i class="bi bi-bar-chart-fill"></i>
+                        <p>Leaderboard</p>
+                    </a>
+                </li>
+
+                <a href="#" class="upload-btn"><i class="bi bi-upload"></i>
+                    <p>Upload Code</p>
+                </a>
+                <input type="file" name="file" id="fileInput" class="d-none">
+                </li>
+                <li><a href="{% url 'define_guidelines' %}"><i class="bi bi-pencil"></i>
+                    <p>Define Guidelines</p></a></li>
+                <!-- ✅ Import Code from GitHub Trigger -->
+                <li>
+                    <a href="http://127.0.0.1:8000/games/github-scraper/" >
+                        <i class="bi bi-github"></i>
+                        <p>GitHub Scraper</p>
+                    </a>
+                </li>
+                 <li>
+                    <a href="http://127.0.0.1:8000/games/github-scraper/" >
+                        <i class="bi bi-github"></i>
+                        <p>GitHub Scraper</p>
+                    </a>
+                </li>
+                <li><a href="#"><i class="bi bi-gear"></i>
+                    <p>Settings</p></a></li>
+                <li><a href="#"><i class="bi bi-box-arrow-right"></i>
+                    <p>Logout</p></a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
