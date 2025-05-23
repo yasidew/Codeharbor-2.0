@@ -1341,114 +1341,104 @@ def ensure_blocks_have_bodies(code_snippet):
 
 def split_code_snippets(code_snippet):
     """
-    Split the input code snippet into individual Python functions or top-level blocks.
+    Split the input code snippet into Python functions, top-level blocks,
+    and logic-level keyword blocks (similar to Java splitting).
     """
     try:
-        # Normalize and validate indentation
+        # Step 1: Normalize and validate indentation
         normalized_code = normalize_and_validate_indentation(code_snippet)
 
-        # Parse the normalized code into an Abstract Syntax Tree (AST)
+        # Step 2: Parse the normalized code into AST
         tree = ast.parse(normalized_code)
         snippets = []
 
-        # Extract top-level nodes
+        # Step 3: Extract top-level code blocks (functions, classes, imports, etc.)
         for node in tree.body:
-            # Extract source code for each node
             if hasattr(ast, "get_source_segment"):
                 snippet = ast.get_source_segment(normalized_code, node)
-                print(f"Snippet: {snippet}")
             else:
-                # Fallback: Use line numbers if available
                 start_line = getattr(node, "lineno", None)
                 end_line = getattr(node, "end_lineno", None)
-
                 if start_line and end_line:
                     snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
                     snippet = "\n".join(snippet_lines)
                 else:
-                    # Fallback for cases where neither method works
                     snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
 
-            # ✅ Prevent duplicates
             if snippet and snippet not in snippets:
                 snippets.append(snippet)
 
-        return snippets
-    except SyntaxError as e:
-        print(f"Error parsing code snippets: {e}")
-        return [code_snippet]  # Return full code as a single snippet if parsing fails
+        # Step 4: Extract additional logic-level blocks (e.g., eval, file ops)
+        logic_keywords = [
+            "open(", "read(", "write(", "eval(", "exec(", "input(", "os.system(",
+            "subprocess.", "pickle.", "socket.", "importlib.", "sys.exit("
+        ]
+        logic_blocks = extract_python_logic_blocks(normalized_code, logic_keywords)
 
-#
-# ✅ Define vulnerability categories & related risky function calls
-# VULNERABLE_PATTERNS = {
-#     "User Input Handling": ["input"],
-#     "SQL Query Execution": ["execute", "executemany"],
-#     "Command Execution": ["subprocess.call", "os.system"],
-#     "File Handling": ["open"],
-#     "Hardcoded Secrets": ["api_key", "password"],
-#     "Insecure Hashing": ["md5", "sha1"],
-#     "Generic Exception Handling": ["Exception"],
-# }
-#
-#
+        for block in logic_blocks:
+            labeled_block = f"# LOGIC BLOCK\n{block}"
+            if labeled_block not in snippets:
+                snippets.append(labeled_block)
+
+        return snippets
+
+    except SyntaxError as e:
+        print(f"❌ Error parsing code snippets: {e}")
+        return [code_snippet]  # Return as fallback
+
 # def split_code_snippets(code_snippet):
 #     """
-#     Splits the input code snippet into individual functions or logical blocks for better analysis.
-#     - Extracts function definitions & class methods.
-#     - Detects security-related code patterns dynamically.
-#     - Prevents duplicate snippets.
+#     Split the input code snippet into individual Python functions or top-level blocks.
 #     """
 #     try:
 #         # Normalize and validate indentation
 #         normalized_code = normalize_and_validate_indentation(code_snippet)
 #
-#         # Parse the code into an AST (Abstract Syntax Tree)
+#         # Parse the normalized code into an Abstract Syntax Tree (AST)
 #         tree = ast.parse(normalized_code)
 #         snippets = []
-#         extracted_snippets = set()  # ✅ Avoid duplicate extraction
 #
-#         # ✅ Extract functions & class methods
+#         # Extract top-level nodes
 #         for node in tree.body:
-#             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+#             # Extract source code for each node
+#             if hasattr(ast, "get_source_segment"):
 #                 snippet = ast.get_source_segment(normalized_code, node)
-#                 if snippet and snippet not in extracted_snippets:
-#                     snippets.append(snippet)
-#                     extracted_snippets.add(snippet)
+#                 print(f"Snippet: {snippet}")
+#             else:
+#                 # Fallback: Use line numbers if available
+#                 start_line = getattr(node, "lineno", None)
+#                 end_line = getattr(node, "end_lineno", None)
 #
-#         # ✅ Extract logical blocks based on vulnerable patterns
-#         for node in ast.walk(tree):
-#             # ✅ Detect function calls dynamically
-#             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-#                 function_name = node.func.id
-#                 for category, risky_functions in VULNERABLE_PATTERNS.items():
-#                     if function_name in risky_functions:
-#                         snippet = ast.get_source_segment(normalized_code, node)
-#                         if snippet and snippet not in extracted_snippets:
-#                             snippets.append(f"# {category}\n{snippet}")
-#                             extracted_snippets.add(snippet)
+#                 if start_line and end_line:
+#                     snippet_lines = normalized_code.splitlines()[start_line - 1:end_line]
+#                     snippet = "\n".join(snippet_lines)
+#                 else:
+#                     # Fallback for cases where neither method works
+#                     snippet = ast.unparse(node) if hasattr(ast, "unparse") else ast.dump(node)
 #
-#             # ✅ Detect hardcoded strings (e.g., API keys, passwords)
-#             if isinstance(node, ast.Assign):
-#                 for target in node.targets:
-#                     if isinstance(target, ast.Name) and target.id in VULNERABLE_PATTERNS["Hardcoded Secrets"]:
-#                         snippet = ast.get_source_segment(normalized_code, node)
-#                         if snippet and snippet not in extracted_snippets:
-#                             snippets.append(f"# Hardcoded Secrets\n{snippet}")
-#                             extracted_snippets.add(snippet)
-#
-#             # ✅ Detect generic exception handling
-#             if isinstance(node, ast.ExceptHandler):
-#                 if isinstance(node.type, ast.Name) and node.type.id in VULNERABLE_PATTERNS["Generic Exception Handling"]:
-#                     snippet = ast.get_source_segment(normalized_code, node)
-#                     if snippet and snippet not in extracted_snippets:
-#                         snippets.append(f"# Generic Exception Handling\n{snippet}")
-#                         extracted_snippets.add(snippet)
+#             # ✅ Prevent duplicates
+#             if snippet and snippet not in snippets:
+#                 snippets.append(snippet)
 #
 #         return snippets
-#
 #     except SyntaxError as e:
 #         print(f"Error parsing code snippets: {e}")
 #         return [code_snippet]  # Return full code as a single snippet if parsing fails
+
+
+def extract_python_logic_blocks(code, keywords):
+    lines = code.splitlines()
+    logic_blocks = []
+
+    for i, line in enumerate(lines):
+        if any(kw in line for kw in keywords):
+            start = max(0, i - 1)
+            end = min(len(lines), i + 2)
+            snippet = "\n".join(lines[start:end])
+            if snippet not in logic_blocks:
+                logic_blocks.append(snippet)
+    return logic_blocks
+
 
 
 
@@ -1665,7 +1655,7 @@ def ai_generate_guideline(summary):
         guideline_response = response.choices[0].message.content
 
         # Format for HTML rendering
-        formatted_guideline = guideline_response.replace("🚀 **General Coding Suggestion** 🚀", "<h3>🚀 General Coding Suggestion 🚀</h3>") \
+        formatted_guideline = guideline_response.replace("🚀 **General Coding Suggestion** 🚀", "") \
             .replace("1️⃣ **Security Improvements:**", "<h4>🔒 Security Improvements</h4><ul>") \
             .replace("2️⃣ **Code Readability & Maintainability:**", "</ul><h4>📖 Code Readability & Maintainability</h4><ul>") \
             .replace("3️⃣ **Performance Optimization:**", "</ul><h4>⚡ Performance Optimization</h4><ul>") \
