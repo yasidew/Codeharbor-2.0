@@ -46,83 +46,113 @@ def count_functions_and_length(code):
     except SyntaxError:
         return 0, 0
 
-def count_duplicate_code_percentage(code):
-    """Calculate the percentage of duplicate lines in the code."""
-    lines = code.split("\n")
-    duplicates = [item for item, count in Counter(lines).items() if count > 1 and item.strip()]
-    return (len(duplicates) / len(lines)) * 100 if lines else 0
+def count_duplicate_code_percentage(code, duplicate_map):
+    """
+    Calculates the percentage of duplicated lines over total effective code lines.
+    Counts the repeated lines from duplicate blocks (excluding comments/blank lines).
+    """
+    total_lines = [line for line in code.splitlines() if line.strip() and not line.strip().startswith("#")]
+    total_effective_lines = len(total_lines)
 
-def find_duplicate_code(code, block_size=3):
+    duplicated_line_count = 0
+    for block in duplicate_map.values():
+        block_length = block["length"]
+        occurrences = len(block["lines"])
+        if occurrences > 1:
+            duplicated_line_count += block_length * (occurrences - 1)  # only count repeated parts
+
+    return round((duplicated_line_count / total_effective_lines) * 100, 2) if total_effective_lines else 0
+
+
+
+
+def find_duplicate_code(code, block_sizes=[3, 2]):
     """
-    Find duplicate multi-line code snippets in the input code.
-    Uses a sliding window approach to detect repeated blocks of 'block_size' lines.
+    Detect realistic code duplication in Python by ignoring blank lines and comments.
+    Returns a map of duplicated blocks to their line positions and block sizes.
     """
     lines = code.split("\n")
-    block_counts = Counter()
+    cleaned = []
+    line_map = []
+
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#"):
+            cleaned.append(stripped)
+            line_map.append(idx + 1)
+
     duplicate_map = {}
+    seen_blocks = set()
 
-    # Create a dictionary to track occurrences of code blocks
-    for i in range(len(lines) - block_size + 1):
-        block = "\n".join(lines[i:i + block_size])  # Extract multi-line block
-        block_counts[block] += 1
+    for block_size in block_sizes:
+        block_counts = Counter()
 
-        if block_counts[block] > 1:  # ✅ Only store if it's a duplicate
-            if block not in duplicate_map:
-                duplicate_map[block] = []
-            duplicate_map[block].append(i + 1)  # Store line number of first occurrence
+        for i in range(len(cleaned) - block_size + 1):
+            block = "\n".join(cleaned[i:i + block_size])
+            if len(re.findall(r'\w+', block)) < 2:
+                continue
+
+            block_counts[block] += 1
+            if block_counts[block] > 1:
+                if block not in duplicate_map:
+                    duplicate_map[block] = {
+                        "lines": [],
+                        "length": block_size
+                    }
+                duplicate_map[block]["lines"].append(line_map[i])
+                seen_blocks.add(block)
 
     return duplicate_map
 
 
-# def calculate_comment_density(code):
-#     """Compute comment density (ratio of comments to code) for Python code."""
+
+
+
+# def count_duplicate_code_percentage(code):
+#     """Calculate the percentage of duplicate lines in the code."""
 #     lines = code.split("\n")
+#     duplicates = [item for item, count in Counter(lines).items() if count > 1 and item.strip()]
+#     return (len(duplicates) / len(lines)) * 100 if lines else 0
 #
-#     # Initialize counters
-#     comment_lines = 0
-#     code_lines = 0
-#     inside_docstring = False
 #
-#     for line in lines:
+#
+# def find_duplicate_code(code, block_sizes=[3, 2]):
+#     """
+#     Detect realistic code duplication in Python by ignoring blank lines and comments.
+#     Supports multiple block sizes and maps detected blocks to original line numbers.
+#     """
+#     lines = code.split("\n")
+#     cleaned = []
+#     line_map = []
+#
+#     for idx, line in enumerate(lines):
 #         stripped = line.strip()
+#         if stripped and not stripped.startswith("#"):
+#             cleaned.append(stripped)
+#             line_map.append(idx + 1)  # Map cleaned line to original line number
 #
-#         # ✅ Handle multi-line docstrings properly (''' or """ in the line)
-#         if stripped.startswith(('"""', "'''")) and stripped.endswith(('"""', "'''")) and len(stripped) > 3:
-#             comment_lines += 1  # Single-line docstring
-#             continue
-#         elif stripped.startswith(('"""', "'''")):
-#             inside_docstring = True
-#             comment_lines += 1
-#             continue
-#         elif stripped.endswith(('"""', "'''")):
-#             inside_docstring = False
-#             comment_lines += 1
-#             continue
+#     duplicate_map = {}
+#     seen_blocks = set()
 #
-#         if inside_docstring:
-#             comment_lines += 1
-#             continue  # ✅ Skip to next line
+#     for block_size in block_sizes:
+#         block_counts = Counter()
 #
-#         # ✅ Count single-line comments
-#         if stripped.startswith("#"):
-#             comment_lines += 1
-#             continue  # ✅ Move to next line
-#
-#         # ✅ Detect inline comments (code followed by #)
-#         if "#" in stripped:
-#             before_comment, after_comment = stripped.split("#", 1)
-#             if after_comment.strip():  # Ensure there's actual comment content
-#                 comment_lines += 1
-#                 if before_comment.strip():  # If code is before comment, count it
-#                     code_lines += 1
+#         for i in range(len(cleaned) - block_size + 1):
+#             block = "\n".join(cleaned[i:i + block_size])
+#             if len(re.findall(r'\w+', block)) < 2:
 #                 continue
 #
-#         # ✅ Count non-comment, non-empty lines as code
-#         if stripped:
-#             code_lines += 1
+#             block_counts[block] += 1
+#             if block_counts[block] > 1 and block not in seen_blocks:
+#                 if block not in duplicate_map:
+#                     duplicate_map[block] = []
+#                 duplicate_map[block].append(line_map[i])
+#                 seen_blocks.add(block)
 #
-#     total_lines = code_lines + comment_lines
-#     return round(comment_lines / total_lines, 2) if total_lines > 0 else 0  # ✅ Prevent division by zero
+#     return duplicate_map
+
+
+
 
 def calculate_comment_density(code):
     """Count the number of comment lines in Python code."""
@@ -194,8 +224,8 @@ def analyze_code_complexity(code):
 
     loc, eloc = count_lines_of_code(code)
     num_functions, avg_function_length = count_functions_and_length(code)
-    duplicate_percentage = count_duplicate_code_percentage(code)
     duplicate_code_details = find_duplicate_code(code)  # ✅ Get duplicate lines & locations
+    duplicate_percentage = count_duplicate_code_percentage(code, duplicate_code_details)
     comment_density = calculate_comment_density(code)
     readability_score = calculate_readability_score(code)
     complexity_score = calculate_complexity_score(loc, num_functions, duplicate_percentage)
@@ -293,42 +323,139 @@ def java_calculate_nesting_depth(code):
     return max_depth
 
 
+
+# def java_count_duplicate_code_percentage(code, duplicate_map):
+#     """
+#     Calculates the percentage of duplicated lines over total effective code lines in Java.
+#     Uses a set to avoid counting overlapping duplicated lines multiple times.
+#     """
+#     total_lines = [
+#         line for line in code.splitlines()
+#         if line.strip() and not line.strip().startswith("//")
+#     ]
+#     total_effective_lines = len(total_lines)
+#
+#     duplicated_lines = set()  # ✅ Track unique line numbers
+#
+#     for block in duplicate_map.values():
+#         block_length = block["length"]
+#         occurrences = block["lines"]
+#         if len(occurrences) > 1:
+#             # Add all duplicated instances EXCEPT the first
+#             for line_number in occurrences[1:]:
+#                 for offset in range(block_length):
+#                     duplicated_lines.add(line_number + offset)
+#
+#     return round((len(duplicated_lines) / total_effective_lines) * 100, 2) if total_effective_lines else 0
+#
+#
+#
+#
+#
+# def java_find_duplicate_code(code, block_sizes=[3, 2]):
+#     """
+#     Improved Java duplicate detector using multiple block sizes.
+#     Cleans code and maps detected blocks back to original lines, excluding comments and whitespace.
+#     Returns a map with block details including start lines and block length.
+#     """
+#     lines = code.split("\n")
+#     cleaned_lines = []
+#     original_line_map = []
+#     inside_multiline_comment = False
+#
+#     for idx, line in enumerate(lines):
+#         stripped = line.strip()
+#         if not stripped or stripped.startswith("//"):
+#             continue
+#         if "/*" in stripped:
+#             inside_multiline_comment = True
+#             continue
+#         if inside_multiline_comment:
+#             if "*/" in stripped:
+#                 inside_multiline_comment = False
+#             continue
+#         cleaned_lines.append(stripped)
+#         original_line_map.append(idx + 1)
+#
+#     duplicate_map = {}
+#     seen_blocks = set()
+#
+#     for block_size in block_sizes:
+#         block_counts = Counter()
+#         for i in range(len(cleaned_lines) - block_size + 1):
+#             block = "\n".join(cleaned_lines[i:i + block_size])
+#             if len(re.findall(r'\w+', block)) < 4:
+#                 continue
+#
+#             block_counts[block] += 1
+#             if block_counts[block] > 1:
+#                 if block not in duplicate_map:
+#                     duplicate_map[block] = {
+#                         "lines": [],
+#                         "length": block_size
+#                     }
+#                 duplicate_map[block]["lines"].append(original_line_map[i])
+#                 seen_blocks.add(block)
+#
+#     return duplicate_map
+
+
+
 def java_count_duplicate_code_percentage(code):
     """Calculate the percentage of duplicate lines in Java code."""
     lines = code.split("\n")
     duplicates = [item for item, count in Counter(lines).items() if count > 1 and item.strip()]
     return (len(duplicates) / len(lines)) * 100 if lines else 0
 
-def java_find_duplicate_code(code, block_size=3):
+
+
+def java_find_duplicate_code(code, block_sizes=[3, 2]):
     """
-    Improved duplicate code detection in Java.
-    Uses structured splitting and filters incomplete statements.
+    Improved Java duplicate detector using multiple block sizes.
+    Cleans code and maps detected blocks back to original lines.
     """
     lines = code.split("\n")
-    cleaned_lines = [line.strip() for line in lines if line.strip()]  # ✅ Remove blank lines
+    cleaned_lines = []
+    original_line_map = []
+    inside_multiline_comment = False
 
-    block_counts = Counter()
-    duplicate_map = {}
-
-    # ✅ Track extracted duplicates to prevent redundancy
-    extracted_blocks = set()
-
-    for i in range(len(cleaned_lines) - block_size + 1):
-        block = "\n".join(cleaned_lines[i:i + block_size])  # Extract multi-line block
-
-        # ✅ Ignore tiny fragments (e.g., single braces, empty lines)
-        if len(re.findall(r'\w+', block)) < 2:  # ✅ Ensure at least 2 meaningful words
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("//"):
             continue
+        if "/*" in stripped:
+            inside_multiline_comment = True
+            continue
+        if inside_multiline_comment:
+            if "*/" in stripped:
+                inside_multiline_comment = False
+            continue
+        cleaned_lines.append(stripped)
+        original_line_map.append(idx + 1)
 
-        block_counts[block] += 1
+    duplicate_map = {}
+    seen_blocks = set()
 
-        if block_counts[block] > 1 and block not in extracted_blocks:  # ✅ Avoid redundant detections
-            if block not in duplicate_map:
-                duplicate_map[block] = []
-            duplicate_map[block].append(i + 1)  # Store line number of first occurrence
-            extracted_blocks.add(block)  # ✅ Store extracted block to prevent duplicates
+    for block_size in block_sizes:
+        block_counts = Counter()
+        for i in range(len(cleaned_lines) - block_size + 1):
+            block = "\n".join(cleaned_lines[i:i + block_size])
+            if len(re.findall(r'\w+', block)) < 4:
+                continue
+
+            block_counts[block] += 1
+            if block_counts[block] > 1 and block not in seen_blocks:
+                if block not in duplicate_map:
+                    duplicate_map[block] = []
+                duplicate_map[block].append(original_line_map[i])
+                seen_blocks.add(block)
 
     return duplicate_map
+
+
+
+
+
 
 
 def java_calculate_comment_density(code):

@@ -107,6 +107,31 @@
                         </span>
                     </span>
                 </li>
+{#                {% if summary.complexity_metrics.duplicate_code_details %}#}
+{#                    <div class="container mt-4">#}
+{#                        <div class="duplicate-code-panel p-3 shadow-sm rounded">#}
+{#                            <h3 class="text-center text-warning">#}
+{#                                <i class="fas fa-exclamation-triangle"></i> Duplicate Code Detected#}
+{#                            </h3>#}
+{#                            <p class="text-center">Below are the repeated code segments found in your submission:</p>#}
+{##}
+{#                            <div class="duplicate-code-container">#}
+{#                                <ul class="list-group">#}
+{#                                    {% for block, info in summary.complexity_metrics.duplicate_code_details.items %}#}
+{#                                        <li class="list-group-item duplicate-code-item">#}
+{#                                            <strong class="text-warning"><i class="fas fa-code"></i> Duplicate Code:</strong>#}
+{#                                            <pre class="code-highlight">{{ block }}</pre>#}
+{#                                            <small class="found-at-lines">#}
+{#                                                📌 Found at lines: {{ info.lines|join:", " }}<br>#}
+{#                                                📏 Block size: {{ info.length }} line{{ info.length|pluralize:"s" }}#}
+{#                                            </small>#}
+{#                                        </li>#}
+{#                                    {% endfor %}#}
+{#                                </ul>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                {% endif %}#}
                 {% if summary.complexity_metrics.duplicate_code_details %}
                     <div class="container mt-4">
                         <div class="duplicate-code-panel p-3 shadow-sm rounded">
