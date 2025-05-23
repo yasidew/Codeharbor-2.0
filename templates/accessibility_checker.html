@@ -13,18 +13,74 @@
     #results-section {
         display: none;
     }
+
+    #results-section {
+        display: none;
+    }
+    #drop-zone {
+        border: 2px dashed #007bff;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        background-color: #f8f9fa;
+        transition: background-color 0.2s ease;
+    }
+    #drop-zone.dragover {
+        background-color: #e9f5ff;
+    }
+
+    .card-header.bg-primary {
+        background-color: #007bff !important; /* Bootstrap primary blue */
+    }
+
+    .btn-primary {
+        background-color: #007bff !important;
+        border-color: #007bff !important;
+    }
+
+    .btn-primary:hover {
+        background-color: #0069d9 !important;
+        border-color: #0062cc !important;
+    }
+
+    .btn-light.text-white {
+        background-color: #0056b3 !important;
+        color: #ffffff !important;
+        border: none;
+    }
+
+    .btn-light.text-white:hover {
+        background-color: #004494 !important;
+    }
+
+    .card {
+        background-color: #1e1e2f;  /* Keep dark card background */
+    }
+
+    body {
+        background-color: #121212;
+    }
+
 </style>
 
 <div class="container my-5">
     <div class="card">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <div>
-                <h3 class="card-title">Accessibility Checker</h3>
-                <p class="card-category">Analyze your code for accessibility compliance.</p>
-            </div>
-            <button id="editor-button" class="btn btn-light text-white">See in the Editor</button>
-            <button id="chart-button" class="btn btn-light text-white">Chart</button>
-        </div>
+        <div class="custom-header text-center text-white my-4">
+    <h2 class="main-title">Accessibility Checker</h2>
+    <hr class="underline">
+    <p class="subtext">Analyze your code for accessibility compliance</p>
+</div>
+{#<div class="d-flex justify-content-center mb-3">#}
+{#    <button id="editor-button" class="btn btn-light text-white me-2">See in the Editor</button>#}
+{#    <button id="chart-button" class="btn btn-light text-white">Chart</button>#}
+{#</div>#}
+
+        <div class="d-flex justify-content-center mb-3">
+    <button class="btn btn-light text-white me-2" onclick="showSection('editor')">Editor</button>
+    <button class="btn btn-light text-white" onclick="showSection('chart')">Chart</button>
+</div>
+
+
 
         <div class="card-body">
             <!-- File Upload Form -->
@@ -32,6 +88,7 @@
                 <input type="file" name="html_file" accept=".html" required class="form-control mb-3">
                 <button type="submit" class="btn btn-primary w-100">Check Accessibility</button>
             </form>
+
 
             <!-- Hidden initially -->
             <div id="results-section">
@@ -123,6 +180,21 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Editor Section -->
+<div id="editor-section" style="display: none;">
+    <h4 class="text-white mt-4">Accessibility Editor</h4>
+    <textarea id="code-editor" class="form-control" rows="10"></textarea>
+</div>
+
+<!-- Chart Section -->
+<div id="chart-section" style="display: none;">
+    <h4 class="text-white mt-4">User Accessibility Severity Chart</h4>
+    <div class="chart-container d-flex justify-content-center" style="height: 400px;">
+        <canvas id="severityChart"></canvas>
+    </div>
+</div>
+
 
                     <!-- Submit Score Button -->
                     <button id="submit-score" class="btn btn-success w-100 mt-3" disabled>Submit Score</button>
@@ -414,6 +486,51 @@
         // Scroll to results
         document.getElementById("results-section").scrollIntoView({ behavior: "smooth" });
     });
+
+         function showSection(section) {
+        document.getElementById('editor-section').style.display = 'none';
+        document.getElementById('chart-section').style.display = 'none';
+
+        if (section === 'editor') {
+            const submittedHTML = sessionStorage.getItem("submittedHTML") || "<!-- No HTML submitted -->";
+            document.getElementById("code-editor").value = submittedHTML;
+            document.getElementById('editor-section').style.display = 'block';
+        } else if (section === 'chart') {
+            document.getElementById('chart-section').style.display = 'block';
+            renderChart(); // Draw chart when shown
+        }
+    }
+
+    function renderChart() {
+        if (window.severityChartRendered) return; // Prevent re-rendering
+
+        const ctx = document.getElementById('severityChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Critical', 'Serious', 'Moderate', 'Minor'],
+                datasets: [{
+                    data: [
+                        parseInt(sessionStorage.getItem("critical-count") || "0"),
+                        parseInt(sessionStorage.getItem("serious-count") || "0"),
+                        parseInt(sessionStorage.getItem("moderate-count") || "0"),
+                        parseInt(sessionStorage.getItem("minor-count") || "0")
+                    ],
+                    backgroundColor: ['red', 'orange', 'yellow', 'blue']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        window.severityChartRendered = true;
+    }
 
 
     </script>
