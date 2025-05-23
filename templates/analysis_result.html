@@ -105,7 +105,29 @@
         <section class="my-5">
             <h2>Correlation Analysis</h2>
 
+            <div class="mb-4 text-white" style="background-color:#21262d; padding: 20px; border-radius: 10px;">
+                <h5 style="color: #58a6ff;"><strong>📘 Understanding Correlation Coefficients</strong></h5>
+                <p><strong>Pearson Correlation Coefficient (r):</strong></p>
+                <ul>
+                    <li><code>r</code> ranges from <strong>-1</strong> to <strong>+1</strong></li>
+                    <li>Closer to <strong>+1</strong> → Strong positive linear relationship</li>
+                    <li>Closer to <strong>-1</strong> → Strong negative linear relationship</li>
+                    <li><code>0</code> → No linear correlation</li>
+                </ul>
+                <p><strong>P-value:</strong></p>
+                <ul>
+                    <li>Indicates <strong>statistical significance</strong> of the correlation</li>
+                    <li>P-value <strong>&lt; 0.05</strong> means the result is statistically significant</li>
+                    <li>Very small values like <code>0.0006</code> indicate <strong>high confidence</strong> in the
+                        correlation
+                    </li>
+                </ul>
+            </div>
+            <h4>These tables display the Pearson Correlation and Spearman Correlation between WCC and other software
+                quality metrics(Maintainability, Readability & Developer Perspective Complexity).</h4>
+
             <div class="table-responsive">
+                <h4>📌 Pearson Correlation Table</h4>
                 <table class="table table-bordered text-white">
                     <thead>
                     <tr>
@@ -124,9 +146,24 @@
                     {% endfor %}
                     </tbody>
                 </table>
+
+                <ul>
+                    <li>Pearson Correlation measures the linear relationship between WCC and the given metrics.</li>
+                    <li>Complexity (0.7295) → WCC increases as Complexity increases (Strong positive correlation).</li>
+                    <li>Maintainability (-0.3357) → WCC increases as Maintainability decreases (Moderate negative
+                        correlation).
+                    </li>
+                    <li>Readability (-0.3333) → WCC increases as Readability decreases (Moderate negative
+                        correlation).
+                    </li>
+                </ul>
+                <p style="color: #0e84f8; font-size: 16px">All P-values are very small → These correlations are
+                    statistically
+                    significant.</p>
             </div>
 
             <div class="table-responsive mt-4">
+                <h4>📌 Spearman Correlation Table</h4>
                 <table class="table table-bordered text-white">
                     <thead>
                     <tr>
@@ -145,25 +182,20 @@
                     {% endfor %}
                     </tbody>
                 </table>
-            </div>
 
-            <p>These tables display the Pearson Correlation and Spearman Correlation between WCC and other software
-                quality metrics.</p>
-            <h4>📌 Pearson Correlation Table</h4>
-            <ul>
-                <li>Pearson Correlation measures the linear relationship between WCC and the given metrics.</li>
-                <li>Complexity (0.7209) → WCC increases as Complexity increases (positive correlation).</li>
-                <li>Maintainability (-0.5285) → WCC increases as Maintainability decreases (negative correlation).</li>
-                <li>Readability (-0.4532) → WCC increases as Readability decreases (negative correlation).</li>
-            </ul>
-            <h4>📌 Spearman Correlation Table</h4>
-            <ul>
-                <li>Spearman Correlation is a rank-based correlation that measures relationships using a monotonic
-                    function.
-                </li>
-                <li>Complexity (0.7689) has a strong positive monotonic correlation with WCC.</li>
-                <li>Maintainability (-0.5261) and Readability (-0.5670) show negative monotonic relationships.</li>
-            </ul>
+                <ul>
+                    <li>Spearman Correlation is a rank-based correlation that measures relationships using a monotonic
+                        function.
+                    </li>
+                    <li>Complexity (0.7717) has a Strong positive correlation relationships with WCC.</li>
+                    <li>Maintainability (-0.3636) and Readability (-0.3847) show Moderate negative correlation
+                        relationships with WCC.
+                    </li>
+                </ul>
+                <p style="color: #0e84f8; font-size: 16px">All P-values are very small → These correlations are
+                    statistically
+                    significant.</p>
+            </div>
         </section>
 
         <!-- Scatter Plots -->
@@ -172,34 +204,39 @@
             <h4>Scatter plots visualize the relationship between WCC and various software quality metrics.</h4>
             {% for column, plot_path in scatter_plots.items %}
                 <div class="mb-4">
-                    <h3 class="text-muted" style="color: blueviolet">{{ column }} vs WCC</h3>
+                    <h3 style="color: #0e84f8">📌{{ column }} vs WCC</h3>
                     <img src="{{ MEDIA_URL }}/media/scatter_{{ column }}.png" alt="Scatter plot for {{ column }}"
                          class="analysis-img">
+
+                    {% if column == "Complexity" %}
+                        <ul>
+                            <li>Shows how Complexity changes as WCC increases.</li>
+                            <li>Red trendline indicates a positive correlation (higher WCC tends to have higher
+                                Complexity).
+                            </li>
+                            <li>The distribution of points shows a strong relationship, confirming the correlation table
+                                results.
+                            </li>
+                        </ul>
+                    {% elif column == "Maintainability" %}
+                        <ul>
+                            <li>Shows how Maintainability changes as WCC increases.</li>
+                            <li>Red trendline shows a negative correlation (higher WCC tends to have lower
+                                Maintainability).
+                            </li>
+                            <li>This means complex code is generally harder to maintain.</li>
+                        </ul>
+                    {% elif column == "Readability" %}
+                        <ul>
+                            <li>Shows how Readability changes as WCC increases.</li>
+                            <li>Red trendline shows a negative correlation (higher WCC tends to have lower
+                                Readability).
+                            </li>
+                            <li>Complex code is harder to read and understand.</li>
+                        </ul>
+                    {% endif %}
                 </div>
             {% endfor %}
-            <h4>📌 Complexity vs WCC (First Scatter Plot)</h4>
-            <ul>
-                <li>Shows how Complexity changes as WCC increases.
-                </li>
-                <li>Red trendline indicates a positive correlation (higher WCC tends to have higher Complexity).</li>
-                <li>The distribution of points shows a strong relationship, confirming the correlation table results.
-                </li>
-            </ul>
-
-            <h4>📌 Maintainability vs WCC (Second Scatter Plot)</h4>
-            <ul>
-                <li>Shows how Maintainability changes as WCC increases.
-                </li>
-                <li>Red trendline shows a negative correlation (higher WCC tends to have lower Maintainability).</li>
-                <li>This means complex code is generally harder to maintain.</li>
-            </ul>
-            <h4>📌 Readability vs WCC (Third Scatter Plot)</h4>
-            <ul>
-                <li>Shows how Readability changes as WCC increases.
-                </li>
-                <li>Red trendline shows a negative correlation (higher WCC tends to have lower Readability).</li>
-                <li>Complex code is harder to read and understand.</li>
-            </ul>
         </section>
 
         <!-- Cluster Centers -->
