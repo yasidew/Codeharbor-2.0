@@ -1,13 +1,15 @@
 {% if name == 'lines_of_code' %}
     Indicates the total number of code lines. More lines may mean higher complexity.
 {% elif name == 'num_functions' %}
-    Fewer functions might indicate lack of modularity. Too many may signal over-engineering.
+    Fewer functions might indicate lack of modularity. may indicate fragmented logic or lack of cohesion.
 {% elif name == 'function_length' %}
     Average lines per function. High values can reduce readability.
 {% elif name == 'duplicate_code' %}
     Shows how much of your code is repeated. Less duplication is better.
 {% elif name == 'comment_density' %}
-    Number of comments in your code. Good comments improve maintainability.
+    Number of comments in your code. Too few may reduce clarity; too many may indicate poor self-documenting code.
+{% elif name == 'readability_score' %}
+    A computed score estimating how easy your code is to read. Higher values indicate better readability.
 {% elif name == 'complexity_score' %}
     Final score combining various metrics. Lower is better.
 {% else %}

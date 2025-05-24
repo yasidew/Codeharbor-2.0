@@ -789,8 +789,8 @@ def java_analyze_code_complexity(code):
     num_classes, num_methods, avg_method_length = java_count_classes_and_methods(code)  # ✅ Corrected function
     # cyclomatic_complexity = java_calculate_cyclomatic_complexity(code)
     nesting_depth = round(java_calculate_nesting_depth(code), 2)
-    duplicate_percentage = round(java_count_duplicate_code_percentage(code), 2)
     duplicate_code_details = java_find_duplicate_code(code)
+    duplicate_percentage = round(java_count_duplicate_code_percentage(code, duplicate_code_details), 2)
     # **No `java_find_duplicate_code()` function exists, remove this line**
     # duplicate_code_details = java_find_duplicate_code(code) ❌ REMOVE THIS
 

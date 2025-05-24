@@ -324,39 +324,96 @@ def java_calculate_nesting_depth(code):
 
 
 
-# def java_count_duplicate_code_percentage(code, duplicate_map):
-#     """
-#     Calculates the percentage of duplicated lines over total effective code lines in Java.
-#     Uses a set to avoid counting overlapping duplicated lines multiple times.
-#     """
-#     total_lines = [
-#         line for line in code.splitlines()
-#         if line.strip() and not line.strip().startswith("//")
-#     ]
-#     total_effective_lines = len(total_lines)
-#
-#     duplicated_lines = set()  # ✅ Track unique line numbers
-#
-#     for block in duplicate_map.values():
-#         block_length = block["length"]
-#         occurrences = block["lines"]
-#         if len(occurrences) > 1:
-#             # Add all duplicated instances EXCEPT the first
-#             for line_number in occurrences[1:]:
-#                 for offset in range(block_length):
-#                     duplicated_lines.add(line_number + offset)
-#
-#     return round((len(duplicated_lines) / total_effective_lines) * 100, 2) if total_effective_lines else 0
-#
-#
+def java_count_duplicate_code_percentage(code, duplicate_map):
+    code_lines = [
+        line.strip()
+        for line in code.split("\n")
+        if line.strip() and not line.strip().startswith("//") and not line.strip().startswith("/*")
+    ]
+    total_lines = len(code_lines)
+    duplicate_count = 0
+
+    for block in duplicate_map.values():
+        length = block["length"]
+        count = len(block["lines"])
+        if count > 1:
+            duplicate_count += length * (count - 1)
+
+    return round((duplicate_count / total_lines) * 100, 2) if total_lines else 0
+
+
+
+
+
+
+def java_find_duplicate_code(code, block_sizes=[5, 4]):
+    lines = code.split("\n")
+    cleaned_lines = []
+    line_map = []
+    inside_multiline = False
+
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("//"):
+            continue
+        if "/*" in stripped:
+            inside_multiline = True
+            continue
+        if inside_multiline:
+            if "*/" in stripped:
+                inside_multiline = False
+            continue
+        cleaned_lines.append(stripped)
+        line_map.append(idx + 1)
+
+    duplicate_map = {}
+
+    for size in block_sizes:
+        block_counter = Counter()
+        for i in range(len(cleaned_lines) - size + 1):
+            block = "\n".join(cleaned_lines[i:i + size])
+
+            # ✅ Skip non-meaningful blocks (less than 6 tokens)
+            if len(re.findall(r'\w+', block)) < 6:
+                continue
+
+            block_counter[block] += 1
+
+        for i in range(len(cleaned_lines) - size + 1):
+            block = "\n".join(cleaned_lines[i:i + size])
+
+            # ✅ Skip same filter here to stay consistent
+            if len(re.findall(r'\w+', block)) < 6:
+                continue
+
+            if block_counter[block] > 1:
+                if block not in duplicate_map:
+                    duplicate_map[block] = {
+                        "lines": [],
+                        "length": size
+                    }
+                duplicate_map[block]["lines"].append(line_map[i])
+
+    return duplicate_map
+
+
+
+
+
+# def java_count_duplicate_code_percentage(code):
+#     """Calculate the percentage of duplicate lines in Java code."""
+#     lines = code.split("\n")
+#     duplicates = [item for item, count in Counter(lines).items() if count > 1 and item.strip()]
+#     return (len(duplicates) / len(lines)) * 100 if lines else 0
 #
 #
 #
 # def java_find_duplicate_code(code, block_sizes=[3, 2]):
 #     """
 #     Improved Java duplicate detector using multiple block sizes.
-#     Cleans code and maps detected blocks back to original lines, excluding comments and whitespace.
-#     Returns a map with block details including start lines and block length.
+#     Cleans code and maps detected blocks back to original lines.
 #     """
 #     lines = code.split("\n")
 #     cleaned_lines = []
@@ -388,110 +445,68 @@ def java_calculate_nesting_depth(code):
 #                 continue
 #
 #             block_counts[block] += 1
-#             if block_counts[block] > 1:
+#             if block_counts[block] > 1 and block not in seen_blocks:
 #                 if block not in duplicate_map:
-#                     duplicate_map[block] = {
-#                         "lines": [],
-#                         "length": block_size
-#                     }
-#                 duplicate_map[block]["lines"].append(original_line_map[i])
+#                     duplicate_map[block] = []
+#                 duplicate_map[block].append(original_line_map[i])
 #                 seen_blocks.add(block)
 #
 #     return duplicate_map
 
 
 
-def java_count_duplicate_code_percentage(code):
-    """Calculate the percentage of duplicate lines in Java code."""
-    lines = code.split("\n")
-    duplicates = [item for item, count in Counter(lines).items() if count > 1 and item.strip()]
-    return (len(duplicates) / len(lines)) * 100 if lines else 0
 
 
-
-def java_find_duplicate_code(code, block_sizes=[3, 2]):
-    """
-    Improved Java duplicate detector using multiple block sizes.
-    Cleans code and maps detected blocks back to original lines.
-    """
-    lines = code.split("\n")
-    cleaned_lines = []
-    original_line_map = []
-    inside_multiline_comment = False
-
-    for idx, line in enumerate(lines):
-        stripped = line.strip()
-        if not stripped or stripped.startswith("//"):
-            continue
-        if "/*" in stripped:
-            inside_multiline_comment = True
-            continue
-        if inside_multiline_comment:
-            if "*/" in stripped:
-                inside_multiline_comment = False
-            continue
-        cleaned_lines.append(stripped)
-        original_line_map.append(idx + 1)
-
-    duplicate_map = {}
-    seen_blocks = set()
-
-    for block_size in block_sizes:
-        block_counts = Counter()
-        for i in range(len(cleaned_lines) - block_size + 1):
-            block = "\n".join(cleaned_lines[i:i + block_size])
-            if len(re.findall(r'\w+', block)) < 4:
-                continue
-
-            block_counts[block] += 1
-            if block_counts[block] > 1 and block not in seen_blocks:
-                if block not in duplicate_map:
-                    duplicate_map[block] = []
-                duplicate_map[block].append(original_line_map[i])
-                seen_blocks.add(block)
-
-    return duplicate_map
-
-
-
+def is_comment_outside_string(line):
+    # Remove all quoted strings first
+    no_strings = re.sub(r'(["\']).*?\1', '', line)
+    return '//' in no_strings
 
 
 
 
 def java_calculate_comment_density(code):
-    """Count the total number of comment lines in Java code."""
+    """
+    Count the number of comment lines in Java code,
+    including multi-line, single-line, and inline comments (excluding false positives).
+    """
     lines = code.split("\n")
-
-    single_line_comments = 0
-    multi_line_comment_lines = 0
+    comment_lines = 0
     inside_multiline = False
 
     for line in lines:
         stripped = line.strip()
 
-        # Count single-line comment
-        if stripped.startswith("//"):
-            single_line_comments += 1
+        if not stripped:
             continue
 
-        # Detect start of multiline comment
-        if stripped.startswith("/*"):
+        # ✅ Handle start of multiline comments
+        if "/*" in stripped:
             inside_multiline = True
-            multi_line_comment_lines += 1
+            comment_lines += 1
+            if "*/" in stripped and stripped.index("/*") < stripped.index("*/"):
+                inside_multiline = False
             continue
 
-        # Detect end of multiline comment
+        # ✅ Inside multiline comment block
         if inside_multiline:
-            multi_line_comment_lines += 1
+            comment_lines += 1
             if "*/" in stripped:
                 inside_multiline = False
             continue
 
-        # Also catch inline multiline comments like: int a = 0; /* inline comment */
-        if "/*" in stripped and "*/" in stripped:
-            multi_line_comment_lines += 1
+        # ✅ Count full-line comments
+        if stripped.startswith("//"):
+            comment_lines += 1
+            continue
 
-    return single_line_comments + multi_line_comment_lines
+        # ✅ Count inline comments only if outside quotes
+        if is_comment_outside_string(stripped):
+            comment_lines += 1
+
+    return comment_lines
+
+
 
 
 def java_calculate_readability_score(code):
@@ -546,8 +561,8 @@ def java_analyze_code_complexity(code):
     num_classes, num_methods, avg_method_length = java_count_classes_and_methods(code)
     # cyclomatic_complexity = java_calculate_cyclomatic_complexity(code)
     nesting_depth = java_calculate_nesting_depth(code)
-    duplicate_percentage = java_count_duplicate_code_percentage(code)
     duplicate_code_details = java_find_duplicate_code(code)
+    duplicate_percentage = java_count_duplicate_code_percentage(code, duplicate_code_details)
     comment_density = java_calculate_comment_density(code)
     readability_score = java_calculate_readability_score(code)
     complexity_score = java_calculate_complexity_score(loc, num_methods, duplicate_percentage)
