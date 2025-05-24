@@ -51,7 +51,7 @@
         }
 
         .container-custom1 {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: auto;
             background-color: #161b22;
             padding: 30px;
@@ -62,7 +62,7 @@
 
         /* Collapsible Table */
         .table-container {
-            width: 1000px;
+            width: 100%;
             background-color: #161b22;
             border-radius: 12px;
             padding: 10px;
@@ -82,12 +82,13 @@
         .table-header h5 {
             margin: 0;
             color: #58a6ff;
+            cursor: pointer;
+            text-decoration: underline;
         }
 
         /* Hide initially */
         .table-content {
-            width: 1000px;
-            display: none;
+        {#width: 1000px;#} display: none;
             padding: 10px;
             background-color: #0d1117;
             border-radius: 8px;
@@ -251,9 +252,10 @@
             {% if file.filename|slice:"-5:" == ".java" %}
                 <div class="table-container">
                 <!-- Clickable Header -->
-                <div class="table-header" data-id="{{ file.filename|slugify }}">
+                <div class="table-header" onclick="toggleTable('{{ file.filename|slugify }}')">
                     <h5>{{ file.filename }}</h5>
                     <span><strong>Total WCC:</strong> {{ file.total_wcc }}</span>
+                    <span class="toggle-icon" id="icon-{{ file.filename|slugify }}">+</span>
                 </div>
 
                 <!-- Collapsible Content -->
@@ -363,8 +365,22 @@
     {% endif %}
 </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.min.js"></script>
     <!-- JavaScript Code Placed at the Bottom -->
     <script>
+        function toggleTable(id) {
+            var content = document.getElementById("table-" + id);
+            var icon = document.getElementById("icon-" + id);
+
+            if (content.style.display === "none" || content.style.display === "") {
+                content.style.display = "block";
+                icon.innerText = "-";
+            } else {
+                content.style.display = "none";
+                icon.innerText = "+";
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             function toggleTable(event) {
                 let header = event.target.closest(".table-header");

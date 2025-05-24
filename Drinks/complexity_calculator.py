@@ -1126,9 +1126,6 @@ def extract_class_references_with_lines(java_code):
         # Add the processed line data to the list
         line_references.append(line_data)
 
-    logging.info("Finished extracting class references line by line.")
-    logging.info(line_references)
-
     return line_references
 
 
@@ -1241,7 +1238,6 @@ def calculate_mpc(message_passing):
         # Sum the weights of message passing interactions
         total_weight = sum(messages.values())
         mpc_results[class_name] = total_weight
-        logging.info(f'MPC for {class_name}: {total_weight}')  # Log MPC calculation
 
     return mpc_results
 

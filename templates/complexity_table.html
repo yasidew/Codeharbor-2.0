@@ -822,7 +822,7 @@
             </div>
         {% endif %}
 
-        {% if file.refactored_categorized_methods %}
+        {% if file.refactored_categorized_methods and file.was_refactored %}
             <div class="container mt-5">
                 <h3 style="margin-top: 2rem;">📘 Refactored Code Method Complexity Details</h3>
                 <table class="method-complexity-table">

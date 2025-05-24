@@ -402,14 +402,14 @@
                 <thead>
                 <tr>
                     <th>Method Name</th>
-                    <th>Size</th>
-                    <th>Control Structure Complexity</th>
-                    <th>Nesting Level</th>
-                    <th>Inheritance Level</th>
-                    <th>Compound Condition Weight</th>
-                    <th>Try-Catch Weight</th>
-                    <th>Thread Weight</th>
-                    <th>CBO</th>
+                    <th>S</th>
+                    <th>W<sub>c</sub></th>
+                    <th>W<sub>n</sub></th>
+                    <th>W<sub>i</sub></th>
+                    <th>W<sub>cc</sub></th>
+                    <th>W<sub>tc</sub></th>
+                    <th>W<sub>th</sub></th>
+                    <th>W<sub>cbo</sub></th>
                     <th>Total Complexity</th>
                     <th>Category</th>
                     <th>Bar Chart</th>
@@ -448,7 +448,7 @@
         </div>
 
         <div class="container-custom mt-5">
-            <h3>Refactoring Recommendations</h3>
+            <h3>Complexity Reduction Recommendations</h3>
             <table>
                 <thead>
                 <tr>
@@ -548,7 +548,7 @@
             </div>
         {% endif %}
 
-        {% if file.refactored_categorized_methods %}
+        {% if file.refactored_categorized_methods and file.was_refactored %}
             <div class="container mt-5">
                 <h3 style="margin-top: 2rem;">📘 Refactored Code Method Complexity Details</h3>
                 <table class="method-complexity-table">

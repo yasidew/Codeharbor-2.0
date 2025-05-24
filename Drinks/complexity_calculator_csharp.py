@@ -1424,7 +1424,6 @@ def calculate_mpc_line_by_line_csharp(message_passing_lines):
     mpc_line_results = {}
     for line_number, weight in message_passing_lines.items():
         mpc_line_results[line_number] = weight
-        logging.info(f"MPC at line {line_number}: {weight}")
     return mpc_line_results
 
 
