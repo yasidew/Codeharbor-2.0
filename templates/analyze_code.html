@@ -210,11 +210,13 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <h6 class="text-success"><i class="fas fa-lightbulb"></i> AI-Powered Suggestion</h6>
-                                    <div class="bg-secondary p-3 rounded suggestion-content" style="white-space: pre-wrap;">
+                                    <h6 class="text-success"><i class="fas fa-lightbulb"></i> Optimization Suggestion</h6>
+                                    <div class="bg-secondary p-3 rounded suggestion-content text-start" style="white-space: pre-wrap;">
+                                        <strong  class="d-block">💡Analysis:</strong>
                                         {{ suggestion.suggestion | safe }}
                                     </div>
                                 </div>
+
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                     {#                            <span class="badge bg-primary px-3 py-2">{{ suggestion.category }}</span>#}
                                     <span class="badge bg-primary px-3 py-2" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -348,6 +350,7 @@
                                                                     <i class="fas fa-lightbulb"></i> AI-POWERED SUGGESTION
                                                                 </h6>
                                                                 <div class="bg-light text-dark p-3 rounded" style="white-space: pre-wrap; font-size: 0.95rem; border-left: 4px solid #ffc107;">
+                                                                    <strong  class="d-block">💡Analysis:</strong>
                                                                     {{ suggestion.suggestion | safe }}
                                                                 </div>
                                                             </div>
@@ -441,6 +444,7 @@
                                                                     <i class="fas fa-lightbulb"></i> AI-POWERED SUGGESTION
                                                                 </h6>
                                                                 <div class="bg-light text-dark p-3 rounded" style="white-space: pre-wrap; font-size: 0.95rem; border-left: 4px solid #ffc107;">
+                                                                    <strong  class="d-block">💡Analysis:</strong>
                                                                     {{ suggestion.suggestion | safe }}
                                                                 </div>
                                                             </div>

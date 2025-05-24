@@ -559,7 +559,7 @@ def java_code_analysis(request):
                         continue
 
                     model_suggestion = java_generate_suggestion(snippet)
-                    final_suggestion = f"\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
+                    final_suggestion = f"\n{model_suggestion}\n\nDetailed Analysis:\n\n{ai_suggestion}"
 
                     if not JavaCodeSnippet.objects.filter(snippet=snippet).exists():
                         JavaCodeSnippet.objects.create(
@@ -1642,7 +1642,7 @@ def analyze_code_view(request):
                             model_suggestion=model_suggestion,
                         )
 
-                final_suggestion = f"\n{model_suggestion}\n\nDetailed Analysis:\n{ai_suggestion}"
+                final_suggestion = f"\n{model_suggestion}\n\n💡Detailed Analysis:\n\n{ai_suggestion}"
                 category = categorize_suggestion(final_suggestion)
                 severity = determine_severity(final_suggestion)
 
