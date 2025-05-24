@@ -508,7 +508,8 @@
                             {% else %}
                                 <span style="font-size: 1rem;">No improvement</span>
                                 <br>
-                                <small style="font-size: 1rem; color: greenyellow;">Provide Cleaner and modular code</small>
+                                <small style="font-size: 1rem; color: greenyellow;">Provide Cleaner and modular
+                                    code</small>
                             {% endif %}
                         </h4>
                     </div>
@@ -522,6 +523,7 @@
 
                 <div id="monaco-diff-editor-{{ forloop.counter }}" style="height: 500px; border: 1px solid #ccc;"></div>
 
+                <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.min.js"></script>
                 <script>
                     const originalCode{{ forloop.counter }} = `{{ file.original_code|escapejs }}`;
                     const refactoredCode{{ forloop.counter }} = `{{ file.refactored_class_code|escapejs }}`;
@@ -543,6 +545,50 @@
                         });
                     });
                 </script>
+            </div>
+        {% endif %}
+
+        {% if file.refactored_categorized_methods %}
+            <div class="container mt-5">
+                <h3 style="margin-top: 2rem;">📘 Refactored Code Method Complexity Details</h3>
+                <table class="method-complexity-table">
+                    <thead>
+                    <tr>
+                        <th>Method Name</th>
+                        <th>S</th>
+                        <th>W<sub>c</sub></th>
+                        <th>W<sub>n</sub></th>
+                        <th>W<sub>i</sub></th>
+                        <th>W<sub>cc</sub></th>
+                        <th>W<sub>tc</sub></th>
+                        <th>W<sub>th</sub></th>
+                        <th>W<sub>cbo</sub></th>
+                        <th>Total Complexity</th>
+                        <th>Category</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for method in file.refactored_categorized_methods %}
+                        <tr style="
+                                {% if method.category == 'High' %}background-color: #f8d7da; color: #721c24;{% endif %}
+                                {% if method.category == 'Medium' %}background-color: #fff3cd; color: #856404;{% endif %}
+                                {% if method.category == 'Low' %}background-color: #d4edda; color: #155724;{% endif %}
+                                ">
+                            <td>{{ method.method_name }}</td>
+                            <td>{{ method.size }}</td>
+                            <td>{{ method.control_structure_complexity }}</td>
+                            <td>{{ method.nesting_level }}</td>
+                            <td>{{ method.inheritance_level }}</td>
+                            <td>{{ method.compound_condition_weight }}</td>
+                            <td>{{ method.try_catch_weight }}</td>
+                            <td>{{ method.thread_weight }}</td>
+                            <td>{{ method.cbo_weights }}</td>
+                            <td>{{ method.total_complexity }}</td>
+                            <td>{{ method.category }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
         {% endif %}
 

@@ -1884,7 +1884,6 @@ def calculate_code_complexity_multiple_files(file_contents):
             }
             bar_chart_path = plot_complexity_bar_chart(method_name, relevant_factors, filename)
             bar_chart_paths[method_name] = bar_chart_path
-            print(f"Bar chart generated for method '{method_name}': {bar_chart_path}")
 
         # Assemble results for this file
         results[filename] = {

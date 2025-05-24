@@ -83,32 +83,51 @@
             </div>
 
 
-            <!-- Button to Open Modal -->
-            <div class="text-center mb-3">
+            <div class="d-flex flex-wrap align-items-end gap-3 mb-4">
+                <!-- GitHub Button (unchanged width) -->
                 <button id="githubBtn" class="btn btn-lg btn-github">
                     <i class="fab fa-github"></i> Import from GitHub
                 </button>
+
+                <!-- GitHub File Dropdown (adjusted to fit next to button) -->
+                <div style="flex: 1;">
+                    <label class="form-label fw-bold mb-1">
+                        <i class="fas fa-file-code"></i> Select File Imported from GitHub to Analyze:
+                    </label>
+                    <div class="input-group">
+                        <select id="fileSelector" class="form-select">
+                            <option selected disabled>Select a file</option>
+                        </select>
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="fas fa-folder-open"></i>
+                        </span>
+                    </div>
+                </div>
             </div>
 
 
-            {#            <div class="mb-3">#}
-            {#                <label class="form-label">Paste Code Below:</label>#}
-            {#                <div id="monaco-container" style="height: 400px; border: 1px solid #ccc;"></div>#}
-            {#                <textarea id="codeEditor" name="code" style="display: none;">{{ code }}</textarea>#}
-            {#            </div>#}
-            <div class="mb-3">
-                <label class="form-label fw-bold">
-                    <i class="fas fa-file-code"></i> Select File Imported from GitHub to Analyze:
-                </label>
 
-                <div class="input-group">
-                    <select id="fileSelector" class="form-select custom-dropdown">
-                        <option selected disabled>Select a file</option>
-                    </select>
-                    <span class="input-group-text bg-primary text-white">
-                        <i class="fas fa-folder-open"></i>
-                    </span>
-                </div>
+            <!-- Button to Open Modal -->
+{#            <div class="text-center mb-3">#}
+{#                <button id="githubBtn" class="btn btn-lg btn-github">#}
+{#                    <i class="fab fa-github"></i> Import from GitHub#}
+{#                </button>#}
+{#            </div>#}
+{##}
+{#            #}
+{#            <div class="mb-3">#}
+{#                <label class="form-label fw-bold">#}
+{#                    <i class="fas fa-file-code"></i> Select File Imported from GitHub to Analyze:#}
+{#                </label>#}
+{##}
+{#                <div class="input-group">#}
+{#                    <select id="fileSelector" class="form-select custom-dropdown">#}
+{#                        <option selected disabled>Select a file</option>#}
+{#                    </select>#}
+{#                    <span class="input-group-text bg-primary text-white">#}
+{#                        <i class="fas fa-folder-open"></i>#}
+{#                    </span>#}
+{#                </div>#}
 
                 <!-- Monaco Editor Container -->
                 <div id="monaco-container" class="mt-3 rounded shadow-sm"></div>

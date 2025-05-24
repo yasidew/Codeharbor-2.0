@@ -26,10 +26,21 @@
                         </span>
                     </span>
                 </li>
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-check-double"></i> Effective Lines of Code:</strong>
-                    <span>{{ summary.complexity_metrics.effective_lines_of_code }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.effective_lines_of_code }}
+                        <i class="fas fa-info-circle text-info ms-2"
+                           data-bs-toggle="tooltip"
+                           title="{% include 'code_analysis/java_metric_tooltip.html' with name='effective_lines_of_code' %}"></i>
+                    </span>
                 </li>
+
+                {#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-check-double"></i> Effective Lines of Code:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.effective_lines_of_code }}</span>#}
+{#                </li>#}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-cube"></i> Number of Classes:</strong>
                     <span>{{ summary.complexity_metrics.num_classes }}</span>
@@ -76,22 +87,23 @@
                         </span>
                     </span>
                 </li>
-{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
-{#                    <strong><i class="fas fa-random"></i> Cyclomatic Complexity:</strong>#}
-{#                    <span>{{ summary.complexity_metrics.cyclomatic_complexity }}#}
-{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.cyclomatic_complexity }}</span>#}
-{#                    </span>#}
-{#                </li>#}
+
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-layer-group"></i> Nesting Depth:</strong>
-                    <span>{{ summary.complexity_metrics.nesting_depth }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.nesting_depth }}
+                        <i class="fas fa-info-circle text-info ms-2"
+                           data-bs-toggle="tooltip"
+                           title="{% include 'code_analysis/java_metric_tooltip.html' with name='nesting_depth' %}"></i>
+                    </span>
                 </li>
-{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
-{#                    <strong><i class="fas fa-clone"></i> Duplicate Code Percentage:</strong>#}
-{#                    <span>{{ summary.complexity_metrics.duplicate_code_percentage }}%#}
-{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.duplicate_code }}</span>#}
-{#                    </span>#}
+
+                {#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-layer-group"></i> Nesting Depth:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.nesting_depth }}</span>#}
 {#                </li>#}
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-clone"></i> Duplicate Code Percentage:</strong>
                     <span>
@@ -107,31 +119,6 @@
                         </span>
                     </span>
                 </li>
-{#                {% if summary.complexity_metrics.duplicate_code_details %}#}
-{#                    <div class="container mt-4">#}
-{#                        <div class="duplicate-code-panel p-3 shadow-sm rounded">#}
-{#                            <h3 class="text-center text-warning">#}
-{#                                <i class="fas fa-exclamation-triangle"></i> Duplicate Code Detected#}
-{#                            </h3>#}
-{#                            <p class="text-center">Below are the repeated code segments found in your submission:</p>#}
-{##}
-{#                            <div class="duplicate-code-container">#}
-{#                                <ul class="list-group">#}
-{#                                    {% for block, info in summary.complexity_metrics.duplicate_code_details.items %}#}
-{#                                        <li class="list-group-item duplicate-code-item">#}
-{#                                            <strong class="text-warning"><i class="fas fa-code"></i> Duplicate Code:</strong>#}
-{#                                            <pre class="code-highlight">{{ block }}</pre>#}
-{#                                            <small class="found-at-lines">#}
-{#                                                📌 Found at lines: {{ info.lines|join:", " }}<br>#}
-{#                                                📏 Block size: {{ info.length }} line{{ info.length|pluralize:"s" }}#}
-{#                                            </small>#}
-{#                                        </li>#}
-{#                                    {% endfor %}#}
-{#                                </ul>#}
-{#                            </div>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                {% endif %}#}
                 {% if summary.complexity_metrics.duplicate_code_details %}
                     <div class="container mt-4">
                         <div class="duplicate-code-panel p-3 shadow-sm rounded">
@@ -142,12 +129,14 @@
 
                             <div class="duplicate-code-container">
                                 <ul class="list-group">
-                                    {% for line, occurrences in summary.complexity_metrics.duplicate_code_details.items %}
+                                    {% for block, info in summary.complexity_metrics.duplicate_code_details.items %}
                                         <li class="list-group-item duplicate-code-item">
                                             <strong class="text-warning"><i class="fas fa-code"></i> Duplicate Code:</strong>
-                                            <pre class="code-highlight">{{ line }}</pre>
-                                            <small class="found-at-lines">📌 Found at lines: {{ occurrences | join:", " }}</small>
-
+                                            <pre class="code-highlight">{{ block }}</pre>
+                                            <small class="found-at-lines">
+                                                📌 Found at lines: {{ info.lines|join:", " }}<br>
+                                                📏 Block size: {{ info.length }} line{{ info.length|pluralize:"s" }}
+                                            </small>
                                         </li>
                                     {% endfor %}
                                 </ul>
@@ -155,6 +144,29 @@
                         </div>
                     </div>
                 {% endif %}
+{#                {% if summary.complexity_metrics.duplicate_code_details %}#}
+{#                    <div class="container mt-4">#}
+{#                        <div class="duplicate-code-panel p-3 shadow-sm rounded">#}
+{#                            <h3 class="text-center text-warning">#}
+{#                                <i class="fas fa-exclamation-triangle"></i> Duplicate Code Detected#}
+{#                            </h3>#}
+{#                            <p class="text-center">Below are the repeated code segments found in your submission:</p>#}
+{##}
+{#                            <div class="duplicate-code-container">#}
+{#                                <ul class="list-group">#}
+{#                                    {% for line, occurrences in summary.complexity_metrics.duplicate_code_details.items %}#}
+{#                                        <li class="list-group-item duplicate-code-item">#}
+{#                                            <strong class="text-warning"><i class="fas fa-code"></i> Duplicate Code:</strong>#}
+{#                                            <pre class="code-highlight">{{ line }}</pre>#}
+{#                                            <small class="found-at-lines">📌 Found at lines: {{ occurrences | join:", " }}</small>#}
+{##}
+{#                                        </li>#}
+{#                                    {% endfor %}#}
+{#                                </ul>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                {% endif %}#}
 {#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
 {#                    <strong><i class="fas fa-comments"></i> Comment Density:</strong>#}
 {#                    <span>{{ summary.complexity_metrics.comment_density }}#}
@@ -176,16 +188,22 @@
                         </span>
                     </span>
                 </li>
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-eye"></i> Readability Score:</strong>
-                    <span>{{ summary.complexity_metrics.readability_score }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.readability_score }}
+                        <i class="fas fa-info-circle text-info ms-2"
+                           data-bs-toggle="tooltip"
+                           title="{% include 'code_analysis/java_metric_tooltip.html' with name='readability_score' %}"></i>
+                    </span>
                 </li>
-{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
-{#                    <strong><i class="fas fa-brain"></i> Complexity Score:</strong>#}
-{#                    <span>{{ summary.complexity_metrics.complexity_score }}#}
-{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score }}</span>#}
-{#                    </span>#}
+
+                {#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-eye"></i> Readability Score:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.readability_score }}</span>#}
 {#                </li>#}
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-brain"></i> Complexity Score:</strong>
                     <span>
