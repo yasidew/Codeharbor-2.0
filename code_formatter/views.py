@@ -14,6 +14,8 @@ import requests
 import base64
 from django.contrib import messages
 import difflib
+from Drinks.complexity_calculator import calculate_code_complexity_multiple_files
+from Drinks.views import get_thresholds
 
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -155,6 +157,42 @@ def refactor_code(request):
             refactored_loc = calculate_loc(refactored_code)
             refactored_readability = calculate_readability(refactored_code)
 
+            original_code_dict = {"OriginalJavaClass.java": code}
+            refactored_code_dict = {"RefactoredJavaClass.java": refactored_code}
+
+            original_complexity_results, _ = calculate_code_complexity_multiple_files(original_code_dict)
+            complexity_results, _ = calculate_code_complexity_multiple_files(refactored_code_dict)
+
+            refactored_complexity = complexity_results["RefactoredJavaClass.java"].get("total_wcc", 0)
+            original_wcc = original_complexity_results["OriginalJavaClass.java"].get("total_wcc", 0)
+            method_complexities = complexity_results["RefactoredJavaClass.java"].get("method_complexities", {})
+
+            if original_wcc > 0:
+                percentage_reduction = round(((original_wcc - refactored_complexity) / original_wcc) * 100, 2)
+            else:
+                percentage_reduction = 0.0
+
+            thresholds = get_thresholds()
+            threshold_low = thresholds.get('threshold_low', 10)
+            threshold_high = thresholds.get('threshold_high', 50)
+
+            refactored_categorized_methods = []
+            for method_name, method_data in method_complexities.items():
+                if isinstance(method_data, dict):
+                    total_complexity = method_data.get('total_complexity', 0)
+                    if total_complexity <= threshold_low:
+                        category = 'Low'
+                    elif threshold_low <= total_complexity <= threshold_high:
+                        category = 'Medium'
+                    else:
+                        category = 'High'
+
+                    refactored_categorized_methods.append({
+                        **method_data,
+                        'category': category,
+                        'method_name': method_name,
+                    })
+
             # Save to DB
             record = CodeRefactoringRecord.objects.create(
                 original_code=code,
@@ -172,6 +210,10 @@ def refactor_code(request):
                 'refactored_loc': refactored_loc,
                 'original_readability': original_readability,
                 'refactored_readability': refactored_readability,
+                'original_complexity': original_wcc,
+                'refactored_complexity': refactored_complexity,
+                'percentage_reduction': percentage_reduction,
+                'method_complexities': refactored_categorized_methods,
                 'id': record.id
             })
 

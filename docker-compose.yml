@@ -3,12 +3,11 @@ version: '3.9'
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python download_model.py && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     depends_on:
       - db
-      - model
     volumes:
       - .:/app
     env_file:
@@ -17,9 +16,8 @@ services:
       - DB_HOST=db
 
   model:
-    build:
-      context: .
-    command: python code_analysis/model_server.py
+    build: .
+    command: sh -c "python download_model.py && python code_analysis/model_server.py"
     ports:
       - "5000:5000"
     volumes:

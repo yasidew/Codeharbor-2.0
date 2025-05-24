@@ -428,7 +428,7 @@ model_filename = "xgboost_c#_cbo_model.pkl"
 
 if os.path.exists(model_filename):
     model = joblib.load(model_filename)
-    print(f"✅ Loaded existing model c# cbo from {model_filename}")
+    # print(f"✅ Loaded existing model c# cbo from {model_filename}")
 else:
     # Drop 'file_name' column as it's not a feature
     df.drop(columns=["file_name"], inplace=True)
@@ -1424,7 +1424,6 @@ def calculate_mpc_line_by_line_csharp(message_passing_lines):
     mpc_line_results = {}
     for line_number, weight in message_passing_lines.items():
         mpc_line_results[line_number] = weight
-        logging.info(f"MPC at line {line_number}: {weight}")
     return mpc_line_results
 
 
@@ -1522,7 +1521,7 @@ def train_model(data):
 # Use existing model if available
 if Path(MODEL_PATH).exists():
     model = joblib.load(MODEL_PATH)
-    print("✅ Pre-trained model loaded from disk.")
+    # print("✅ Pre-trained model loaded from disk.")
 elif not dataset.empty:
     model = train_model(dataset)
     joblib.dump(model, MODEL_PATH)

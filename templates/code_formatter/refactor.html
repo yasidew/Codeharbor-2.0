@@ -149,6 +149,25 @@
             {#                <div id="codeDiffViewer" style="height: 500px; width: 100%;"></div>#}
             {#                <div id="monacoDiffEditor" style="height: 500px; width: 100%;"></div>#}
             {#            </div>#}
+
+            <div id="complexity-metrics"
+                 style="display:none; color: white; font-weight: bold; font-size: 1.2rem;
+            margin-bottom: 20px; display: flex; justify-content: space-between; max-width: 600px; margin-left: auto; margin-right: auto;">
+
+                <div id="previous-wcc-container" style="flex: 1; text-align: left;">
+                    🧮 Previous WCC: <span id="previous-wcc"></span>
+                </div>
+
+                <div id="wcc-reduction-container" style="flex: 1; text-align: center; color: #4caf50;">
+                    📉 Reduction: <span id="wcc-reduction"></span>%
+                </div>
+
+                <div id="refactored-wcc-container" style="flex: 1; text-align: right;">
+                    ⚡ Refactored WCC: <span id="refactored-wcc"></span>
+                </div>
+
+            </div>
+
             <!-- 🔥 5️⃣ Before & After Code Comparison (Updated) -->
             <div id="diff-section" class="card bg-dark p-4"
                  style="display: none; border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
@@ -195,6 +214,34 @@
             </div>
             <br>
             <br>
+
+            <div id="refactored-complexity-section" class="mt-5" style="display: none;">
+                <div class="card bg-dark p-4" style="border-radius: 10px; box-shadow: 0 0 12px rgba(0,255,255,0.1);">
+                    <h4 class="text-center text-white mb-3">Refactored Method Complexities</h4>
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-white" style="border-color: #30363d;">
+                            <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Size</th>
+                                <th>Control</th>
+                                <th>Nesting</th>
+                                <th>Inheritance</th>
+                                <th>Compound</th>
+                                <th>Try-Catch</th>
+                                <th>Thread</th>
+                                <th>CBO</th>
+                                <th>Total</th>
+                                <th>Category</th>
+                            </tr>
+                            </thead>
+                            <tbody id="refactored-complexity-table-body">
+                            <!-- Rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
 
             <!-- Code Metrics Section -->
@@ -435,6 +482,23 @@
                     showCodeDiff(data.id);
                     fetchMetrics(data.id);
 
+                    document.getElementById('previous-wcc').innerText = data.original_complexity ?? '-';
+                    document.getElementById('refactored-wcc').innerText = data.refactored_complexity ?? '-';
+
+                    // Set and style reduction percentage
+                    const reductionSpan = document.getElementById('wcc-reduction');
+                    const reductionValue = parseFloat(data.percentage_reduction);
+                    if (!isNaN(reductionValue)) {
+                        reductionSpan.innerText = reductionValue.toFixed(2);
+                        reductionSpan.style.color = reductionValue > 0 ? '#4caf50' : '#f44336'; // green or red
+                    } else {
+                        reductionSpan.innerText = '-';
+                        reductionSpan.style.color = 'inherit';
+                    }
+
+                    // Show the metrics container
+                    document.getElementById('complexity-metrics').style.display = 'flex';
+
 
                     // Build collapsible "cards" for each change
                     if (data.changes_made && data.changes_made.length > 0) {
@@ -479,6 +543,38 @@
                         resourcesSection.style.display = 'block'; // Show resources section
                         attachCardExpandHandlers(data.id); // attach snippet fetch on expand
                     }
+
+                    const complexityTable = document.getElementById("refactored-complexity-table-body");
+                    const complexitySection = document.getElementById("refactored-complexity-section");
+                    complexityTable.innerHTML = "";  // Clear old rows
+
+                    if (data.method_complexities && data.method_complexities.length > 0) {
+                        data.method_complexities.forEach(method => {
+                            const row = `
+            <tr>
+                <td>${method.method_name}</td>
+                <td>${method.size}</td>
+                <td>${method.control_structure_complexity}</td>
+                <td>${method.nesting_level}</td>
+                <td>${method.inheritance_level}</td>
+                <td>${method.compound_condition_weight}</td>
+                <td>${method.try_catch_weight}</td>
+                <td>${method.thread_weight}</td>
+                <td>${method.cbo_weights}</td>
+                <td>${method.total_complexity}</td>
+                <td>
+                    <span class="badge ${method.category === 'High' ? 'bg-danger' : method.category === 'Medium' ? 'bg-warning' : 'bg-success'}">
+                        ${method.category}
+                    </span>
+                </td>
+            </tr>
+        `;
+                            complexityTable.insertAdjacentHTML('beforeend', row);
+                        });
+
+                        complexitySection.style.display = "block";
+                    }
+
                     hideLoading();
                 } else {
                     {#showToast("❌ Error in refactoring code!", "error");#}

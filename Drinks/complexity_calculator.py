@@ -203,7 +203,7 @@ model_output = "xgboost_java_model.pkl"
 
 if os.path.exists(model_output):
     model = joblib.load(model_output)
-    print(f"✅ Loaded existing model java cbo from {model_output}")
+    # print(f"✅ Loaded existing model java cbo from {model_output}")
 else:
     # Load dataset
     df = pd.read_csv(output_csv)
@@ -1126,9 +1126,6 @@ def extract_class_references_with_lines(java_code):
         # Add the processed line data to the list
         line_references.append(line_data)
 
-    logging.info("Finished extracting class references line by line.")
-    logging.info(line_references)
-
     return line_references
 
 
@@ -1241,7 +1238,6 @@ def calculate_mpc(message_passing):
         # Sum the weights of message passing interactions
         total_weight = sum(messages.values())
         mpc_results[class_name] = total_weight
-        logging.info(f'MPC for {class_name}: {total_weight}')  # Log MPC calculation
 
     return mpc_results
 
@@ -1440,7 +1436,7 @@ def train_model(data):
 # Use existing model if available
 if Path(MODEL_PATH).exists():
     model = joblib.load(MODEL_PATH)
-    print("✅ Pre-trained model loaded from disk.")
+    # print("✅ Pre-trained model loaded from disk.")
 elif not dataset.empty:
     model = train_model(dataset)
     joblib.dump(model, MODEL_PATH)
