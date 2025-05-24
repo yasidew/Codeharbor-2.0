@@ -1347,7 +1347,7 @@ def ai_code_analysis(snippet, guideline=""):
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o",  # 🔄 Upgraded for better context handling
+            model="gpt-3.5-turbo",  # 🔄 Upgraded for better context handling
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -1377,8 +1377,8 @@ def analyze_code_complexity(code):
     loc, eloc = count_lines_of_code(code)
     num_functions, avg_function_length = count_functions_and_length(code)
 
-    duplicate_percentage = count_duplicate_code_percentage(code)
     duplicate_code_details = find_duplicate_code(code)  # ✅ Get duplicate lines & locations
+    duplicate_percentage = count_duplicate_code_percentage(code, duplicate_code_details)
 
     comment_density = round(calculate_comment_density(code), 2)
     readability_score = round(calculate_readability_score(code), 2)

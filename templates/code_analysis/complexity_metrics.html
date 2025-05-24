@@ -105,14 +105,25 @@
 
                             <div class="duplicate-code-container">
                                 <ul class="list-group">
-                                    {% for line, occurrences in summary.complexity_metrics.duplicate_code_details.items %}
+                                    {% for block, info in summary.complexity_metrics.duplicate_code_details.items %}
                                         <li class="list-group-item duplicate-code-item">
                                             <strong class="text-warning"><i class="fas fa-code"></i> Duplicate Code:</strong>
-                                            <pre class="code-highlight">{{ line }}</pre>
-                                            <small class="found-at-lines">📌 Found at lines: {{ occurrences | join:", " }}</small>
-
+                                            <pre class="code-highlight">{{ block }}</pre>
+                                            <small class="found-at-lines">
+                                                📌 Found at lines: {{ info.lines|join:", " }}<br>
+                                                📏 Block size: {{ info.length }} line{{ info.length|pluralize:"s" }}
+                                            </small>
                                         </li>
                                     {% endfor %}
+
+                                    {# {% for line, occurrences in summary.complexity_metrics.duplicate_code_details.items %}#}
+{#                                        <li class="list-group-item duplicate-code-item">#}
+{#                                            <strong class="text-warning"><i class="fas fa-code"></i> Duplicate Code:</strong>#}
+{#                                            <pre class="code-highlight">{{ line }}</pre>#}
+{#                                            <small class="found-at-lines">📌 Found at lines: {{ occurrences | join:", " }}</small>#}
+{##}
+{#                                        </li>#}
+{#                                    {% endfor %}#}
                                 </ul>
                             </div>
                         </div>
