@@ -203,7 +203,7 @@ model_output = "xgboost_java_model.pkl"
 
 if os.path.exists(model_output):
     model = joblib.load(model_output)
-    print(f"✅ Loaded existing model java cbo from {model_output}")
+    # print(f"✅ Loaded existing model java cbo from {model_output}")
 else:
     # Load dataset
     df = pd.read_csv(output_csv)
@@ -1440,7 +1440,7 @@ def train_model(data):
 # Use existing model if available
 if Path(MODEL_PATH).exists():
     model = joblib.load(MODEL_PATH)
-    print("✅ Pre-trained model loaded from disk.")
+    # print("✅ Pre-trained model loaded from disk.")
 elif not dataset.empty:
     model = train_model(dataset)
     joblib.dump(model, MODEL_PATH)

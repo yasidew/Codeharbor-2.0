@@ -355,7 +355,7 @@ def process_java_files(json_file, output_csv):
 
     # Compute dynamic CBO threshold (90th percentile)
     cbo_sum = df.iloc[:, 1:].sum(axis=1)  # Sum of all CBO features per file (after decrement adjustments)
-    print("scbo_sum>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", cbo_sum)
+    # print("scbo_sum>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", cbo_sum)
     dynamic_threshold = cbo_sum.quantile(0.85)  # 90th percentile for thresholding
 
     df["cbo_label"] = cbo_sum.apply(lambda x: 1 if x > dynamic_threshold else 0)
