@@ -83,37 +83,56 @@
             </div>
 
 
-            <!-- Button to Open Modal -->
-            <div class="text-center mb-3">
+            <div class="d-flex flex-wrap align-items-end gap-3 mb-4">
+                <!-- GitHub Button (unchanged width) -->
                 <button id="githubBtn" class="btn btn-lg btn-github">
                     <i class="fab fa-github"></i> Import from GitHub
                 </button>
+
+                <!-- GitHub File Dropdown (adjusted to fit next to button) -->
+                <div style="flex: 1;">
+                    <label class="form-label fw-bold mb-1">
+                        <i class="fas fa-file-code"></i> Select File Imported from GitHub to Analyze:
+                    </label>
+                    <div class="input-group">
+                        <select id="fileSelector" class="form-select">
+                            <option selected disabled>Select a file</option>
+                        </select>
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="fas fa-folder-open"></i>
+                        </span>
+                    </div>
+                </div>
             </div>
 
 
-            {#            <div class="mb-3">#}
-            {#                <label class="form-label">Paste Code Below:</label>#}
-            {#                <div id="monaco-container" style="height: 400px; border: 1px solid #ccc;"></div>#}
-            {#                <textarea id="codeEditor" name="code" style="display: none;">{{ code }}</textarea>#}
-            {#            </div>#}
-            <div class="mb-3">
-                <label class="form-label fw-bold">
-                    <i class="fas fa-file-code"></i> Select File Imported from GitHub to Analyze:
-                </label>
 
-                <div class="input-group">
-                    <select id="fileSelector" class="form-select custom-dropdown">
-                        <option selected disabled>Select a file</option>
-                    </select>
-                    <span class="input-group-text bg-primary text-white">
-                        <i class="fas fa-folder-open"></i>
-                    </span>
-                </div>
+            <!-- Button to Open Modal -->
+{#            <div class="text-center mb-3">#}
+{#                <button id="githubBtn" class="btn btn-lg btn-github">#}
+{#                    <i class="fab fa-github"></i> Import from GitHub#}
+{#                </button>#}
+{#            </div>#}
+{##}
+{#            #}
+{#            <div class="mb-3">#}
+{#                <label class="form-label fw-bold">#}
+{#                    <i class="fas fa-file-code"></i> Select File Imported from GitHub to Analyze:#}
+{#                </label>#}
+{##}
+{#                <div class="input-group">#}
+{#                    <select id="fileSelector" class="form-select custom-dropdown">#}
+{#                        <option selected disabled>Select a file</option>#}
+{#                    </select>#}
+{#                    <span class="input-group-text bg-primary text-white">#}
+{#                        <i class="fas fa-folder-open"></i>#}
+{#                    </span>#}
+{#                </div>#}
 
                 <!-- Monaco Editor Container -->
                 <div id="monaco-container" class="mt-3 rounded shadow-sm"></div>
                 <textarea id="codeEditor" name="code" style="display: none;">{{ code }}</textarea>
-            </div>
+                </div>
 
             <!-- Initialize Monaco Editor -->
             <script>
@@ -247,6 +266,80 @@
 
                         <!-- Code Complexity Metrics Section -->
                         {% include 'code_analysis/java_complexity_metrics.html' %}
+                        <hr>
+                        <div class="alert alert-info shadow-sm" role="alert" style="font-size: 0.95rem;">
+                            <i class="fas fa-info-circle"></i>
+                            <strong> What is Weighted Code Complexity (WCC)?</strong><br>
+                            WCC is a composite score reflecting the complexity of your code by considering multiple factors like control structures, nesting levels, inheritance, exception handling, threading, and coupling.
+                            <br><strong>Why it matters:</strong> Higher WCC often indicates hard-to-maintain or error-prone code.
+                        </div>
+
+                        <div class="alert alert-secondary shadow-sm" role="alert" style="font-size: 0.9rem;">
+                            <i class="fas fa-lightbulb text-warning"></i>
+                            <strong>How to use Method Complexity Breakdown:</strong>
+                            This table shows how each method contributes to overall complexity. Keep an eye on methods with <span style="color: #721c24;">High</span> complexity – they may require refactoring or simplification for better maintainability.
+                        </div>
+
+                        {% if summary.total_wcc %}
+                            <div class="text-center mt-4">
+                                <h5 class="text-warning">
+                                    🧮 Total Weighted Code Complexity (WCC): {{ summary.total_wcc }}
+                                </h5>
+                            </div>
+                        {% endif %}
+
+                        {% if summary.method_complexities %}
+                            <div class="container mt-5">
+                                <h3 class="text-center text-info mb-4">📊 Method Complexity Breakdown</h3>
+                                <table class="table table-bordered table-hover table-dark text-center shadow">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th>Method Name</th>
+                                        <th>S</th>
+                                        <th>W<sub>c</sub></th>
+                                        <th>W<sub>n</sub></th>
+                                        <th>W<sub>i</sub></th>
+                                        <th>W<sub>cc</sub></th>
+                                        <th>W<sub>tc</sub></th>
+                                        <th>W<sub>th</sub></th>
+                                        <th>W<sub>cbo</sub></th>
+                                        <th>Total</th>
+                                        <th>Category</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for metrics in summary.method_complexities %}
+                                        <tr
+                                                {% if metrics.category == 'High' %}style="background-color: #f8d7da; color: #721c24;"{% endif %}
+                                                {% if metrics.category == 'Medium' %}style="background-color: #fff3cd; color: #856404;"{% endif %}
+                                                {% if metrics.category == 'Low' %}style="background-color: #d4edda; color: #155724;"{% endif %}
+                                        >
+                                            <td>{{ metrics.method_name }}</td>
+                                            <td>{{ metrics.size }}</td>
+                                            <td>{{ metrics.control_structure_complexity }}</td>
+                                            <td>{{ metrics.nesting_level }}</td>
+                                            <td>{{ metrics.inheritance_level }}</td>
+                                            <td>{{ metrics.compound_condition_weight }}</td>
+                                            <td>{{ metrics.try_catch_weight }}</td>
+                                            <td>{{ metrics.thread_weight }}</td>
+                                            <td>{{ metrics.cbo_weights }}</td>
+                                            <td>{{ metrics.total_complexity }}</td>
+                                            <td>
+                                                {% if metrics.category == 'High' %}
+                                                    <span class="badge bg-danger px-3 py-2">High</span>
+                                                {% elif metrics.category == 'Medium' %}
+                                                    <span class="badge bg-warning text-dark px-3 py-2">Medium</span>
+                                                {% else %}
+                                                    <span class="badge bg-success px-3 py-2">Low</span>
+                                                {% endif %}
+                                            </td>
+
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
 
 
 
@@ -472,6 +565,60 @@
                     <i class="fas fa-file-excel"></i> Download Excel Report
                 </a>
             </div>
+{#            {% if summary.total_wcc %}#}
+{#                <div class="text-center mt-4">#}
+{#                    <h5 class="text-warning">#}
+{#                        🧮 Total Weighted Code Complexity (WCC): {{ summary.total_wcc }}#}
+{#                    </h5>#}
+{#                </div>#}
+{#            {% endif %}#}
+{##}
+{#            {% if summary.method_complexities %}#}
+{#                <div class="container mt-5">#}
+{#                    <h3 class="text-center text-info mb-4">📊 Method Complexity Breakdown</h3>#}
+{#                    <table class="table table-bordered table-hover table-dark text-center shadow">#}
+{#                        <thead class="thead-light">#}
+{#                        <tr>#}
+{#                            <th>Method Name</th>#}
+{#                            <th>S</th>#}
+{#                            <th>W<sub>c</sub></th>#}
+{#                            <th>W<sub>n</sub></th>#}
+{#                            <th>W<sub>i</sub></th>#}
+{#                            <th>W<sub>cc</sub></th>#}
+{#                            <th>W<sub>tc</sub></th>#}
+{#                            <th>W<sub>th</sub></th>#}
+{#                            <th>W<sub>cbo</sub></th>#}
+{#                            <th>Total</th>#}
+{#                            <th>Category</th>#}
+{#                        </tr>#}
+{#                        </thead>#}
+{#                        <tbody>#}
+{#                        {% for metrics in summary.method_complexities %}#}
+{#                            <tr#}
+{#                                    {% if metrics.category == 'High' %}style="background-color: #f8d7da; color: #721c24;"{% endif %}#}
+{#                                    {% if metrics.category == 'Medium' %}style="background-color: #fff3cd; color: #856404;"{% endif %}#}
+{#                                    {% if metrics.category == 'Low' %}style="background-color: #d4edda; color: #155724;"{% endif %}#}
+{#                            >#}
+{#                                <td>{{ metrics.method_name }}</td>#}
+{#                                <td>{{ metrics.size }}</td>#}
+{#                                <td>{{ metrics.control_structure_complexity }}</td>#}
+{#                                <td>{{ metrics.nesting_level }}</td>#}
+{#                                <td>{{ metrics.inheritance_level }}</td>#}
+{#                                <td>{{ metrics.compound_condition_weight }}</td>#}
+{#                                <td>{{ metrics.try_catch_weight }}</td>#}
+{#                                <td>{{ metrics.thread_weight }}</td>#}
+{#                                <td>{{ metrics.cbo_weights }}</td>#}
+{#                                <td>{{ metrics.total_complexity }}</td>#}
+{#                                <td>{{ metrics.category }}</td>#}
+{#                            </tr>#}
+{#                        {% endfor %}#}
+{#                        </tbody>#}
+{#                    </table>#}
+{#                </div>#}
+{#            {% endif %}#}
+
+
+
             {% if final_guideline %}
                 {#                <div class="container mt-5">#}
                 {#                    <div class="guideline-panel p-4 shadow-lg rounded text-center">#}

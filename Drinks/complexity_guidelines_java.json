@@ -1,7 +1,7 @@
 {
   "lines_of_code": { "low": 0, "medium": 300, "high": 1500 },
   "code_density": { "low": 25, "medium": 15, "high": 5 },
-  "function_length": { "low": 15, "medium": 40, "high": 80 },
+  "function_length": { "low": 10, "medium": 25, "high": 60 },
   "duplicate_code": { "low": 5, "medium": 15, "high": 25 },
   "num_functions": { "low": 5, "medium": 30, "high": 80 },
   "cyclomatic_complexity": { "low": 5, "medium": 15, "high": 30 },

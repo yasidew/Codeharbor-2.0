@@ -17,7 +17,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 app = Flask(__name__)
 CORS(app)  # Allow cross-origin requests
 
-model_path = "../refactoring_model"
+# model_path = "../refactoring_model"
+model_path = "code-refactoring/refactoring_model" #AWS
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

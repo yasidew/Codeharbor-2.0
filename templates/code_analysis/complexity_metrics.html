@@ -27,16 +27,22 @@
                     </span>
                 </li>
 
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-check-double"></i> Effective Lines of Code:</strong>
-                    <span>{{ summary.complexity_metrics.effective_lines_of_code }}</span>
+                    <span>
+                    {{ summary.complexity_metrics.effective_lines_of_code }}
+                    <i class="fas fa-info-circle text-info"
+                       data-bs-toggle="tooltip"
+                       title="{% include 'code_analysis/metric_tooltip.html' with name='effective_lines_of_code' %}"></i>
+                    </span>
                 </li>
-{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
-{#                    <strong><i class="fas fa-list-ul"></i> Number of Functions:</strong>#}
-{#                    <span>{{ summary.complexity_metrics.num_functions }}#}
-{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.num_functions }}</span>#}
-{#                    </span>#}
+
+                {#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-check-double"></i> Effective Lines of Code:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.effective_lines_of_code }}</span>#}
 {#                </li>#}
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-list-ul"></i> Number of Functions:</strong>
                     <span>
@@ -152,16 +158,22 @@
                         </span>
                     </span>
                 </li>
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-eye"></i> Readability Score:</strong>
-                    <span>{{ summary.complexity_metrics.readability_score }}</span>
+                    <span>
+                        {{ summary.complexity_metrics.readability_score }}
+                        <i class="fas fa-info-circle text-info"
+                           data-bs-toggle="tooltip"
+                           title="{% include 'code_analysis/metric_tooltip.html' with name='readability_score' %}"></i>
+                    </span>
                 </li>
-{#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
-{#                    <strong><i class="fas fa-brain"></i> Complexity Score:</strong>#}
-{#                    <span>{{ summary.complexity_metrics.complexity_score }}#}
-{#                        <span class="badge bg-secondary">{{ summary.complexity_metrics.rating.complexity_score |floatformat:2 }}</span>#}
-{#                    </span>#}
+
+                {#                <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                    <strong><i class="fas fa-eye"></i> Readability Score:</strong>#}
+{#                    <span>{{ summary.complexity_metrics.readability_score }}</span>#}
 {#                </li>#}
+
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <strong><i class="fas fa-brain"></i> Complexity Score:</strong>
                     <span>

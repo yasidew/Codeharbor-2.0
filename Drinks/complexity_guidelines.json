@@ -10,9 +10,9 @@
     "high": 1
   },
   "function_length": {
-    "low": 20,
-    "medium": 50,
-    "high": 100
+    "low": 10,
+    "medium": 25,
+    "high": 50
   },
   "duplicate_code": {
     "low": 10,

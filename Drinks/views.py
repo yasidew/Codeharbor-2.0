@@ -1,11 +1,11 @@
-import json
-import os
+# import json
+# import os
 
 import numpy as np
-import torch
+# import torch
 import fitz  # PyMuPDF
-import pandas as pd
-from datetime import datetime
+# import pandas as pd
+# from datetime import datetime
 
 from django.conf import settings
 from django.core.serializers import serialize
@@ -18,8 +18,8 @@ from sklearn.cluster import KMeans
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 import javalang
 
-import re
-import analysis
+# import re
+# import analysis
 from Drinks.models import Drink, MethodComplexity, JavaFile, CSharpFile, CSharpMethodComplexity
 from analysis.code_analyzer import CodeAnalyzer
 from analysis.java_code_analyser import JavaCodeAnalyzer
@@ -37,15 +37,15 @@ from django.shortcuts import render
 from prettytable import PrettyTable
 import statsmodels.api as sm
 from challenges.models import Challenges
-import csv
-import json
-import os
-import re
-from javalang import parse
-import openpyxl
-from datetime import datetime
-import aiohttp
-import asyncio
+# import csv
+# import json
+# import os
+# import re
+# from javalang import parse
+# import openpyxl
+# from datetime import datetime
+# import aiohttp
+# import asyncio
 import pandas as pd
 from django.conf import settings
 from django.core.serializers import serialize
@@ -80,7 +80,7 @@ from .metrics import analyze_code_complexity, load_guidelines, count_lines_of_co
     java_count_classes_and_methods, java_calculate_nesting_depth, java_find_duplicate_code
 
 from prettytable import PrettyTable
-import statsmodels.api as sm
+# import statsmodels.api as sm
 from transformers import T5ForConditionalGeneration, AutoTokenizer
 from rest_framework.decorators import api_view
 import concurrent.futures
@@ -591,6 +591,43 @@ def java_code_analysis(request):
         # Generate full fixed code for comparison
         full_fixed_code = generate_fixed_code(code_snippet, guideline=company_guideline_text)
         summary["complexity_metrics"] = java_analyze_code_complexity(code_snippet)
+
+        # ✅ Get Method-Level Complexity (WCC & Breakdown)
+        file_map = {"UploadedFile.java": code_snippet}  # Give any temp name
+        wcc_results, _ = calculate_code_complexity_multiple_files(file_map)
+
+        # Merge into summary if WCC calculated
+        if "UploadedFile.java" in wcc_results:
+            file_result = wcc_results["UploadedFile.java"]
+            method_complexities = file_result["method_complexities"]
+            summary["total_wcc"] = wcc_results["UploadedFile.java"]["total_wcc"]
+
+            bar_charts = wcc_results["UploadedFile.java"].get("bar_charts", {})
+            thresholds = get_thresholds()
+            threshold_low = thresholds.get('threshold_low', 50)
+            threshold_high = thresholds.get('threshold_high', 100)
+
+            categorized_methods = []
+            for method_name, method_data in method_complexities.items():
+                if isinstance(method_data, dict):
+                    total_complexity = method_data.get('total_complexity', 0)
+                    if total_complexity <= threshold_low:
+                        category = 'Low'
+                    elif threshold_low < total_complexity <= threshold_high:
+                        category = 'Medium'
+                    else:
+                        category = 'High'
+
+                    categorized_methods.append({
+                        **method_data,
+                        'category': category,
+                        'method_name': method_name,
+                        'bar_chart': bar_charts.get(method_name, '')
+                    })
+
+            summary["method_complexities"] = categorized_methods
+
+
         print(f"✅ Java Complexity Results: {summary['complexity_metrics']}")
         final_guideline = ai_generate_guideline(summary)
 
@@ -789,8 +826,8 @@ def java_analyze_code_complexity(code):
     num_classes, num_methods, avg_method_length = java_count_classes_and_methods(code)  # ✅ Corrected function
     # cyclomatic_complexity = java_calculate_cyclomatic_complexity(code)
     nesting_depth = round(java_calculate_nesting_depth(code), 2)
-    duplicate_percentage = round(java_count_duplicate_code_percentage(code), 2)
     duplicate_code_details = java_find_duplicate_code(code)
+    duplicate_percentage = round(java_count_duplicate_code_percentage(code, duplicate_code_details), 2)
     # **No `java_find_duplicate_code()` function exists, remove this line**
     # duplicate_code_details = java_find_duplicate_code(code) ❌ REMOVE THIS
 
