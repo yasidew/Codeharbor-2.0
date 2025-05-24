@@ -1258,7 +1258,6 @@ def extract_python_logic_blocks(code: str, keywords: list) -> list:
     return logic_blocks
 
 
-
 # def extract_python_logic_blocks(code, keywords):
 #     lines = code.splitlines()
 #     logic_blocks = []
@@ -2461,7 +2460,6 @@ def calculate_complexity_multiple_java_files(request):
 
             # Load thresholds from the JSON file
             thresholds = get_thresholds()
-            print("thresholds<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>", thresholds)
             threshold_low = thresholds.get('threshold_low', 10)
             # threshold_medium = thresholds.get('threshold_medium', 20)
             threshold_high = thresholds.get('threshold_high', 50)
@@ -2532,11 +2530,7 @@ def calculate_complexity_multiple_java_files(request):
                     if rec.get('recommendation')
                 ]
 
-                print(":::::::::::::::::::::::::::::::::::", recommendation_strings)
-
                 recommendation_block = "\n".join(recommendation_strings)
-
-                print(":::::::::::::::::::::::::::::::::::", recommendation_block)
 
                 has_high_complexity = any(method['category'] == 'High' for method in categorized_methods)
 
@@ -2568,10 +2562,30 @@ def calculate_complexity_multiple_java_files(request):
                 # # Step 3: Extract WCC
                 total_wcc_refactored = complexity_results["RefactoredClass.java"]["total_wcc"]
 
+                refactored_method_complexities_raw = complexity_results["RefactoredClass.java"].get(
+                    "method_complexities", {})
+
                 if total_wcc > 0:
                     percentage_reduction = round(((total_wcc - total_wcc_refactored) / total_wcc) * 100, 2)
                 else:
                     percentage_reduction = 0.0
+
+                refactored_categorized_methods = []
+                for method_name, method_data in refactored_method_complexities_raw.items():
+                    if isinstance(method_data, dict):
+                        total_complexity = method_data.get('total_complexity', 0)
+                        if total_complexity <= threshold_low:
+                            category = 'Low'
+                        elif threshold_low <= total_complexity <= threshold_high:
+                            category = 'Medium'
+                        else:
+                            category = 'High'
+
+                        refactored_categorized_methods.append({
+                            **method_data,
+                            'category': category,
+                            'method_name': method_name,
+                        })
 
                 recommendation_block1 = "\n".join([
                     f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
@@ -2599,6 +2613,7 @@ def calculate_complexity_multiple_java_files(request):
                     'total_wcc': total_wcc,
                     'refactored_class_code': refactored_class_code,
                     'refactored_total_wcc': total_wcc_refactored,
+                    'refactored_categorized_methods': refactored_categorized_methods,
                     'percentage_reduction': percentage_reduction,
                     'was_refactored': was_refactored,
                     'original_code': java_code,
@@ -2854,10 +2869,30 @@ def calculate_complexity_multiple_csharp_files(request):
             # # Step 3: Extract WCC
             total_wcc_refactored = complexity_results["RefactoredClass.cs"]["total_wcc"]
 
+            refactored_method_complexities_raw = complexity_results["RefactoredClass.cs"].get(
+                "method_complexities", {})
+
             if total_wcc > 0:
                 percentage_reduction = round(((total_wcc - total_wcc_refactored) / total_wcc) * 100, 2)
             else:
                 percentage_reduction = 0.0
+
+            refactored_categorized_methods = []
+            for method_name, method_data in refactored_method_complexities_raw.items():
+                if isinstance(method_data, dict):
+                    total_complexity = method_data.get('total_complexity', 0)
+                    if total_complexity <= threshold_low:
+                        category = 'Low'
+                    elif threshold_low <= total_complexity <= threshold_high:
+                        category = 'Medium'
+                    else:
+                        category = 'High'
+
+                    refactored_categorized_methods.append({
+                        **method_data,
+                        'category': category,
+                        'method_name': method_name,
+                    })
 
             recommendation_block1 = "\n".join([
                 f"[Line {rec.get('line_number')}] {rec.get('recommendation')}"
@@ -2870,9 +2905,9 @@ def calculate_complexity_multiple_csharp_files(request):
             refactored_class_code1 = refactored_class_code if was_refactored else None
 
             save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_complexities,
-                                  refactored_class_code=refactored_class_code1,
-                                  cbo=cbo_prediction,
-                                  recommendations=recommendation_block1 if recommendation_block1 else None)
+                                         refactored_class_code=refactored_class_code1,
+                                         cbo=cbo_prediction,
+                                         recommendations=recommendation_block1 if recommendation_block1 else None)
 
             complexities.append({
                 'filename': filename,
@@ -2884,6 +2919,7 @@ def calculate_complexity_multiple_csharp_files(request):
                 'pie_chart_path': pie_chart_path,
                 'total_wcc': total_wcc,
                 'refactored_class_code': refactored_class_code,
+                'refactored_categorized_methods': refactored_categorized_methods,
                 'refactored_total_wcc': total_wcc_refactored,
                 'percentage_reduction': percentage_reduction,
                 'was_refactored': was_refactored,
@@ -2942,8 +2978,9 @@ def calculate_complexity_multiple_csharp_files(request):
     return render(request, 'complexityC_form.html', {'complexities': complexities})
 
 
-def save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_complexities, refactored_class_code=None, cbo=0,
-                          recommendations=None):
+def save_complexity_to_db_csharp(filename, csharp_code, total_wcc, method_complexities, refactored_class_code=None,
+                                 cbo=0,
+                                 recommendations=None):
     """Save C# complexity results to the database while preventing duplicate method names."""
     try:
         # Update or create the CSharpFile record
@@ -3037,7 +3074,7 @@ def calculate_complexity(request):
                  344, 346, 382, 115, 313, 537, 439, 554, 686, 324, 399,
                  170, 108, 183, 204, 153, 305, 270, 137, 201,
                  345, 114, 153, 161, 251, 215, 296, 162, 219, 554, 195, 248, 646, 199, 284, 259,
-                 397, 645, 237, 196, 241, 551, 224, 188, 212, 257, 288, 257, 230, 210]).reshape(-1, 1)
+                 397, 645, 237, 196, 241, 551, 224, 188, 212, 257, 288, 257, 230, 210, 600, 386, 1056, 555, 145]).reshape(-1, 1)
 
             plt.figure(figsize=(10, 6))
             sns.histplot(wcc_values, bins=10, kde=True, color='blue')
