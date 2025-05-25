@@ -93,7 +93,7 @@ for epoch in range(epochs):
 
 # Save the trained model
 # model_save_path = "models/custom_seq2seq_model"
-model_save_path = "./custom_seq2seq_model"
+model_save_path = "./custom_seq2seq_model/custom_seq2seq_model"
 model.save_pretrained(model_save_path)
 tokenizer.save_pretrained(model_save_path)
 
