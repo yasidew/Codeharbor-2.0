@@ -16,7 +16,7 @@
                 <li><a href="#"><i class="bi bi-gear"></i>
                     <p>Settings</p></a></li>
                 <li><a href="{% url 'guidelines' %}"><i class="bi-card-list"></i>
-                    <p>Guidelines</p></a></li>
+                    <p>View WCC Guidelines</p></a></li>
                 <li><a href="{% url 'calculate_complexity_line_by_line' %}"><i class="fa-brands fa-java"></i>
                     <p>Java WCC Calculator</p></a></li>
                 <li><a href="{% url 'calculate_complexity_line_by_line_csharp' %}"><i
@@ -121,10 +121,44 @@
             background-color: rgba(255, 255, 255, 0.02);
         }
 
+        ol {
+            list-style-position: inside;
+            padding-left: 0;
+            margin-left: 0;
+        }
+
+        ol li {
+            display: list-item;
+            text-align: left;
+            margin-bottom: 0; /* remove extra spacing */
+            line-height: 1.6; /* optional: controls vertical spacing */
+        }
+
     </style>
 
     <div class="container-custom">
         <h1>Weighted Class Complexity (WCC) Guidelines</h1>
+
+        <div class="container mt-5">
+            <h3>What is Weighted Class Complexity (WCC)?</h3>
+            <p>
+                <strong>Weighted Class Complexity (WCC)</strong> is a software metric used to measure the complexity of
+                a class in object-oriented programming (OOP). It takes into account multiple aspects of a class, such
+                as:
+            <ol>
+                <li>Size</li>
+                <li>Control structures (if-else, loops, etc.)</li>
+                <li>Nesting levels of these control structures</li>
+                <li>Inheritance depth</li>
+                <li>Use of try-catch blocks</li>
+                <li>Compound conditional statements</li>
+                <li>Thread</li>
+                <li>Coupling between object classes (CBO)</li>
+            </ol>
+            Each of these factors is assigned a weight and is used to calculate the overall complexity of a class. This
+            helps developers identify and focus on parts of the code that are more complex and may need optimization.
+            </p>
+        </div>
 
         <div class="container mt-5">
             <h2>Line by Line WCC Equation</h2>

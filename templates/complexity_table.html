@@ -17,7 +17,7 @@
                 <li><a href="#"><i class="bi bi-gear"></i>
                     <p>Settings</p></a></li>
                 <li><a href="{% url 'guidelines' %}"><i class="bi-card-list"></i>
-                    <p>Guidelines</p></a></li>
+                    <p>View WCC Guidelines</p></a></li>
                 <li><a href="{% url 'calculate_complexity_line_by_line' %}"><i class="fa-brands fa-java"></i>
                     <p>Java WCC Calculator</p></a></li>
                 <li><a href="{% url 'calculate_complexity_line_by_line_csharp' %}"><i
@@ -553,7 +553,7 @@
         </h3>
     </div>
 
-    <button class="btn btn-info" onclick="window.location.href='/guidelines/'">View Guidelines</button>
+    {#    <button class="btn btn-info" onclick="window.location.href='/guidelines/'">View Guidelines</button>#}
 
     {% for file in complexities %}
         <div class="metrics container xx">
@@ -661,16 +661,22 @@
             <h3 class="method-complexity">Method Complexity Details</h3>
             <div class="complexity-legend">
                 <div class="legend-item">
-                    <span class="complexity-box high"></span>
-                    <strong style="color: #721c24;">High Complexity</strong>
+                    <span class="complexity-box low"></span>
+                    <strong style="color: #155724;">
+                        Low Complexity (WCC &lt; {{ file.threshold_low }})
+                    </strong>
                 </div>
                 <div class="legend-item">
                     <span class="complexity-box medium"></span>
-                    <strong style="color: #856404;">Medium Complexity</strong>
+                    <strong style="color: #856404;">
+                        Medium Complexity ({{ file.threshold_low }} ≤ WCC ≤ {{ file.threshold_high }})
+                    </strong>
                 </div>
                 <div class="legend-item">
-                    <span class="complexity-box low"></span>
-                    <strong style="color: #155724;">Low Complexity</strong>
+                    <span class="complexity-box high"></span>
+                    <strong style="color: #721c24;">
+                        High Complexity (WCC &gt; {{ file.threshold_high }})
+                    </strong>
                 </div>
             </div>
             <table class="method-complexity-table">

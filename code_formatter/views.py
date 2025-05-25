@@ -1,5 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+
 from .complexity_calculator import calculate_loc, calculate_readability
 import openai
 import os
@@ -16,6 +18,11 @@ from django.contrib import messages
 import difflib
 from Drinks.complexity_calculator import calculate_code_complexity_multiple_files
 from Drinks.views import get_thresholds
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .model_runner import run_refactor_model
+
 
 # Create OpenAI Client with API Key
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -244,7 +251,7 @@ def get_pattern_and_refactor_with_flask(code):
         if detected_pattern in ["Strategy", "Observer", "Factory"]:
             flask_response = requests.post(
                 "http://127.0.0.1:5000/refactor",
-                json={"code": code}
+                json={"type": detected_pattern,"code": code}
             )
 
             if flask_response.status_code == 200:
@@ -420,8 +427,8 @@ def generate_guideline(request):
             prompt = GUIDELINE_PROMPTS[pattern]
 
             response = client.chat.completions.create(
-                # model="gpt-4"
-                model="gpt-4",
+                # model="gpt-3.5-turbo"
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a professional software architect."},
                     {"role": "user", "content": prompt}
@@ -756,7 +763,7 @@ def get_ai_suggested_pattern(code, patterns):
 
         response = client.chat.completions.create(
             # model="gpt-3.5-turbo",
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system",
                  "content": "You are a software architecture expert specializing in design patterns."},
@@ -862,7 +869,7 @@ def generate_refactoring_explanation(request):
             """
 
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a professional software engineer and code reviewer."},
                     {"role": "user", "content": prompt}
@@ -909,3 +916,30 @@ def get_pattern_details(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+class ModelTestRefactorView(APIView):
+    def post(self, request):
+        code = request.data.get("code")
+        refactor_type = request.data.get("type")
+
+        if not code or not refactor_type:
+            return Response(
+                {"error": "Both 'code' and 'type' fields are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            config = {
+                "num_beams": request.data.get("num_beams", 5),
+                "max_length": request.data.get("max_length", 512),
+                "temperature": request.data.get("temperature", 1.0),
+                "top_k": request.data.get("top_k", 50),
+                "top_p": request.data.get("top_p", 0.95)
+            }
+
+            refactored_code = run_refactor_model(code, refactor_type, config)
+            return Response({"refactored_code": refactored_code}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
