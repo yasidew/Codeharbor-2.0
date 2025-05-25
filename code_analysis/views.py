@@ -12,7 +12,8 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Load Trained Model
-MODEL_PATH = "./models/custom_seq2seq_model"
+# MODEL_PATH = "./models/custom_seq2seq_model"
+MODEL_PATH = "./custom_seq2seq_model"
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_PATH)
 

@@ -5,7 +5,8 @@ from transformers import AutoTokenizer, T5ForConditionalGeneration
 app = Flask(__name__)
 
 # Load Model
-MODEL_PATH = "./models/custom_seq2seq_model"
+# MODEL_PATH = "./models/custom_seq2seq_model"
+MODEL_PATH = "./custom_seq2seq_model"
 # MODEL_PATH = "/home/ubuntu/custom_seq2seq_model""
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

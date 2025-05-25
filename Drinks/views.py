@@ -123,7 +123,8 @@ load_dotenv()
 # client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Initialize model and tokenizer once
-MODEL_PATH = "./models/custom_seq2seq_model"
+# MODEL_PATH = "./models/custom_seq2seq_model"
+MODEL_PATH = "./custom_seq2seq_model"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Global instances for reuse
@@ -264,7 +265,8 @@ def group_recommendations_by_line(recommendations):
 
 ################################ java ##############################
 
-JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
+# JAVA_MODEL_PATH = "./models/java_seq2seq_model"  # Update with the correct path
+JAVA_MODEL_PATH = "./java_seq2seq_model"  # Update with the correct path
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ✅ Initialize model & tokenizer globally
