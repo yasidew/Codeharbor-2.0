@@ -130,7 +130,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Global instances for reuse
 # tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 # model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH).to(device)
-model.eval()
+# model.eval()
 
 # Optimize PyTorch performance
 torch.backends.cudnn.benchmark = True
