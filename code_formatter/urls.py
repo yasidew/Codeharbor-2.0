@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from .views import define_guidelines, edit_guideline, delete_guideline, get_guidelines, \
     github_import_modal, get_github_token, add_resource, list_resources, get_pattern, fetch_snippet_diff, get_metrics, \
-    generate_refactoring_explanation
+    generate_refactoring_explanation, ModelTestRefactorView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -37,6 +37,8 @@ urlpatterns = [
 
     # Design Pattern Details
     path('get-pattern-details/', views.get_pattern_details, name='get_pattern_details'),
+
+    path('model-refactor/', ModelTestRefactorView.as_view(), name='model-refactor'),
 
 ]
 
