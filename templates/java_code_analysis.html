@@ -74,10 +74,10 @@
             <!-- 🌟 Company Guideline Upload - Clean & Professional -->
             <div class="card shadow-sm mb-4 bg-gradient bg-dark text-white border-0 rounded">
                 <div class="card-header bg-primary text-white fw-bold rounded-top d-flex align-items-center">
-                    <i class="fas fa-shield-alt me-2"></i> Company Coding Guidelines <small class="ms-2 text-light">(Optional)</small>
+                    <i class="fas fa-shield-alt me-2"></i> Coding Guidelines <small class="ms-2 text-light">(Optional)</small>
                 </div>
                 <div class="card-body">
-                    <p class="mb-2 text-white-50"><i class="fas fa-info-circle text-warning me-1"></i> Upload a guideline file to tailor suggestions to your company’s standards.</p>
+                    <p class="mb-2 text-white-50"><i class="fas fa-info-circle text-warning me-1"></i> Upload a guideline file to tailor suggestions to your organization standards.</p>
                     <input type="file" name="guideline_file" id="guidelineFile" class="form-control bg-dark text-white border-secondary">
                 </div>
             </div>
@@ -213,6 +213,7 @@
                                 <div class="mb-3">
                                     <h6 class="text-success"><i class="fas fa-lightbulb"></i> AI-Powered Suggestion</h6>
                                     <div class="bg-secondary p-3 rounded suggestion-content" style="white-space: pre-wrap;">
+                                        <strong  class="d-block">💡Analysis:</strong>
                                         {{ suggestion.suggestion | safe }}
                                     </div>
                                 </div>
@@ -422,6 +423,7 @@
                                                                     <i class="fas fa-lightbulb"></i> AI-POWERED SUGGESTION
                                                                 </h6>
                                                                 <div class="bg-light text-dark p-3 rounded" style="white-space: pre-wrap; font-size: 0.95rem; border-left: 4px solid #ffc107;">
+                                                                    <strong  class="d-block">💡Analysis:</strong>
                                                                     {{ suggestion.suggestion | safe }}
                                                                 </div>
                                                             </div>
@@ -516,6 +518,7 @@
                                                                     <i class="fas fa-lightbulb"></i> AI-POWERED SUGGESTION
                                                                 </h6>
                                                                 <div class="bg-light text-dark p-3 rounded" style="white-space: pre-wrap; font-size: 0.95rem; border-left: 4px solid #ffc107;">
+                                                                    <strong  class="d-block">💡Analysis:</strong>
                                                                     {{ suggestion.suggestion | safe }}
                                                                 </div>
                                                             </div>
