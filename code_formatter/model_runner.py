@@ -9,8 +9,12 @@ import os
 # model_path = os.path.join(BASE_DIR, 'code-refactoring', 'refactoring_model')
 # model_path = os.path.join(BASE_DIR, 'code-refactoring', 'refactoring_model', 'refactoring_model')
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# model_path = os.path.join(BASE_DIR, 'refactoring_model', 'refactoring_model')
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 model_path = os.path.join(BASE_DIR, 'refactoring_model', 'refactoring_model')
+
 
 
 # AWS PATH
