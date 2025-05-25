@@ -7,6 +7,9 @@ import os
 # Dynamically build absolute path to model directory
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 model_path = os.path.join(BASE_DIR, 'code-refactoring', 'refactoring_model')
+# AWS PATH
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# model_path = os.path.join(BASE_DIR, 'refactoring_model')
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
 

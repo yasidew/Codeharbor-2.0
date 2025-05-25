@@ -25,7 +25,7 @@ def download_model_from_s3(bucket_name, s3_key, zip_path, extract_to):
 if __name__ == "__main__":
     project_root = os.path.dirname(os.path.abspath(__file__))
     zip_file_path = os.path.join(project_root, "refactoring_model.zip")
-    extract_path = os.path.join(project_root, "code-refactoring", "refactoring_model")
+    extract_path = os.path.join(project_root, "refactoring_model")  # simplified path
 
     download_model_from_s3(
         bucket_name="codeharbor-models",
