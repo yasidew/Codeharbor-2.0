@@ -1,176 +1,238 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Code Submission</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.js"></script>
-    <style>
-        /* General Page Styling */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #0b0f19;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
-            color: #fff;
-            overflow: hidden;
-        }
+{% extends 'base.html' %}
+{% load static %}
 
-        h2, h3 {
-            color: #f0f0f0;
-        }
+{% block title %}Accessibility Checker{% endblock %}
 
-        /* Container */
-        .container {
-            background: #13182b;
-            padding: 20px;
-            border-radius: 10px;
-            width: 600px;
-            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 90vh;
-        }
+{% block content %}
+<style>
+    .section-header {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #ffffff;
+    }
 
-        /* Monaco Editor Container */
-        #editor-container {
-            width: 100%;
-            height: 200px;
-            border-radius: 5px;
-            border: 1px solid #333;
-        }
+    .card-dark {
+        background-color: #1c1b29;
+        color: #ffffff;
+        border: 1px solid #2a2a3c;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
 
-        /* Guidelines Checkboxes - Scrollable */
-        .guidelines-container {
-            margin-top: 10px;
-            width: 100%;
-            height: 150px;
-            overflow-y: auto;
-            border: 1px solid #333;
-            border-radius: 5px;
-            padding: 10px;
-            background: #1e2339;
-        }
+    .form-control-dark {
+        background-color: #2a2840;
+        color: #ffffff;
+        border: 1px solid #555;
+    }
 
-        .guidelines-container label {
-            display: block;
-            font-size: 14px;
-            color: #d1d1d1;
-        }
+    .form-control-dark::placeholder {
+        color: #aaa;
+    }
 
-        input[type="checkbox"] {
-            margin-right: 5px;
-            accent-color: #ff9ff3;
-        }
+    .btn-primary {
+        background: linear-gradient(to right, #1e90ff, #007bff);
+        border: none;
+        font-weight: 600;
+    }
 
-        /* Submit Button */
-        button {
-            background: linear-gradient(90deg, #ff00ff, #7b00ff);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            margin-top: 15px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: 0.3s;
-            width: 100%;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+    .btn-primary:hover {
+        background: linear-gradient(to right, #0056b3, #003d80);
+    }
 
-        button:hover {
-            background: linear-gradient(90deg, #d600d6, #5b00d6);
-        }
+    #monaco-editor {
+        height: 400px;
+        border: 1px solid #333;
+    }
 
-        /* Response Box */
-        pre {
-            background: #1e2339;
-            padding: 10px;
-            border-radius: 5px;
-            width: 100%;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            color: #ddd;
-            margin-top: 10px;
-            border-left: 4px solid #ff00ff;
-            height: 100px;
-            overflow-y: auto;
-        }
+    #loading-indicator {
+        display: none;
+        text-align: center;
+        margin-top: 20px;
+    }
 
-    </style>
-</head>
-<body>
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: #00cfff;
+    }
+</style>
 
-    <div class="container">
-        <h2>Submit HTML Code for Evaluation</h2>
+<div class="section-header">
+    <h2 class="display-5">Accessibility Checker</h2>
+    <p>Submit your HTML and select WCAG guidelines to evaluate compliance.</p>
+</div>
 
-        <!-- Monaco Editor Container -->
-        <div id="editor-container"></div>
+<div class="card-dark">
+    <form id="accessibilityForm" method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Paste your HTML code:</label>
+            <div id="monaco-editor"></div>
+        </div>
 
-        <h3>Select Guidelines:</h3>
-        <div class="guidelines-container" id="guidelines-container"></div>
+        <div class="mb-3">
+            <label for="guidelines" class="form-label">Select Guidelines (e.g. 1, 2, 3):</label>
+            <input type="text" id="guidelines" name="guidelines" class="form-control form-control-dark" placeholder="Comma-separated guideline numbers like 1,2,3">
+        </div>
 
-        <button onclick="submitForm()">Submit</button>
+        <button type="submit" class="btn btn-primary w-100">Evaluate Accessibility</button>
+    </form>
+</div>
 
-        <h3>Response:</h3>
-        <pre id="response"></pre>
+<!-- Result Section -->
+<div id="result-section" class="card-dark" style="display: none;">
+    <h4>Evaluation Results</h4>
+
+    <!-- Loading Spinner -->
+    <div id="loading-indicator">
+        <div class="spinner-border" role="status"></div>
+        <p style="color: #ccc;">Evaluating HTML against selected guidelines…</p>
     </div>
 
-    <script>
-        var editor;
+    <!-- Chart + Scores -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <canvas id="scorePieChart" width="400" height="300"></canvas>
+            <div id="score-labels" class="mt-3 text-white">
+                <p><strong>Cognitive Score:</strong> <span id="cognitive-score-text">-</span>/10</p>
+                <p><strong>Visual Score:</strong> <span id="visual-score-text">-</span>/10</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h5>Guideline Scores</h5>
+            <ul id="guideline-scores-list" style="list-style-type: none; padding-left: 0;"></ul>
+        </div>
+    </div>
 
-        // Load Monaco Editor
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' }}); 
-        require(["vs/editor/editor.main"], function () {
-            editor = monaco.editor.create(document.getElementById('editor-container'), {
-                value: "<!DOCTYPE html>\n<html>\n<head>\n    <title>Sample</title>\n</head>\n<body>\n    <h1>Hello, World!</h1>\n</body>\n</html>",
-                language: "html",
-                theme: "vs-dark",
-                automaticLayout: true
-            });
+    <!-- Suggestions -->
+    <div id="result-output" class="mt-4"></div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let editor;
+    let pieChartInstance = null;
+
+    require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs" } });
+    require(["vs/editor/editor.main"], function () {
+        editor = monaco.editor.create(document.getElementById("monaco-editor"), {
+            value: "<!-- Paste your HTML code here -->",
+            language: "html",
+            theme: "vs-dark",
+            automaticLayout: true
         });
+    });
 
-        // Generate 65 Checkboxes
-        function generateCheckboxes() {
-            const container = document.getElementById('guidelines-container');
-            for (let i = 1; i <= 65; i++) {
-                const label = document.createElement('label');
-                label.innerHTML = `<input type="checkbox" name="guidelines" value="${i}"> Guideline ${i}`;
-                container.appendChild(label);
-            }
-        }
+    document.getElementById("accessibilityForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-        generateCheckboxes();
+        const html_code = editor.getValue();
+        const guidelineInput = document.getElementById("guidelines").value.trim();
+        const guidelines = guidelineInput.split(",").map(x => x.trim());
 
-        function submitForm() {
-            const htmlCode = editor.getValue();
-            const checkboxes = document.querySelectorAll('input[name="guidelines"]:checked');
-            const selectedGuidelines = Array.from(checkboxes).map(cb => cb.value);
+        const payload = { html_code, guidelines };
 
-            const payload = {
-                html_code: htmlCode,
-                guidelines: selectedGuidelines
-            };
+        const resultBox = document.getElementById("result-output");
+        const loading = document.getElementById("loading-indicator");
+        const resultSection = document.getElementById("result-section");
 
-            fetch("http://127.0.0.1:8000/api/evaluate/", {
+        resultBox.innerHTML = "";
+        document.getElementById("guideline-scores-list").innerHTML = "";
+        resultSection.style.display = "block";
+        loading.style.display = "block";
+
+        try {
+            const response = await fetch("/api/evaluate/", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
                 body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("response").innerText = JSON.stringify(data, null, 2);
-            })
-            .catch(error => console.error("Error:", error));
-        }
-    </script>
+            });
 
-</body>
-</html>
+            const data = await response.json();
+            loading.style.display = "none";
+
+            console.log("📋 Accessibility Evaluation Result:", data);
+
+            if (data.error) {
+                resultBox.innerHTML = `<p class="text-danger">${data.error}</p>`;
+                return;
+            }
+
+            // ✨ Update scores next to chart
+            document.getElementById("cognitive-score-text").textContent = data.cognitive_score ?? "-";
+            document.getElementById("visual-score-text").textContent = data.visual_score ?? "-";
+
+            // ✨ Populate guideline scores
+            const scoreListHTML = Object.entries(data.evaluations)
+                .map(([key, val]) => {
+                    const scoreColor = val.score === "10/10" ? "lightgreen" : (val.score === "N/A" ? "#ccc" : "orange");
+                    return `
+                        <li style="margin-bottom: 1rem;">
+                            <strong>Guideline ${key}:</strong><br>
+                            Relevant: <span style="color:${val.relevant === 'Yes' ? 'lightgreen' : 'red'}">${val.relevant}</span><br>
+                            Score: <span style="color:${scoreColor}">${val.score}</span>
+                        </li>
+                    `;
+                })
+                .join("");
+            document.getElementById("guideline-scores-list").innerHTML = scoreListHTML;
+
+            // ✨ Render Pie Chart
+            const ctx = document.getElementById("scorePieChart").getContext("2d");
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Cognitive (%)', 'Visual (%)'],
+                    datasets: [{
+                        data: [
+                            Number(data.cognitive_score) * 10 || 0,
+                            Number(data.visual_score) * 10 || 0
+                        ],
+                        backgroundColor: ['#36a2eb', '#ff6384'],
+                        borderColor: ['#1e3a5f', '#5f1e3a'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // ✨ Render Suggestions
+            resultBox.innerHTML = `
+                <h5 class="mt-4">Suggestions</h5>
+                <ul>
+                    ${data.suggestions.map(s => `
+                        <li style="margin-bottom: 1.5rem;">
+                            <strong>Guideline ${s.guideline}:</strong>
+                            <pre style="margin-top: 0.5rem; font-family: 'Courier New', monospace;
+                                        background-color: #2c2c3b; color: #f1f1f1; padding: 12px;
+                                        border-radius: 8px; white-space: pre-wrap; line-height: 1.6; overflow-x: auto;">
+${s.suggestion.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+                            </pre>
+                        </li>
+                    `).join("")}
+                </ul>
+            `;
+        } catch (err) {
+            loading.style.display = "none";
+            console.error("❌ Error in fetching evaluation:", err);
+        }
+    });
+</script>
+{% endblock %}

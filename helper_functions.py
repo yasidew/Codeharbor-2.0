@@ -27,8 +27,8 @@ def check_relevance(html_code: str, check_prompt: str, guideline_number: str) ->
             {"role": "system", "content": check_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        "temperature": 0.5,
-        "max_tokens": 10,
+        "temperature": 0.3,
+        "max_tokens": 600,
         "stream": False,
         "response_format": {
         "type": "json_schema",
@@ -66,42 +66,58 @@ def evaluate_guideline(html_code: str, eval_prompt: str, guideline_number: str) 
     Uses the provided evaluation prompt to score the HTML against a given guideline.
     Returns the score extracted from a JSON response or an error message.
     """
+
+    severity_based_prompt = (
+        f"You are a WCAG accessibility evaluator. Your job is to analyze the given HTML and assign a score for guideline {guideline_number} "
+        "based on the number and severity of accessibility violations.\n\n"
+        "Scoring rules:\n"
+        "- 10/10: No issues found\n"
+        "- 9/10: Only one minor issue\n"
+        "- 8/10: 2 minor issues or 1 moderate issue\n"
+        "- 7/10: 3 minor or 2 moderate issues\n"
+        "- 6/10: 4–5 moderate issues\n"
+        "- 5/10: Several significant issues\n"
+        "- Below 5: Critical accessibility problems found\n\n"
+        "You MUST analyze the code carefully and use the full range of scores. Do NOT always return the same score.\n"
+        "Return only a JSON object like: { \"Score\": \"X/10\" }"
+    )
+
     user_prompt = (
         f"Evaluate the following HTML code for adherence to the above guidelines for guideline {guideline_number}:\n\n"
         + html_code +
         "\n\nPlease provide your evaluation in rhymes, and end with a JSON object that includes only the score (e.g., {\"Score\": \"9/10\"})."
     )
-    
+
     data = {
         "model": model_for_evaluating,
         "messages": [
-            {"role": "system", "content": eval_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "system", "content": severity_based_prompt},
+            {"role": "user", "content": html_code}
         ],
-        "temperature": 0.9,
-        "max_tokens": 15,
+        "temperature": 0,
+        "max_tokens": 300,
         "stream": False,
         "response_format": {
-        "type": "json_schema",
-        "json_schema": {
-            "name": "joke_response",
-            "strict": "true",
-            "schema": {
-            "$id": "https://example.com/person.schema.json",
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "title": "Person",
-            "type": "object",
-            "properties": {
-                "Score": {
-                "type": "string",
-                "description": "score assigned out of 10"
+            "type": "json_schema",
+            "json_schema": {
+                "name": "joke_response",
+                "strict": "true",
+                "schema": {
+                    "$id": "https://example.com/person.schema.json",
+                    "$schema": "https://json-schema.org/draft/2020-12/schema",
+                    "title": "Person",
+                    "type": "object",
+                    "properties": {
+                        "Score": {
+                            "type": "string",
+                            "description": "score assigned out of 10"
+                        }
+                    }
                 }
             }
-            }
-        }
         },
     }
-    
+
     response = requests.post(LLM_URL, headers=HEADERS, json=data)
     print(response.json()["choices"][0]["message"]["content"])
     if response.ok:
@@ -116,15 +132,24 @@ def evaluate_guideline(html_code: str, eval_prompt: str, guideline_number: str) 
     
 def simple_inference(model: str, user_input: str):
     """
-    This function sends a user input to the model and prints the response.
+    Sends a prompt to the LLM and returns a detailed suggestion.
     """
     data = {
         "model": model,
         "messages": [
-            {"role": "user", "content": user_input}
+            {
+                "role": "system",
+                "content": "You are a web accessibility expert. Respond with clear, complete WCAG-based suggestions. Include improved HTML snippets in markdown-style code blocks (```html ... ```), followed by brief explanations."
+            },
+            {
+                "role": "user",
+                "content": user_input
+            }
         ],
-        "temperature": 0.7,
-        "max_tokens": 150
+        "temperature": 0.2,
+        #"max_tokens": 1000
+        "max_tokens": 700,  # Increased for completeness
+        "stream": False
     }
 
     response = requests.post(LLM_URL, headers=HEADERS, json=data)

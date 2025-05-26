@@ -3,126 +3,326 @@
 
 {% block title %}Accessibility Checker{% endblock %}
 
-
-
-
-
 {% block content %}
-    <div class="container my-5">
-        <div class="card">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <div>
-                    <h3 class="card-title">Accessibility Checker</h3>
-                    <p class="card-category">Analyze your code for accessibility compliance.</p>
-                </div>
-                <button id="editor-button" class="btn btn-light text-white">See in the Editor</button>
-                <button id="chart-button" class="btn btn-light text-white">Chart</button>
+
+    <style>
+
+        body {
+            background-color: #1c1b29;
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .card,
+        .card-body,
+        .section-header,
+        .container,
+        .main-content {
+            background-color: #1c1b29 !important;
+            color: #ffffff;
+            border: none;
+            box-shadow: none;
+            border-radius: 10px;
+        }
+
+        /* Section Header with underline */
+        .section-header {
+            padding: 60px 20px 30px;
+            text-align: center;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            position: relative;
+        }
+
+        .section-header h2::after {
+            content: '';
+            display: block;
+            width: 60%;
+            height: 1px;
+            background-color: #5a5a6e;
+            margin: 8px auto 0;
+        }
+
+        #results-section {
+            display: none;
+        }
+
+        #drop-zone {
+            border: 2px dashed #6a6adc;
+            background-color: #2a2840;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            transition: background-color 0.2s ease;
+        }
+
+        #drop-zone.dragover {
+            background-color: #373458;
+        }
+
+        .form-control {
+            background-color: #2a2840;
+            color: #ffffff;
+            border: 1px solid #444;
+            border-radius: 6px;
+        }
+
+        .form-control::placeholder {
+            color: #bbbbbb;
+        }
+
+        .form-control:focus {
+            background-color: #2a2840;
+            color: #ffffff;
+            border-color: #777;
+            box-shadow: none;
+        }
+
+        .form-control::file-selector-button {
+            background-color: #373566;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+
+        /* Force primary buttons to be blue always */
+        .btn.btn-primary {
+            background: linear-gradient(to right, #1e90ff, #007bff) !important;
+            color: white !important;
+            border: none !important;
+            font-weight: 600;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 6px;
+        }
+
+        /* Blue hover state */
+        .btn.btn-primary:hover,
+        .btn.btn-primary:focus,
+        .btn.btn-primary:active,
+        .btn.btn-primary:visited {
+            background: linear-gradient(to right, #0056b3, #003d80) !important;
+            color: white !important;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3) !important;
+        }
+
+        /* Remove any old inline pink background styles if added via JS */
+        .btn.btn-primary[style*="ff5ec4"],
+        .btn.btn-primary[style*="d94fcf"] {
+            background: linear-gradient(to right, #1e90ff, #007bff) !important;
+        }
 
 
+        .table {
+            color: #ffffff;
+        }
+
+        .table-dark {
+            background-color: #2a2840;
+            color: #ffffff;
+        }
+
+        .table-bordered th,
+        .table-bordered td {
+            border-color: #444;
+        }
+
+        .alert-info {
+            background-color: #2a2840;
+            color: #ffffff;
+            border-color: #444;
+        }
+
+        .score-tooltip-container {
+  display: inline-block;
+  position: relative;
+}
+
+.tooltip-icon {
+  margin-left: 6px;
+  cursor: pointer;
+  color: #aaa;
+  font-size: 1rem;
+  position: relative;
+}
+
+.tooltip-icon:hover .custom-tooltip {
+  display: block;
+}
+
+.custom-tooltip {
+  display: none;
+  position: absolute;
+  top: 1.5rem;
+  left: 0;
+  z-index: 1000;
+  width: 500px;
+  background-color: #2a2a3d;
+  color: #ffffff;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.2);
+  padding: 12px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.custom-tooltip .formula {
+  margin: 8px 0;
+  font-family: monospace;
+  color: #00ccff;
+}
+
+.custom-tooltip ul {
+  padding-left: 1.1rem;
+  margin: 0;
+}
+
+.custom-tooltip ul li {
+  margin-bottom: 5px;
+  list-style: none;
+}
+
+.custom-tooltip .emoji {
+  margin-right: 6px;
+}
+
+    </style>
+
+
+    <div class="section-header">
+        <h2>Code Accessibility</h2>
+
+        <!-- New Row Layout for Buttons -->
+        <div class="d-flex justify-content-between align-items-center mt-4 px-5">
+            <button id="editor-button" class="btn btn-light text-white">See in the Editor</button>
+            <button id="chart-button" class="btn btn-light text-white">Chart</button>
+        </div>
+    </div>
+
+
+    </div>
+    <div class="card-body">
+        <!-- File Upload Form -->
+        <form id="accessibility-form" enctype="multipart/form-data" class="mb-4">
+            <input type="file" name="html_file" accept=".html" required class="form-control mb-3">
+            <div class="d-flex justify-content-center">
+                <button type="submit" class="btn btn-primary w-50">Check Accessibility</button>
+            </div>
+        </form>
+
+
+        <!-- Hidden initially -->
+        <div id="results-section">
+            <!-- Accessibility Summary -->
+            <div class="alert alert-info text-center">
+                <h5>Summary:</h5>
+                <p>
+                    <strong>🔴 Critical:</strong> <span id="critical-count" class="text-danger">0 (0%)</span> |
+                    <strong>🟠 Serious:</strong> <span id="serious-count" class="text-warning">0 (0%)</span> |
+                    <strong>🔵 Moderate:</strong> <span id="moderate-count" class="text-primary">0 (0%)</span> |
+                    <strong>🟢 Minor:</strong> <span id="minor-count" class="text-success">0 (0%)</span>
+                </p>
             </div>
 
-            <div class="card-body">
-                <!-- Accessibility Summary -->
-                <div class="alert alert-info text-center">
-                    <h5>Summary:</h5>
-                    <p>
-                        {#                        <strong>Violations:</strong> <span id="violation-count" class="text-danger">0</span> |#}
-                        {#                        <strong>Passes:</strong> <span id="pass-count" class="text-success">0</span> |#}
-                        {#                        <strong>Incomplete:</strong> <span id="incomplete-count" class="text-warning">0</span> |#}
-                        <strong>🔴 Critical:</strong> <span id="critical-count" class="text-danger">0 (0%)</span> |
-                        <strong>🟠 Serious:</strong> <span id="serious-count" class="text-warning">0 (0%)</span> |
-                        <strong>🔵 Moderate:</strong> <span id="moderate-count" class="text-primary">0 (0%)</span> |
-                        <strong>🟢 Minor:</strong> <span id="minor-count" class="text-success">0 (0%)</span>
-                    </p>
+            <div id="game-info" class="mb-4">
+                <h4>Game Name: <span id="gameName">Loading...</span></h4>
+                <h5>Challenge ID: <span id="challengeId">Loading...</span></h5>
+            </div>
+
+            <!-- Results -->
+            <div id="results">
+                <div class="score mb-3" id="score"></div>
+
+                <!-- Passes Table -->
+                <div class="section">
+                    <h4>Passes</h4>
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>Impact</th>
+                            <th>Description</th>
+                            <th>Help</th>
+                            {#                <th>Help URL</th>#}
+                            <th>Target</th>
+                        </tr>
+                        </thead>
+                        <tbody id="passes-content">
+                        <tr>
+                            <td colspan="5" class="text-center">No passes found.</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <div id="game-info" class="mb-4">
-                    <h4>Game Name: <span id="gameName">Loading...</span></h4>
-                    <h5>Challenge ID: <span id="challengeId">Loading...</span></h5>
+
+                <!-- Violations Table -->
+                <div class="section">
+                    <h4>Violations</h4>
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                        <tr>
+                            {#                                <th>ID</th>#}
+                            <th>Impact</th>
+                            <th>Description</th>
+                            <th>Help</th>
+                            {#                                <th>Help URL</th>#}
+                            <th>Target</th>
+                        </tr>
+                        </thead>
+                        <tbody id="violations-content">
+                        <tr>
+                            <td colspan="6" class="text-center">No violations found.</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
 
-                <!-- File Upload Form -->
-                <form id="accessibility-form" enctype="multipart/form-data" class="mb-4">
-                    <input type="file" name="html_file" accept=".html" required class="form-control mb-3">
-                    <button type="submit" class="btn btn-primary w-100">Check Accessibility</button>
-                </form>
-
-                <!-- Results -->
-                <div id="results">
-                    <div class="score mb-3" id="score"></div>
-
-                    <!-- Passes Table -->
-                    <div class="section">
-                        <h4>Passes</h4>
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Impact</th>
-                                <th>Description</th>
-                                <th>Help</th>
-                                <th>Help URL</th>
-                                <th>Target</th>
-                            </tr>
-                            </thead>
-                            <tbody id="passes-content">
-                            <tr>
-                                <td colspan="6" class="text-center">No passes found.</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Violations Table -->
-                    <div class="section">
-                        <h4>Violations</h4>
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Impact</th>
-                                <th>Description</th>
-                                <th>Help</th>
-                                <th>Help URL</th>
-                                <th>Target</th>
-                            </tr>
-                            </thead>
-                            <tbody id="violations-content">
-                            <tr>
-                                <td colspan="6" class="text-center">No violations found.</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Incomplete Table -->
-                    <div class="section">
-                        <h4>Incomplete</h4>
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>Impact</th>
-                                <th>Description</th>
-                                <th>Help</th>
-                                <th>Help URL</th>
-                                <th>Target</th>
-                            </tr>
-                            </thead>
-                            <tbody id="incomplete-content">
-                            <tr>
-                                <td colspan="6" class="text-center">No incomplete checks found.</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Submit Score Button -->
-                    <button id="submit-score" class="btn btn-success w-100 mt-3" disabled>Submit Score</button>
+                <!-- Incomplete Table -->
+                <div class="section">
+                    <h4>Incomplete</h4>
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                        <tr>
+                            {#                                <th>ID</th>#}
+                            <th>Impact</th>
+                            <th>Description</th>
+                            <th>Help</th>
+                            {#                                <th>Help URL</th>#}
+                            <th>Target</th>
+                        </tr>
+                        </thead>
+                        <tbody id="incomplete-content">
+                        <tr>
+                            <td colspan="6" class="text-center">No incomplete checks found.</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
+
+                <!-- Submit Score Button -->
+                <button id="submit-score" class="btn btn-success w-100 mt-3" disabled>Submit Score</button>
             </div>
         </div>
     </div>
+    </div>
+    <!-- Editor Section (Initially hidden) -->
+<div id="embedded-editor-section" style="display: none;" class="mt-5">
+    <h4 class="text-white">HTML Code Editor</h4>
+    <div id="monaco-editor" style="height: 500px; border: 1px solid #333;"></div>
+    <button id="save-code" class="btn btn-primary mt-3">Save Code</button>
+</div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
 
     <script>
         function getQueryParams() {
@@ -137,12 +337,18 @@
         document.getElementById("gameName").textContent = queryParams.game_name;
         document.getElementById("challengeId").textContent = queryParams.challenge_id;
 
-        document.getElementById('editor-button').addEventListener('click', function () {
-            window.location.href = `/editor`;
+        document.querySelector('input[name="html_file"]').addEventListener('change', function () {
+            document.getElementById('file-name').textContent = `Selected: ${this.files[0]?.name || 'No file selected'}`;
         });
 
+        document.getElementById('editor-button').addEventListener('click', function () {
+            let submittedHTML = sessionStorage.getItem("submittedHTML") || "<!-- No HTML submitted yet -->";
+            let violations = sessionStorage.getItem("violations") || "[]";
+            sessionStorage.setItem("submittedHTML", submittedHTML);
+            sessionStorage.setItem("violations", violations);
+            window.location.href = "/editor";
+        });
 
-        // Accessibility Form
         document.getElementById('accessibility-form').addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -172,26 +378,52 @@
                 }
 
                 let actualScore = data.score;
-                document.getElementById('score').textContent = `Accessibility Score: ${actualScore.toFixed(2)}%`;
+              document.getElementById('score').innerHTML = `
+  <div class="score-tooltip-container">
+  <strong>Accessibility Score:</strong>
+  <span style="color: #00ccff;">83.87%</span>
+  <span class="tooltip-icon">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="#aaa" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" stroke="#00ccff" stroke-width="2" fill="none"/>
+    <text x="12" y="16" text-anchor="middle" font-size="14" fill="#00ccff" font-family="Arial, sans-serif">i</text>
+  </svg>
 
-                // ✅ Store Score in Both sessionStorage and localStorage
+    <div class="custom-tooltip">
+      <div><strong>How it's calculated:</strong></div>
+      <div class="formula">Score = (✔️ Passed / ✅ Total Rules) × 100</div>
+      <ul>
+        <li><span class="emoji">✔️</span> <strong>Passed:</strong> When code snippets follow the WCAG guidelines.</li>
+        <li><span class="emoji">❌</span> <strong>Violated:</strong> When code snippets Failed WCAG rules</li>
+        <li><span class="emoji">🧠</span> <em>Only relevant rules are tested</em></li>
+      </ul>
+    </div>
+  </span>
+</div>
+
+`;
+
+
+
                 sessionStorage.setItem("accessibilityScore", actualScore);
                 localStorage.setItem("accessibilityScore", actualScore);
-
 
                 if (data.html_code) {
                     sessionStorage.setItem("submittedHTML", data.html_code);
                 }
 
-                // ✅ Store violations with their severity for highlighting
                 let violationData = data.violations.map(v => ({
                     id: v.id,
                     impact: v.impact,
                     nodes: v.nodes.map(node => node.html)
                 }));
-
                 sessionStorage.setItem("violations", JSON.stringify(violationData));
 
+                function escapeHtml(html) {
+                    return html
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;");
+                }
 
                 function populateTable(sectionId, results) {
                     let tableBody = document.getElementById(sectionId);
@@ -201,19 +433,23 @@
                         results.forEach(item => {
                             let row = document.createElement("tr");
                             row.innerHTML = `
-                            <td>${item.id}</td>
-                            <td>${item.impact ? item.impact : "N/A"}</td>
-                            <td>${item.description}</td>
-                            <td>${item.help}</td>
-                            <td><a href="${item.helpUrl}" target="_blank">View</a></td>
-                            <td>${item.nodes.map(node => node.target.join(", ")).join("<br>")}</td>
-                        `;
+                                <td>${item.impact || "N/A"}</td>
+                                <td>${item.description}</td>
+                                <td style="cursor: pointer; color: #00ccff;" onclick="window.open('${item.helpUrl}', '_blank')">
+                     ${item.help}
+            </td>
+    <td>${item.nodes.map(node =>
+                                `<code title="${node.target.join(', ')}" style="color:#00ccff;">${escapeHtml(node.html)}</code>`
+                            ).join("<br>")}</td>
+`;
+
                             tableBody.appendChild(row);
                         });
                     } else {
-                        tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No results found.</td></tr>`;
+                        tableBody.innerHTML = `<tr><td colspan="5" class="text-center">No results found.</td></tr>`;
                     }
                 }
+
 
                 populateTable("passes-content", data.passes);
                 populateTable("violations-content", data.violations);
@@ -234,7 +470,6 @@
                 document.getElementById('moderate-count').textContent = `${moderateCount} (${percentage(moderateCount)}%)`;
                 document.getElementById('minor-count').textContent = `${minorCount} (${percentage(minorCount)}%)`;
 
-                // ✅ Store severity scores in sessionStorage
                 sessionStorage.setItem("critical-count", criticalCount);
                 sessionStorage.setItem("serious-count", seriousCount);
                 sessionStorage.setItem("moderate-count", moderateCount);
@@ -246,15 +481,18 @@
                 sessionStorage.setItem("minor-percentage", percentage(minorCount));
 
                 document.getElementById('submit-score').disabled = false;
+
+                // ✅ Reveal results section and scroll
+                document.getElementById("results-section").style.display = "block";
+                document.getElementById("results-section").scrollIntoView({behavior: "smooth"});
+
             } catch (error) {
                 console.error("Error:", error);
             }
         });
 
-        // Submit score
         document.getElementById('submit-score').addEventListener('click', async function () {
             let score = sessionStorage.getItem("accessibilityScore");
-
             if (!score) {
                 alert("No score available to submit!");
                 return;
@@ -268,7 +506,6 @@
             }
 
             let userId = sessionStorage.getItem("user_id") || localStorage.getItem("user_id");
-
             let criticalCount = parseInt(sessionStorage.getItem("critical-count")) || 0;
             let seriousCount = parseInt(sessionStorage.getItem("serious-count")) || 0;
             let moderateCount = parseInt(sessionStorage.getItem("moderate-count")) || 0;
@@ -284,8 +521,6 @@
                 minor_score: minorCount
             };
 
-            console.log("🔹 Submitting Score:", submissionData);
-
             try {
                 const response = await fetch("http://127.0.0.1:8000/checker/submit_score/", {
                     method: "POST",
@@ -298,36 +533,25 @@
                 });
 
                 const result = await response.json();
-                console.log("🔹 Server Response:", result);
-
                 if (response.ok) {
                     alert(`Score submitted successfully! User ID: ${result.user_id}`);
-
-                    // ✅ Store user ID
                     sessionStorage.setItem("user_id", result.user_id);
                     localStorage.setItem("user_id", result.user_id);
-                    console.log("🔹 Stored User ID in sessionStorage:", sessionStorage.getItem("user_id"));
 
-
-                    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // ✅ Fetch updated Critical Score and Assign Badge
-                    await fetch(`http://127.0.0.1:8000/games/store-badge/`, {
+                    await fetch("http://127.0.0.1:8000/games/store-badge/", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
                             "Authorization": `Bearer ${accessToken}`,
                             "X-CSRFToken": "{{ csrf_token }}"
                         },
-                        body: JSON.stringify({ user_id: result.user_id })
+                        body: JSON.stringify({user_id: result.user_id})
                     })
                         .then(response => response.json())
                         .then(badgeResult => {
-                            console.log("🔹 Assigned Badge:", badgeResult.assigned_badge);
                             alert(`New Badge Assigned: ${badgeResult.assigned_badge}`);
-                        })
-                    /////////////////////////////////////////////////////////////////////////////////////////////////////
+                        });
 
-                    // ✅ Fetch the updated Critical Score AFTER submission
                     let updatedCriticalScoreResponse = await fetch(`http://127.0.0.1:8000/games/total-critical-score/${userId}/`, {
                         method: "GET",
                         headers: {
@@ -337,14 +561,7 @@
                     });
 
                     let updatedCriticalScoreData = await updatedCriticalScoreResponse.json();
-                    let updatedCriticalScore = updatedCriticalScoreData.total_critical_score || 0;
-
-                    console.log("🔹 Total Critical Score AFTER Submission:", updatedCriticalScore); // ✅ Print latest value
-
-                    // ✅ Update `critical_count` in sessionStorage
-                    sessionStorage.setItem("critical-count", updatedCriticalScore);
-                    console.log("🔹 Updated critical-count in sessionStorage:", sessionStorage.getItem("critical-count"));
-
+                    sessionStorage.setItem("critical-count", updatedCriticalScoreData.total_critical_score || 0);
                 } else {
                     alert("❌ Error submitting score: " + result.error);
                 }
@@ -354,17 +571,10 @@
             }
         });
 
-
-        // Chart Button
         document.getElementById('chart-button').addEventListener('click', function () {
-            // ✅ Retrieve stored user ID from sessionStorage or localStorage
             let userId = sessionStorage.getItem("user_id") || localStorage.getItem("user_id");
             let challengeId = queryParams.challenge_id;
 
-            console.log("🔹 Retrieved User ID:", userId);  // ✅ Debugging step
-            console.log("🔹 Retrieved Challenge ID:", challengeId);  // ✅ Debugging step
-
-            // Ensure both userId and challengeId exist before navigating
             if (!userId || userId === "null") {
                 alert("❌ User ID not found! Please submit your score first.");
                 return;
@@ -375,28 +585,11 @@
                 return;
             }
 
-            // ✅ Navigate to severity chart page with user ID and challenge ID
             window.location.href = `http://127.0.0.1:8000/games/severity-chart/${userId}/${challengeId}/`;
         });
 
-
-        // Editor Button
-
-        document.getElementById('editor-button').addEventListener('click', function () {
-            // Get necessary details from the current page
-            let submittedHTML = sessionStorage.getItem("submittedHTML") || "<!-- No HTML submitted yet -->";
-            let violations = sessionStorage.getItem("violations") || "[]";
-
-            // Store the submitted HTML and violations in sessionStorage
-            sessionStorage.setItem("submittedHTML", submittedHTML);
-            sessionStorage.setItem("violations", violations);
-
-            // Navigate to the editor page
-            window.location.href = "/editor";
-        });
-
-
     </script>
+
 
 
 {% endblock %}

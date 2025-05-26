@@ -1,6 +1,6 @@
 # Configuration variables
-# LLM_URL = "http://192.168.1.165:1234/v1/chat/completions"
-LLM_URL = "https://dbpcgqcl-1234.asse.devtunnels.ms/v1/chat/completions"
+LLM_URL = "http://localhost:1234/v1/chat/completions"
+# LLM_URL = "https://dbpcgqcl-1234.asse.devtunnels.ms/v1/chat/completions"
 HEADERS = {"Content-Type": "application/json"}
 
 # Sample HTML content for testing

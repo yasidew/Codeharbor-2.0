@@ -38,9 +38,7 @@ def evaluate_html(selected_html_code, selected_guidelines):
     ]
     guideline_folders.sort(key=lambda x: int(x) if x.isdigit() else x)
 
-    scores = {}
-
-    # Categories of guidelines
+    evaluations = {}
     classification = [
         "Visual", "Visual", "Visual", "Visual", "Visual", "Visual", "Visual", "Visual", "Visual", "Visual",
         "Cognitive", "Cognitive", "Cognitive", "Cognitive", "Cognitive", "Cognitive", "Visual", "Visual",
@@ -71,66 +69,51 @@ def evaluate_html(selected_html_code, selected_guidelines):
         if not os.path.exists(check_file) or not os.path.exists(guidelines_file):
             continue
 
-        check_prompt = get_prompt_from_file(
-            check_file) + " Output your answer in JSON format with only one key 'output'."
+        check_prompt = get_prompt_from_file(check_file)
         eval_prompt = get_prompt_from_file(guidelines_file)
 
-        if not check_relevance(selected_html_code, check_prompt, guideline):
-            scores[guideline] = "N/A"
-        else:
+        is_relevant = check_relevance(selected_html_code, check_prompt, guideline)
+        relevance_str = "Yes" if is_relevant else "No"
+
+        if is_relevant:
             score = evaluate_guideline(selected_html_code, eval_prompt, guideline)
-            scores[guideline] = score
             if classification[int(guideline)] == "Cognitive":
                 cognitive_score += int(score.split("/")[0])
                 cognitive_count += 1
             else:
-                visual_count += 1
                 visual_score += int(score.split("/")[0])
+                visual_count += 1
+        else:
+            score = "N/A"
 
-    # Sort scores and fetch the lowest 3 scores
+        evaluations[guideline] = {
+            "relevant": relevance_str,
+            "score": score
+        }
+
+    # Sort evaluations to pick lowest 3 for suggestions
     lowest_scores = sorted(
-        [(k, v) for k, v in scores.items() if v != "N/A"], key=lambda x: x[1]
+        [(k, v["score"]) for k, v in evaluations.items() if v["score"] != "N/A"],
+        key=lambda x: x[1]
     )[:3]
 
-    check_files = [os.path.join(instructions_dir, guideline, "check.txt") for guideline, _ in lowest_scores]
-    check_queries = []
-    for file in check_files:
-        if os.path.exists(file):
-            with open(file, "r", encoding="utf-8") as f:
-                data = f.read()
-                data = data.replace(
-                    "You are an accessibility compliance assistant. Your task is to analyze the given HTML to determine if it includes",
-                    "")
-                data = data.replace(
-                    "If the HTML contains any such elements or meets the conditions, output 'Yes'. Otherwise, output 'No'.",
-                    "")
-                check_queries.append(data)
-
-    times = []
     suggestions = []
-    results = []
-    for i, query in enumerate(check_queries):
-        suggestion_input = f"Here is the HTML snippet:\n{selected_html_code}\nHow can I improve this to meet WCAG accessibility guidelines?"
+    for guideline, _ in lowest_scores:
+        suggestion_input = f"HTML:\n{selected_html_code}\n\nHow can I improve this to meet WCAG guideline {guideline}?"
         suggestion = simple_inference("qwen2.5-coder-1.5b-instruct", suggestion_input)
-
         if suggestion:
             suggestions.append({
-                "guideline": lowest_scores[i][0],
+                "guideline": guideline,
                 "suggestion": suggestion.strip()
             })
 
-        results.append({
-            "query": query.strip(),
-            "suggestion": suggestion.strip() if suggestion else "No suggestion available"
-        })
-
     return {
-        "scores": scores,
-        "results": results,
+        "evaluations": evaluations,
         "suggestions": suggestions,
         "cognitive_score": cognitive_score / cognitive_count if cognitive_count > 0 else "N/A",
         "visual_score": visual_score / visual_count if visual_count > 0 else "N/A"
     }
+
 
 
 def submit_html_view(request):
