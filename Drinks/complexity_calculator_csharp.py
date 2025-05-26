@@ -423,48 +423,48 @@ class CBOMetricsCSharp:
 
 
 # Load dataset
-df = pd.read_csv("media/Updated_Dataset_with_CBO_Labeling.csv")
-model_filename = "xgboost_c#_cbo_model.pkl"
-
-if os.path.exists(model_filename):
-    model = joblib.load(model_filename)
-    # print(f"✅ Loaded existing model c# cbo from {model_filename}")
-else:
-    # Drop 'file_name' column as it's not a feature
-    df.drop(columns=["file_name"], inplace=True)
-
-    # Define features (X) and labels (y)
-    X = df.drop(columns=["cbo_label"])
-    y = df["cbo_label"]
-
-    # Split data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Define and train the XGBoost model
-    model = XGBClassifier(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
-    model.fit(X_train, y_train)
-
-    # Make predictions
-    y_pred = model.predict(X_test)
-
-    # Evaluate model performance
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"XGBoost Model Accuracy: {accuracy:.4f}")
-    print("Classification Report:")
-    print(classification_report(y_test, y_pred))
-
-    # Save trained model for use in C#
-    joblib.dump(model, model_filename)
-    print(f"Model saved as {model_filename}")
-
-    # Load the trained model
-    # rf_model = joblib.load("xgboost_c#_cbo_model.pkl")
-
-# Global dictionary for tracking inheritance depth
-inheritance_depth = {}
-
-# Global flag to detect when the class declaration ends
-class_declaration_ended = False
+# df = pd.read_csv("media/Updated_Dataset_with_CBO_Labeling.csv")
+# model_filename = "xgboost_c#_cbo_model.pkl"
+#
+# if os.path.exists(model_filename):
+#     model = joblib.load(model_filename)
+#     # print(f"✅ Loaded existing model c# cbo from {model_filename}")
+# else:
+#     # Drop 'file_name' column as it's not a feature
+#     df.drop(columns=["file_name"], inplace=True)
+#
+#     # Define features (X) and labels (y)
+#     X = df.drop(columns=["cbo_label"])
+#     y = df["cbo_label"]
+#
+#     # Split data into training and testing sets
+#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+#
+#     # Define and train the XGBoost model
+#     model = XGBClassifier(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
+#     model.fit(X_train, y_train)
+#
+#     # Make predictions
+#     y_pred = model.predict(X_test)
+#
+#     # Evaluate model performance
+#     accuracy = accuracy_score(y_test, y_pred)
+#     print(f"XGBoost Model Accuracy: {accuracy:.4f}")
+#     print("Classification Report:")
+#     print(classification_report(y_test, y_pred))
+#
+#     # Save trained model for use in C#
+#     joblib.dump(model, model_filename)
+#     print(f"Model saved as {model_filename}")
+#
+#     # Load the trained model
+#     # rf_model = joblib.load("xgboost_c#_cbo_model.pkl")
+#
+# # Global dictionary for tracking inheritance depth
+# inheritance_depth = {}
+#
+# # Global flag to detect when the class declaration ends
+# class_declaration_ended = False
 
 
 # Function to remove comments (both single-line and multi-line)
@@ -1968,12 +1968,12 @@ def calculate_code_complexity_multiple_files_csharp(file_contents):
         # CBO feature extraction
         cbo_report = calculate_cbo_csharp(lines)
 
-        model_based_recommendations = get_csharp_code_recommendations(lines, model_filename)
+        # model_based_recommendations = get_csharp_code_recommendations(lines, model_filename)
 
-        results3[filename] = {
-            "prediction": model_based_recommendations.get("prediction", "Unknown"),
-            "recommendations": model_based_recommendations.get("recommendations", [])
-        }
+        # results3[filename] = {
+        #     "prediction": model_based_recommendations.get("prediction", "Unknown"),
+        #     "recommendations": model_based_recommendations.get("recommendations", [])
+        # }
 
         # 3) Retrieve any existing line-based data
         cbo_line_data = result1.get(filename, [])
