@@ -537,6 +537,8 @@ def java_code_analysis(request):
             snippets = java_split_code_snippets(file_code)
             summary["total_snippets"] += len(snippets)
             summary["total_lines"] += file_code.count('\n') + 1
+            fixed_code = ""  # ✅ Initialize to avoid UnboundLocalError
+
 
             for line_num, snippet in enumerate(snippets, start=1):
                 existing_snippet = JavaCodeSnippet.objects.filter(snippet=snippet).first()
@@ -1509,7 +1511,7 @@ def generate_fixed_code(snippet, guideline=""):
         )
 
         response = client.chat.completions.create(
-            model="gpt-4o",  # gpt-3.5-turbo
+            model="gpt-3.5-turbo",  # gpt-3.5-turbo
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -1621,6 +1623,7 @@ def analyze_code_view(request):
             snippets = split_code_snippets(file_code)
             summary["total_snippets"] += len(snippets)
             summary["total_lines"] += file_code.count('\n') + 1
+            fixed_code = ""  # ✅ Initialize to avoid UnboundLocalError
 
             for line_num, snippet in enumerate(snippets, start=1):
                 existing_snippet = CodeSnippet.objects.filter(snippet=snippet).first()
