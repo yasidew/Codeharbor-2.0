@@ -411,7 +411,11 @@
                         monacoDiffEditor = monaco.editor.createDiffEditor(document.getElementById('monacoDiffEditor'), {
                             theme: "vs-dark",
                             readOnly: true,
-                            automaticLayout: true
+                            automaticLayout: true,
+                            // ✅ Ensure hover is enabled
+                            modifiedEditor: {
+                                hover: { enabled: true }
+                            }
                         });
                     }
 
@@ -420,6 +424,21 @@
                         original: originalModel,
                         modified: modifiedModel
                     });
+
+                    // ✅ Add inline hover explanations if available
+                    if (result.explanations && Array.isArray(result.explanations)) {
+                        const decorations = result.explanations.map(exp => ({
+                            range: new monaco.Range(exp.line, 1, exp.line, 1),
+                            options: {
+                                isWholeLine: true,
+                                hoverMessage: { value: `💡 ${exp.text}` },
+                                className: 'line-explanation-highlight'
+                            }
+                        }));
+                        monacoDiffEditor.getModifiedEditor().deltaDecorations([], decorations);
+                    }
+
+
 
                     document.getElementById("diff-section").style.display = "block";
                 } else {
@@ -1157,6 +1176,10 @@
 
     </script>
     <style>
+        .line-explanation-highlight {
+            background-color: rgba(255, 255, 0, 0.15); /* Light yellow */
+            border-left: 3px solid #ffc107;
+        }
         /* Monaco Editor Full Size */
         .editor-container {
             width: 100%;

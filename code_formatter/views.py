@@ -75,7 +75,6 @@ def upload_code(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
-# Function to handle code refactoring using OpenAI API
 @csrf_exempt
 def refactor_code(request):
     """Handles code refactoring with optional guideline usage."""
@@ -617,9 +616,45 @@ def list_resources(request):
     return render(request, 'code_formatter/list_resources.html', {'resources': resources})
 
 
+# @csrf_exempt
+# def fetch_snippet_diff(request):
+#     """Return the code difference between original and refactored code."""
+#     record_id = request.GET.get("record_id")
+#
+#     if not record_id:
+#         return JsonResponse({"success": False, "error": "Missing record_id"})
+#
+#     try:
+#         record = get_object_or_404(CodeRefactoringRecord, id=record_id)
+#         original_code = record.original_code  # Keep as a string
+#         refactored_code = record.refactored_code  # Keep as a string
+#
+#         # Generate diff using difflib
+#         original_lines = original_code.splitlines()
+#         refactored_lines = refactored_code.splitlines()
+#
+#         diff = difflib.unified_diff(
+#             original_lines,
+#             refactored_lines,
+#             fromfile="Original Code",
+#             tofile="Refactored Code",
+#             lineterm=""
+#         )
+#
+#         diff_result = "\n".join(diff)
+#
+#         return JsonResponse({
+#             "success": True,
+#             "original_code": original_code,  # Add original code
+#             "refactored_code": refactored_code,  # Add refactored code
+#             "diff": diff_result
+#         })
+#     except Exception as e:
+#         return JsonResponse({"success": False, "error": str(e)})
+
 @csrf_exempt
 def fetch_snippet_diff(request):
-    """Return the code difference between original and refactored code."""
+    """Return the code difference + AI-based inline explanations."""
     record_id = request.GET.get("record_id")
 
     if not record_id:
@@ -627,10 +662,10 @@ def fetch_snippet_diff(request):
 
     try:
         record = get_object_or_404(CodeRefactoringRecord, id=record_id)
-        original_code = record.original_code  # Keep as a string
-        refactored_code = record.refactored_code  # Keep as a string
+        original_code = record.original_code
+        refactored_code = record.refactored_code
 
-        # Generate diff using difflib
+        # 1. Generate diff
         original_lines = original_code.splitlines()
         refactored_lines = refactored_code.splitlines()
 
@@ -641,15 +676,58 @@ def fetch_snippet_diff(request):
             tofile="Refactored Code",
             lineterm=""
         )
-
         diff_result = "\n".join(diff)
+
+        # 2. Build prompt for AI to analyze
+        ai_prompt = f"""
+        You are an expert Java code refactoring assistant.
+
+        Your task is to analyze the **differences** between the original code and the refactored version.
+
+        1. Go line-by-line and find all lines that have been modified, added, or refactored.
+        2. For each changed or newly added line (in the refactored code), identify:
+           - What was changed
+           - Why the change was made (e.g., readability, maintainability, efficiency, best practices)
+           - If a design pattern (e.g., Factory, Strategy, Observer) was applied, mention it.
+
+        Return your result strictly as a **JSON array**, where each item is:
+        {{
+          "line": line_number_in_refactored_code,
+          "text": "Your explanation for why this line was added/changed and what pattern it follows"
+        }}
+
+        ### Original Code:
+        {original_code}
+
+        ### Refactored Code:
+        {refactored_code}
+        """
+
+        ai_response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an expert Java code refactoring assistant."},
+                {"role": "user", "content": ai_prompt}
+            ],
+            temperature=0.2
+        )
+
+        explanation_text = ai_response.choices[0].message.content
+        explanations = []
+
+        try:
+            explanations = json.loads(re.search(r"\[.*\]", explanation_text, re.DOTALL)[0])
+        except Exception:
+            explanations = []
 
         return JsonResponse({
             "success": True,
-            "original_code": original_code,  # Add original code
-            "refactored_code": refactored_code,  # Add refactored code
-            "diff": diff_result
+            "original_code": original_code,
+            "refactored_code": refactored_code,
+            "diff": diff_result,
+            "explanations": explanations  # ✅ NEW: send to frontend for tooltip
         })
+
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
 
