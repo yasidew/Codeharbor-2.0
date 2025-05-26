@@ -1384,7 +1384,7 @@ def ai_code_analysis(snippet, guideline=""):
         )
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # 🔄 Upgraded for better context handling
+            model="gpt-4o",  # 🔄 Upgraded for better context handling
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -1507,7 +1507,7 @@ def generate_fixed_code(snippet, guideline=""):
         )
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # gpt-3.5-turbo
+            model="gpt-4o",  # gpt-3.5-turbo
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
