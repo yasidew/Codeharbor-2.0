@@ -24,12 +24,27 @@ def download_model_from_s3(bucket_name, s3_key, zip_path, extract_to):
 
 if __name__ == "__main__":
     project_root = os.path.dirname(os.path.abspath(__file__))
-    zip_file_path = os.path.join(project_root, "refactoring_model.zip")
-    extract_path = os.path.join(project_root, "refactoring_model")  # simplified path
 
+    # 1. Refactoring Model
     download_model_from_s3(
         bucket_name="codeharbor-models",
         s3_key="refactoring_model.zip",
-        zip_path=zip_file_path,
-        extract_to=extract_path
+        zip_path=os.path.join(project_root, "refactoring_model.zip"),
+        extract_to=os.path.join(project_root, "refactoring_model")
+    )
+
+    # 2. Custom Seq2Seq Model
+    download_model_from_s3(
+        bucket_name="codeharbor-models",
+        s3_key="custom_seq2seq_model.zip",
+        zip_path=os.path.join(project_root, "custom_seq2seq_model.zip"),
+        extract_to=os.path.join(project_root, "custom_seq2seq_model")
+    )
+
+    # 3. Java Seq2Seq Model
+    download_model_from_s3(
+        bucket_name="codeharbor-models",
+        s3_key="java_seq2seq_model.zip",
+        zip_path=os.path.join(project_root, "java_seq2seq_model.zip"),
+        extract_to=os.path.join(project_root, "java_seq2seq_model")
     )
