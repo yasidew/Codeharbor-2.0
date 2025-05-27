@@ -124,10 +124,10 @@ WSGI_APPLICATION = 'Drinks.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',  # Keep this as 'postgres' (Main DB)
+        'NAME': 'code_complexity_db',  # Keep this as 'postgres' (Main DB)
         'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',
+        'PASSWORD': '12345',
+        'HOST': DB_HOST, #use "localhost" when locally running
         'PORT': '5432',
         'OPTIONS': {
             'options': '-c search_path=code_complexity_db,public'  # Prioritize 'code_harbor' schema
@@ -135,6 +135,14 @@ DATABASES = {
         # 'TEST': {
         #     'MIRROR': 'default'  # Use the same database but with a different schema
         # },
+    },
+    'code_analysis': {  # Secondary DB for code analysis
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'code_analysis_db',  # Change as needed
+        'USER': 'postgres',
+        'PASSWORD': '12345',
+        'HOST': DB_HOST,   #use "localhost" when locally running
+        'PORT': '5432',  # Default PostgreSQL port
     }
 }
 DATABASE_ROUTERS = ['Drinks.routers.CodeAnalysisRouter']

@@ -5,48 +5,6 @@
 
 {% block content %}
 
-    {% block sidebar %}
-    <div class="sidebar" data-color="black">
-        <div class="sidebar-wrapper">
-            <div class="logo">
-                <a href="http://127.0.0.1:8000" class="simple-text logo-mini">
-                    <img src="{% static 'images/code-harbor-logo.png' %}" alt="Code Harbor Logo" width="30">
-                </a>
-                <a href="http://127.0.0.1:8000" class="simple-text logo-normal">Code Harbor</a>
-            </div>
-            <ul class="nav">
-                <li>
-                    <a href="{% url 'add_resource' %}"><i class="bi bi-person-circle"></i>
-                        <p>Profile</p>
-                    </a>
-                </li>
-                <li><a href="http://127.0.0.1:8000/games/github-scraper/"><i class="bi bi-controller"></i>
-                    <p>Accessibility Challenges</p></a></li>
-                <li>
-                    <a href="#" class="upload-btn"><i class="bi bi-upload"></i>
-                        <p>Upload Code</p>
-                    </a>
-                    <input type="file" name="file" id="fileInput" class="d-none">
-                </li>
-                <li><a href="{% url 'define_guidelines' %}"><i class="bi bi-globe"></i>
-                    <p>Upload URL</p></a></li>
-
-                <li><a href="http://127.0.0.1:8000/api/submit/"><i class="bi bi-shield-check"></i>
-                    <p>Accessiblity Evaluator</p></a></li>
-                <!-- ✅ Add Resources with a proper icon -->
-
-
-                <li><a href="#"><i class="bi bi-gear"></i>
-                    <p>Settings</p></a></li>
-                <li><a href="#" onclick="logoutUser(); return false;"><i class="bi bi-box-arrow-right"></i>
-    <p>Logout</p></a></li>
-
-            </ul>
-        </div>
-    </div>
-{% endblock %}
-
-
     <style>
 
         body {
@@ -420,27 +378,28 @@
                 }
 
                 let actualScore = data.score;
-
-                document.getElementById('score').innerHTML = `
+              document.getElementById('score').innerHTML = `
   <div class="score-tooltip-container">
-    <strong>Accessibility Score:</strong>
-    <span style="color: #00ccff;">${actualScore}%</span>
-    <span class="tooltip-icon">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="#aaa" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="10" stroke="#00ccff" stroke-width="2" fill="none"/>
-        <text x="12" y="16" text-anchor="middle" font-size="14" fill="#00ccff" font-family="Arial, sans-serif">i</text>
-      </svg>
-      <div class="custom-tooltip">
-        <div><strong>How it's calculated:</strong></div>
-        <div class="formula">Score = (✔️ Passed / ✅ Total Rules) × 100</div>
-        <ul>
-          <li><span class="emoji">✔️</span> <strong>Passed:</strong> When code snippets follow the WCAG guidelines.</li>
-          <li><span class="emoji">❌</span> <strong>Violated:</strong> When code snippets Failed WCAG rules</li>
-          <li><span class="emoji">🧠</span> <em>Only relevant rules are tested</em></li>
-        </ul>
-      </div>
-    </span>
-  </div>
+  <strong>Accessibility Score:</strong>
+  <span style="color: #00ccff;">83.87%</span>
+  <span class="tooltip-icon">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="#aaa" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" stroke="#00ccff" stroke-width="2" fill="none"/>
+    <text x="12" y="16" text-anchor="middle" font-size="14" fill="#00ccff" font-family="Arial, sans-serif">i</text>
+  </svg>
+
+    <div class="custom-tooltip">
+      <div><strong>How it's calculated:</strong></div>
+      <div class="formula">Score = (✔️ Passed / ✅ Total Rules) × 100</div>
+      <ul>
+        <li><span class="emoji">✔️</span> <strong>Passed:</strong> When code snippets follow the WCAG guidelines.</li>
+        <li><span class="emoji">❌</span> <strong>Violated:</strong> When code snippets Failed WCAG rules</li>
+        <li><span class="emoji">🧠</span> <em>Only relevant rules are tested</em></li>
+      </ul>
+    </div>
+  </span>
+</div>
+
 `;
 
 
