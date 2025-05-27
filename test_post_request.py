@@ -41,7 +41,7 @@ html_code = """
 </html>
 
 """
-guidelines = ["1", "2", "11"]  # Replace with the guidelines you want to evaluate
+guidelines = ["1", "2"]  # Replace with the guidelines you want to evaluate
 
 # Create the JSON payload
 payload = {
