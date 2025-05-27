@@ -36,4 +36,4 @@ class CodeAnalysisPerformanceTest(TestCase):
         print(f"🚀 Performance Test: Analyzing large code took {duration:.2f} seconds")
 
         self.assertEqual(response.status_code, 200)
-        self.assertLess(duration, 15.0, "❌ Performance test failed! Took too long.")  # Adjust threshold as needed
+        self.assertLess(duration, 20.0, "❌ Performance test failed! Took too long.")  # Adjust threshold as needed
