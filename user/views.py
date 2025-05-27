@@ -1,13 +1,6 @@
-from datetime import date, timedelta
-
-from django.contrib.auth.decorators import login_required
-from django.db.models import Avg
-from django.shortcuts import render, get_object_or_404, redirect
-
-# Create your views here.
-from django.shortcuts import render
-
-# Create your views here.
+from django.db.models import Avg, Count, Max, F
+from django.shortcuts import get_object_or_404, render
+from games.models import UserBadge
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -17,9 +10,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken, OutstandingToken
 from rest_framework.exceptions import NotAuthenticated
 from django.core.exceptions import ValidationError
-
 from games.models import GitGameScore
-from user.forms import ProfileUpdateForm
 from user.models import UserProfile
 
 
@@ -121,25 +112,62 @@ def logout_all(request):
         token.blacklist()
     return Response({'message': 'Successfully logged out from all sessions.'}, status=200)
 
+from django.db.models import Avg, Count, Max
+from django.shortcuts import get_object_or_404, render
+from django.contrib.auth.models import User
+from games.models import GitGameScore, UserBadge
+from user.models import UserProfile
 
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+
+from django.db.models import OuterRef, Subquery
+
 def user_profile_view(request, username):
-    """Display the user profile."""
     user = get_object_or_404(User, username=username)
-    user_profile, created = UserProfile.objects.get_or_create(user=user)
+    user_profile, _ = UserProfile.objects.get_or_create(user=user)
 
-    # Calculate leaderboard position
+    # Leaderboard
     leaderboard = (
         GitGameScore.objects.values("user__id", "user__username")
         .annotate(avg_score=Avg("score"))
         .order_by("-avg_score")
     )
-
     rank = next((index + 1 for index, entry in enumerate(leaderboard) if entry["user__id"] == user.id), None)
 
     completed_challenges = GitGameScore.objects.filter(user=user).count()
     avg_score = GitGameScore.objects.filter(user=user).aggregate(Avg("score"))["score__avg"] or 0
+
+    # Subquery: latest attempt per challenge
+    latest_ids = (
+        GitGameScore.objects
+        .filter(user=user, github_challenge_id=OuterRef("github_challenge_id"))
+        .order_by("-last_played")
+        .values("id")[:1]
+    )
+
+    latest_scores = (
+        GitGameScore.objects
+        .filter(user=user, id__in=Subquery(latest_ids))
+        .select_related("github_challenge", "game")
+        .order_by("-last_played")
+    )
+
+    # Build game history dictionary
+    game_history = [
+        {
+
+            "challenge_title": entry.github_challenge.title if entry.github_challenge else "Uploaded Code",
+            "last_played": entry.last_played,
+            "score": entry.score,
+            "attempts": entry.attempts,
+            "critical": entry.critical_score,
+            "serious": entry.serious_score,
+            "moderate": entry.moderate_score,
+            "minor": entry.minor_score,
+        }
+        for entry in latest_scores
+    ]
+
+    user_badges = UserBadge.objects.filter(user=user).select_related("badge")
 
     return render(
         request,
@@ -149,6 +177,8 @@ def user_profile_view(request, username):
             "rank": rank,
             "completed_challenges": completed_challenges,
             "avg_score": avg_score,
+            "game_history": game_history,
+            "user_badges": user_badges,
         },
     )
 

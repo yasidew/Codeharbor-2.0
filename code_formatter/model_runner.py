@@ -5,8 +5,8 @@ import os
 # model_path = os.path.join(os.path.dirname(__file__), "refactoring_model")
 # model_path = "../code-refactoring/refactoring_model"
 # Dynamically build absolute path to model directory
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-model_path = os.path.join(BASE_DIR, 'code-refactoring', 'refactoring_model')
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# model_path = os.path.join(BASE_DIR, 'code-refactoring', 'refactoring_model')
 # model_path = os.path.join(BASE_DIR, 'code-refactoring', 'refactoring_model', 'refactoring_model')
 
 # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,11 +20,11 @@ model_path = os.path.join(BASE_DIR, 'code-refactoring', 'refactoring_model')
 # AWS PATH
 # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # model_path = os.path.join(BASE_DIR, 'refactoring_model')
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+# tokenizer = AutoTokenizer.from_pretrained(model_path)
+# model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
+# model.to(device)
 
 def run_refactor_model(code: str, refactor_type: str, generation_config=None) -> str:
     if not generation_config:
